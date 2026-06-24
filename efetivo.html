@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AFA · Controle de Efetivo — DE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy-900:#0a1628; --navy-800:#0f2341; --navy-700:#14315a;
+      --navy-600:#1e4377; --navy-500:#2d5a9e; --navy-400:#5b82c4;
+      --navy-300:#94b0d8; --navy-200:#c5d4e8; --navy-100:#e6eef7; --navy-50:#f2f6fb;
+      --gold-500:#d4a84b; --gold-400:#e6be65; --gold-300:#f0d487;
+      --green-500:#10b981; --green-400:#34d399; --green-50:#ecfdf5;
+      --red-500:#ef4444; --red-400:#f87171; --red-50:#fef2f2;
+      --gray-100:#f1f5f9; --gray-200:#e2e8f0; --gray-300:#cbd5e1;
+      --gray-400:#94a3b8; --gray-500:#64748b; --gray-700:#334155; --gray-900:#0f172a;
+      --white:#ffffff;
+      --font-display:'Oswald', sans-serif;
+      --font-body:'Inter', sans-serif;
+      --font-mono:'JetBrains Mono', monospace;
+    }
+
+    body { font-family: var(--font-body); background: var(--navy-50); color: var(--navy-900); min-height: 100vh; overflow-x: hidden; }
+    body::after {
+      content:''; position:fixed; inset:0;
+      background-image: linear-gradient(rgba(20,49,90,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(20,49,90,.04) 1px, transparent 1px);
+      background-size: 40px 40px; pointer-events: none; z-index: 0;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: linear-gradient(135deg, var(--navy-900), var(--navy-700)); color: white;
+      padding: 0 2rem; height: 78px;
+      display:flex; align-items:center; justify-content:space-between;
+      position: sticky; top:0; z-index:100;
+      border-bottom: 3px solid var(--gold-500);
+    }
+    header::before {
+      content:''; position:absolute; inset:0;
+      background-image: repeating-linear-gradient(45deg, rgba(212,168,75,.05) 0 1px, transparent 1px 20px);
+      pointer-events:none;
+    }
+    .logo { display:flex; align-items:center; gap:1rem; position:relative; }
+    .crest {
+      width: 58px; height: 58px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: white; border-radius: 6px; padding: 3px;
+      border: 2px solid var(--gold-500); box-shadow: 0 3px 10px rgba(0,0,0,.3);
+    }
+    .crest img { width: 100%; height: 100%; object-fit: contain; }
+    .logo-text { font-family: var(--font-display); font-size:1.15rem; font-weight:600; letter-spacing:.04em; line-height:1; text-transform: uppercase; }
+    .logo-sub { font-size:.7rem; color: var(--navy-300); letter-spacing:.08em; text-transform:uppercase; margin-top:4px; }
+    .header-right { display:flex; align-items:center; gap:1rem; position:relative; }
+    .last-update { font-family: var(--font-mono); font-size:.72rem; color: var(--navy-200); background: rgba(255,255,255,.08); padding:.35rem .85rem; border-radius:4px; border:1px solid rgba(255,255,255,.1); }
+    .nav-btn, .refresh-btn, .save-btn {
+      display:flex; align-items:center; gap:.45rem;
+      font-size:.72rem; font-weight:500; color:white;
+      background: rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15);
+      border-radius:4px; padding:.4rem .8rem; cursor:pointer; text-transform:uppercase;
+      letter-spacing:.05em; transition: all .2s; font-family: var(--font-body); text-decoration: none;
+    }
+    .nav-btn:hover, .refresh-btn:hover { background: rgba(255,255,255,.15); }
+    .refresh-btn.spinning svg { animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .save-btn { background: var(--gold-500); color: var(--navy-900); border-color: var(--gold-500); font-weight: 600; }
+    .save-btn:hover:not(:disabled) { background: var(--gold-400); }
+    .save-btn:disabled { opacity:.5; cursor:not-allowed; }
+
+    .cocar-icon { width: 18px; height: 18px; flex-shrink: 0; object-fit: contain; filter: drop-shadow(0 1px 2px rgba(0,0,0,.2)); }
+    .cocar-icon.lg { width: 28px; height: 28px; }
+    .cocar-icon.xl { width: 44px; height: 44px; }
+
+    /* ── STATUS BANNER ── */
+    #status-banner { display:none; padding:.6rem 2rem; font-size:.8rem; font-weight:500; align-items:center; gap:.6rem; position:relative; z-index:5; }
+    #status-banner.loading { display:flex; background:#dbeafe; color:#1e3a8a; }
+    #status-banner.error   { display:flex; background:#fef2f2; color:#991b1b; }
+    #status-banner.success { display:flex; background:#dcfce7; color:#166534; }
+
+    /* ── SUMMARY ── */
+    .summary { display:flex; gap:.75rem; padding:1.25rem 2rem; background:white; border-bottom:1px solid var(--navy-100); overflow-x:auto; position:relative; z-index:5; }
+    .summary-card { flex:0 0 auto; display:flex; align-items:center; gap:.75rem; background: var(--navy-50); border:1px solid var(--navy-100); border-left:3px solid; border-radius:4px; padding:.6rem 1.1rem; min-width:130px; }
+    .summary-card.green  { border-left-color: var(--green-500); }
+    .summary-card.red    { border-left-color: var(--red-500); }
+    .summary-card.gray   { border-left-color: var(--gray-400); }
+    .summary-card.gold   { border-left-color: var(--gold-500); margin-left:auto; }
+    .summary-count { font-family: var(--font-display); font-size:1.5rem; font-weight:600; line-height:1; color: var(--navy-900); }
+    .summary-label { font-size:.65rem; color: var(--gray-500); text-transform:uppercase; letter-spacing:.08em; font-weight:500; margin-top:2px; }
+
+    /* ── MAIN LAYOUT ── */
+    main { max-width:1500px; margin:0 auto; padding:1.5rem 2rem; position:relative; z-index:5; }
+    .section-title { font-family: var(--font-display); font-size:.72rem; font-weight:500; text-transform:uppercase; letter-spacing:.12em; color: var(--navy-600); margin-bottom:1rem; display:flex; align-items:center; gap:.5rem; }
+    .section-title::before { content:''; width:16px; height:2px; background: var(--gold-500); }
+
+    .toolbar { display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; margin-bottom:1.25rem; }
+    .date-pill { font-family: var(--font-mono); font-size:.8rem; background:white; border:1px solid var(--navy-100); border-left:3px solid var(--gold-500); border-radius:4px; padding:.5rem .9rem; color:var(--navy-800); }
+    .search-box { flex:1; min-width:180px; max-width:340px; position:relative; }
+    .search-box input { width:100%; font-family:var(--font-body); font-size:.85rem; padding:.55rem .9rem .55rem 2.2rem; border:1px solid var(--navy-200); border-radius:6px; background:white; color:var(--navy-900); outline:none; transition:border-color .2s; }
+    .search-box input:focus { border-color:var(--navy-400); }
+    .search-box svg { position:absolute; left:.7rem; top:50%; transform:translateY(-50%); width:15px; height:15px; color:var(--gray-400); }
+
+    /* ── BOARD (3 colunas: presentes | pool | faltas) ── */
+    .board { display:grid; grid-template-columns: 1fr 1.15fr 1fr; gap:1rem; align-items:start; }
+    @media(max-width:960px){ .board { grid-template-columns:1fr; } }
+
+    .column { background: linear-gradient(180deg, white 0%, var(--navy-50) 100%); border:1px solid var(--navy-100); border-radius:10px; padding:1rem; min-height:200px; position:relative; overflow:hidden; transition: box-shadow .2s, border-color .2s; }
+    .column::before { content:''; position:absolute; top:0; right:0; width:80px; height:80px; background-image: repeating-linear-gradient(45deg, rgba(45,90,158,.04) 0 1px, transparent 1px 10px); border-radius:0 10px 0 100%; pointer-events:none; }
+    .column.pool    { border-top:3px solid var(--navy-600); }
+    .column.present { border-top:3px solid var(--green-500); }
+    .column.absent  { border-top:3px solid var(--red-500); }
+    .column.drag-over { box-shadow: inset 0 0 0 2px var(--navy-400); }
+    .column.present.drag-over { box-shadow: inset 0 0 0 2px var(--green-500); background:var(--green-50); }
+    .column.absent.drag-over  { box-shadow: inset 0 0 0 2px var(--red-500); background:var(--red-50); }
+
+    .col-head { display:flex; align-items:center; gap:.6rem; margin-bottom:.9rem; position:relative; }
+    .col-badge { padding:.3rem .6rem; border-radius:4px; font-family:var(--font-display); font-size:.65rem; font-weight:600; text-transform:uppercase; letter-spacing:.1em; color:white; }
+    .col-badge.pool    { background:var(--navy-700); color:var(--gold-400); }
+    .col-badge.present { background:var(--green-500); }
+    .col-badge.absent  { background:var(--red-500); }
+    .col-title { font-family:var(--font-display); font-size:.95rem; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--navy-900); flex:1; }
+    .col-count { font-family:var(--font-mono); font-size:.72rem; color:var(--gray-500); background:white; padding:.2rem .55rem; border-radius:4px; border:1px solid var(--navy-100); }
+
+    .col-body { display:flex; flex-direction:column; gap:.5rem; min-height:80px; position:relative; }
+    .col-empty { text-align:center; color:var(--gray-400); font-size:.78rem; padding:1.6rem .5rem; border:1.5px dashed var(--navy-200); border-radius:8px; }
+
+    /* ── CARD DO MILITAR ── */
+    .mil-card {
+      display:flex; align-items:center; gap:.7rem;
+      background:white; border:1px solid var(--navy-100); border-left:3px solid var(--navy-400);
+      border-radius:7px; padding:.55rem .7rem; cursor:grab; user-select:none;
+      transition: box-shadow .15s, transform .1s, border-color .15s;
+      touch-action: none;
+    }
+    .mil-card:hover { box-shadow:0 2px 8px rgba(20,49,90,.1); }
+    .mil-card:active { cursor:grabbing; }
+    .mil-card.dragging { opacity:.4; }
+    .mil-card.ghost {
+      position:fixed; z-index:9999; pointer-events:none; width:240px; max-width:70vw;
+      box-shadow:0 8px 24px rgba(10,22,40,.28); transform:rotate(-1.5deg); opacity:.96;
+    }
+    .present .mil-card { border-left-color:var(--green-500); }
+    .absent  .mil-card { border-left-color:var(--red-500); }
+
+    .mil-avatar { width:34px; height:34px; flex-shrink:0; border-radius:6px; background:linear-gradient(135deg,var(--navy-600),var(--navy-800)); color:var(--gold-300); display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:600; font-size:.72rem; letter-spacing:.02em; }
+    .present .mil-avatar { background:linear-gradient(135deg,var(--green-500),#0f9d6e); color:white; }
+    .absent  .mil-avatar { background:linear-gradient(135deg,var(--red-500),#c0392b); color:white; }
+    .mil-info { flex:1; min-width:0; }
+    .mil-name { font-size:.84rem; font-weight:600; color:var(--navy-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .mil-meta { font-size:.66rem; color:var(--gray-500); text-transform:uppercase; letter-spacing:.04em; margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .mil-rank { display:inline-block; font-family:var(--font-mono); font-weight:600; color:var(--navy-600); }
+
+    /* botões rápidos no card (alternativa ao arraste, útil no celular) */
+    .mil-actions { display:flex; gap:.3rem; flex-shrink:0; }
+    .mil-act { width:26px; height:26px; border-radius:5px; border:1px solid var(--navy-200); background:white; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; padding:0; }
+    .mil-act svg { width:14px; height:14px; }
+    .mil-act.p { color:var(--green-500); }
+    .mil-act.p:hover { background:var(--green-500); color:white; border-color:var(--green-500); }
+    .mil-act.a { color:var(--red-500); }
+    .mil-act.a:hover { background:var(--red-500); color:white; border-color:var(--red-500); }
+    .mil-act.u { color:var(--gray-500); }
+    .mil-act.u:hover { background:var(--gray-400); color:white; border-color:var(--gray-400); }
+
+    /* ── FOOTER ── */
+    footer { text-align:center; padding:1.5rem; font-size:.72rem; color:var(--gray-500); display:flex; align-items:center; justify-content:center; gap:.5rem; position:relative; z-index:5; }
+
+    @media(max-width:600px){
+      header { padding: 0 .75rem; height: 62px; }
+      .logo-text { font-size: .9rem; }
+      .logo-sub { font-size: .6rem; }
+      .crest { width: 42px; height: 42px; }
+      .last-update { display:none; }
+      .nav-btn span, .refresh-btn span { display:none; }
+      .nav-btn, .refresh-btn, .save-btn { padding:.35rem .55rem; font-size:.65rem; }
+      main { padding:.85rem; }
+      .summary { padding:.75rem; gap:.5rem; }
+      .summary-card { min-width:104px; padding:.45rem .75rem; }
+      .summary-count { font-size:1.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="crest"><img src="assets/brasao-afa.jpg" alt="Brasão da AFA" /></div>
+    <div>
+      <div class="logo-text">Academia da Força Aérea</div>
+      <div class="logo-sub">Divisão de Ensino · Efetivo</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <a class="nav-btn" href="index.html">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <span>Higiene</span>
+    </a>
+    <button class="refresh-btn" id="refresh-btn" onclick="loadEfetivo()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+      <span>Recarregar</span>
+    </button>
+    <button class="save-btn" id="save-btn" onclick="saveChamada()" disabled>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      <span>Gravar chamada</span>
+    </button>
+    <span class="last-update" id="last-update">—</span>
+  </div>
+</header>
+
+<div id="status-banner"><span id="status-msg"></span></div>
+
+<div class="summary" id="summary-bar">
+  <div class="summary-card gray"><div><div class="summary-count" id="cnt-total">—</div><div class="summary-label">Efetivo Total</div></div></div>
+  <div class="summary-card green"><div><div class="summary-count" id="cnt-present">0</div><div class="summary-label">Presentes</div></div></div>
+  <div class="summary-card red"><div><div class="summary-count" id="cnt-absent">0</div><div class="summary-label">Faltas</div></div></div>
+  <div class="summary-card gray"><div><div class="summary-count" id="cnt-pending">—</div><div class="summary-label">Pendentes</div></div></div>
+  <div class="summary-card gold"><div><div class="summary-count" id="cnt-pct">—</div><div class="summary-label">Presença</div></div></div>
+</div>
+
+<main>
+  <div class="toolbar">
+    <div class="date-pill" id="date-pill">—</div>
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input type="text" id="search" placeholder="Buscar militar…" oninput="renderBoard()" />
+    </div>
+  </div>
+
+  <div class="board">
+    <!-- PRESENTES -->
+    <div class="column present" id="col-present" data-status="present">
+      <div class="col-head">
+        <span class="col-badge present">✓</span>
+        <span class="col-title">Presentes</span>
+        <span class="col-count" id="head-present">0</span>
+      </div>
+      <div class="col-body" id="body-present"></div>
+    </div>
+
+    <!-- POOL / A CHAMAR -->
+    <div class="column pool" id="col-pool" data-status="pool">
+      <div class="col-head">
+        <img src="assets/cocar-fab.png" class="cocar-icon lg" alt="" />
+        <span class="col-title">Em Forma — A Chamar</span>
+        <span class="col-count" id="head-pool">0</span>
+      </div>
+      <div class="col-body" id="body-pool"></div>
+    </div>
+
+    <!-- FALTAS -->
+    <div class="column absent" id="col-absent" data-status="absent">
+      <div class="col-head">
+        <span class="col-badge absent">✕</span>
+        <span class="col-title">Faltas</span>
+        <span class="col-count" id="head-absent">0</span>
+      </div>
+      <div class="col-body" id="body-absent"></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <img src="assets/cocar-fab.png" class="cocar-icon" alt="" />
+  Academia da Força Aérea · Divisão de Ensino — Controle de Efetivo
+  <img src="assets/cocar-fab.png" class="cocar-icon" alt="" />
+</footer>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   CONFIG
+   ══════════════════════════════════════════════════════════════ */
+
+// Planilha de EFETIVO (somente leitura) — aba "efetivo", linhas 5..75, colunas C..E
+// C = Posto/Graduação | D = Especialidade | E = Nome
+const EFETIVO_SHEET_ID = '1UOMh4y-wHL8kHcB9TUUcEmkeF7z6KYAs4vipsoOFgfA';
+const EFETIVO_TAB      = 'efetivo';
+const ROW_START = 5;   // primeira linha de dados
+const ROW_END   = 75;  // última linha de dados
+
+// gviz com range explícito C5:E75 (col C=índice 0 no resultado, D=1, E=2)
+const EFETIVO_URL = () =>
+  `https://docs.google.com/spreadsheets/d/${EFETIVO_SHEET_ID}/gviz/tq` +
+  `?tqx=out:json&sheet=${encodeURIComponent(EFETIVO_TAB)}` +
+  `&range=C${ROW_START}:E${ROW_END}&headers=0`;
+
+// ── Web App do Apps Script (gravação do histórico) ──
+// COLE AQUI a URL que o Google gera ao publicar o Apps Script (termina em /exec)
+// Enquanto estiver vazio, a página funciona normalmente mas não grava no banco.
+const APPS_SCRIPT_URL = '';
+
+/* ══════════════════════════════════════════════════════════════
+   ESTADO
+   ══════════════════════════════════════════════════════════════ */
+let efetivo = [];   // [{id, rank, spec, name, status}]  status: 'pool'|'present'|'absent'
+let dragId = null;
+
+/* ══════════════════════════════════════════════════════════════
+   LEITURA DA PLANILHA DE EFETIVO
+   ══════════════════════════════════════════════════════════════ */
+async function loadEfetivo() {
+  setBanner('loading', 'Carregando efetivo da planilha…');
+  setRefreshSpinning(true);
+  try {
+    const res = await fetch(EFETIVO_URL());
+    const text = await res.text();
+    const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
+    if (!match) throw new Error('Resposta inesperada da planilha');
+    const json = JSON.parse(match[1]);
+    if (json?.status === 'error') throw new Error('Planilha não acessível (verifique o compartilhamento)');
+
+    const rows = json?.table?.rows || [];
+    const parsed = [];
+    rows.forEach((row, i) => {
+      const c = row.c || [];
+      const rank = (c[0]?.v ?? '').toString().trim();
+      const spec = (c[1]?.v ?? '').toString().trim();
+      const name = (c[2]?.v ?? '').toString().trim();
+      if (!name) return; // pula linhas vazias
+      parsed.push({
+        id: 'm' + i,
+        rank, spec, name,
+        status: 'pool',
+      });
+    });
+
+    if (!parsed.length) throw new Error('Nenhum militar encontrado em C5:E75');
+
+    // Preserva o status já marcado se for um recarregar
+    const prev = {};
+    efetivo.forEach(m => prev[m.name] = m.status);
+    parsed.forEach(m => { if (prev[m.name]) m.status = prev[m.name]; });
+
+    efetivo = parsed;
+    setBanner('success', `Efetivo carregado: ${efetivo.length} militares.`);
+    setTimeout(() => setBanner(null), 2500);
+    renderBoard();
+  } catch (e) {
+    setBanner('error', '⚠️ ' + (e.message || 'Falha ao ler a planilha de efetivo.'));
+  } finally {
+    setRefreshSpinning(false);
+    updateClock();
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RENDER DO QUADRO
+   ══════════════════════════════════════════════════════════════ */
+function initials(name) {
+  const parts = name.split(/\s+/).filter(Boolean);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
+function cardHTML(m) {
+  const meta = [m.rank, m.spec].filter(Boolean).join(' · ');
+  let actions = '';
+  if (m.status === 'pool') {
+    actions = `
+      <button class="mil-act p" title="Presente" onclick="setStatus('${m.id}','present', event)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+      </button>
+      <button class="mil-act a" title="Falta" onclick="setStatus('${m.id}','absent', event)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>`;
+  } else {
+    actions = `
+      <button class="mil-act u" title="Voltar para a forma" onclick="setStatus('${m.id}','pool', event)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-1"/></svg>
+      </button>`;
+  }
+  return `
+    <div class="mil-card" id="card-${m.id}" data-id="${m.id}" draggable="true">
+      <div class="mil-avatar">${initials(m.name)}</div>
+      <div class="mil-info">
+        <div class="mil-name">${m.name}</div>
+        <div class="mil-meta">${meta ? '<span class="mil-rank">'+m.rank+'</span>' + (m.spec ? ' · '+m.spec : '') : '—'}</div>
+      </div>
+      <div class="mil-actions">${actions}</div>
+    </div>`;
+}
+
+function renderBoard() {
+  const q = (document.getElementById('search').value || '').toLowerCase().trim();
+  const match = m => !q || m.name.toLowerCase().includes(q) || (m.rank||'').toLowerCase().includes(q) || (m.spec||'').toLowerCase().includes(q);
+
+  const buckets = { pool: [], present: [], absent: [] };
+  efetivo.forEach(m => { if (match(m)) buckets[m.status].push(m); });
+
+  fillCol('pool', buckets.pool, 'Arraste os militares para Presentes ou Faltas');
+  fillCol('present', buckets.present, 'Solte aqui quem está presente');
+  fillCol('absent', buckets.absent, 'Solte aqui quem faltou');
+
+  // Contadores (sobre o efetivo inteiro, não o filtrado)
+  const all = { pool:0, present:0, absent:0 };
+  efetivo.forEach(m => all[m.status]++);
+  document.getElementById('head-pool').textContent = all.pool;
+  document.getElementById('head-present').textContent = all.present;
+  document.getElementById('head-absent').textContent = all.absent;
+
+  document.getElementById('cnt-total').textContent = efetivo.length || '—';
+  document.getElementById('cnt-present').textContent = all.present;
+  document.getElementById('cnt-absent').textContent = all.absent;
+  document.getElementById('cnt-pending').textContent = all.pool;
+  const chamados = all.present + all.absent;
+  document.getElementById('cnt-pct').textContent = chamados ? Math.round(all.present / chamados * 100) + '%' : '—';
+
+  // Habilita gravar só quando houver pelo menos uma marcação
+  document.getElementById('save-btn').disabled = (all.present + all.absent) === 0;
+
+  attachDragHandlers();
+}
+
+function fillCol(status, list, emptyMsg) {
+  const body = document.getElementById('body-' + status);
+  body.innerHTML = list.length ? list.map(cardHTML).join('') : `<div class="col-empty">${emptyMsg}</div>`;
+}
+
+function setStatus(id, status, ev) {
+  if (ev) ev.stopPropagation();
+  const m = efetivo.find(x => x.id === id);
+  if (m) m.status = status;
+  renderBoard();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DRAG & DROP — desktop (HTML5) + touch (mobile)
+   ══════════════════════════════════════════════════════════════ */
+function attachDragHandlers() {
+  document.querySelectorAll('.mil-card').forEach(card => {
+    const id = card.dataset.id;
+    // Desktop
+    card.addEventListener('dragstart', e => {
+      dragId = id; card.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', id);
+    });
+    card.addEventListener('dragend', () => { card.classList.remove('dragging'); dragId = null; clearDragOver(); });
+    // Touch
+    card.addEventListener('touchstart', touchStart, { passive:false });
+  });
+
+  document.querySelectorAll('.column').forEach(col => {
+    col.addEventListener('dragover', e => { e.preventDefault(); col.classList.add('drag-over'); });
+    col.addEventListener('dragleave', () => col.classList.remove('drag-over'));
+    col.addEventListener('drop', e => {
+      e.preventDefault();
+      col.classList.remove('drag-over');
+      const id = e.dataTransfer.getData('text/plain') || dragId;
+      dropOn(id, col.dataset.status);
+    });
+  });
+}
+
+function clearDragOver() {
+  document.querySelectorAll('.column').forEach(c => c.classList.remove('drag-over'));
+}
+
+function dropOn(id, status) {
+  if (!id || !status) return;
+  const m = efetivo.find(x => x.id === id);
+  if (m && m.status !== status) { m.status = status; renderBoard(); }
+}
+
+/* ── Touch drag (celular) ── */
+let touchGhost = null, touchCard = null, touchMilId = null;
+function touchStart(e) {
+  const card = e.currentTarget;
+  touchMilId = card.dataset.id;
+  touchCard = card;
+  const t = e.touches[0];
+  touchGhost = card.cloneNode(true);
+  touchGhost.classList.add('ghost');
+  document.body.appendChild(touchGhost);
+  moveGhost(t.clientX, t.clientY);
+  card.classList.add('dragging');
+  document.addEventListener('touchmove', touchMove, { passive:false });
+  document.addEventListener('touchend', touchEnd, { passive:false });
+}
+function moveGhost(x, y) {
+  if (!touchGhost) return;
+  touchGhost.style.left = (x - touchGhost.offsetWidth / 2) + 'px';
+  touchGhost.style.top  = (y - 24) + 'px';
+}
+function touchMove(e) {
+  if (!touchGhost) return;
+  e.preventDefault();
+  const t = e.touches[0];
+  moveGhost(t.clientX, t.clientY);
+  const col = colUnder(t.clientX, t.clientY);
+  document.querySelectorAll('.column').forEach(c => c.classList.toggle('drag-over', c === col));
+}
+function touchEnd(e) {
+  const t = e.changedTouches[0];
+  const col = colUnder(t.clientX, t.clientY);
+  if (col) dropOn(touchMilId, col.dataset.status);
+  if (touchGhost) touchGhost.remove();
+  if (touchCard) touchCard.classList.remove('dragging');
+  clearDragOver();
+  touchGhost = touchCard = touchMilId = null;
+  document.removeEventListener('touchmove', touchMove);
+  document.removeEventListener('touchend', touchEnd);
+}
+function colUnder(x, y) {
+  const el = document.elementFromPoint(x, y);
+  return el ? el.closest('.column') : null;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GRAVAÇÃO DO HISTÓRICO (Apps Script)
+   ══════════════════════════════════════════════════════════════ */
+async function saveChamada() {
+  const marcados = efetivo.filter(m => m.status !== 'pool');
+  if (!marcados.length) { setBanner('error', 'Nenhuma marcação para gravar.'); return; }
+
+  const payload = {
+    data: new Date().toISOString(),
+    registros: marcados.map(m => ({
+      nome: m.name, posto: m.rank, especialidade: m.spec,
+      situacao: m.status === 'present' ? 'PRESENTE' : 'FALTA',
+    })),
+    resumo: {
+      total: efetivo.length,
+      presentes: efetivo.filter(m => m.status === 'present').length,
+      faltas: efetivo.filter(m => m.status === 'absent').length,
+    }
+  };
+
+  if (!APPS_SCRIPT_URL) {
+    setBanner('error', 'Configuração pendente: cole a URL do Apps Script no código (APPS_SCRIPT_URL) para gravar no banco.');
+    console.log('Payload que seria gravado:', payload);
+    return;
+  }
+
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true;
+  setBanner('loading', 'Gravando chamada no banco de dados…');
+  try {
+    // text/plain evita preflight CORS no Apps Script
+    const res = await fetch(APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload),
+    });
+    const out = await res.json().catch(() => ({}));
+    if (out && out.ok) {
+      setBanner('success', `✓ Chamada gravada (${payload.resumo.presentes} presentes, ${payload.resumo.faltas} faltas).`);
+      setTimeout(() => setBanner(null), 4000);
+    } else {
+      throw new Error(out.error || 'Resposta inesperada do servidor.');
+    }
+  } catch (e) {
+    setBanner('error', '⚠️ Não foi possível gravar: ' + (e.message || e));
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   HELPERS
+   ══════════════════════════════════════════════════════════════ */
+function setBanner(type, msg='') {
+  const el = document.getElementById('status-banner');
+  el.className = type || '';
+  document.getElementById('status-msg').textContent = msg;
+  if (!type) el.style.display = 'none';
+}
+function setRefreshSpinning(on) { document.getElementById('refresh-btn').classList.toggle('spinning', on); }
+function updateClock() {
+  const now = new Date();
+  document.getElementById('last-update').textContent = 'ATUALIZADO ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('date-pill').textContent = now.toLocaleDateString('pt-BR',{weekday:'long', day:'2-digit', month:'long', year:'numeric'}).toUpperCase();
+}
+
+/* INIT */
+updateClock();
+loadEfetivo();
+setInterval(updateClock, 30000);
+</script>
+</body>
+</html>
