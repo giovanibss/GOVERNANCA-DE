@@ -55,6 +55,9 @@
     .logo-sub { font-size:.7rem; color: var(--navy-300); letter-spacing:.08em; text-transform:uppercase; margin-top:4px; }
     .header-right { display:flex; align-items:center; gap:1rem; position:relative; }
     .last-update { font-family: var(--font-mono); font-size:.72rem; color: var(--navy-200); background: rgba(255,255,255,.08); padding:.35rem .85rem; border-radius:4px; border:1px solid rgba(255,255,255,.1); }
+    .live-dot { display:flex; align-items:center; gap:.4rem; font-size:.7rem; color: var(--navy-200); text-transform:uppercase; letter-spacing:.06em; }
+    .live-dot .pulse { width:8px; height:8px; border-radius:50%; background: var(--green-400); box-shadow:0 0 0 0 rgba(52,211,153,.6); animation: pulse 2s infinite; }
+    @keyframes pulse { 0% { box-shadow:0 0 0 0 rgba(52,211,153,.5);} 70% { box-shadow:0 0 0 6px rgba(52,211,153,0);} 100% { box-shadow:0 0 0 0 rgba(52,211,153,0);} }
     .nav-btn, .refresh-btn, .save-btn {
       display:flex; align-items:center; gap:.45rem;
       font-size:.72rem; font-weight:500; color:white;
@@ -204,6 +207,7 @@
       <span>Gravar chamada</span>
     </button>
     <span class="last-update" id="last-update">—</span>
+    <span class="live-dot" title="Sincronização entre aparelhos"><span class="pulse" id="sync-dot" style="background:var(--green-400)"></span> Sinc.</span>
   </div>
 </header>
 
@@ -286,7 +290,122 @@ const EFETIVO_URL = () =>
 // ── Web App do Apps Script (gravação do histórico) ──
 // COLE AQUI a URL que o Google gera ao publicar o Apps Script (termina em /exec)
 // Enquanto estiver vazio, a página funciona normalmente mas não grava no banco.
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx8t7aISdXLvNSxXPkHbm6xgHRLmXZo9HZZ21CTg4WRY3Jj_fBdQeVDnhczc9Th2a8-/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzDig6XjmLQX0THlyCt36KlMGky-rxhqTrrsPNIT3PDLJnHJuJ-izIKcQHd0Yun4dOg/exec';
+
+// ── Militares que NÃO devem aparecer na lista de chamada ──
+// Basta o sobrenome/nome; a comparação ignora acentos e maiúsculas.
+const EXCLUIR = ['Calaza', 'Braun', 'Aramys', 'Jesus', 'Sommer', 'Xavier'];
+
+// Normaliza texto: remove acentos, pontuação e baixa caixa (p/ comparar nomes)
+function norm(s) {
+  return (s || '').toString()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')   // tira acentos
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')                        // pontuação → espaço
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+const EXCLUIR_NORM = EXCLUIR.map(norm);
+function ehExcluido(nome) {
+  const tokens = norm(nome).split(' ');
+  return EXCLUIR_NORM.some(ex => tokens.includes(ex));
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PERSISTÊNCIA LOCAL — guarda as posições do DIA CORRENTE
+   Cada dia tem sua própria chave; ao virar o dia, começa zerado.
+   ══════════════════════════════════════════════════════════════ */
+function chaveDoDia() {
+  return 'efetivo_chamada_' + new Date().toLocaleDateString('pt-BR'); // dd/MM/yyyy
+}
+function salvarEstado() {
+  try {
+    const mapa = {};
+    efetivo.forEach(m => { if (m.status !== 'pool') mapa[m.name] = m.status; });
+    localStorage.setItem(chaveDoDia(), JSON.stringify(mapa));
+  } catch (e) { /* navegador sem localStorage: ignora */ }
+}
+function carregarEstado() {
+  try {
+    const raw = localStorage.getItem(chaveDoDia());
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) { return {}; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SINCRONIZAÇÃO ENTRE APARELHOS (via Apps Script)
+   - Cada mudança é ENVIADA na hora (POST no-cors).
+   - A página BUSCA o estado do dia periodicamente (JSONP, contorna CORS)
+     e reflete o que outros aparelhos marcaram.
+   localStorage continua só como cache para pintar a tela na hora ao abrir.
+   ══════════════════════════════════════════════════════════════ */
+let isDragging = false;        // trava a sincronização durante um arraste
+let lastLocalChange = 0;       // dá tempo do envio propagar antes de re-puxar
+
+function hojeStr() { return new Date().toLocaleDateString('pt-BR'); } // dd/MM/yyyy
+
+// Leitura cross-origin via <script> (JSONP) — o fetch normal seria bloqueado por CORS
+function jsonp(baseUrl) {
+  return new Promise((resolve, reject) => {
+    const cb = 'cb_' + Math.random().toString(36).slice(2);
+    const s = document.createElement('script');
+    let done = false;
+    window[cb] = (data) => { done = true; cleanup(); resolve(data); };
+    function cleanup() { try { delete window[cb]; } catch(_) { window[cb] = undefined; } s.remove(); }
+    s.onerror = () => { if (!done) { cleanup(); reject(new Error('Falha de rede (JSONP)')); } };
+    s.src = baseUrl + (baseUrl.includes('?') ? '&' : '?') + 'callback=' + cb + '&_=' + Date.now();
+    document.body.appendChild(s);
+    setTimeout(() => { if (!done) { cleanup(); reject(new Error('Tempo esgotado')); } }, 12000);
+  });
+}
+
+// Envia UMA mudança (presente/falta/voltou-à-forma) para o servidor
+function enviarMudanca(nome, status) {
+  lastLocalChange = Date.now();
+  if (!APPS_SCRIPT_URL) return;
+  const m = efetivo.find(x => x.name === nome) || {};
+  const sit = status === 'present' ? 'PRESENTE' : status === 'absent' ? 'FALTA' : 'POOL';
+  const payload = {
+    dia: hojeStr(),
+    data: new Date().toISOString(),
+    mudancas: [{ nome, posto: m.rank || '', especialidade: m.spec || '', situacao: sit }],
+  };
+  fetch(APPS_SCRIPT_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload),
+  }).catch(() => {});
+}
+
+// Busca o estado do dia no servidor e aplica nos cards
+async function puxarEstado() {
+  if (!APPS_SCRIPT_URL || !efetivo.length) return;
+  if (isDragging) return;                                  // não atrapalha arraste em curso
+  if (Date.now() - lastLocalChange < 6000) return;         // deixa o envio local propagar
+  try {
+    const url = APPS_SCRIPT_URL + '?action=estado&dia=' + encodeURIComponent(hojeStr());
+    const data = await jsonp(url);
+    if (data && data.ok && data.estado) aplicarEstadoServidor(data.estado);
+    setSyncDot(true);
+  } catch (e) { setSyncDot(false); }
+}
+
+function aplicarEstadoServidor(mapa) {
+  let mudou = false;
+  efetivo.forEach(m => {
+    const reg = mapa[m.name];
+    const novo = reg ? (reg.situacao === 'PRESENTE' ? 'present' : reg.situacao === 'FALTA' ? 'absent' : 'pool') : 'pool';
+    if (m.status !== novo) { m.status = novo; mudou = true; }
+  });
+  if (mudou) { salvarEstado(); renderBoard(); }
+}
+
+function setSyncDot(ok) {
+  const el = document.getElementById('sync-dot');
+  if (!el) return;
+  el.style.background = ok ? 'var(--green-400)' : 'var(--red-400)';
+  el.title = ok ? 'Sincronizado com o servidor' : 'Sem conexão com o servidor';
+}
 
 /* ══════════════════════════════════════════════════════════════
    ESTADO
@@ -315,7 +434,8 @@ async function loadEfetivo() {
       const rank = (c[0]?.v ?? '').toString().trim();
       const spec = (c[1]?.v ?? '').toString().trim();
       const name = (c[2]?.v ?? '').toString().trim();
-      if (!name) return; // pula linhas vazias
+      if (!name) return;            // pula linhas vazias
+      if (ehExcluido(name)) return; // pula militares da lista de exclusão
       parsed.push({
         id: 'm' + i,
         rank, spec, name,
@@ -325,15 +445,15 @@ async function loadEfetivo() {
 
     if (!parsed.length) throw new Error('Nenhum militar encontrado em C5:E75');
 
-    // Preserva o status já marcado se for um recarregar
-    const prev = {};
-    efetivo.forEach(m => prev[m.name] = m.status);
-    parsed.forEach(m => { if (prev[m.name]) m.status = prev[m.name]; });
+    // Restaura as posições já alocadas para o dia corrente (presente/falta)
+    const salvo = carregarEstado();
+    parsed.forEach(m => { if (salvo[m.name]) m.status = salvo[m.name]; });
 
     efetivo = parsed;
     setBanner('success', `Efetivo carregado: ${efetivo.length} militares.`);
     setTimeout(() => setBanner(null), 2500);
     renderBoard();
+    puxarEstado();   // busca no servidor o que já foi marcado hoje (outros aparelhos)
   } catch (e) {
     setBanner('error', '⚠️ ' + (e.message || 'Falha ao ler a planilha de efetivo.'));
   } finally {
@@ -419,6 +539,8 @@ function setStatus(id, status, ev) {
   if (ev) ev.stopPropagation();
   const m = efetivo.find(x => x.id === id);
   if (m) m.status = status;
+  salvarEstado();
+  if (m) enviarMudanca(m.name, status);
   renderBoard();
 }
 
@@ -430,11 +552,11 @@ function attachDragHandlers() {
     const id = card.dataset.id;
     // Desktop
     card.addEventListener('dragstart', e => {
-      dragId = id; card.classList.add('dragging');
+      dragId = id; isDragging = true; card.classList.add('dragging');
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', id);
     });
-    card.addEventListener('dragend', () => { card.classList.remove('dragging'); dragId = null; clearDragOver(); });
+    card.addEventListener('dragend', () => { card.classList.remove('dragging'); dragId = null; isDragging = false; clearDragOver(); });
     // Touch
     card.addEventListener('touchstart', touchStart, { passive:false });
   });
@@ -458,7 +580,7 @@ function clearDragOver() {
 function dropOn(id, status) {
   if (!id || !status) return;
   const m = efetivo.find(x => x.id === id);
-  if (m && m.status !== status) { m.status = status; renderBoard(); }
+  if (m && m.status !== status) { m.status = status; salvarEstado(); enviarMudanca(m.name, status); renderBoard(); }
 }
 
 /* ── Touch drag (celular) ── */
@@ -467,6 +589,7 @@ function touchStart(e) {
   const card = e.currentTarget;
   touchMilId = card.dataset.id;
   touchCard = card;
+  isDragging = true;
   const t = e.touches[0];
   touchGhost = card.cloneNode(true);
   touchGhost.classList.add('ghost');
@@ -497,6 +620,7 @@ function touchEnd(e) {
   if (touchCard) touchCard.classList.remove('dragging');
   clearDragOver();
   touchGhost = touchCard = touchMilId = null;
+  isDragging = false;
   document.removeEventListener('touchmove', touchMove);
   document.removeEventListener('touchend', touchEnd);
 }
@@ -506,15 +630,16 @@ function colUnder(x, y) {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   GRAVAÇÃO DO HISTÓRICO (Apps Script)
+   BOTÃO "Salvar / sincronizar" — reenvia todas as marcações do dia
    ══════════════════════════════════════════════════════════════ */
 async function saveChamada() {
   const marcados = efetivo.filter(m => m.status !== 'pool');
-  if (!marcados.length) { setBanner('error', 'Nenhuma marcação para gravar.'); return; }
+  if (!marcados.length) { setBanner('error', 'Nenhuma marcação para sincronizar.'); return; }
 
   const payload = {
+    dia: hojeStr(),
     data: new Date().toISOString(),
-    registros: marcados.map(m => ({
+    mudancas: marcados.map(m => ({
       nome: m.name, posto: m.rank, especialidade: m.spec,
       situacao: m.status === 'present' ? 'PRESENTE' : 'FALTA',
     })),
@@ -526,30 +651,24 @@ async function saveChamada() {
   };
 
   if (!APPS_SCRIPT_URL) {
-    setBanner('error', 'Configuração pendente: cole a URL do Apps Script no código (APPS_SCRIPT_URL) para gravar no banco.');
-    console.log('Payload que seria gravado:', payload);
+    setBanner('error', 'Configuração pendente: cole a URL do Apps Script no código (APPS_SCRIPT_URL).');
     return;
   }
 
   const btn = document.getElementById('save-btn');
   btn.disabled = true;
-  setBanner('loading', 'Enviando chamada para o banco de dados…');
+  lastLocalChange = Date.now();
+  setBanner('loading', 'Sincronizando chamada com o servidor…');
   try {
-    // mode 'no-cors': o navegador ENVIA os dados ao Apps Script, mas não lê a
-    // resposta (que o Google serve de um domínio diferente e o navegador bloqueia
-    // a leitura). A gravação acontece normalmente; só não recebemos confirmação.
-    // text/plain evita o preflight CORS.
     await fetch(APPS_SCRIPT_URL, {
-      method: 'POST',
-      mode: 'no-cors',
+      method: 'POST', mode: 'no-cors',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload),
     });
-    // Em no-cors a resposta é "opaca" — se chegou aqui sem lançar erro, o envio saiu.
-    setBanner('success', `✓ Chamada enviada (${payload.resumo.presentes} presentes, ${payload.resumo.faltas} faltas). Confira na aba "historico" da planilha.`);
+    setBanner('success', `✓ Sincronizado (${payload.resumo.presentes} presentes, ${payload.resumo.faltas} faltas). A aba do dia está atualizada na planilha.`);
     setTimeout(() => setBanner(null), 6000);
   } catch (e) {
-    setBanner('error', '⚠️ Não foi possível enviar: ' + (e.message || e));
+    setBanner('error', '⚠️ Não foi possível sincronizar: ' + (e.message || e));
   } finally {
     btn.disabled = false;
   }
@@ -575,6 +694,10 @@ function updateClock() {
 updateClock();
 loadEfetivo();
 setInterval(updateClock, 30000);
+
+/* Sincronização periódica entre aparelhos (pausa quando a aba não está visível) */
+let syncTimer = setInterval(() => { if (!document.hidden) puxarEstado(); }, 15000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) puxarEstado(); });
 </script>
 </body>
 </html>
