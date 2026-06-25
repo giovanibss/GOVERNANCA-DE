@@ -533,23 +533,23 @@ async function saveChamada() {
 
   const btn = document.getElementById('save-btn');
   btn.disabled = true;
-  setBanner('loading', 'Gravando chamada no banco de dados…');
+  setBanner('loading', 'Enviando chamada para o banco de dados…');
   try {
-    // text/plain evita preflight CORS no Apps Script
-    const res = await fetch(APPS_SCRIPT_URL, {
+    // mode 'no-cors': o navegador ENVIA os dados ao Apps Script, mas não lê a
+    // resposta (que o Google serve de um domínio diferente e o navegador bloqueia
+    // a leitura). A gravação acontece normalmente; só não recebemos confirmação.
+    // text/plain evita o preflight CORS.
+    await fetch(APPS_SCRIPT_URL, {
       method: 'POST',
+      mode: 'no-cors',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload),
     });
-    const out = await res.json().catch(() => ({}));
-    if (out && out.ok) {
-      setBanner('success', `✓ Chamada gravada (${payload.resumo.presentes} presentes, ${payload.resumo.faltas} faltas).`);
-      setTimeout(() => setBanner(null), 4000);
-    } else {
-      throw new Error(out.error || 'Resposta inesperada do servidor.');
-    }
+    // Em no-cors a resposta é "opaca" — se chegou aqui sem lançar erro, o envio saiu.
+    setBanner('success', `✓ Chamada enviada (${payload.resumo.presentes} presentes, ${payload.resumo.faltas} faltas). Confira na aba "historico" da planilha.`);
+    setTimeout(() => setBanner(null), 6000);
   } catch (e) {
-    setBanner('error', '⚠️ Não foi possível gravar: ' + (e.message || e));
+    setBanner('error', '⚠️ Não foi possível enviar: ' + (e.message || e));
   } finally {
     btn.disabled = false;
   }
