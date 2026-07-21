@@ -130,12 +130,13 @@
 
     /* ── CARD DO MILITAR ── */
     .mil-card {
-      display:flex; align-items:center; gap:.7rem;
+      display:flex; flex-direction:column; gap:.5rem;
       background:white; border:1px solid var(--navy-100); border-left:3px solid var(--navy-400);
       border-radius:7px; padding:.55rem .7rem; cursor:grab; user-select:none;
       transition: box-shadow .15s, transform .1s, border-color .15s;
       touch-action: none;
     }
+    .mil-card-main { display:flex; align-items:center; gap:.7rem; }
     .mil-card:hover { box-shadow:0 2px 8px rgba(20,49,90,.1); }
     .mil-card:active { cursor:grabbing; }
     .mil-card.dragging { opacity:.4; }
@@ -164,6 +165,78 @@
     .mil-act.a:hover { background:var(--red-500); color:white; border-color:var(--red-500); }
     .mil-act.u { color:var(--gray-500); }
     .mil-act.u:hover { background:var(--gray-400); color:white; border-color:var(--gray-400); }
+
+    /* ── ETIQUETAS (motivos de falta) ── */
+    .tag-row {
+      display:flex; flex-wrap:wrap; gap:.3rem; align-items:center;
+      padding-top:.4rem; margin-left:calc(34px + .7rem);
+      border-top:1px dashed var(--navy-100);
+    }
+    .tag {
+      display:inline-flex; align-items:center; gap:.3rem;
+      font-size:.62rem; font-weight:600; letter-spacing:.05em;
+      padding:.2rem .45rem .2rem .55rem; border-radius:4px;
+      background: var(--gray-100); color: var(--gray-700);
+      border:1px solid var(--gray-200);
+      max-width:100%;
+    }
+    .tag-txt { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px; }
+    .tag-x {
+      display:inline-flex; align-items:center; justify-content:center;
+      width:14px; height:14px; border-radius:3px; padding:0;
+      background:rgba(0,0,0,.06); color:inherit; border:none; cursor:pointer;
+      font-size:.85rem; line-height:1; opacity:.7;
+    }
+    .tag-x:hover { opacity:1; background:rgba(0,0,0,.15); }
+    .tag-add {
+      font-size:.62rem; font-weight:600; letter-spacing:.05em;
+      padding:.22rem .5rem; border-radius:4px;
+      background:transparent; color:var(--navy-600);
+      border:1px dashed var(--navy-300); cursor:pointer;
+      transition: all .15s;
+    }
+    .tag-add:hover { background:var(--navy-600); color:white; border-style:solid; border-color:var(--navy-600); }
+
+    /* Cores por preset (podem coexistir com outras) */
+    .tag-aula                         { background:#dbeafe; color:#1e3a8a; border-color:#bfdbfe; }
+    .tag-ferias                       { background:#fef3c7; color:#78350f; border-color:#fde68a; }
+    .tag-dispensado-de-formatura      { background:#e0e7ff; color:#3730a3; border-color:#c7d2fe; }
+    .tag-servico                      { background:#dcfce7; color:#166534; border-color:#bbf7d0; }
+    .tag-sem-motivo                   { background:#fee2e2; color:#991b1b; border-color:#fecaca; }
+
+    /* ── MENU FLUTUANTE (adicionar motivo) ── */
+    .tag-menu {
+      position:absolute; z-index:9999;
+      background:white; border:1px solid var(--navy-200); border-radius:8px;
+      box-shadow: 0 12px 30px rgba(10,22,40,.18), 0 0 0 1px rgba(10,22,40,.02);
+      padding:.7rem; font-family: var(--font-body);
+    }
+    .tag-menu-title { font-family:var(--font-display); font-size:.7rem; font-weight:600; text-transform:uppercase; letter-spacing:.1em; color: var(--navy-700); margin-bottom:.5rem; }
+    .tag-menu-list  { display:flex; flex-direction:column; gap:.25rem; }
+    .tag-menu-opt {
+      display:flex; align-items:center; gap:.5rem;
+      text-align:left; padding:.4rem .55rem; border-radius:5px;
+      background:var(--navy-50); border:1px solid var(--navy-100);
+      cursor:pointer; font-size:.75rem; color:var(--navy-900);
+      transition: all .12s; width:100%;
+    }
+    .tag-menu-opt:hover { background:var(--navy-100); }
+    .tag-menu-opt.on    { background: var(--navy-700); color:white; border-color:var(--navy-700); }
+    .tag-menu-opt .check { width:14px; display:inline-flex; justify-content:center; font-weight:700; color:var(--gold-400); }
+    .tag-menu-sep { font-size:.62rem; text-transform:uppercase; letter-spacing:.1em; color:var(--gray-500); margin:.7rem 0 .35rem; }
+    .tag-menu-custom { display:flex; gap:.35rem; }
+    .tag-menu-custom input {
+      flex:1; min-width:0; font-family:var(--font-body); font-size:.75rem;
+      padding:.4rem .55rem; border:1px solid var(--navy-200); border-radius:5px;
+      background:white; color:var(--navy-900); outline:none;
+    }
+    .tag-menu-custom input:focus { border-color:var(--navy-400); }
+    .tag-menu-custom button {
+      font-size:.68rem; font-weight:600; letter-spacing:.05em;
+      padding:.4rem .7rem; border-radius:5px;
+      background: var(--gold-500); color: var(--navy-900); border:none; cursor:pointer;
+    }
+    .tag-menu-custom button:hover { background: var(--gold-400); }
 
     /* ── FOOTER ── */
     footer { text-align:center; padding:1.5rem; font-size:.72rem; color:var(--gray-500); display:flex; align-items:center; justify-content:center; gap:.5rem; position:relative; z-index:5; }
@@ -296,6 +369,11 @@ const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzDig6XjmLQX0TH
 // Basta o sobrenome/nome; a comparação ignora acentos e maiúsculas.
 const EXCLUIR = ['Calaza', 'Braun', 'Aramys', 'Eckert', 'Jesus', 'Sommer', 'Xavier', 'Raiane', 'Montalvão', 'Levy', 'Ivan', 'Fabricio'];
 
+// ── Etiquetas (motivos) para faltas ──
+// Para incluir/remover motivos futuramente, edite esta lista:
+const ETIQUETAS_PRESET = ['AULA', 'FÉRIAS', 'DISPENSADO DE FORMATURA', 'SERVIÇO'];
+const ETIQUETA_PADRAO  = 'SEM MOTIVO';   // aplicada automaticamente ao virar falta
+
 // Normaliza texto: remove acentos, pontuação e baixa caixa (p/ comparar nomes)
 function norm(s) {
   return (s || '').toString()
@@ -321,7 +399,9 @@ function chaveDoDia() {
 function salvarEstado() {
   try {
     const mapa = {};
-    efetivo.forEach(m => { if (m.status !== 'pool') mapa[m.name] = m.status; });
+    efetivo.forEach(m => {
+      if (m.status !== 'pool') mapa[m.name] = { status: m.status, tags: m.tags || [] };
+    });
     localStorage.setItem(chaveDoDia(), JSON.stringify(mapa));
   } catch (e) { /* navegador sem localStorage: ignora */ }
 }
@@ -368,7 +448,11 @@ function enviarMudanca(nome, status) {
   const payload = {
     dia: hojeStr(),
     data: new Date().toISOString(),
-    mudancas: [{ nome, posto: m.rank || '', especialidade: m.spec || '', situacao: sit }],
+    mudancas: [{
+      nome, posto: m.rank || '', especialidade: m.spec || '',
+      situacao: sit,
+      etiquetas: (sit === 'FALTA') ? (m.tags || []) : [],  // tags só fazem sentido em FALTA
+    }],
   };
   fetch(APPS_SCRIPT_URL, {
     method: 'POST', mode: 'no-cors',
@@ -395,7 +479,12 @@ function aplicarEstadoServidor(mapa) {
   efetivo.forEach(m => {
     const reg = mapa[m.name];
     const novo = reg ? (reg.situacao === 'PRESENTE' ? 'present' : reg.situacao === 'FALTA' ? 'absent' : 'pool') : 'pool';
+    const novasTags = (reg && Array.isArray(reg.etiquetas)) ? reg.etiquetas : (novo === 'absent' ? [ETIQUETA_PADRAO] : []);
     if (m.status !== novo) { m.status = novo; mudou = true; }
+    // Compara tags (ordem irrelevante)
+    const antes = (m.tags || []).slice().sort().join('|');
+    const depois = novasTags.slice().sort().join('|');
+    if (antes !== depois) { m.tags = novasTags; mudou = true; }
   });
   if (mudou) { salvarEstado(); renderBoard(); }
 }
@@ -447,7 +536,13 @@ async function loadEfetivo() {
 
     // Restaura as posições já alocadas para o dia corrente (presente/falta)
     const salvo = carregarEstado();
-    parsed.forEach(m => { if (salvo[m.name]) m.status = salvo[m.name]; });
+    parsed.forEach(m => {
+      const s = salvo[m.name];
+      if (!s) { m.tags = []; return; }
+      // Formato novo: { status, tags }; formato antigo: string
+      if (typeof s === 'string') { m.status = s; m.tags = []; }
+      else { m.status = s.status; m.tags = Array.isArray(s.tags) ? s.tags : []; }
+    });
 
     efetivo = parsed;
     setBanner('success', `Efetivo carregado: ${efetivo.length} militares.`);
@@ -488,15 +583,44 @@ function cardHTML(m) {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-1"/></svg>
       </button>`;
   }
+
+  // Linha de etiquetas (só quando em Faltas)
+  let tagsRow = '';
+  if (m.status === 'absent') {
+    const tags = (m.tags || []).map(t => `
+      <span class="tag ${tagClass_(t)}" title="Remover">
+        <span class="tag-txt">${escapeHtml_(t)}</span>
+        <button class="tag-x" onclick="removerTag('${m.id}', ${JSON.stringify(t)}, event)" aria-label="Remover">×</button>
+      </span>`).join('');
+    tagsRow = `
+      <div class="tag-row" onclick="event.stopPropagation()">
+        ${tags}
+        <button class="tag-add" onclick="abrirMenuTags('${m.id}', event)" title="Adicionar motivo">+ motivo</button>
+      </div>`;
+  }
+
   return `
     <div class="mil-card" id="card-${m.id}" data-id="${m.id}" draggable="true">
-      <div class="mil-avatar">${initials(m.name)}</div>
-      <div class="mil-info">
-        <div class="mil-name">${m.name}</div>
-        <div class="mil-meta">${meta ? '<span class="mil-rank">'+m.rank+'</span>' + (m.spec ? ' · '+m.spec : '') : '—'}</div>
+      <div class="mil-card-main">
+        <div class="mil-avatar">${initials(m.name)}</div>
+        <div class="mil-info">
+          <div class="mil-name">${m.name}</div>
+          <div class="mil-meta">${meta ? '<span class="mil-rank">'+m.rank+'</span>' + (m.spec ? ' · '+m.spec : '') : '—'}</div>
+        </div>
+        <div class="mil-actions">${actions}</div>
       </div>
-      <div class="mil-actions">${actions}</div>
+      ${tagsRow}
     </div>`;
+}
+
+// Slug estável para gerar classes CSS: "AULA" → "aula"; "SEM MOTIVO" → "sem-motivo"
+function tagClass_(t) {
+  return 'tag-' + norm(t).replace(/\s+/g, '-');
+}
+function escapeHtml_(s) {
+  return (s || '').toString()
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
 function renderBoard() {
@@ -538,10 +662,23 @@ function fillCol(status, list, emptyMsg) {
 function setStatus(id, status, ev) {
   if (ev) ev.stopPropagation();
   const m = efetivo.find(x => x.id === id);
-  if (m) m.status = status;
+  if (m) {
+    m.status = status;
+    aplicarRegrasDeTags_(m);
+  }
   salvarEstado();
   if (m) enviarMudanca(m.name, status);
   renderBoard();
+}
+
+// Regra única para tags: FALTA sem etiqueta ganha "SEM MOTIVO"; sair de FALTA limpa.
+function aplicarRegrasDeTags_(m) {
+  if (m.status === 'absent') {
+    if (!Array.isArray(m.tags)) m.tags = [];
+    if (m.tags.length === 0) m.tags = [ETIQUETA_PADRAO];
+  } else {
+    m.tags = [];
+  }
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -550,6 +687,14 @@ function setStatus(id, status, ev) {
 function attachDragHandlers() {
   document.querySelectorAll('.mil-card').forEach(card => {
     const id = card.dataset.id;
+    // Se o mousedown foi num botão/tag, desabilita draggable temporariamente
+    card.addEventListener('mousedown', e => {
+      if (e.target.closest('.tag, .tag-x, .tag-add, .mil-act, .tag-menu')) {
+        card.setAttribute('draggable', 'false');
+      } else {
+        card.setAttribute('draggable', 'true');
+      }
+    });
     // Desktop
     card.addEventListener('dragstart', e => {
       dragId = id; isDragging = true; card.classList.add('dragging');
@@ -580,12 +725,144 @@ function clearDragOver() {
 function dropOn(id, status) {
   if (!id || !status) return;
   const m = efetivo.find(x => x.id === id);
-  if (m && m.status !== status) { m.status = status; salvarEstado(); enviarMudanca(m.name, status); renderBoard(); }
+  if (m && m.status !== status) {
+    m.status = status;
+    aplicarRegrasDeTags_(m);
+    salvarEstado();
+    enviarMudanca(m.name, status);
+    renderBoard();
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ETIQUETAS (motivos de falta)
+   ══════════════════════════════════════════════════════════════ */
+function abrirMenuTags(id, ev) {
+  if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+  fecharMenuTags();
+  const m = efetivo.find(x => x.id === id);
+  if (!m) return;
+  const card = document.getElementById('card-' + id);
+  if (!card) return;
+
+  const menu = document.createElement('div');
+  menu.className = 'tag-menu';
+  menu.id = 'tag-menu-open';
+  menu.setAttribute('data-mil', id);
+  menu.onclick = e => e.stopPropagation();
+
+  const jaTem = new Set(m.tags || []);
+  const opcoes = ETIQUETAS_PRESET.map(t => {
+    const marcado = jaTem.has(t);
+    return `
+      <button class="tag-menu-opt ${marcado ? 'on' : ''}" onclick="alternarTag('${id}', ${JSON.stringify(t)}, event)">
+        <span class="check">${marcado ? '✓' : ''}</span>
+        <span>${escapeHtml_(t)}</span>
+      </button>`;
+  }).join('');
+
+  menu.innerHTML = `
+    <div class="tag-menu-title">Motivo(s) da falta</div>
+    <div class="tag-menu-list">${opcoes}</div>
+    <div class="tag-menu-sep">Outro motivo</div>
+    <div class="tag-menu-custom">
+      <input type="text" id="tag-custom-input" placeholder="Ex.: DENTISTA, VELÓRIO…" maxlength="40" autocomplete="off" />
+      <button onclick="adicionarTagCustom('${id}', event)">Adicionar</button>
+    </div>
+  `;
+  document.body.appendChild(menu);
+  posicionarMenu(menu, card);
+
+  // Enter no input adiciona
+  const input = menu.querySelector('#tag-custom-input');
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); adicionarTagCustom(id, e); }
+    if (e.key === 'Escape') fecharMenuTags();
+  });
+  setTimeout(() => input.focus(), 30);
+
+  // Fecha ao clicar fora
+  setTimeout(() => document.addEventListener('click', fecharMenuTagsFora, { once: true }), 0);
+}
+function fecharMenuTagsFora(ev) {
+  const menu = document.getElementById('tag-menu-open');
+  if (menu && !menu.contains(ev.target)) fecharMenuTags();
+  else if (menu) document.addEventListener('click', fecharMenuTagsFora, { once: true });
+}
+function fecharMenuTags() {
+  const m = document.getElementById('tag-menu-open');
+  if (m) m.remove();
+}
+function posicionarMenu(menu, card) {
+  const r = card.getBoundingClientRect();
+  const w = 260, margem = 8;
+  let left = r.left + window.scrollX;
+  let top  = r.bottom + window.scrollY + 6;
+  // Ajusta se estourar a direita
+  if (left + w > window.scrollX + window.innerWidth - margem) {
+    left = window.scrollX + window.innerWidth - w - margem;
+  }
+  if (left < window.scrollX + margem) left = window.scrollX + margem;
+  menu.style.left = left + 'px';
+  menu.style.top  = top + 'px';
+  menu.style.width = w + 'px';
+}
+
+function alternarTag(id, tag, ev) {
+  if (ev) ev.stopPropagation();
+  const m = efetivo.find(x => x.id === id);
+  if (!m) return;
+  if (!Array.isArray(m.tags)) m.tags = [];
+  const idx = m.tags.indexOf(tag);
+  if (idx >= 0) m.tags.splice(idx, 1);
+  else {
+    // Ao adicionar qualquer tag específica, remove "SEM MOTIVO" (deixa de fazer sentido)
+    m.tags = m.tags.filter(t => t !== ETIQUETA_PADRAO);
+    m.tags.push(tag);
+  }
+  // Se ficou sem nenhuma, volta ao padrão
+  if (m.tags.length === 0) m.tags = [ETIQUETA_PADRAO];
+  aoMudarTags_(m);
+}
+
+function adicionarTagCustom(id, ev) {
+  if (ev) ev.stopPropagation();
+  const input = document.getElementById('tag-custom-input');
+  if (!input) return;
+  const val = (input.value || '').trim().toUpperCase();
+  if (!val) return;
+  const m = efetivo.find(x => x.id === id);
+  if (!m) return;
+  if (!Array.isArray(m.tags)) m.tags = [];
+  m.tags = m.tags.filter(t => t !== ETIQUETA_PADRAO);
+  if (!m.tags.includes(val)) m.tags.push(val);
+  input.value = '';
+  aoMudarTags_(m);
+}
+
+function removerTag(id, tag, ev) {
+  if (ev) ev.stopPropagation();
+  const m = efetivo.find(x => x.id === id);
+  if (!m) return;
+  m.tags = (m.tags || []).filter(t => t !== tag);
+  if (m.tags.length === 0) m.tags = [ETIQUETA_PADRAO];
+  aoMudarTags_(m);
+}
+
+function aoMudarTags_(m) {
+  salvarEstado();
+  enviarMudanca(m.name, m.status);  // reenvia com tags atualizadas
+  const abertoPara = document.getElementById('tag-menu-open')?.getAttribute('data-mil');
+  renderBoard();
+  // Reabre o menu se estava aberto para este militar (renderBoard destrói o card)
+  if (abertoPara === m.id) abrirMenuTags(m.id);
 }
 
 /* ── Touch drag (celular) ── */
 let touchGhost = null, touchCard = null, touchMilId = null;
 function touchStart(e) {
+  // Ignora quando o toque foi num botão de tag/ação (evita arrastar sem querer)
+  if (e.target.closest('.tag, .tag-x, .tag-add, .mil-act, .tag-menu')) return;
   const card = e.currentTarget;
   touchMilId = card.dataset.id;
   touchCard = card;
