@@ -479,9 +479,9 @@ function aplicarEstadoServidor(mapa) {
   efetivo.forEach(m => {
     const reg = mapa[m.name];
     const novo = reg ? (reg.situacao === 'PRESENTE' ? 'present' : reg.situacao === 'FALTA' ? 'absent' : 'pool') : 'pool';
-    const novasTags = (reg && Array.isArray(reg.etiquetas)) ? reg.etiquetas : (novo === 'absent' ? [ETIQUETA_PADRAO] : []);
+    // Respeita as tags exatas do servidor (inclusive vazio). Sem servidor → sem tags.
+    const novasTags = (reg && Array.isArray(reg.etiquetas)) ? reg.etiquetas : [];
     if (m.status !== novo) { m.status = novo; mudou = true; }
-    // Compara tags (ordem irrelevante)
     const antes = (m.tags || []).slice().sort().join('|');
     const depois = novasTags.slice().sort().join('|');
     if (antes !== depois) { m.tags = novasTags; mudou = true; }
@@ -590,10 +590,11 @@ function cardHTML(m) {
     const tags = (m.tags || []).map(t => `
       <span class="tag ${tagClass_(t)}" title="Remover">
         <span class="tag-txt">${escapeHtml_(t)}</span>
-        <button class="tag-x" onclick="removerTag('${m.id}', ${JSON.stringify(t)}, event)" aria-label="Remover">×</button>
+        <button class="tag-x" data-mil="${m.id}" data-tag="${escapeHtml_(t)}"
+                onclick="removerTag(this.dataset.mil, this.dataset.tag, event)" aria-label="Remover">×</button>
       </span>`).join('');
     tagsRow = `
-      <div class="tag-row" onclick="event.stopPropagation()">
+      <div class="tag-row">
         ${tags}
         <button class="tag-add" onclick="abrirMenuTags('${m.id}', event)" title="Adicionar motivo">+ motivo</button>
       </div>`;
@@ -755,7 +756,9 @@ function abrirMenuTags(id, ev) {
   const opcoes = ETIQUETAS_PRESET.map(t => {
     const marcado = jaTem.has(t);
     return `
-      <button class="tag-menu-opt ${marcado ? 'on' : ''}" onclick="alternarTag('${id}', ${JSON.stringify(t)}, event)">
+      <button class="tag-menu-opt ${marcado ? 'on' : ''}"
+              data-mil="${id}" data-tag="${escapeHtml_(t)}"
+              onclick="alternarTag(this.dataset.mil, this.dataset.tag, event)">
         <span class="check">${marcado ? '✓' : ''}</span>
         <span>${escapeHtml_(t)}</span>
       </button>`;
@@ -820,8 +823,8 @@ function alternarTag(id, tag, ev) {
     m.tags = m.tags.filter(t => t !== ETIQUETA_PADRAO);
     m.tags.push(tag);
   }
-  // Se ficou sem nenhuma, volta ao padrão
-  if (m.tags.length === 0) m.tags = [ETIQUETA_PADRAO];
+  // Nota: se ficar sem nenhuma, permanece vazio (usuário pediu essa possibilidade).
+  // O "SEM MOTIVO" só entra automaticamente ao arrastar de novo para Faltas.
   aoMudarTags_(m);
 }
 
@@ -845,7 +848,7 @@ function removerTag(id, tag, ev) {
   const m = efetivo.find(x => x.id === id);
   if (!m) return;
   m.tags = (m.tags || []).filter(t => t !== tag);
-  if (m.tags.length === 0) m.tags = [ETIQUETA_PADRAO];
+  // Nota: pode ficar vazio; ver comentário em alternarTag.
   aoMudarTags_(m);
 }
 
