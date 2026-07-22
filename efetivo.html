@@ -137,6 +137,14 @@
       touch-action: none;
     }
     .mil-card-main { display:flex; align-items:center; gap:.7rem; }
+    /* Botões e etiquetas devem receber toque normalmente (o card usa touch-action:none
+       para permitir o arraste, mas isso atrapalharia os cliques nestes elementos). */
+    .mil-card .mil-act,
+    .mil-card .tag,
+    .mil-card .tag-x,
+    .mil-card .tag-add,
+    .mil-card .tag-row { touch-action: auto; }
+    .tag-menu, .tag-menu * { touch-action: auto; }
     .mil-card:hover { box-shadow:0 2px 8px rgba(20,49,90,.1); }
     .mil-card:active { cursor:grabbing; }
     .mil-card.dragging { opacity:.4; }
@@ -571,15 +579,15 @@ function cardHTML(m) {
   let actions = '';
   if (m.status === 'pool') {
     actions = `
-      <button class="mil-act p" title="Presente" onclick="setStatus('${m.id}','present', event)">
+      <button class="mil-act p" data-act="present" title="Presente">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
       </button>
-      <button class="mil-act a" title="Falta" onclick="setStatus('${m.id}','absent', event)">
+      <button class="mil-act a" data-act="absent" title="Falta">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>`;
   } else {
     actions = `
-      <button class="mil-act u" title="Voltar para a forma" onclick="setStatus('${m.id}','pool', event)">
+      <button class="mil-act u" data-act="pool" title="Voltar para a forma">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 14L4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-1"/></svg>
       </button>`;
   }
@@ -588,15 +596,14 @@ function cardHTML(m) {
   let tagsRow = '';
   if (m.status === 'absent') {
     const tags = (m.tags || []).map(t => `
-      <span class="tag ${tagClass_(t)}" title="Remover">
+      <span class="tag ${tagClass_(t)}">
         <span class="tag-txt">${escapeHtml_(t)}</span>
-        <button class="tag-x" data-mil="${m.id}" data-tag="${escapeHtml_(t)}"
-                onclick="removerTag(this.dataset.mil, this.dataset.tag, event)" aria-label="Remover">×</button>
+        <button class="tag-x" data-tag="${escapeHtml_(t)}" title="Remover" aria-label="Remover">×</button>
       </span>`).join('');
     tagsRow = `
       <div class="tag-row">
         ${tags}
-        <button class="tag-add" onclick="abrirMenuTags('${m.id}', event)" title="Adicionar motivo">+ motivo</button>
+        <button class="tag-add" title="Adicionar motivo">+ motivo</button>
       </div>`;
   }
 
@@ -688,6 +695,17 @@ function aplicarRegrasDeTags_(m) {
 function attachDragHandlers() {
   document.querySelectorAll('.mil-card').forEach(card => {
     const id = card.dataset.id;
+
+    // ── Botões dentro do card: respondem a toque e clique ──
+    card.querySelectorAll('.mil-act').forEach(btn => {
+      aoTocar_(btn, () => setStatus(id, btn.dataset.act));
+    });
+    card.querySelectorAll('.tag-x').forEach(btn => {
+      aoTocar_(btn, () => removerTag(id, btn.dataset.tag));
+    });
+    const btnAdd = card.querySelector('.tag-add');
+    if (btnAdd) aoTocar_(btnAdd, () => abrirMenuTags(id));
+
     // Se o mousedown foi num botão/tag, desabilita draggable temporariamente
     card.addEventListener('mousedown', e => {
       if (e.target.closest('.tag, .tag-x, .tag-add, .mil-act, .tag-menu')) {
@@ -757,8 +775,7 @@ function abrirMenuTags(id, ev) {
     const marcado = jaTem.has(t);
     return `
       <button class="tag-menu-opt ${marcado ? 'on' : ''}"
-              data-mil="${id}" data-tag="${escapeHtml_(t)}"
-              onclick="alternarTag(this.dataset.mil, this.dataset.tag, event)">
+              data-mil="${id}" data-tag="${escapeHtml_(t)}">
         <span class="check">${marcado ? '✓' : ''}</span>
         <span>${escapeHtml_(t)}</span>
       </button>`;
@@ -770,11 +787,17 @@ function abrirMenuTags(id, ev) {
     <div class="tag-menu-sep">Outro motivo</div>
     <div class="tag-menu-custom">
       <input type="text" id="tag-custom-input" placeholder="Ex.: DENTISTA, VELÓRIO…" maxlength="40" autocomplete="off" />
-      <button onclick="adicionarTagCustom('${id}', event)">Adicionar</button>
+      <button id="tag-custom-btn">Adicionar</button>
     </div>
   `;
   document.body.appendChild(menu);
   posicionarMenu(menu, card);
+
+  // Liga os botões de preset para responder a TOQUE e CLIQUE (celular + desktop)
+  menu.querySelectorAll('.tag-menu-opt').forEach(btn => {
+    aoTocar_(btn, () => alternarTag(btn.dataset.mil, btn.dataset.tag));
+  });
+  aoTocar_(menu.querySelector('#tag-custom-btn'), () => adicionarTagCustom(id));
 
   // Enter no input adiciona
   const input = menu.querySelector('#tag-custom-input');
@@ -782,15 +805,43 @@ function abrirMenuTags(id, ev) {
     if (e.key === 'Enter') { e.preventDefault(); adicionarTagCustom(id, e); }
     if (e.key === 'Escape') fecharMenuTags();
   });
-  setTimeout(() => input.focus(), 30);
 
-  // Fecha ao clicar fora
-  setTimeout(() => document.addEventListener('click', fecharMenuTagsFora, { once: true }), 0);
+  // Fecha ao clicar/tocar fora
+  setTimeout(() => {
+    document.addEventListener('click', fecharMenuTagsFora, { once: true });
+    document.addEventListener('touchend', fecharMenuTagsFora, { once: true });
+  }, 0);
 }
+
+/**
+ * Liga uma ação a um elemento de forma confiável no celular.
+ * Usa 'touchend' (resposta imediata, sem o atraso de 300ms) e 'click' como
+ * alternativa no desktop, com trava para não disparar duas vezes no mesmo toque.
+ */
+function aoTocar_(el, acao) {
+  if (!el) return;
+  let ultimoToque = 0;
+  el.addEventListener('touchend', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    ultimoToque = Date.now();
+    acao();
+  }, { passive: false });
+  el.addEventListener('click', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (Date.now() - ultimoToque < 700) return;  // já tratado pelo touchend
+    acao();
+  });
+}
+
 function fecharMenuTagsFora(ev) {
   const menu = document.getElementById('tag-menu-open');
   if (menu && !menu.contains(ev.target)) fecharMenuTags();
-  else if (menu) document.addEventListener('click', fecharMenuTagsFora, { once: true });
+  else if (menu) {
+    document.addEventListener('click', fecharMenuTagsFora, { once: true });
+    document.addEventListener('touchend', fecharMenuTagsFora, { once: true });
+  }
 }
 function fecharMenuTags() {
   const m = document.getElementById('tag-menu-open');
@@ -855,10 +906,17 @@ function removerTag(id, tag, ev) {
 function aoMudarTags_(m) {
   salvarEstado();
   enviarMudanca(m.name, m.status);  // reenvia com tags atualizadas
-  const abertoPara = document.getElementById('tag-menu-open')?.getAttribute('data-mil');
+  const menuAberto = document.getElementById('tag-menu-open');
+  const abertoPara = menuAberto?.getAttribute('data-mil');
+  // Guarda a posição atual para o menu não "pular" quando o card mudar de tamanho
+  const pos = menuAberto ? { left: menuAberto.style.left, top: menuAberto.style.top } : null;
   renderBoard();
   // Reabre o menu se estava aberto para este militar (renderBoard destrói o card)
-  if (abertoPara === m.id) abrirMenuTags(m.id);
+  if (abertoPara === m.id) {
+    abrirMenuTags(m.id);
+    const novo = document.getElementById('tag-menu-open');
+    if (novo && pos) { novo.style.left = pos.left; novo.style.top = pos.top; }
+  }
 }
 
 /* ── Touch drag (celular) ── */
@@ -922,6 +980,7 @@ async function saveChamada() {
     mudancas: marcados.map(m => ({
       nome: m.name, posto: m.rank, especialidade: m.spec,
       situacao: m.status === 'present' ? 'PRESENTE' : 'FALTA',
+      etiquetas: (m.status === 'absent') ? (m.tags || []) : [],
     })),
     resumo: {
       total: efetivo.length,
