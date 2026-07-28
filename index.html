@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Governança DE · Academia da Força Aérea</title>
+<meta name="description" content="Painel único para os sistemas de controle da Divisão de Ensino da Academia da Força Aérea." />
+<link rel="preload" as="image" href="assets/hero-afa.jpg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+/* ═══════════════════════════════════════════════════════════
+   TOKENS
+   Paleta extraída da própria arte de fundo (céu de aviação),
+   somada ao dourado institucional já usado nos outros módulos.
+   ═══════════════════════════════════════════════════════════ */
+:root{
+  --sky-deep:#0a2a5e;
+  --sky-mid:#1a4d8f;
+  --navy-ink:#061021;
+  --gold:#d4a84b;
+  --gold-lt:#e9c877;
+  --jade:#10b981;
+  --amber:#f59e0b;
+  --magenta:#c026d3;
+  --contrail:#cfe4ff;
+  --contrail-dim:rgba(207,228,255,.62);
+  --hair:rgba(207,228,255,.16);
+  --glass:rgba(6,16,33,.42);
+  --glass-hi:rgba(6,16,33,.60);
+
+  --f-display:'Oswald',system-ui,sans-serif;
+  --f-body:'Inter',system-ui,sans-serif;
+  --f-data:'JetBrains Mono',ui-monospace,monospace;
+
+  --gutter:clamp(1rem,4vw,3.5rem);
+  --shell:1380px;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--f-body);
+  background:var(--navy-ink);
+  color:var(--contrail);
+  min-height:100vh;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ═══ CAMADAS DE FUNDO ═══ */
+.bg-art{
+  position:fixed; inset:0; z-index:0;
+  background:url('assets/hero-afa.jpg') center 38%/cover no-repeat;
+}
+/* Véu que escurece as bordas e preserva o miolo da arte legível */
+.bg-veil{
+  position:fixed; inset:0; z-index:1; pointer-events:none;
+  background:
+    linear-gradient(180deg, rgba(6,16,33,.78) 0%, rgba(6,16,33,.20) 34%, rgba(6,16,33,.34) 62%, rgba(6,16,33,.92) 100%),
+    radial-gradient(115% 85% at 50% 42%, transparent 34%, rgba(6,16,33,.62) 100%);
+}
+#gl{position:fixed; inset:0; z-index:2; pointer-events:none; display:block}
+
+.shell{position:relative; z-index:3}
+
+/* ═══ CABEÇALHO ═══ */
+.top{
+  position:sticky; top:0; z-index:40;
+  display:flex; align-items:center; gap:1rem;
+  padding:.75rem var(--gutter);
+  background:linear-gradient(180deg,rgba(6,16,33,.86),rgba(6,16,33,.42));
+  backdrop-filter:blur(12px) saturate(140%);
+  -webkit-backdrop-filter:blur(12px) saturate(140%);
+  border-bottom:1px solid var(--hair);
+}
+.mark{
+  width:38px;height:38px;flex:0 0 auto;
+  background:#fff;border-radius:5px;padding:2px;
+  border:1.5px solid var(--gold);
+}
+.mark img{width:100%;height:100%;object-fit:contain;display:block}
+.top-id{line-height:1.1}
+.top-id b{
+  display:block;font-family:var(--f-display);font-weight:600;
+  font-size:.9rem;letter-spacing:.11em;text-transform:uppercase;color:#fff;
+}
+.top-id span{
+  display:block;font-size:.62rem;letter-spacing:.19em;
+  text-transform:uppercase;color:var(--contrail-dim);margin-top:2px;
+}
+.top-clock{
+  margin-left:auto;display:flex;align-items:center;gap:.6rem;
+  font-family:var(--f-data);font-size:.7rem;color:var(--contrail-dim);
+  letter-spacing:.04em;
+}
+.beacon{
+  width:7px;height:7px;border-radius:50%;background:var(--jade);
+  box-shadow:0 0 0 0 rgba(16,185,129,.55);
+  animation:beacon 2.4s ease-out infinite;
+}
+@keyframes beacon{
+  0%{box-shadow:0 0 0 0 rgba(16,185,129,.5)}
+  70%{box-shadow:0 0 0 9px rgba(16,185,129,0)}
+  100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}
+}
+
+/* ═══ HERO — ancorado à esquerda para liberar o eixo central da arte ═══ */
+.hero{
+  max-width:var(--shell); margin:0 auto;
+  padding:clamp(3rem,11vh,7rem) var(--gutter) clamp(2rem,6vh,4rem);
+}
+.hero-in{max-width:min(560px,92%)}
+.eyebrow{
+  display:flex;align-items:center;gap:.6rem;
+  font-family:var(--f-data);font-size:.66rem;letter-spacing:.24em;
+  text-transform:uppercase;color:var(--gold-lt);margin-bottom:1.15rem;
+}
+.eyebrow::after{content:'';height:1px;flex:1;background:linear-gradient(90deg,var(--gold),transparent)}
+.hero h1{
+  font-family:var(--f-display);font-weight:300;
+  font-size:clamp(2.3rem,6.4vw,4.35rem);
+  line-height:.98;letter-spacing:-.005em;color:#fff;
+  text-wrap:balance;
+}
+.hero h1 em{
+  display:block;font-style:normal;font-weight:600;
+  color:var(--gold-lt);
+}
+.hero p{
+  margin-top:1.35rem;max-width:44ch;
+  font-size:clamp(.92rem,1.6vw,1.02rem);line-height:1.62;
+  color:var(--contrail-dim);
+}
+
+/* ═══ FAIXA DE STATUS — régua de dados, sem caixas ═══ */
+.strip{
+  max-width:var(--shell);margin:0 auto;
+  padding:0 var(--gutter);
+}
+.strip-in{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:1px;background:var(--hair);
+  border:1px solid var(--hair);border-radius:10px;overflow:hidden;
+  backdrop-filter:blur(14px) saturate(150%);
+  -webkit-backdrop-filter:blur(14px) saturate(150%);
+}
+.stat{
+  background:var(--glass);
+  padding:1rem 1.15rem;
+  display:flex;flex-direction:column;gap:.3rem;
+  transition:background .25s;
+}
+.stat:hover{background:var(--glass-hi)}
+.stat-k{
+  display:flex;align-items:center;gap:.42rem;
+  font-size:.6rem;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--contrail-dim);font-weight:500;
+}
+.stat-k i{width:7px;height:7px;border-radius:50%;flex:0 0 auto}
+.stat-v{
+  font-family:var(--f-display);font-weight:500;
+  font-size:clamp(1.5rem,3.4vw,2.05rem);line-height:1;color:#fff;
+  font-variant-numeric:tabular-nums;
+}
+.stat-v small{font-size:.44em;color:var(--contrail-dim);font-weight:400;margin-left:.18em}
+
+/* ═══ MÓDULOS ═══ */
+.modules{
+  max-width:var(--shell);margin:0 auto;
+  padding:clamp(1.6rem,4vh,2.4rem) var(--gutter) clamp(3rem,8vh,5rem);
+  display:grid;gap:1rem;
+  grid-template-columns:repeat(2,1fr);
+}
+.sect-label{
+  grid-column:1/-1;
+  display:flex;align-items:center;gap:.7rem;
+  font-family:var(--f-data);font-size:.64rem;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--contrail-dim);
+  margin-bottom:.15rem;
+}
+.sect-label::after{content:'';height:1px;flex:1;background:var(--hair)}
+
+.card{
+  position:relative;display:block;
+  padding:1.5rem;border-radius:12px;text-decoration:none;color:inherit;
+  background:var(--glass);
+  border:1px solid var(--hair);
+  backdrop-filter:blur(16px) saturate(150%);
+  -webkit-backdrop-filter:blur(16px) saturate(150%);
+  overflow:hidden;
+  transition:transform .32s cubic-bezier(.2,.8,.2,1),
+             border-color .32s, background .32s, box-shadow .32s;
+}
+/* varredura diagonal no hover — ecoa o rastro dos contrails */
+.card::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(105deg,transparent 38%,rgba(207,228,255,.10) 50%,transparent 62%);
+  transform:translateX(-120%);
+  transition:transform .75s cubic-bezier(.2,.8,.2,1);
+}
+.card:hover,.card:focus-visible{
+  transform:translateY(-5px);
+  background:var(--glass-hi);
+  border-color:rgba(212,168,75,.52);
+  box-shadow:0 22px 48px -18px rgba(0,0,0,.72);
+}
+.card:hover::after,.card:focus-visible::after{transform:translateX(120%)}
+.card:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+
+.card-top{display:flex;align-items:flex-start;gap:.85rem;margin-bottom:1.05rem}
+.card-cocar{width:30px;height:30px;flex:0 0 auto;object-fit:contain;opacity:.9}
+.card-tag{
+  font-family:var(--f-data);font-size:.6rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold-lt);
+  padding:.2rem .5rem;border:1px solid rgba(212,168,75,.34);border-radius:3px;
+  margin-left:auto;white-space:nowrap;
+}
+.card h2{
+  font-family:var(--f-display);font-weight:500;
+  font-size:clamp(1.15rem,2.4vw,1.5rem);letter-spacing:.03em;
+  text-transform:uppercase;color:#fff;line-height:1.1;
+}
+.card h2+small{
+  display:block;margin-top:.32rem;
+  font-family:var(--f-body);font-size:.76rem;color:var(--contrail-dim);
+  letter-spacing:.01em;text-transform:none;
+}
+.card-body{font-size:.85rem;line-height:1.6;color:var(--contrail-dim);margin-bottom:1.15rem}
+
+.mini{
+  display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1.15rem;
+}
+.chip{
+  display:inline-flex;align-items:center;gap:.4rem;
+  padding:.34rem .6rem;border-radius:5px;
+  background:rgba(207,228,255,.07);border:1px solid var(--hair);
+  font-family:var(--f-data);font-size:.68rem;color:var(--contrail);
+  font-variant-numeric:tabular-nums;
+}
+.chip i{width:7px;height:7px;border-radius:50%;flex:0 0 auto}
+.chip u{text-decoration:none;color:var(--contrail-dim);font-size:.92em}
+
+/* barra proporcional de status */
+.bar{display:flex;height:4px;border-radius:99px;overflow:hidden;background:rgba(207,228,255,.10);margin-bottom:1.15rem}
+.bar span{display:block;height:100%;transition:width .7s cubic-bezier(.2,.8,.2,1)}
+
+.card-go{
+  display:flex;align-items:center;gap:.5rem;
+  font-family:var(--f-display);font-weight:500;font-size:.76rem;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--gold-lt);
+}
+.card-go svg{width:15px;height:15px;transition:transform .32s cubic-bezier(.2,.8,.2,1)}
+.card:hover .card-go svg,.card:focus-visible .card-go svg{transform:translate(4px,-4px)}
+
+/* módulo ainda não construído */
+.card.pending{cursor:default;opacity:.66;border-style:dashed}
+.card.pending:hover{transform:none;background:var(--glass);border-color:var(--hair);box-shadow:none}
+.card.pending::after{display:none}
+.card.pending .card-tag{color:var(--contrail-dim);border-color:var(--hair)}
+.card.pending .card-go{color:var(--contrail-dim)}
+
+/* ═══ RODAPÉ ═══ */
+.foot{
+  max-width:var(--shell);margin:0 auto;
+  padding:1.4rem var(--gutter) 2.6rem;
+  border-top:1px solid var(--hair);
+  display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;
+  font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(207,228,255,.42);
+}
+.foot img{width:16px;height:16px;opacity:.5}
+.foot .motto{
+  margin-left:auto;font-family:var(--f-display);font-weight:300;
+  font-style:italic;letter-spacing:.06em;text-transform:none;
+  color:rgba(207,228,255,.34);
+}
+
+/* ═══ ENTRADA ═══ */
+.rise{opacity:0;transform:translateY(18px);animation:rise .9s cubic-bezier(.2,.8,.2,1) forwards}
+.d1{animation-delay:.10s}.d2{animation-delay:.22s}.d3{animation-delay:.34s}
+.d4{animation-delay:.44s}.d5{animation-delay:.54s}.d6{animation-delay:.62s}
+@keyframes rise{to{opacity:1;transform:none}}
+
+/* ═══ RESPONSIVO ═══ */
+@media(max-width:900px){
+  .modules{grid-template-columns:1fr}
+  .strip-in{grid-template-columns:repeat(2,1fr)}
+  .bg-art{background-position:center 30%}
+  .hero-in{max-width:100%}
+}
+@media(max-width:560px){
+  .top{padding:.6rem 1rem}
+  .top-id b{font-size:.78rem;letter-spacing:.08em}
+  .top-id span{font-size:.55rem}
+  .top-clock span.lbl{display:none}
+  .mark{width:32px;height:32px}
+  .hero{padding-top:2.4rem}
+  .stat{padding:.8rem .85rem}
+  .foot .motto{margin-left:0;width:100%}
+}
+
+/* ═══ ACESSIBILIDADE ═══ */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  .rise{opacity:1;transform:none}
+  #gl{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-art" aria-hidden="true"></div>
+<div class="bg-veil" aria-hidden="true"></div>
+<canvas id="gl" aria-hidden="true"></canvas>
+
+<div class="shell">
+
+  <header class="top">
+    <div class="mark"><img src="assets/brasao-afa.jpg" alt="Brasão da Academia da Força Aérea" /></div>
+    <div class="top-id">
+      <b>Governança DE</b>
+      <span>Divisão de Ensino</span>
+    </div>
+    <div class="top-clock">
+      <span class="beacon" aria-hidden="true"></span>
+      <span class="lbl" id="clock-day">—</span>
+      <span id="clock-time">—</span>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="hero-in">
+      <p class="eyebrow rise d1">Academia da Força Aérea</p>
+      <h1 class="rise d2">Governança da<em>Divisão de Ensino</em></h1>
+      <p class="rise d3">Ponto único de acesso aos sistemas de controle da DE. Os números abaixo refletem a situação de agora — escolha um módulo para operar.</p>
+    </div>
+  </section>
+
+  <section class="strip rise d4" aria-label="Situação atual">
+    <div class="strip-in">
+      <div class="stat">
+        <div class="stat-k"><i style="background:var(--jade)"></i> Operacionais</div>
+        <div class="stat-v" id="kpi-ok">—<small id="kpi-ok-tot"></small></div>
+      </div>
+      <div class="stat">
+        <div class="stat-k"><i style="background:var(--amber)"></i> Em atenção</div>
+        <div class="stat-v" id="kpi-warn">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-k"><i style="background:var(--magenta)"></i> Vencidas +8h</div>
+        <div class="stat-v" id="kpi-over">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-k"><i style="background:var(--gold)"></i> Última entrada</div>
+        <div class="stat-v" id="kpi-last">—</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="modules">
+    <p class="sect-label rise d5">Módulos</p>
+
+    <!-- MÓDULO: EFETIVO -->
+    <a class="card rise d5" href="efetivo.html">
+      <div class="card-top">
+        <img class="card-cocar" src="assets/cocar-fab.png" alt="" />
+        <div>
+          <h2>Efetivo diário</h2>
+          <small>Chamada e controle de faltas</small>
+        </div>
+        <span class="card-tag">Ativo</span>
+      </div>
+      <p class="card-body">Registra a presença do efetivo por dia, marca ausências com motivo e mantém o histórico sincronizado entre dispositivos.</p>
+      <div class="mini">
+        <span class="chip"><u>Fonte</u> Planilha</span>
+        <span class="chip"><u>Sync</u> 15 s</span>
+        <span class="chip"><u>Registro</u> Por dia</span>
+      </div>
+      <span class="card-go">Abrir módulo
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+      </span>
+    </a>
+
+    <!-- MÓDULO: HIGIENIZAÇÃO -->
+    <a class="card rise d6" href="limpeza.html">
+      <div class="card-top">
+        <img class="card-cocar" src="assets/cocar-fab.png" alt="" />
+        <div>
+          <h2>Higienização</h2>
+          <small>Monitoramento de limpeza dos banheiros</small>
+        </div>
+        <span class="card-tag">Ativo</span>
+      </div>
+      <p class="card-body">Mostra em planta isométrica as 12 instalações, o horário da última limpeza e o que está previsto no cronograma.</p>
+      <div class="bar" id="bar-limpeza" role="img" aria-label="Distribuição de status das instalações">
+        <span style="width:100%;background:rgba(207,228,255,.14)"></span>
+      </div>
+      <div class="mini" id="chips-limpeza">
+        <span class="chip"><i style="background:var(--jade)"></i> — operacionais</span>
+        <span class="chip"><i style="background:var(--amber)"></i> — atenção</span>
+        <span class="chip"><i style="background:var(--magenta)"></i> — vencidas</span>
+      </div>
+      <span class="card-go">Abrir módulo
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+      </span>
+    </a>
+  </section>
+
+  <footer class="foot">
+    <img src="assets/cocar-fab.png" alt="" />
+    <span>Academia da Força Aérea · Divisão de Ensino</span>
+    <span class="motto">Macte animo! Generose puer, sic itur ad astra</span>
+  </footer>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   1 · CENA THREE.JS
+   Ajuste tudo por aqui. Nenhum outro trecho precisa ser tocado.
+   ═══════════════════════════════════════════════════════════════════ */
+const CFG = {
+  // Névoa de alta altitude
+  haze:{
+    count:1400,        // partículas no desktop (cai pela metade no mobile)
+    spread:120,        // largura/altura do volume ocupado
+    depth:70,          // profundidade do volume
+    size:1.5,          // tamanho base do ponto
+    rise:0.030,        // velocidade de subida
+    drift:0.012,       // deriva lateral
+    opacity:0.60,
+    colorA:0xcfe4ff,   // azul-contrail
+    colorB:0xd4a84b    // dourado institucional (minoria dos pontos)
+  },
+  // Quatro nós em losango — mesma formação das aeronaves da arte.
+  // Representam os módulos do sistema: 2 ativos, 2 previstos.
+  nodes:{
+    radius:3.4,
+    spin:0.13,         // rotação individual
+    orbit:0.055,       // giro lento do conjunto
+    bob:0.5,           // amplitude do balanço vertical
+    opacity:0.34,
+    linkOpacity:0.13,
+    color:0xcfe4ff,
+    colorActive:0xd4a84b   // os dois nós de baixo (módulos ativos) em dourado
+  },
+  camera:{ z:52, parallax:5.0, ease:0.045 },
+  maxDPR:1.75
+};
+
+(function scene(){
+  const canvas = document.getElementById('gl');
+  if (!canvas || typeof THREE === 'undefined') return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const mobile = window.innerWidth < 760;
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:!mobile });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, CFG.maxDPR));
+  renderer.setSize(innerWidth, innerHeight);
+
+  const scene  = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x061021, 0.0125);
+
+  const camera = new THREE.PerspectiveCamera(58, innerWidth/innerHeight, 0.1, 320);
+  camera.position.z = CFG.camera.z;
+
+  /* ── Sprite macio para os pontos (gerado, sem requisição de rede) ── */
+  function dotTexture(){
+    const c = document.createElement('canvas'); c.width = c.height = 64;
+    const g = c.getContext('2d').createRadialGradient(32,32,0,32,32,32);
+    g.addColorStop(0,'rgba(255,255,255,1)');
+    g.addColorStop(.35,'rgba(255,255,255,.55)');
+    g.addColorStop(1,'rgba(255,255,255,0)');
+    const ctx = c.getContext('2d'); ctx.fillStyle = g; ctx.fillRect(0,0,64,64);
+    return new THREE.CanvasTexture(c);
+  }
+
+  /* ── Névoa ── */
+  const H = CFG.haze;
+  const total = mobile ? Math.round(H.count*0.5) : H.count;
+  const pos   = new Float32Array(total*3);
+  const col   = new Float32Array(total*3);
+  const vel   = new Float32Array(total);
+  const cA = new THREE.Color(H.colorA), cB = new THREE.Color(H.colorB);
+
+  for (let i=0;i<total;i++){
+    pos[i*3]   = (Math.random()-.5)*H.spread;
+    pos[i*3+1] = (Math.random()-.5)*H.spread;
+    pos[i*3+2] = (Math.random()-.5)*H.depth;
+    vel[i]     = .45 + Math.random()*.9;
+    const c = Math.random() < .16 ? cB : cA;      // ~16% dourados
+    col[i*3] = c.r; col[i*3+1] = c.g; col[i*3+2] = c.b;
+  }
+
+  const hazeGeo = new THREE.BufferGeometry();
+  hazeGeo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  hazeGeo.setAttribute('color',    new THREE.BufferAttribute(col,3));
+
+  const haze = new THREE.Points(hazeGeo, new THREE.PointsMaterial({
+    size:H.size, map:dotTexture(), vertexColors:true,
+    transparent:true, opacity:H.opacity,
+    depthWrite:false, blending:THREE.AdditiveBlending, sizeAttenuation:true
+  }));
+  scene.add(haze);
+
+  /* ── Quatro nós em losango (formação das aeronaves) ── */
+  const N = CFG.nodes;
+  const group = new THREE.Group();
+  // topo, esquerda, direita, base — o mesmo desenho da formação na arte
+  const layout = [
+    { p:new THREE.Vector3(  0, 11, -6), active:false },
+    { p:new THREE.Vector3(-14,  5, -9), active:false },
+    { p:new THREE.Vector3( 14,  5, -9), active:true  },
+    { p:new THREE.Vector3(  0, -1, -4), active:true  }
+  ];
+
+  const nodes = layout.map((n,i)=>{
+    const mesh = new THREE.Mesh(
+      new THREE.OctahedronGeometry(N.radius, 0),
+      new THREE.MeshBasicMaterial({
+        color: n.active ? N.colorActive : N.color,
+        wireframe:true, transparent:true,
+        opacity: n.active ? N.opacity*1.5 : N.opacity
+      })
+    );
+    mesh.position.copy(n.p);
+    mesh.userData = { base:n.p.clone(), phase:i*1.7 };
+    group.add(mesh);
+    return mesh;
+  });
+
+  // Linhas ligando os nós — leitura de "fluxo entre módulos"
+  const links = [[0,1],[0,2],[1,3],[2,3],[0,3]];
+  const linkPos = new Float32Array(links.length*6);
+  const linkGeo = new THREE.BufferGeometry();
+  linkGeo.setAttribute('position', new THREE.BufferAttribute(linkPos,3));
+  group.add(new THREE.LineSegments(linkGeo, new THREE.LineBasicMaterial({
+    color:N.color, transparent:true, opacity:N.linkOpacity
+  })));
+  scene.add(group);
+
+  /* ── Parallax do ponteiro ── */
+  const ptr = { x:0, y:0, tx:0, ty:0 };
+  addEventListener('pointermove', e=>{
+    ptr.tx = (e.clientX/innerWidth  - .5) * 2;
+    ptr.ty = (e.clientY/innerHeight - .5) * 2;
+  }, { passive:true });
+
+  /* ── Loop ── */
+  const clock = new THREE.Clock();
+  let running = true, raf = 0;
+
+  function frame(){
+    raf = requestAnimationFrame(frame);
+    const t  = clock.getElapsedTime();
+    const dt = Math.min(clock.getDelta(), .05);
+
+    // névoa sobe e deriva; reentra por baixo ao sair pelo topo
+    const p = hazeGeo.attributes.position.array;
+    const lim = H.spread/2;
+    for (let i=0;i<total;i++){
+      p[i*3+1] += H.rise * vel[i];
+      p[i*3]   += Math.sin(t*.22 + i*.045) * H.drift;
+      if (p[i*3+1] > lim){
+        p[i*3+1] = -lim;
+        p[i*3]   = (Math.random()-.5)*H.spread;
+      }
+    }
+    hazeGeo.attributes.position.needsUpdate = true;
+
+    // nós: giro próprio + balanço vertical
+    nodes.forEach(m=>{
+      m.rotation.x += N.spin*dt;
+      m.rotation.y += N.spin*1.35*dt;
+      m.position.y = m.userData.base.y + Math.sin(t*.55 + m.userData.phase) * N.bob;
+    });
+    group.rotation.y = Math.sin(t*N.orbit)*.16;
+
+    // linhas acompanham os nós
+    const lp = linkGeo.attributes.position.array;
+    links.forEach(([a,b],i)=>{
+      lp[i*6]   = nodes[a].position.x; lp[i*6+1] = nodes[a].position.y; lp[i*6+2] = nodes[a].position.z;
+      lp[i*6+3] = nodes[b].position.x; lp[i*6+4] = nodes[b].position.y; lp[i*6+5] = nodes[b].position.z;
+    });
+    linkGeo.attributes.position.needsUpdate = true;
+
+    // câmera segue o ponteiro com suavização
+    ptr.x += (ptr.tx - ptr.x) * CFG.camera.ease;
+    ptr.y += (ptr.ty - ptr.y) * CFG.camera.ease;
+    camera.position.x =  ptr.x * CFG.camera.parallax;
+    camera.position.y = -ptr.y * CFG.camera.parallax;
+    camera.lookAt(0,0,0);
+
+    renderer.render(scene, camera);
+  }
+  frame();
+
+  /* ── Resize com debounce ── */
+  let rt;
+  addEventListener('resize', ()=>{
+    clearTimeout(rt);
+    rt = setTimeout(()=>{
+      camera.aspect = innerWidth/innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setPixelRatio(Math.min(devicePixelRatio, CFG.maxDPR));
+      renderer.setSize(innerWidth, innerHeight);
+    }, 150);
+  });
+
+  /* ── Não desenha com a aba em segundo plano ── */
+  document.addEventListener('visibilitychange', ()=>{
+    if (document.hidden && running){ cancelAnimationFrame(raf); running = false; }
+    else if (!document.hidden && !running){ clock.getDelta(); running = true; frame(); }
+  });
+})();
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   2 · RELÓGIO
+   ═══════════════════════════════════════════════════════════════════ */
+(function clock(){
+  const dias = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+  const day  = document.getElementById('clock-day');
+  const time = document.getElementById('clock-time');
+  const tick = ()=>{
+    const d = new Date();
+    day.textContent  = `${dias[d.getDay()]} · ${d.toLocaleDateString('pt-BR')}`;
+    time.textContent = d.toLocaleTimeString('pt-BR');
+  };
+  tick(); setInterval(tick, 1000);
+})();
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   3 · KPIs AO VIVO — lidos da mesma planilha do módulo de Higienização
+   ═══════════════════════════════════════════════════════════════════ */
+const SHEET_ID = '1wFKX6eVRi1VOtcQH4Bb0xJ32saXAUw2FihIiHdw_-yc';
+const IDS = ['B01','B02','B03','B04','B05','B06','B07','B08','B09','B10','B11','B12'];
+
+function statusDe(quando, tipo){
+  if (!quando) return 'sem';
+  const h = (Date.now() - quando.getTime()) / 36e5;
+  const janela = tipo === 'full' ? 8 : 3;      // mesma regra do módulo
+  if (h < janela)      return 'ok';
+  if (h < janela + 8)  return 'atencao';
+  return 'vencido';
+}
+
+async function lerPlanilha(){
+  const abas = ['Respostas','Respostas do formulário 2','Respostas do formulário 1','Form Responses 1'];
+  for (const aba of abas){
+    try{
+      const r = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(aba)}`);
+      const t = await r.text();
+      const m = t.match(/setResponse\(([\s\S]*)\)/);
+      if (!m) continue;
+      const j = JSON.parse(m[1]);
+      if (j?.status === 'error') continue;
+      return j;
+    }catch(e){}
+  }
+  return null;
+}
+
+function paraData(v){
+  if (typeof v === 'string'){
+    const m = v.match(/Date\((\d+),(\d+),(\d+),?(\d+)?,?(\d+)?,?(\d+)?\)/);
+    if (m) return new Date(+m[1], +m[2], +m[3], +(m[4]||0), +(m[5]||0), +(m[6]||0));
+    const d = new Date(v); return isNaN(d) ? null : d;
+  }
+  if (typeof v === 'number') return new Date((v - 25569) * 864e5);
+  return null;
+}
+
+async function carregarKPIs(){
+  const j = await lerPlanilha();
+  if (!j) return;   // sem dados: os campos seguem com "—"
+
+  const ultimo = {};
+  let maisRecente = null;
+
+  (j.table?.rows || []).forEach(row=>{
+    const c = row.c || [];
+    const quando = paraData(c[0]?.v);
+    const campo  = (c[1]?.v || '').toString();
+    const id     = (campo.match(/B\d{2}/i) || [])[0]?.toUpperCase();
+    if (!quando || !id || !IDS.includes(id)) return;
+
+    // coluna C é "Básica"/"Full" no formulário novo; no antigo é o responsável
+    const cc = (c[2]?.v || '').toString().toLowerCase().trim();
+    const tipo = cc.startsWith('full') ? 'full' : (cc.startsWith('bas') || cc.startsWith('bás')) ? 'basica' : null;
+
+    if (!ultimo[id] || quando > ultimo[id].quando) ultimo[id] = { quando, tipo };
+    if (!maisRecente || quando > maisRecente) maisRecente = quando;
+  });
+
+  const cont = { ok:0, atencao:0, vencido:0, sem:0 };
+  IDS.forEach(id=>{
+    const u = ultimo[id];
+    cont[ statusDe(u?.quando || null, u?.tipo) ]++;
+  });
+
+  // faixa de status
+  document.getElementById('kpi-ok').firstChild.nodeValue = cont.ok;
+  document.getElementById('kpi-ok-tot').textContent = `/${IDS.length}`;
+  document.getElementById('kpi-warn').textContent = cont.atencao;
+  document.getElementById('kpi-over').textContent = cont.vencido;
+  document.getElementById('kpi-last').textContent = maisRecente
+    ? maisRecente.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})
+    : '—';
+
+  // barra proporcional no card de Higienização
+  const pct = n => (n / IDS.length * 100).toFixed(1) + '%';
+  document.getElementById('bar-limpeza').innerHTML = `
+    <span style="width:${pct(cont.ok)};background:var(--jade)"></span>
+    <span style="width:${pct(cont.atencao)};background:var(--amber)"></span>
+    <span style="width:${pct(cont.vencido)};background:var(--magenta)"></span>
+    <span style="width:${pct(cont.sem)};background:rgba(207,228,255,.16)"></span>`;
+
+  document.getElementById('chips-limpeza').innerHTML = `
+    <span class="chip"><i style="background:var(--jade)"></i> ${cont.ok} operacionais</span>
+    <span class="chip"><i style="background:var(--amber)"></i> ${cont.atencao} atenção</span>
+    <span class="chip"><i style="background:var(--magenta)"></i> ${cont.vencido} vencidas</span>`;
+}
+
+carregarKPIs();
+setInterval(carregarKPIs, 60000);
+</script>
+</body>
+</html>
