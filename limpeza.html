@@ -60,14 +60,14 @@
     .live-dot { display:flex; align-items:center; gap:.4rem; font-size:.72rem; color: var(--green-400); font-weight:500; letter-spacing:.05em; text-transform:uppercase; }
     .pulse { width:8px; height:8px; background:var(--green-400); border-radius:50%; animation: pulse 2s infinite; box-shadow: 0 0 10px var(--green-400); }
     @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
-    .refresh-btn, .form-btn {
+    .nav-btn, .refresh-btn, .form-btn {
       display:flex; align-items:center; gap:.45rem;
       font-size:.72rem; font-weight:500; color:white;
       background: rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15);
       border-radius:4px; padding:.4rem .8rem; cursor:pointer; text-transform:uppercase;
       letter-spacing:.05em; transition: all .2s; font-family: var(--font-body); text-decoration: none;
     }
-    .refresh-btn:hover, .form-btn:hover { background: rgba(255,255,255,.15); }
+    .nav-btn:hover, .refresh-btn:hover, .form-btn:hover { background: rgba(255,255,255,.15); }
     .refresh-btn.spinning svg { animation: spin .8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .form-btn { background: var(--gold-500); color: var(--navy-900); border-color: var(--gold-500); font-weight: 600; }
@@ -102,8 +102,8 @@
       .crest { width: 42px; height: 42px; }
       .last-update { display: none; }
       .live-dot { font-size: .65rem; }
-      .refresh-btn, .form-btn { padding: .35rem .6rem; font-size: .65rem; }
-      .form-btn span, .refresh-btn span { display: none; }
+      .nav-btn, .nav-btn, .refresh-btn, .form-btn { padding: .35rem .6rem; font-size: .65rem; }
+      .nav-btn span, .form-btn span, .refresh-btn span { display: none; }
       .summary { padding: .75rem; gap: .5rem; }
       .summary-card { min-width: 100px; padding: .45rem .75rem; }
       .summary-count { font-size: 1.15rem; }
@@ -339,6 +339,12 @@
     </div>
   </div>
   <div class="header-right">
+
+    <a class="nav-btn" href="index.html">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <span>Página Inicial</span>
+    </a>
+
     <a class="form-btn" href="https://docs.google.com/forms/d/e/1FAIpQLSdkPhb72gisDR71cnY2WGRUG51L_F5ShUE_MTop46ecYhi9ZA/viewform" target="_blank">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
       Registrar Limpeza
@@ -471,9 +477,7 @@ const CALENDAR_URL = (timeMin, timeMax) =>
    EQUIPE DE LIMPEZA
    ══════════════════════════════════════════════════════════════ */
 const TEAM = [
-  { name: 'IVAN',        initials: 'IV' },
   { name: 'V SANTOS',    initials: 'VS' },
-  { name: 'XAVIER',      initials: 'XA' },
   { name: 'KAUÃ XAVES',  initials: 'KX' },
 ];
 
