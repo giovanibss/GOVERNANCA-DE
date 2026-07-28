@@ -493,21 +493,14 @@ body{
 /* Planilha do módulo de Higienização (já em uso) */
 const SHEET_ID = '1wFKX6eVRi1VOtcQH4Bb0xJ32saXAUw2FihIiHdw_-yc';
 
-/* Módulo de Efetivo.
-   Cole abaixo a URL do Web App do Apps Script que o efetivo.html já usa
-   para ler o estado do dia. Enquanto estiver vazio, o cartão mostra
-   traços em vez de números inventados.
-
-   Resposta esperada (JSON ou JSONP), qualquer um destes formatos serve:
-     { total: 48, presentes: 41, ausentes: 7 }
-     { presentes: ["...", "..."], ausentes: ["..."] }        → conta o tamanho
-     { efetivo: [ {nome:"...", presente:true}, ... ] }        → conta por flag
-*/
-const EFETIVO_URL = () =>
-  `https://docs.google.com/spreadsheets/d/${EFETIVO_SHEET_ID}/gviz/tq` +
-  `?tqx=out:json&sheet=${encodeURIComponent(EFETIVO_TAB)}` +
-  `&range=C${ROW_START}:E${ROW_END}&headers=0`;
-const EFETIVO_JSONP = true;   // true se o Web App responde via callback JSONP
+/* Módulo de Efetivo — mesmos parâmetros do efetivo.html.
+   O total vem da planilha (C5:E75, aba "efetivo", menos os excluídos).
+   Presentes/ausentes vêm do estado do dia no Apps Script (JSONP). */
+const EF_SHEET_ID = '1UOMh4y-wHL8kHcB9TUUcEmkeF7z6KYAs4vipsoOFgfA';
+const EF_TAB      = 'efetivo';
+const EF_ROW_START = 5, EF_ROW_END = 75;
+const EF_APPS_URL = 'https://script.google.com/macros/s/AKfycbzDig6XjmLQX0THlyCt36KlMGky-rxhqTrrsPNIT3PDLJnHJuJ-izIKcQHd0Yun4dOg/exec';
+const EF_EXCLUIR  = ['Calaza','Braun','Aramys','Eckert','Jesus','Sommer','Xavier','Raiane','Montalvão','Levy','Ivan','Fabricio'];
 
 /* Cena 3D */
 const CFG = {
@@ -855,75 +848,122 @@ async function carregarLimpeza(){
 
 
 /* ═══════════════════════════════════════════════════════════════════
-   6 · DADOS · EFETIVO
+   6 · DADOS · EFETIVO  (espelha a leitura do efetivo.html)
    ═══════════════════════════════════════════════════════════════════ */
-function buscarEfetivo(){
-  if (!EFETIVO_URL) return Promise.resolve(null);
 
-  if (!EFETIVO_JSONP){
-    return fetch(EFETIVO_URL).then(r=>r.json()).catch(()=>null);
-  }
-  // JSONP — mesmo mecanismo de leitura que o efetivo.html já usa
-  return new Promise(resolve=>{
-    const cb = 'efCb' + Date.now();
-    const s  = document.createElement('script');
-    const limpar = ()=>{ delete window[cb]; s.remove(); };
-    const timer = setTimeout(()=>{ limpar(); resolve(null); }, 8000);
-    window[cb] = d => { clearTimeout(timer); limpar(); resolve(d); };
-    s.src = EFETIVO_URL + (EFETIVO_URL.includes('?') ? '&' : '?') + 'callback=' + cb;
-    s.onerror = ()=>{ clearTimeout(timer); limpar(); resolve(null); };
-    document.head.appendChild(s);
+// normaliza nome para comparar com a lista de exclusão
+function efNorm(s){
+  return (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
+}
+const EF_EXCLUIR_NORM = EF_EXCLUIR.map(efNorm);
+function efExcluido(nome){
+  const tokens = efNorm(nome).split(' ');
+  return EF_EXCLUIR_NORM.some(ex => tokens.includes(ex));
+}
+
+// leitura JSONP (o Apps Script bloqueia fetch por CORS) — igual ao efetivo.html
+function efJsonp(baseUrl){
+  return new Promise((resolve, reject)=>{
+    const cb = 'cb_' + Math.random().toString(36).slice(2);
+    const s = document.createElement('script');
+    let done = false;
+    const cleanup = ()=>{ try{ delete window[cb]; }catch(_){ window[cb]=undefined; } s.remove(); };
+    window[cb] = d => { done = true; cleanup(); resolve(d); };
+    s.onerror = ()=>{ if(!done){ cleanup(); reject(new Error('rede')); } };
+    s.src = baseUrl + (baseUrl.includes('?')?'&':'?') + 'callback=' + cb + '&_=' + Date.now();
+    document.body.appendChild(s);
+    setTimeout(()=>{ if(!done){ cleanup(); reject(new Error('timeout')); } }, 12000);
   });
 }
 
-/* Aceita os formatos mais prováveis de resposta e reduz a {total, presentes, ausentes} */
-function normalizarEfetivo(d){
-  if (!d || typeof d !== 'object') return null;
+// total de militares na planilha (aplica a mesma exclusão do módulo)
+async function efTotalPlanilha(){
+  const url = `https://docs.google.com/spreadsheets/d/${EF_SHEET_ID}/gviz/tq`
+            + `?tqx=out:json&sheet=${encodeURIComponent(EF_TAB)}`
+            + `&range=C${EF_ROW_START}:E${EF_ROW_END}&headers=0`;
+  const r = await fetch(url);
+  const t = await r.text();
+  const m = t.match(/setResponse\(([\s\S]*)\)/);
+  if (!m) return null;
+  const j = JSON.parse(m[1]);
+  if (j?.status === 'error') return null;
 
-  if (typeof d.presentes === 'number' || typeof d.ausentes === 'number'){
-    const pres = d.presentes || 0, aus = d.ausentes || 0;
-    return { total: d.total ?? (pres + aus), presentes: pres, ausentes: aus };
-  }
-  if (Array.isArray(d.presentes) || Array.isArray(d.ausentes)){
-    const pres = (d.presentes || []).length, aus = (d.ausentes || []).length;
-    return { total: d.total ?? (pres + aus), presentes: pres, ausentes: aus };
-  }
-  const lista = Array.isArray(d) ? d : (d.efetivo || d.militares || d.dados);
-  if (Array.isArray(lista)){
-    let pres = 0;
-    lista.forEach(m=>{
-      const v = m?.presente ?? m?.status ?? m?.situacao;
-      if (v === true || /presente|pres/i.test(String(v))) pres++;
-    });
-    return { total: lista.length, presentes: pres, ausentes: lista.length - pres };
-  }
+  const nomes = [];
+  (j.table?.rows || []).forEach(row=>{
+    const nome = (row.c?.[2]?.v ?? '').toString().trim();
+    if (!nome || efExcluido(nome)) return;
+    nomes.push(nome);
+  });
+  return nomes;   // devolve a lista para casar com o estado do servidor
+}
+
+// estado do dia (quem está PRESENTE / FALTA), via Apps Script
+async function efEstadoDia(){
+  if (!EF_APPS_URL) return null;
+  const hoje = new Date().toLocaleDateString('pt-BR');   // dd/MM/yyyy
+  const url = EF_APPS_URL + '?action=estado&dia=' + encodeURIComponent(hoje);
+  try{
+    const data = await efJsonp(url);
+    if (data && data.ok && data.estado) return data.estado;  // { nome: {situacao, etiquetas} }
+  }catch(e){}
   return null;
 }
 
 async function carregarEfetivo(){
-  const bruto = await buscarEfetivo();
-  const e = normalizarEfetivo(bruto);
+  let nomes = null, estado = null;
+  try{ [nomes, estado] = await Promise.all([efTotalPlanilha(), efEstadoDia()]); }
+  catch(e){}
 
-  if (!e){
-    document.getElementById('ef-note').textContent =
-      EFETIVO_URL ? 'Sem resposta da chamada · abra o módulo'
-                  : 'Chamada do dia · sincronizada entre dispositivos';
+  const total = nomes ? nomes.length : null;
+
+  // conta presentes/ausentes cruzando o estado do servidor com o efetivo real
+  let presentes = null, ausentes = null;
+  if (estado){
+    presentes = 0; ausentes = 0;
+    const chave = nomes || Object.keys(estado);
+    chave.forEach(nome=>{
+      const reg = estado[nome];
+      if (!reg) return;                      // não marcado = pool (não conta)
+      if (reg.situacao === 'PRESENTE') presentes++;
+      else if (reg.situacao === 'FALTA') ausentes++;
+    });
+  }
+
+  const $ = id => document.getElementById(id);
+
+  if (total == null){
+    $('ef-note').textContent = 'Efetivo indisponível · abra o módulo';
     return;
   }
 
-  countTo(document.getElementById('ef-total'), e.total);
-  countTo(document.getElementById('ef-pres'),  e.presentes);
-  countTo(document.getElementById('ef-aus'),   e.ausentes);
-  countTo(document.getElementById('kpi-pres'), e.presentes);
-  document.getElementById('kpi-pres-tot').textContent = `/${e.total}`;
+  countTo($('ef-total'), total);
 
-  const pct = v => (e.total ? v/e.total*100 : 0).toFixed(1) + '%';
-  document.getElementById('ef-bar').innerHTML = `
-    <span style="width:${pct(e.presentes)};background:var(--jade)"></span>
-    <span style="width:${pct(e.ausentes)};background:var(--amber)"></span>`;
+  if (presentes == null){
+    // temos o total, mas ainda não há chamada registrada hoje
+    $('ef-pres').textContent = '—';
+    $('ef-aus').textContent  = '—';
+    $('kpi-pres').textContent = '—';
+    $('kpi-pres-tot').textContent = `/${total}`;
+    $('ef-bar').innerHTML = '<span style="width:100%;background:rgba(207,228,255,.14)"></span>';
+    $('ef-note').textContent = 'Chamada do dia ainda não iniciada';
+    return;
+  }
 
-  document.getElementById('ef-note').textContent =
-    `Atualizado às ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`;
+  countTo($('ef-pres'), presentes);
+  countTo($('ef-aus'),  ausentes);
+  countTo($('kpi-pres'), presentes);
+  $('kpi-pres-tot').textContent = `/${total}`;
+
+  const pct = v => (total ? v/total*100 : 0).toFixed(1) + '%';
+  const pend = Math.max(total - presentes - ausentes, 0);
+  $('ef-bar').innerHTML = `
+    <span style="width:${pct(presentes)};background:var(--jade)"></span>
+    <span style="width:${pct(ausentes)};background:var(--amber)"></span>
+    <span style="width:${pct(pend)};background:rgba(207,228,255,.14)"></span>`;
+
+  $('ef-note').textContent =
+    `Chamada de hoje · ${presentes + ausentes} de ${total} conferidos`;
 }
 
 
