@@ -503,7 +503,10 @@ const SHEET_ID = '1wFKX6eVRi1VOtcQH4Bb0xJ32saXAUw2FihIiHdw_-yc';
      { presentes: ["...", "..."], ausentes: ["..."] }        → conta o tamanho
      { efetivo: [ {nome:"...", presente:true}, ... ] }        → conta por flag
 */
-const EFETIVO_URL = '';       // ex.: 'https://script.google.com/macros/s/AKfy.../exec'
+const EFETIVO_URL = () =>
+  `https://docs.google.com/spreadsheets/d/${EFETIVO_SHEET_ID}/gviz/tq` +
+  `?tqx=out:json&sheet=${encodeURIComponent(EFETIVO_TAB)}` +
+  `&range=C${ROW_START}:E${ROW_END}&headers=0`;
 const EFETIVO_JSONP = true;   // true se o Web App responde via callback JSONP
 
 /* Cena 3D */
