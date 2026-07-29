@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AFA · Controle de Diárias — DE</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy-900:#0a1628; --navy-800:#0f2341; --navy-700:#14315a;
+  --navy-600:#1e4377; --navy-500:#2d5a9e; --navy-400:#5b82c4;
+  --navy-300:#94b0d8; --navy-200:#c5d4e8; --navy-100:#e6eef7; --navy-50:#f2f6fb;
+  --gold-500:#d4a84b; --gold-400:#e6be65;
+  --green-500:#10b981; --green-600:#059669;
+  --yellow-500:#f59e0b;
+  --red-500:#ef4444; --red-600:#dc2626;
+  --gray-100:#f1f5f9; --gray-200:#e2e8f0; --gray-300:#cbd5e1;
+  --gray-400:#94a3b8; --gray-500:#64748b; --gray-700:#334155; --gray-900:#0f172a;
+  --f-display:'Oswald',sans-serif;
+  --f-body:'Inter',sans-serif;
+  --f-mono:'JetBrains Mono',monospace;
+}
+body{font-family:var(--f-body);background:var(--navy-50);color:var(--navy-900);min-height:100vh}
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(20,49,90,.04) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(20,49,90,.04) 1px,transparent 1px);
+  background-size:40px 40px;
+}
+
+/* ═══ HEADER ═══ */
+header{
+  background:linear-gradient(135deg,var(--navy-900),var(--navy-700));color:#fff;
+  padding:0 2rem;height:78px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;border-bottom:3px solid var(--gold-500);
+}
+header::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:repeating-linear-gradient(45deg,rgba(212,168,75,.05) 0 1px,transparent 1px 20px);
+}
+.logo{display:flex;align-items:center;gap:1rem;position:relative}
+.crest{width:58px;height:58px;flex-shrink:0;background:#fff;border-radius:6px;padding:3px;
+  border:2px solid var(--gold-500);box-shadow:0 3px 10px rgba(0,0,0,.3)}
+.crest img{width:100%;height:100%;object-fit:contain}
+.logo-text{font-family:var(--f-display);font-size:1.15rem;font-weight:600;letter-spacing:.04em;
+  line-height:1;text-transform:uppercase}
+.logo-sub{font-size:.7rem;color:var(--navy-300);letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
+.header-right{display:flex;align-items:center;gap:1rem;position:relative}
+.hbtn{
+  display:flex;align-items:center;gap:.45rem;font-size:.72rem;font-weight:500;color:#fff;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:4px;
+  padding:.4rem .8rem;cursor:pointer;text-transform:uppercase;letter-spacing:.05em;
+  transition:all .2s;font-family:var(--f-body);text-decoration:none;
+}
+.hbtn:hover{background:rgba(255,255,255,.15)}
+.hbtn.gold{background:var(--gold-500);color:var(--navy-900);border-color:var(--gold-500);font-weight:600}
+.hbtn.gold:hover{background:var(--gold-400)}
+
+/* status de sincronização */
+.sync{display:flex;align-items:center;gap:.45rem;font-family:var(--f-mono);font-size:.66rem;
+  color:var(--navy-200);background:rgba(255,255,255,.08);padding:.35rem .75rem;border-radius:4px;
+  border:1px solid rgba(255,255,255,.1);white-space:nowrap}
+.sync i{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:var(--gray-400)}
+.sync.ok i{background:var(--green-500);box-shadow:0 0 8px rgba(16,185,129,.7)}
+.sync.busy i{background:var(--yellow-500);animation:pulse 1.1s ease-in-out infinite}
+.sync.off i{background:var(--red-500)}
+.sync.cfg i{background:var(--gold-500)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* ═══ SUMMARY ═══ */
+.summary{display:flex;gap:.75rem;padding:1.25rem 2rem;background:#fff;
+  border-bottom:1px solid var(--navy-100);overflow-x:auto;position:relative;z-index:5}
+.scard{flex:0 0 auto;display:flex;align-items:center;gap:.75rem;background:var(--navy-50);
+  border:1px solid var(--navy-100);border-left:3px solid;border-radius:4px;
+  padding:.6rem 1.1rem;min-width:170px}
+.scard.gold{border-left-color:var(--gold-500)}
+.scard.red{border-left-color:var(--red-500)}
+.scard.green{border-left-color:var(--green-500)}
+.scard.navy{border-left-color:var(--navy-600);margin-left:auto}
+.scount{font-family:var(--f-display);font-size:1.35rem;font-weight:600;line-height:1;
+  color:var(--navy-900);font-variant-numeric:tabular-nums}
+.slabel{font-size:.62rem;color:var(--gray-500);text-transform:uppercase;
+  letter-spacing:.08em;font-weight:500;margin-top:3px}
+
+/* ═══ MAIN ═══ */
+main{display:grid;grid-template-columns:1fr 340px;gap:1.5rem;padding:1.5rem 2rem;
+  max-width:1500px;margin:0 auto;position:relative;z-index:5;align-items:start}
+@media(max-width:1000px){main{grid-template-columns:1fr}}
+
+.section-title{font-family:var(--f-display);font-size:.72rem;font-weight:500;
+  text-transform:uppercase;letter-spacing:.12em;color:var(--navy-600);
+  margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.section-title::before{content:'';width:16px;height:2px;background:var(--gold-500)}
+
+.toolbar{display:flex;gap:.6rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
+.btn{
+  display:inline-flex;align-items:center;gap:.45rem;padding:.6rem 1.1rem;border-radius:5px;
+  font-family:var(--f-display);font-size:.78rem;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;cursor:pointer;border:none;transition:all .2s;
+}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-primary{background:var(--navy-700);color:#fff}
+.btn-primary:not(:disabled):hover{background:var(--navy-600);transform:translateY(-1px);box-shadow:0 4px 12px rgba(20,49,90,.28)}
+.btn-ghost{background:#fff;color:var(--navy-700);border:1px solid var(--navy-200)}
+.btn-ghost:not(:disabled):hover{background:var(--navy-50);border-color:var(--navy-400)}
+.search{
+  flex:1;min-width:180px;padding:.6rem .9rem;border-radius:5px;
+  border:1px solid var(--navy-200);background:#fff;font-family:var(--f-body);
+  font-size:.82rem;color:var(--navy-900);
+}
+.search:focus{outline:2px solid var(--gold-500);outline-offset:1px;border-color:var(--gold-500)}
+
+/* ═══ OS CARDS ═══ */
+.os-grid{display:grid;gap:.85rem;grid-template-columns:repeat(auto-fill,minmax(330px,1fr))}
+.os{
+  background:#fff;border:1px solid var(--navy-100);border-radius:8px;
+  border-top:3px solid var(--navy-600);padding:1.1rem;position:relative;
+  transition:transform .2s,box-shadow .2s,opacity .2s;
+}
+.os:hover{transform:translateY(-2px);box-shadow:0 10px 26px -12px rgba(10,22,40,.3)}
+.os.st-curso{border-top-color:var(--green-500)}
+.os.st-futura{border-top-color:var(--gold-500)}
+.os.st-fim{border-top-color:var(--gray-300)}
+.os.pend{opacity:.55}
+
+.os-head{display:flex;align-items:flex-start;gap:.6rem;margin-bottom:.7rem}
+.os-num{font-family:var(--f-display);font-size:1rem;font-weight:600;letter-spacing:.04em;
+  color:var(--navy-900);line-height:1.1}
+.os-num span{display:block;font-family:var(--f-mono);font-size:.58rem;color:var(--gray-400);
+  font-weight:400;letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+.os-badge{margin-left:auto;font-family:var(--f-mono);font-size:.56rem;letter-spacing:.1em;
+  text-transform:uppercase;padding:.2rem .5rem;border-radius:3px;white-space:nowrap}
+.badge-curso{background:rgba(16,185,129,.12);color:var(--green-600)}
+.badge-futura{background:rgba(212,168,75,.15);color:#8a6d1f}
+.badge-fim{background:var(--gray-100);color:var(--gray-500)}
+
+.os-desc{font-size:.83rem;line-height:1.5;color:var(--gray-700);margin-bottom:.85rem;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.os-meta{display:flex;flex-direction:column;gap:.4rem;margin-bottom:.85rem;
+  padding-bottom:.85rem;border-bottom:1px dashed var(--navy-100)}
+.os-row{display:flex;align-items:center;gap:.5rem;font-size:.74rem;color:var(--gray-700)}
+.os-row svg{width:13px;height:13px;flex-shrink:0;color:var(--navy-400)}
+.os-row b{font-weight:600;color:var(--navy-900)}
+.os-row u{text-decoration:none;color:var(--gray-400);margin-left:auto;font-family:var(--f-mono);font-size:.66rem}
+
+.os-foot{display:flex;align-items:flex-end;justify-content:space-between;gap:.6rem}
+.os-qtd{font-family:var(--f-mono);font-size:.75rem;color:var(--navy-600);font-weight:500}
+.os-qtd small{display:block;font-size:.58rem;color:var(--gray-400);text-transform:uppercase;
+  letter-spacing:.07em;margin-top:1px;font-family:var(--f-body)}
+.os-val{font-family:var(--f-display);font-size:1.2rem;font-weight:600;color:var(--navy-900);
+  font-variant-numeric:tabular-nums;text-align:right;line-height:1}
+.os-val small{display:block;font-size:.55rem;color:var(--gray-400);text-transform:uppercase;
+  letter-spacing:.08em;margin-top:3px;font-family:var(--f-body);font-weight:400}
+
+.os-acts{position:absolute;top:.75rem;right:.7rem;display:flex;gap:.2rem;opacity:0;transition:opacity .2s}
+.os:hover .os-acts,.os:focus-within .os-acts{opacity:1}
+.icon-btn{background:transparent;border:none;cursor:pointer;padding:.28rem;border-radius:4px;
+  color:var(--gray-400);display:flex;transition:all .15s}
+.icon-btn:hover{background:var(--navy-50);color:var(--navy-700)}
+.icon-btn.del:hover{background:rgba(239,68,68,.1);color:var(--red-500)}
+.icon-btn svg{width:14px;height:14px}
+
+.empty{grid-column:1/-1;text-align:center;padding:3.5rem 1rem;color:var(--gray-400)}
+.empty img{width:52px;opacity:.28;margin-bottom:.9rem}
+.empty p{font-size:.88rem;margin-bottom:1.1rem}
+.skel{background:#fff;border:1px solid var(--navy-100);border-radius:8px;height:210px;
+  animation:sk 1.3s ease-in-out infinite}
+@keyframes sk{0%,100%{opacity:.55}50%{opacity:.85}}
+
+/* ═══ SIDEBAR ═══ */
+.sidebar{display:flex;flex-direction:column;gap:1rem}
+.panel{background:#fff;border:1px solid var(--navy-100);border-radius:8px;padding:1.25rem;
+  border-top:3px solid var(--navy-600)}
+.panel.gauge-panel{border-top-color:var(--gold-500)}
+
+#gauge{width:100%;height:auto;display:block;margin:0 auto}
+.gauge-read{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--navy-100);
+  border:1px solid var(--navy-100);border-radius:6px;overflow:hidden;margin-top:.9rem}
+.gauge-read div{background:var(--navy-50);padding:.6rem .5rem;text-align:center}
+.gauge-read dt{font-size:.54rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray-500);
+  margin-bottom:.22rem;font-weight:600}
+.gauge-read dd{font-family:var(--f-mono);font-size:.72rem;font-weight:700;color:var(--navy-900);
+  font-variant-numeric:tabular-nums;line-height:1.2}
+.gauge-read dd.spent{color:var(--red-600)}
+.gauge-read dd.left{color:var(--green-600)}
+
+.field{margin-bottom:.85rem}
+.field label{display:block;font-size:.62rem;font-weight:600;text-transform:uppercase;
+  letter-spacing:.08em;color:var(--navy-500);margin-bottom:.35rem}
+.field input,.field textarea,.field select{
+  width:100%;padding:.6rem .75rem;border-radius:5px;border:1px solid var(--navy-200);
+  background:#fff;font-family:var(--f-body);font-size:.85rem;color:var(--navy-900);
+}
+.field input.money{font-family:var(--f-mono);font-weight:500}
+.field input:focus,.field textarea:focus,.field select:focus{
+  outline:2px solid var(--gold-500);outline-offset:1px;border-color:var(--gold-500)}
+.field textarea{resize:vertical;min-height:70px;line-height:1.5}
+.field .hint{font-size:.62rem;color:var(--gray-400);margin-top:.28rem}
+
+.warn{display:flex;gap:.55rem;align-items:flex-start;padding:.7rem .8rem;border-radius:5px;
+  background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.22);
+  font-size:.72rem;line-height:1.45;color:#991b1b;margin-top:.85rem}
+.warn svg{width:15px;height:15px;flex-shrink:0;margin-top:1px}
+.warn.hide{display:none}
+.warn.setup{background:rgba(212,168,75,.1);border-color:rgba(212,168,75,.3);color:#7a5f16}
+.warn.setup code{font-family:var(--f-mono);font-size:.66rem;background:rgba(0,0,0,.06);
+  padding:1px 4px;border-radius:3px}
+
+/* ═══ MODAL ═══ */
+.backdrop{position:fixed;inset:0;z-index:200;background:rgba(10,22,40,.72);
+  backdrop-filter:blur(3px);display:flex;align-items:flex-start;justify-content:center;
+  padding:2rem 1rem;overflow-y:auto;opacity:0;pointer-events:none;transition:opacity .2s}
+.backdrop.open{opacity:1;pointer-events:auto}
+.modal{background:#fff;border-radius:10px;width:100%;max-width:560px;
+  border-top:4px solid var(--gold-500);box-shadow:0 24px 60px rgba(0,0,0,.4);
+  transform:translateY(-14px);transition:transform .24s cubic-bezier(.2,.8,.2,1)}
+.backdrop.open .modal{transform:none}
+.modal-head{display:flex;align-items:center;gap:.7rem;padding:1.2rem 1.4rem;
+  border-bottom:1px solid var(--navy-100)}
+.modal-head h2{font-family:var(--f-display);font-size:1.05rem;font-weight:600;
+  letter-spacing:.04em;text-transform:uppercase;color:var(--navy-900)}
+.modal-head .icon-btn{margin-left:auto}
+.modal-body{padding:1.3rem 1.4rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.85rem}
+@media(max-width:520px){.grid2{grid-template-columns:1fr}}
+.modal-foot{display:flex;gap:.6rem;justify-content:flex-end;padding:1rem 1.4rem;
+  border-top:1px solid var(--navy-100);background:var(--navy-50);border-radius:0 0 10px 10px}
+.calc{background:var(--navy-50);border:1px solid var(--navy-100);border-radius:5px;
+  padding:.6rem .75rem;font-family:var(--f-mono);font-size:.7rem;color:var(--navy-600);
+  margin-top:-.35rem;margin-bottom:.85rem}
+.err{font-size:.68rem;color:var(--red-600);margin-top:.3rem;display:none}
+.err.show{display:block}
+
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--navy-900);color:#fff;padding:.7rem 1.2rem;border-radius:6px;
+  border:1px solid var(--gold-500);font-size:.8rem;z-index:300;max-width:90vw;
+  opacity:0;pointer-events:none;transition:all .25s}
+.toast.show{opacity:1;transform:translateX(-50%)}
+.toast.bad{border-color:var(--red-500)}
+
+footer{text-align:center;padding:2rem 1rem;font-size:.7rem;color:var(--gray-500);
+  letter-spacing:.04em;position:relative;z-index:5}
+footer img{width:16px;vertical-align:middle;margin:0 .5rem;opacity:.5}
+
+@media(max-width:600px){
+  header{padding:0 .9rem;height:64px}
+  .logo-text{font-size:.9rem}.logo-sub{font-size:.6rem}
+  .crest{width:42px;height:42px}
+  .hbtn span,.sync span{display:none}
+  .summary{padding:.85rem}
+  .scard{min-width:140px;padding:.5rem .8rem}
+  main{padding:1rem .9rem;gap:1rem}
+  .os-grid{grid-template-columns:1fr}
+  .os-acts{opacity:1}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="crest"><img src="assets/brasao-afa.jpg" alt="Brasão da AFA" /></div>
+    <div>
+      <div class="logo-text">Controle de Diárias</div>
+      <div class="logo-sub">Divisão de Ensino · AFA</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <a class="hbtn" href="index.html">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m3 10 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <span>Início</span>
+    </a>
+    <button class="hbtn gold" id="btn-nova" onclick="abrirModal()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+      <span>Nova OS</span>
+    </button>
+    <span class="sync" id="sync"><i></i><span id="sync-txt">Conectando…</span></span>
+  </div>
+</header>
+
+<div class="summary">
+  <div class="scard gold"><div><div class="scount" id="s-total">—</div><div class="slabel">Dotação total</div></div></div>
+  <div class="scard red"><div><div class="scount" id="s-gasto">—</div><div class="slabel">Empenhado</div></div></div>
+  <div class="scard green"><div><div class="scount" id="s-saldo">—</div><div class="slabel">Saldo disponível</div></div></div>
+  <div class="scard navy"><div><div class="scount" id="s-qtd">—</div><div class="slabel">Ordens de serviço</div></div></div>
+</div>
+
+<main>
+  <div>
+    <div class="section-title">Ordens de Serviço</div>
+    <div class="toolbar">
+      <button class="btn btn-primary" onclick="abrirModal()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 5v14M5 12h14"/></svg>
+        Nova OS
+      </button>
+      <input class="search" id="busca" type="search" placeholder="Buscar por número, missão ou servidor…" oninput="render()" />
+      <select class="search" style="flex:0 0 auto;min-width:150px" id="ordem" onchange="render()">
+        <option value="data-desc">Data ↓ (recente)</option>
+        <option value="data-asc">Data ↑ (antiga)</option>
+        <option value="valor-desc">Maior valor</option>
+        <option value="valor-asc">Menor valor</option>
+        <option value="num">Nº da OS</option>
+      </select>
+    </div>
+    <div class="os-grid" id="lista">
+      <div class="skel"></div><div class="skel"></div>
+    </div>
+  </div>
+
+  <aside class="sidebar">
+    <div class="panel gauge-panel">
+      <div class="section-title">Indicador de saldo</div>
+      <svg id="gauge" viewBox="0 0 260 260" role="img" aria-label="Indicador analógico de saldo de diárias"></svg>
+      <dl class="gauge-read">
+        <div><dt>Dotação</dt><dd id="g-total">—</dd></div>
+        <div><dt>Empenhado</dt><dd class="spent" id="g-gasto">—</dd></div>
+        <div><dt>Saldo</dt><dd class="left" id="g-saldo">—</dd></div>
+      </dl>
+    </div>
+
+    <div class="panel">
+      <div class="section-title">Dotação orçamentária</div>
+      <div class="field">
+        <label for="in-total">Valor total disponível</label>
+        <input class="money" id="in-total" type="text" inputmode="decimal" placeholder="R$ 0,00" />
+        <div class="hint">Montante autorizado para pagamento de diárias.</div>
+      </div>
+      <button class="btn btn-primary" style="width:100%" id="btn-dot" onclick="salvarDotacao()">Atualizar dotação</button>
+
+      <div class="warn hide" id="alerta">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+        <span id="alerta-txt"></span>
+      </div>
+
+      <div class="warn setup hide" id="setup">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+        <span>Supabase não configurado. Preencha <code>SUPABASE_URL</code> e <code>SUPABASE_ANON</code> no início do script.</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="section-title">Dados</div>
+      <div style="display:flex;flex-direction:column;gap:.5rem">
+        <button class="btn btn-ghost" onclick="recarregar(true)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.9-3.4L23 10M1 14l4.6 4.4A9 9 0 0 0 20.5 15"/></svg>
+          Recarregar do servidor
+        </button>
+        <button class="btn btn-ghost" onclick="exportar()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Exportar planilha (CSV)
+        </button>
+      </div>
+      <div class="hint" style="margin-top:.6rem;font-size:.62rem;color:var(--gray-400)">
+        Os lançamentos ficam no Supabase e aparecem em qualquer aparelho.
+      </div>
+    </div>
+  </aside>
+</main>
+
+<footer>
+  <img src="assets/cocar-fab.png" alt="" />
+  Academia da Força Aérea · Divisão de Ensino
+  <img src="assets/cocar-fab.png" alt="" />
+</footer>
+
+<div class="backdrop" id="backdrop" onclick="if(event.target===this)fecharModal()">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-head">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold-500)" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>
+      <h2 id="modal-title">Nova Ordem de Serviço</h2>
+      <button class="icon-btn" onclick="fecharModal()" aria-label="Fechar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="f-id" />
+      <div class="grid2">
+        <div class="field">
+          <label for="f-num">Nº da OS *</label>
+          <input id="f-num" type="text" placeholder="Ex.: 042/2026" />
+          <div class="err" id="e-num">Informe o número da OS.</div>
+        </div>
+        <div class="field">
+          <label for="f-serv">Servidor alocado *</label>
+          <input id="f-serv" type="text" placeholder="Posto e nome" />
+          <div class="err" id="e-serv">Informe o servidor.</div>
+        </div>
+      </div>
+      <div class="field">
+        <label for="f-desc">Descrição da missão *</label>
+        <textarea id="f-desc" placeholder="Objeto e destino da missão"></textarea>
+        <div class="err" id="e-desc">Descreva a missão.</div>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label for="f-ini">Data de início *</label>
+          <input id="f-ini" type="date" />
+          <div class="err" id="e-ini">Informe a data de início.</div>
+        </div>
+        <div class="field">
+          <label for="f-fim">Data de término *</label>
+          <input id="f-fim" type="date" />
+          <div class="err" id="e-fim">Término não pode ser antes do início.</div>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label for="f-qtd">Quantidade de diárias *</label>
+          <input id="f-qtd" type="number" step="0.5" min="0.5" placeholder="Ex.: 2,5" />
+          <div class="err" id="e-qtd">Informe uma quantidade maior que zero.</div>
+        </div>
+        <div class="field">
+          <label for="f-val">Valor total (R$) *</label>
+          <input class="money" id="f-val" type="text" inputmode="decimal" placeholder="R$ 0,00" />
+          <div class="err" id="e-val">Informe o valor total.</div>
+        </div>
+      </div>
+      <div class="calc" id="calc">Valor unitário: —</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button>
+      <button class="btn btn-primary" id="btn-salvar" onclick="salvarOS()">Salvar OS</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ══════════════════════════════════════════════════════════════
+   1 · SUPABASE
+   Projeto: sovrgsbdhdpxsaomspsp
+   Tabelas: diarias_config, diarias_os (ver supabase-setup.sql)
+   ══════════════════════════════════════════════════════════════ */
+const SUPABASE_URL  = 'https://sovrgsbdhdpxsaomspsp.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg';
+
+const CONFIG_ID = 'default';   // permite mais de um exercício no futuro
+const CACHE_KEY = 'afa_diarias_cache_v2';
+
+const configurado = !SUPABASE_URL.startsWith('COLE_') && !SUPABASE_ANON.startsWith('COLE_');
+const sb = configurado ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
+
+/* ══════════════════════════════════════════════════════════════
+   2 · ESTADO
+   ══════════════════════════════════════════════════════════════ */
+let dados = { dotacao:0, ordens:[] };
+let carregando = true;
+
+/* cache local: só para pintar a tela na hora enquanto o servidor responde */
+function lerCache(){
+  try{
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (raw){
+      const d = JSON.parse(raw);
+      dados.dotacao = Number(d.dotacao)||0;
+      dados.ordens  = Array.isArray(d.ordens) ? d.ordens : [];
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+function gravarCache(){
+  try{ localStorage.setItem(CACHE_KEY, JSON.stringify(dados)); }catch(e){}
+}
+
+/* ══════════════════════════════════════════════════════════════
+   3 · MAPEAMENTO  banco ↔ tela
+   ══════════════════════════════════════════════════════════════ */
+const doBanco = r => ({
+  id: r.id,
+  num: r.num || '',
+  desc: r.descricao || '',
+  servidor: r.servidor || '',
+  ini: r.data_inicio || '',
+  fim: r.data_fim || '',
+  qtd: Number(r.qtd_diarias) || 0,
+  valor: Number(r.valor_total) || 0
+});
+const paraBanco = o => ({
+  num: o.num,
+  descricao: o.desc,
+  servidor: o.servidor,
+  data_inicio: o.ini,
+  data_fim: o.fim,
+  qtd_diarias: o.qtd,
+  valor_total: o.valor
+});
+
+/* ══════════════════════════════════════════════════════════════
+   4 · SINCRONIZAÇÃO
+   ══════════════════════════════════════════════════════════════ */
+function setSync(estado, texto){
+  const el = document.getElementById('sync');
+  el.className = 'sync ' + estado;
+  document.getElementById('sync-txt').textContent = texto;
+}
+
+async function recarregar(avisar){
+  if (!configurado){
+    setSync('cfg','Sem conexão');
+    document.getElementById('setup').classList.remove('hide');
+    carregando = false; render();
+    return;
+  }
+  setSync('busy','Sincronizando…');
+  try{
+    const [cfg, os] = await Promise.all([
+      sb.from('diarias_config').select('dotacao').eq('id', CONFIG_ID).maybeSingle(),
+      sb.from('diarias_os').select('*').order('data_inicio', { ascending:false })
+    ]);
+    if (cfg.error) throw cfg.error;
+    if (os.error)  throw os.error;
+
+    dados.dotacao = Number(cfg.data?.dotacao) || 0;
+    dados.ordens  = (os.data || []).map(doBanco);
+
+    carregando = false;
+    gravarCache();
+    const inp = document.getElementById('in-total');
+    if (document.activeElement !== inp) inp.value = dados.dotacao ? fmtM(dados.dotacao) : '';
+    render();
+    setSync('ok','Sincronizado');
+    if (avisar) toast('Dados recarregados');
+  }catch(e){
+    console.error(e);
+    carregando = false; render();
+    setSync('off','Sem conexão');
+    toast('Falha ao falar com o servidor: ' + (e.message || 'erro'), true);
+  }
+}
+
+/* recebe mudanças feitas em outro aparelho, ao vivo */
+function ouvirRealtime(){
+  if (!configurado) return;
+  sb.channel('diarias-live')
+    .on('postgres_changes', { event:'*', schema:'public', table:'diarias_os' },     () => recarregar())
+    .on('postgres_changes', { event:'*', schema:'public', table:'diarias_config' }, () => recarregar())
+    .subscribe();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   5 · FORMATAÇÃO
+   ══════════════════════════════════════════════════════════════ */
+const BRL = new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'});
+const fmtM = v => BRL.format(Number(v)||0);
+function parseM(s){
+  if (typeof s === 'number') return s;
+  if (!s) return 0;
+  let t = s.toString().replace(/[^\d,.-]/g,'');
+  if (t.includes(',')) t = t.replace(/\./g,'').replace(',','.');
+  const n = parseFloat(t);
+  return isNaN(n) ? 0 : n;
+}
+const fmtQtd = q => (Number(q)||0).toFixed(1).replace('.',',');
+function fmtData(iso){
+  if (!iso) return '—';
+  const [a,m,d] = iso.split('-');
+  return `${d}/${m}/${a}`;
+}
+const diasEntre = (i,f) => (!i||!f) ? 0 : Math.round((new Date(f)-new Date(i))/864e5)+1;
+function statusOS(ini,fim){
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const a = new Date(ini+'T00:00:00'), b = new Date(fim+'T00:00:00');
+  if (hoje < a) return 'futura';
+  if (hoje > b) return 'fim';
+  return 'curso';
+}
+const ROTULO = { futura:'Programada', curso:'Em curso', fim:'Concluída' };
+const esc = s => (s||'').toString()
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+  .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
+const totais = () => {
+  const gasto = dados.ordens.reduce((s,o)=> s + (Number(o.valor)||0), 0);
+  return { total: dados.dotacao, gasto, saldo: dados.dotacao - gasto };
+};
+
+/* ══════════════════════════════════════════════════════════════
+   6 · MEDIDOR ANALÓGICO
+   Escala E→F. Ponteiro = saldo. Setor sombreado = empenhado.
+   ══════════════════════════════════════════════════════════════ */
+const G = { cx:130, cy:130, r:96, start:150, sweep:240 };
+const pol = (cx,cy,r,deg)=>{ const a=deg*Math.PI/180; return {x:cx+r*Math.cos(a), y:cy+r*Math.sin(a)}; };
+function arco(cx,cy,r,d0,d1){
+  const p0=pol(cx,cy,r,d0), p1=pol(cx,cy,r,d1);
+  const big=(d1-d0)>180?1:0;
+  return `M ${p0.x.toFixed(2)} ${p0.y.toFixed(2)} A ${r} ${r} 0 ${big} 1 ${p1.x.toFixed(2)} ${p1.y.toFixed(2)}`;
+}
+const angDe = v => G.start + Math.max(0,Math.min(1,v))*G.sweep;
+
+function montarGauge(){
+  const {cx,cy,r} = G;
+  let s = `<defs>
+    <linearGradient id="bezel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b3a52"/><stop offset=".5" stop-color="#16233a"/><stop offset="1" stop-color="#0a1424"/>
+    </linearGradient>
+    <radialGradient id="face" cx=".5" cy=".38" r=".72">
+      <stop offset="0" stop-color="#16294a"/><stop offset="1" stop-color="#070f1e"/>
+    </radialGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2=".7" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".16"/>
+      <stop offset=".45" stop-color="#fff" stop-opacity=".03"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="drop" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2.4" flood-color="#000" flood-opacity=".55"/>
+    </filter>
+  </defs>`;
+
+  s += `<circle cx="${cx}" cy="${cy}" r="126" fill="url(#bezel)"/>
+        <circle cx="${cx}" cy="${cy}" r="114" fill="none" stroke="#050b16" stroke-width="2"/>`;
+  [45,135,225,315].forEach(a=>{
+    const p = pol(cx,cy,119,a);
+    s += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4.2" fill="#0d1626" stroke="#3d4d68" stroke-width="1"/>
+          <line x1="${(p.x-2.4).toFixed(1)}" y1="${p.y.toFixed(1)}" x2="${(p.x+2.4).toFixed(1)}" y2="${p.y.toFixed(1)}" stroke="#5a6d8c" stroke-width="1"/>`;
+  });
+  s += `<circle cx="${cx}" cy="${cy}" r="110" fill="url(#face)"/>`;
+
+  const faixa=(v0,v1,c,o)=>`<path d="${arco(cx,cy,r-3,angDe(v0),angDe(v1))}" fill="none" stroke="${c}" stroke-width="7" stroke-opacity="${o}"/>`;
+  s += faixa(0,.15,'#ef4444',.85) + faixa(.15,.30,'#f59e0b',.85) + faixa(.30,1,'#10b981',.75);
+  s += `<path id="g-spent" d="" fill="none" stroke="#ef4444" stroke-width="15" stroke-opacity=".22"/>`;
+
+  for (let i=0;i<=16;i++){
+    const v=i/16, a=angDe(v), big=i%4===0;
+    const p0=pol(cx,cy,big?r-14:r-11,a), p1=pol(cx,cy,big?r-28:r-20,a);
+    s += `<line x1="${p0.x.toFixed(1)}" y1="${p0.y.toFixed(1)}" x2="${p1.x.toFixed(1)}" y2="${p1.y.toFixed(1)}"
+           stroke="${big?'#e6eef7':'#7d93b5'}" stroke-width="${big?2.6:1.2}" stroke-linecap="round"/>`;
+  }
+  [['E',0],['1/4',.25],['1/2',.5],['3/4',.75],['F',1]].forEach(([txt,v])=>{
+    const p = pol(cx,cy,r-42,angDe(v));
+    s += `<text x="${p.x.toFixed(1)}" y="${(p.y+4).toFixed(1)}" text-anchor="middle"
+           font-family="Oswald,sans-serif" font-size="${txt.length>1?12:15}" font-weight="600" fill="#c5d4e8">${txt}</text>`;
+  });
+
+  s += `<text x="${cx}" y="${cy-34}" text-anchor="middle" font-family="Oswald,sans-serif"
+         font-size="12" font-weight="600" letter-spacing="2.4" fill="#d4a84b">DIÁRIAS</text>
+        <text x="${cx}" y="${cy+46}" text-anchor="middle" font-family="JetBrains Mono,monospace"
+         font-size="8.5" letter-spacing="1.6" fill="#7d93b5">SALDO DISPONÍVEL</text>
+        <rect x="${cx-46}" y="${cy+54}" width="92" height="24" rx="3" fill="#040a14" stroke="#24344f" stroke-width="1"/>
+        <text id="g-pct" x="${cx}" y="${cy+71}" text-anchor="middle" font-family="JetBrains Mono,monospace"
+         font-size="14" font-weight="700" fill="#7d93b5">—</text>`;
+
+  s += `<g id="g-needle" filter="url(#drop)" style="transition:transform 1.1s cubic-bezier(.34,1.4,.5,1);transform-origin:${cx}px ${cy}px">
+          <polygon points="${cx-3.4},${cy} ${cx},${cy-r+16} ${cx+3.4},${cy}" fill="#f8fafc"/>
+          <polygon points="${cx-3},${cy} ${cx},${cy+22} ${cx+3},${cy}" fill="#94a3b8"/>
+        </g>
+        <circle cx="${cx}" cy="${cy}" r="9" fill="#1c2b44" stroke="#4a5d7d" stroke-width="1.6"/>
+        <circle cx="${cx}" cy="${cy}" r="3.4" fill="#d4a84b"/>
+        <circle cx="${cx}" cy="${cy}" r="110" fill="url(#glass)" pointer-events="none"/>`;
+
+  document.getElementById('gauge').innerHTML = s;
+}
+
+function atualizarGauge(){
+  const t = totais();
+  const frac = t.total > 0 ? Math.max(0, Math.min(1, t.saldo/t.total)) : 0;
+
+  const ndl = document.getElementById('g-needle');
+  if (ndl) ndl.style.transform = `rotate(${(angDe(frac)-angDe(0)).toFixed(2)}deg)`;
+
+  const sp = document.getElementById('g-spent');
+  if (sp) sp.setAttribute('d', (t.total>0 && frac<.999) ? arco(G.cx,G.cy,G.r-3,angDe(frac),angDe(1)) : '');
+
+  const pct = document.getElementById('g-pct');
+  if (pct){
+    pct.textContent = t.total>0 ? (frac*100).toFixed(1).replace('.',',')+'%' : '—';
+    pct.setAttribute('fill', t.total===0 ? '#7d93b5' : frac<.15 ? '#ef4444' : frac<.30 ? '#f59e0b' : '#10b981');
+  }
+
+  document.getElementById('g-total').textContent = t.total ? fmtM(t.total) : '—';
+  document.getElementById('g-gasto').textContent = t.total ? fmtM(t.gasto) : '—';
+  document.getElementById('g-saldo').textContent = t.total ? fmtM(t.saldo) : '—';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   7 · RENDER
+   ══════════════════════════════════════════════════════════════ */
+function render(){
+  const t = totais();
+  document.getElementById('s-total').textContent = fmtM(t.total);
+  document.getElementById('s-gasto').textContent = fmtM(t.gasto);
+  document.getElementById('s-saldo').textContent = fmtM(t.saldo);
+  document.getElementById('s-saldo').style.color = t.saldo < 0 ? 'var(--red-600)' : 'var(--navy-900)';
+  document.getElementById('s-qtd').textContent = dados.ordens.length;
+
+  const al = document.getElementById('alerta'), txt = document.getElementById('alerta-txt');
+  if (t.total > 0 && t.saldo < 0){
+    al.classList.remove('hide');
+    txt.textContent = `Dotação excedida em ${fmtM(Math.abs(t.saldo))}. Revise as ordens ou amplie a dotação.`;
+  } else if (t.total > 0 && t.saldo/t.total < .15){
+    al.classList.remove('hide');
+    txt.textContent = `Saldo abaixo de 15% da dotação (${fmtM(t.saldo)} restantes).`;
+  } else al.classList.add('hide');
+
+  atualizarGauge();
+
+  const alvo = document.getElementById('lista');
+  if (carregando){
+    alvo.innerHTML = '<div class="skel"></div><div class="skel"></div>';
+    return;
+  }
+
+  const termo = (document.getElementById('busca').value||'').toLowerCase().trim();
+  const ordem = document.getElementById('ordem').value;
+
+  let lista = dados.ordens.filter(o=>{
+    if (!termo) return true;
+    return [o.num,o.desc,o.servidor].some(c => (c||'').toLowerCase().includes(termo));
+  });
+  lista.sort((a,b)=>{
+    switch(ordem){
+      case 'data-asc':   return (a.ini||'').localeCompare(b.ini||'');
+      case 'valor-desc': return (b.valor||0)-(a.valor||0);
+      case 'valor-asc':  return (a.valor||0)-(b.valor||0);
+      case 'num':        return (a.num||'').localeCompare(b.num||'','pt-BR',{numeric:true});
+      default:           return (b.ini||'').localeCompare(a.ini||'');
+    }
+  });
+
+  if (!lista.length){
+    alvo.innerHTML = `
+      <div class="empty">
+        <img src="assets/cocar-fab.png" alt="" />
+        <p>${dados.ordens.length ? 'Nenhuma OS corresponde à busca.' : 'Nenhuma ordem de serviço lançada ainda.'}</p>
+        ${dados.ordens.length ? '' : '<button class="btn btn-primary" onclick="abrirModal()">Lançar a primeira OS</button>'}
+      </div>`;
+    return;
+  }
+
+  alvo.innerHTML = lista.map(o=>{
+    const st = statusOS(o.ini,o.fim);
+    const dias = diasEntre(o.ini,o.fim);
+    const unit = Number(o.qtd)>0 ? Number(o.valor)/Number(o.qtd) : 0;
+    return `
+    <article class="os st-${st}${o._pend?' pend':''}">
+      <div class="os-acts">
+        <button class="icon-btn" onclick="abrirModal('${o.id}')" aria-label="Editar OS ${esc(o.num)}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+        </button>
+        <button class="icon-btn del" onclick="excluirOS('${o.id}')" aria-label="Excluir OS ${esc(o.num)}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+        </button>
+      </div>
+      <div class="os-head">
+        <div class="os-num">OS ${esc(o.num)}<span>Ordem de serviço</span></div>
+        <span class="os-badge badge-${st}">${ROTULO[st]}</span>
+      </div>
+      <p class="os-desc">${esc(o.desc)}</p>
+      <div class="os-meta">
+        <div class="os-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <b>${esc(o.servidor)}</b>
+        </div>
+        <div class="os-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          ${fmtData(o.ini)} → ${fmtData(o.fim)}
+          <u>${dias} ${dias===1?'dia':'dias'}</u>
+        </div>
+      </div>
+      <div class="os-foot">
+        <div class="os-qtd">${fmtQtd(o.qtd)} diárias<small>${unit?fmtM(unit)+' / diária':''}</small></div>
+        <div class="os-val">${fmtM(o.valor)}<small>Valor total</small></div>
+      </div>
+    </article>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   8 · DOTAÇÃO
+   ══════════════════════════════════════════════════════════════ */
+async function salvarDotacao(){
+  const v = parseM(document.getElementById('in-total').value);
+  if (v < 0){ toast('Valor inválido', true); return; }
+  if (!configurado){ toast('Configure o Supabase para gravar', true); return; }
+
+  const btn = document.getElementById('btn-dot');
+  btn.disabled = true; setSync('busy','Gravando…');
+  const antes = dados.dotacao;
+  dados.dotacao = v; render();
+
+  try{
+    const { error } = await sb.from('diarias_config')
+      .upsert({ id: CONFIG_ID, dotacao: v, atualizado: new Date().toISOString() });
+    if (error) throw error;
+    document.getElementById('in-total').value = fmtM(v);
+    gravarCache(); setSync('ok','Sincronizado');
+    toast('Dotação atualizada');
+  }catch(e){
+    dados.dotacao = antes; render();
+    setSync('off','Sem conexão');
+    toast('Não foi possível gravar: ' + (e.message||'erro'), true);
+  }finally{ btn.disabled = false; }
+}
+document.getElementById('in-total').addEventListener('blur', e=>{
+  const v = parseM(e.target.value); e.target.value = v ? fmtM(v) : '';
+});
+document.getElementById('in-total').addEventListener('keydown', e=>{
+  if (e.key === 'Enter') salvarDotacao();
+});
+
+/* ══════════════════════════════════════════════════════════════
+   9 · MODAL / CRUD
+   ══════════════════════════════════════════════════════════════ */
+function abrirModal(id){
+  limparErros();
+  if (id){
+    const o = dados.ordens.find(x=>String(x.id)===String(id));
+    if (!o) return;
+    document.getElementById('modal-title').textContent = 'Editar Ordem de Serviço';
+    document.getElementById('f-id').value   = o.id;
+    document.getElementById('f-num').value  = o.num;
+    document.getElementById('f-serv').value = o.servidor;
+    document.getElementById('f-desc').value = o.desc;
+    document.getElementById('f-ini').value  = o.ini;
+    document.getElementById('f-fim').value  = o.fim;
+    document.getElementById('f-qtd').value  = o.qtd;
+    document.getElementById('f-val').value  = fmtM(o.valor);
+  } else {
+    document.getElementById('modal-title').textContent = 'Nova Ordem de Serviço';
+    ['f-id','f-num','f-serv','f-desc','f-ini','f-fim','f-qtd','f-val'].forEach(i=>document.getElementById(i).value='');
+  }
+  atualizarCalc();
+  document.getElementById('backdrop').classList.add('open');
+  setTimeout(()=>document.getElementById('f-num').focus(), 60);
+}
+function fecharModal(){ document.getElementById('backdrop').classList.remove('open'); }
+document.addEventListener('keydown', e=>{ if (e.key==='Escape') fecharModal(); });
+
+function atualizarCalc(){
+  const q = parseFloat(document.getElementById('f-qtd').value)||0;
+  const v = parseM(document.getElementById('f-val').value);
+  document.getElementById('calc').textContent =
+    (q>0 && v>0) ? `Valor unitário: ${fmtM(v/q)} por diária` : 'Valor unitário: —';
+}
+document.getElementById('f-qtd').addEventListener('input', atualizarCalc);
+document.getElementById('f-val').addEventListener('input', atualizarCalc);
+document.getElementById('f-val').addEventListener('blur', e=>{
+  const v = parseM(e.target.value); e.target.value = v ? fmtM(v) : ''; atualizarCalc();
+});
+function limparErros(){ document.querySelectorAll('.err').forEach(e=>e.classList.remove('show')); }
+
+async function salvarOS(){
+  limparErros();
+  const id   = document.getElementById('f-id').value;
+  const num  = document.getElementById('f-num').value.trim();
+  const serv = document.getElementById('f-serv').value.trim();
+  const desc = document.getElementById('f-desc').value.trim();
+  const ini  = document.getElementById('f-ini').value;
+  const fim  = document.getElementById('f-fim').value;
+  const qtd  = parseFloat(document.getElementById('f-qtd').value);
+  const val  = parseM(document.getElementById('f-val').value);
+
+  let erro = false;
+  const marcar = k => { document.getElementById(k).classList.add('show'); erro = true; };
+  if (!num)  marcar('e-num');
+  if (!serv) marcar('e-serv');
+  if (!desc) marcar('e-desc');
+  if (!ini)  marcar('e-ini');
+  if (!fim || (ini && fim < ini)) marcar('e-fim');
+  if (!qtd || qtd <= 0) marcar('e-qtd');
+  if (!val || val <= 0) marcar('e-val');
+  if (erro) return;
+
+  if (!configurado){ toast('Configure o Supabase para gravar', true); return; }
+
+  const registro = {
+    num, servidor: serv, desc, ini, fim,
+    qtd: Math.round(qtd*10)/10,
+    valor: Math.round(val*100)/100
+  };
+
+  const btn = document.getElementById('btn-salvar');
+  btn.disabled = true; setSync('busy','Gravando…');
+
+  try{
+    if (id){
+      const { error } = await sb.from('diarias_os')
+        .update({ ...paraBanco(registro), atualizado: new Date().toISOString() })
+        .eq('id', id);
+      if (error) throw error;
+      const i = dados.ordens.findIndex(x=>String(x.id)===String(id));
+      if (i>=0) dados.ordens[i] = { id, ...registro };
+      toast('OS atualizada');
+    } else {
+      const { data, error } = await sb.from('diarias_os')
+        .insert(paraBanco(registro)).select().single();
+      if (error) throw error;
+      dados.ordens.unshift(doBanco(data));
+      toast('OS lançada');
+    }
+    gravarCache(); render(); fecharModal();
+    setSync('ok','Sincronizado');
+  }catch(e){
+    console.error(e);
+    setSync('off','Sem conexão');
+    toast('Não foi possível gravar: ' + (e.message||'erro'), true);
+  }finally{ btn.disabled = false; }
+}
+
+async function excluirOS(id){
+  const o = dados.ordens.find(x=>String(x.id)===String(id));
+  if (!o) return;
+  if (!confirm(`Excluir a OS ${o.num}?\n\n${o.desc}\n${fmtM(o.valor)}\n\nEsta ação não pode ser desfeita.`)) return;
+  if (!configurado){ toast('Configure o Supabase', true); return; }
+
+  const backup = [...dados.ordens];
+  dados.ordens = dados.ordens.filter(x=>String(x.id)!==String(id));
+  render(); setSync('busy','Gravando…');
+
+  try{
+    const { error } = await sb.from('diarias_os').delete().eq('id', id);
+    if (error) throw error;
+    gravarCache(); setSync('ok','Sincronizado');
+    toast('OS excluída');
+  }catch(e){
+    dados.ordens = backup; render();
+    setSync('off','Sem conexão');
+    toast('Não foi possível excluir: ' + (e.message||'erro'), true);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   10 · EXPORTAÇÃO CSV
+   ══════════════════════════════════════════════════════════════ */
+function exportar(){
+  const cab = ['Nº da OS','Descrição da missão','Servidor','Início','Término','Diárias','Valor total'];
+  const linhas = dados.ordens.map(o=>[
+    o.num, o.desc, o.servidor, fmtData(o.ini), fmtData(o.fim),
+    fmtQtd(o.qtd), (Number(o.valor)||0).toFixed(2).replace('.',',')
+  ]);
+  const t = totais();
+  linhas.push([]);
+  linhas.push(['Dotação total','','','','','', t.total.toFixed(2).replace('.',',')]);
+  linhas.push(['Empenhado','','','','','',  t.gasto.toFixed(2).replace('.',',')]);
+  linhas.push(['Saldo disponível','','','','','', t.saldo.toFixed(2).replace('.',',')]);
+
+  const csv = [cab, ...linhas]
+    .map(l => l.map(c => `"${(c??'').toString().replace(/"/g,'""')}"`).join(';'))
+    .join('\r\n');
+
+  const blob = new Blob(['\uFEFF'+csv], { type:'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `diarias-de-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); URL.revokeObjectURL(a.href);
+  toast('Planilha exportada');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   11 · TOAST
+   ══════════════════════════════════════════════════════════════ */
+let tToast;
+function toast(msg, ruim){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (ruim ? ' bad' : '');
+  clearTimeout(tToast);
+  tToast = setTimeout(()=>el.classList.remove('show'), ruim ? 5000 : 2600);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   12 · INÍCIO
+   ══════════════════════════════════════════════════════════════ */
+montarGauge();
+if (lerCache()){                       // pinta na hora com o que já se sabe
+  carregando = false;
+  document.getElementById('in-total').value = dados.dotacao ? fmtM(dados.dotacao) : '';
+  render();
+}
+recarregar();                          // depois reconcilia com o servidor
+ouvirRealtime();
+addEventListener('online',  ()=>recarregar());
+addEventListener('offline', ()=>setSync('off','Sem conexão'));
+</script>
+</body>
+</html>
