@@ -122,38 +122,39 @@ body{
     0 45px 110px -20px rgba(0,0,0,.70);
 }
 
-/* ═══ A SAÍDA, EM CAMADAS ═══
-   0,00–1,00s  o vídeo se dissolve no hero (o "transformar" que já
-               funcionava: mesmo cenário, só os aviões trocam)
-   0,45–1,95s  o quadro se abre até a tela inteira. A curva
-               (.45,0,.18,1) foi escolhida por medição: distribui o
-               movimento (32% do caminho em 30% do tempo, pouso longo)
-               em vez de estourar no primeiro quarto, como fazia o
-               expo-out — era isso que dava o ar amador.
-   0,90s       o conteúdo do hero sobe junto com a abertura
-   1,10–2,10s  o desfoque das bordas se dissolve por último
-   1,10–1,70s  a moldura se apaga antes de tocar as bordas           */
+/* ═══ A SAÍDA — CORTE NA AÇÃO ═══
+   Regra de montagem: a transição começa com os aviões AINDA EM
+   MOVIMENTO PLENO (o JS dispara em 2,05s, faltando 0,58s de vídeo).
+   O movimento atravessa o corte e o olho não registra a emenda. A
+   versão anterior fazia o oposto — desacelerava, congelava e só então
+   transicionava, e era isso que soava arrastado.
+
+   0,00–0,55s  o vídeo se dissolve no hero, em pleno movimento
+   0,05–1,00s  o quadro se abre até a tela inteira
+   0,35s       o conteúdo do hero sobe junto com a abertura
+   0,30–1,00s  o desfoque das bordas se dissolve por último
+   0,50–0,85s  a moldura se apaga antes de tocar as bordas
+   Total: 1,05s (era 2,40s)                                          */
 #palco.saindo #quadro{
   clip-path:inset(0px 0px 0px 0px round 0px);
-  transition:clip-path 1.5s cubic-bezier(.45,0,.18,1) .45s;
+  transition:clip-path .95s cubic-bezier(.32,0,.12,1) .05s;
 }
 #palco.saindo video{
-  opacity:0; filter:blur(1.5px); transform:scale(1.02);
-  transition:opacity 1s cubic-bezier(.4,0,.2,1),
-             filter  1s ease,
-             transform 1.9s cubic-bezier(.25,0,.15,1);
+  opacity:0; transform:scale(1.015);
+  transition:opacity .55s cubic-bezier(.35,0,.2,1),
+             transform 1s cubic-bezier(.25,0,.15,1);
 }
 #palco.saindo #palco-fundo{
-  opacity:0; transition:opacity 1s cubic-bezier(.4,0,.2,1) 1.1s;
+  opacity:0; transition:opacity .7s cubic-bezier(.4,0,.2,1) .3s;
 }
 #palco.saindo #moldura{
   left:0; top:0; width:100%; height:100%; border-radius:0; opacity:0;
-  transition:left 1.5s cubic-bezier(.45,0,.18,1) .45s,
-             top 1.5s cubic-bezier(.45,0,.18,1) .45s,
-             width 1.5s cubic-bezier(.45,0,.18,1) .45s,
-             height 1.5s cubic-bezier(.45,0,.18,1) .45s,
-             border-radius 1.5s cubic-bezier(.45,0,.18,1) .45s,
-             opacity .6s ease 1.1s;
+  transition:left .95s cubic-bezier(.32,0,.12,1) .05s,
+             top .95s cubic-bezier(.32,0,.12,1) .05s,
+             width .95s cubic-bezier(.32,0,.12,1) .05s,
+             height .95s cubic-bezier(.32,0,.12,1) .05s,
+             border-radius .95s cubic-bezier(.32,0,.12,1) .05s,
+             opacity .35s ease .5s;
 }
 /* Saída rápida (usuário rolou): sem cerimônia, só some. */
 #palco.saindo-rapido{opacity:0; transition:opacity .55s ease}
@@ -780,7 +781,8 @@ const CFG = {
    O vídeo (cortado no ápice, com desaceleração assada) toca num
    cartão em resolução nativa sobre o hero desfocado. O JS calcula a
    largura pelo devicePixelRatio para nunca ampliar um pixel sequer.
-   Ao terminar ('ended'), o pull de foco de 2,2s revela o hero nítido
+   Faltando 0,58s para o fim, com os aviões ainda em movimento pleno,
+   dispara o corte na ação: o quadro se abre e revela o hero nítido,
    e a cortina libera a entrada do conteúdo.
 
    Nunca bloqueia o scroll: pointer-events:none e saída rápida ao rolar.
@@ -790,6 +792,7 @@ const INTRO = {
   fonte:     'assets/intro.mp4',
   fonteMob:  'assets/intro-mob.mp4',
   larguraMob: 760,
+  disparo:    2.05,        // s — dispara a saída COM o vídeo ainda rodando
   esperaMax: 12000         // desiste se não conseguir começar
 };
 
@@ -848,9 +851,12 @@ const INTRO = {
     try{ sessionStorage.setItem('intro-vista','1'); }catch(e){}
     palco.classList.add(rapido ? 'saindo-rapido' : 'saindo');
     // O conteúdo sobe junto com a abertura do quadro (que começa em .35s)
-    setTimeout(()=> document.body.classList.remove('cortina'), rapido ? 0 : 900);
+    setTimeout(()=> document.body.classList.remove('cortina'), rapido ? 0 : 350);
+    // libera o decodificador assim que o vídeo fica invisível, para a
+    // expansão do quadro ter a GPU inteira à disposição
+    setTimeout(()=>{ try{ v.pause(); }catch(e){} }, rapido ? 0 : 560);
     acenderGL();
-    setTimeout(()=>{ try{ v.pause(); }catch(e){} palco.remove(); }, rapido ? 700 : 2600);
+    setTimeout(()=>{ try{ v.pause(); }catch(e){} palco.remove(); }, rapido ? 700 : 1400);
   }
 
   // ① O ouvinte de scroll só é armado DEPOIS que o vídeo começa a rodar.
@@ -863,8 +869,19 @@ const INTRO = {
     }, { passive:true });
   }
 
-  v.addEventListener('playing', armarScroll, { once:true });
-  v.addEventListener('ended',  ()=> encerrar());                      // pull de foco
+  // ⓪ CORTE NA AÇÃO: a saída começa ANTES de o vídeo acabar, com os
+  //    aviões em movimento pleno. O relógio é o próprio currentTime do
+  //    vídeo, lido a cada quadro — assim o corte cai sempre no mesmo
+  //    ponto da animação, independente de a máquina estar rápida ou
+  //    lenta. ('timeupdate' dispararia só ~4x/s: até 250 ms de atraso,
+  //    e esse atraso era parte do que se sentia como travamento.)
+  function vigiar(){
+    if (fim) return;
+    if (v.currentTime >= INTRO.disparo){ encerrar(); return; }
+    requestAnimationFrame(vigiar);
+  }
+  v.addEventListener('playing', ()=>{ armarScroll(); requestAnimationFrame(vigiar); }, { once:true });
+  v.addEventListener('ended',  ()=> encerrar());                      // rede de segurança
   v.addEventListener('error',  ()=> encerrar('falha ao carregar o vídeo', true));
 
   // ② Reforço para iOS/Android: mesmo com o atributo no HTML, alguns
