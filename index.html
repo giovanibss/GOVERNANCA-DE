@@ -290,6 +290,59 @@ body{
   line-height:1;color:#fff;font-variant-numeric:tabular-nums;
 }
 
+/* ═══ CARTÃO DE AÇÃO — download, não navega ═══ */
+.act-card{
+  grid-column:1/-1;
+  display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap;
+  padding:1.35rem 1.55rem;border-radius:13px;
+  background:var(--glass);border:1px solid var(--hair);
+  backdrop-filter:blur(16px) saturate(150%);
+  -webkit-backdrop-filter:blur(16px) saturate(150%);
+}
+.act-icon{
+  width:46px;height:46px;flex:0 0 auto;border-radius:11px;
+  background:rgba(212,168,75,.12);border:1px solid rgba(212,168,75,.34);
+  display:flex;align-items:center;justify-content:center;
+}
+.act-icon svg{width:21px;height:21px;color:var(--gold-lt)}
+.act-txt{flex:1;min-width:190px}
+.act-txt h2{
+  font-family:var(--f-display);font-weight:500;
+  font-size:clamp(1.05rem,2.2vw,1.32rem);letter-spacing:.03em;
+  text-transform:uppercase;color:#fff;line-height:1.1;
+}
+.act-txt p{
+  font-size:.78rem;color:var(--contrail-dim);
+  margin-top:.34rem;line-height:1.5;max-width:46ch;
+}
+.act-note{
+  display:block;margin-top:.4rem;
+  font-family:var(--f-data);font-size:.64rem;
+  color:rgba(207,228,255,.44);letter-spacing:.02em;
+}
+.act-btn{
+  flex:0 0 auto;display:inline-flex;align-items:center;gap:.55rem;
+  padding:.72rem 1.35rem;border-radius:7px;border:none;cursor:pointer;
+  background:linear-gradient(135deg,var(--gold-500),var(--gold-400));
+  color:var(--navy-900);
+  font-family:var(--f-display);font-weight:700;font-size:.8rem;
+  letter-spacing:.1em;text-transform:uppercase;
+  transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s,filter .22s;
+  box-shadow:0 5px 16px rgba(212,168,75,.28);
+}
+.act-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 9px 24px rgba(212,168,75,.4)}
+.act-btn:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.act-btn:disabled{cursor:progress;filter:saturate(.55) brightness(.9)}
+.act-btn svg{width:15px;height:15px;transition:transform .22s}
+.act-btn:hover:not(:disabled) svg{transform:translateY(2px)}
+.act-btn.carregando svg{animation:spin .9s linear infinite}
+.act-btn.carregando svg{transform:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:560px){
+  .act-card{padding:1.1rem;gap:.9rem}
+  .act-btn{width:100%;justify-content:center}
+}
+
 .bar{display:flex;height:4px;border-radius:99px;overflow:hidden;background:rgba(207,228,255,.10);margin-bottom:1.1rem}
 .bar span{display:block;height:100%;transition:width .9s cubic-bezier(.2,.8,.2,1)}
 
@@ -535,6 +588,26 @@ body{
         </div>
       </div>
     </a>
+    <!-- DOWNLOAD DA LISTA DE EFETIVO -->
+    <div class="act-card rv" data-d="4">
+      <div class="act-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <path d="M14 2v6h6M9 15h6M9 11h3"/>
+        </svg>
+      </div>
+      <div class="act-txt">
+        <h2>Download da lista de efetivo</h2>
+        <p>Gera o efetivo em PDF, por antiguidade, com posto, especialidade, nome de guerra e nome completo. Mesma composição da chamada diária, em formato vertical para leitura no celular.</p>
+        <span class="act-note" id="pdf-nota">Dados lidos da planilha do efetivo</span>
+      </div>
+      <button class="act-btn" id="btn-pdf" onclick="baixarListaEfetivo()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+        </svg>
+        Baixar PDF
+      </button>
+    </div>
   </section>
 
   <footer class="foot">
@@ -547,6 +620,7 @@ body{
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════════
    CONFIGURAÇÃO — tudo que você pode querer ajustar mora aqui
@@ -939,11 +1013,13 @@ function efJsonp(baseUrl){
   });
 }
 
-// total de militares na planilha (aplica a mesma exclusão do módulo)
-async function efTotalPlanilha(){
+// lê o efetivo da planilha (C..N) — inclui o NOME COMPLETO, que está na coluna N
+let efetivoCache = null;      // reaproveitado pelo gerador de PDF
+
+async function efLerPlanilha(){
   const url = `https://docs.google.com/spreadsheets/d/${EF_SHEET_ID}/gviz/tq`
             + `?tqx=out:json&sheet=${encodeURIComponent(EF_TAB)}`
-            + `&range=C${EF_ROW_START}:E${EF_ROW_END}&headers=0`;
+            + `&range=C${EF_ROW_START}:N${EF_ROW_END}&headers=0`;
   const r = await fetch(url);
   const t = await r.text();
   const m = t.match(/setResponse\(([\s\S]*)\)/);
@@ -951,13 +1027,30 @@ async function efTotalPlanilha(){
   const j = JSON.parse(m[1]);
   if (j?.status === 'error') return null;
 
-  const nomes = [];
+  // índices relativos ao início do range (C = 0):
+  // C=0 posto · D=1 especialidade · E=2 nome de guerra · N=11 nome completo
+  const lista = [];
   (j.table?.rows || []).forEach(row=>{
-    const nome = (row.c?.[2]?.v ?? '').toString().trim();
-    if (!nome || efExcluido(nome)) return;
-    nomes.push(nome);
+    const c = row.c || [];
+    const guerra = (c[2]?.v ?? '').toString().trim();
+    if (!guerra) return;
+    lista.push({
+      posto:    (c[0]?.v  ?? '').toString().trim(),
+      esp:      (c[1]?.v  ?? '').toString().trim(),
+      guerra,
+      completo: (c[11]?.v ?? '').toString().trim(),
+      excluido: efExcluido(guerra)
+    });
   });
-  return nomes;   // devolve a lista para casar com o estado do servidor
+  efetivoCache = lista;
+  return lista;
+}
+
+// mantém o nome antigo para o KPI: devolve só quem entra na chamada diária
+async function efTotalPlanilha(){
+  const lista = await efLerPlanilha();
+  if (!lista) return null;
+  return lista.filter(m => !m.excluido).map(m => m.guerra);
 }
 
 // estado do dia (quem está PRESENTE / FALTA), via Apps Script
@@ -1030,7 +1123,228 @@ async function carregarEfetivo(){
 
 
 /* ═══════════════════════════════════════════════════════════════════
-   7 · DADOS · DIÁRIAS  +  INSTRUMENTO ANALÓGICO
+   8 · MÓDULO · DOWNLOAD DA LISTA DE EFETIVO (PDF)
+   Página em proporção 90×190 mm (≈1:2,1) — mesma razão de uma tela de
+   celular, então o PDF abre já legível sem precisar de zoom.
+   ═══════════════════════════════════════════════════════════════════ */
+
+// Mesma composição da chamada diária: aplica a lista EF_EXCLUIR,
+// para o PDF e o cartão de efetivo mostrarem o mesmo número.
+const PDF_APLICAR_EXCLUSOES = true;
+
+const POSTO_NOME = {
+  'CL':'Coronel',            'TC':'Tenente-Coronel',   'MJ':'Major',
+  'CP':'Capitão',            '1T':'Primeiro-Tenente',  '2T':'Segundo-Tenente',
+  'AP':'Aspirante',          'SO':'Suboficial',        '1S':'Primeiro-Sargento',
+  '2S':'Segundo-Sargento',   '3S':'Terceiro-Sargento', 'CB':'Cabo',
+  'S1':'Soldado 1ª Classe',  'S2':'Soldado 2ª Classe'
+};
+
+/* recorta o hero para a proporção pedida e queima um degradê navy no rodapé,
+   para o título assentar sobre área escura sem precisar de camadas no PDF */
+function prepararCapa(img, wmm, hmm, pxPorMm = 9){
+  const W = Math.round(wmm*pxPorMm), H = Math.round(hmm*pxPorMm);
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+
+  const alvo = W/H, orig = img.width/img.height;
+  let sw, sh, sx, sy;
+  if (orig > alvo){ sh = img.height; sw = sh*alvo; sx = (img.width-sw)/2; sy = 0; }
+  else           { sw = img.width;  sh = sw/alvo; sx = 0; sy = (img.height-sh)/2; }
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, W, H);
+
+  const g = ctx.createLinearGradient(0, H*0.40, 0, H);
+  g.addColorStop(0,    'rgba(6,16,33,0)');
+  g.addColorStop(0.60, 'rgba(6,16,33,0.80)');
+  g.addColorStop(1,    'rgba(6,16,33,1)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, H*0.40, W, H*0.60);
+
+  return cv.toDataURL('image/jpeg', 0.90);
+}
+
+function carregarImagem(src){
+  return new Promise((res, rej)=>{
+    const i = new Image();
+    i.onload = ()=>res(i);
+    i.onerror = ()=>rej(new Error('imagem '+src));
+    i.src = src;
+  });
+}
+
+async function baixarListaEfetivo(){
+  const btn = document.getElementById('btn-pdf');
+  const nota = document.getElementById('pdf-nota');
+  btn.disabled = true;
+  btn.classList.add('carregando');
+  nota.textContent = 'Consultando a planilha…';
+
+  try{
+    if (!window.jspdf) throw new Error('biblioteca de PDF não carregou');
+
+    let lista = efetivoCache || await efLerPlanilha();
+    if (!lista || !lista.length) throw new Error('planilha sem registros');
+    if (PDF_APLICAR_EXCLUSOES) lista = lista.filter(m => !m.excluido);
+
+    nota.textContent = 'Montando o documento…';
+    const hero = await carregarImagem('assets/hero-afa.jpg').catch(()=>null);
+
+    const { jsPDF } = window.jspdf;
+    const L = 90, A = 190;                    // largura × altura da página, em mm
+    const doc = new jsPDF({ unit:'mm', format:[L, A], orientation:'portrait' });
+
+    const NAVY9=[10,22,40], NAVY7=[20,49,90], NAVY1=[230,238,247];
+    const GOLD=[212,168,75], CINZA=[100,116,139], ESCURO=[30,45,70];
+    const MG = 7;                             // margem lateral
+
+    /* ───────── CAPA ───────── */
+    doc.setFillColor(...NAVY9);
+    doc.rect(0, 0, L, A, 'F');
+
+    if (hero){
+      const hCapa = 96;
+      doc.addImage(prepararCapa(hero, L, hCapa), 'JPEG', 0, 0, L, hCapa);
+    }
+
+    doc.setDrawColor(...GOLD); doc.setLineWidth(0.7);
+    doc.line(MG, 104, L-MG, 104);
+
+    doc.setTextColor(...GOLD);
+    doc.setFont('helvetica','normal'); doc.setFontSize(6.4); doc.setCharSpace(1.5);
+    doc.text('ACADEMIA DA FORÇA AÉREA', MG, 113);
+
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica','bold'); doc.setFontSize(19); doc.setCharSpace(0.4);
+    doc.text('LISTA DE', MG, 127);
+    doc.text('EFETIVO', MG, 137);
+
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.6); doc.setCharSpace(0.3);
+    doc.setTextColor(148,176,216);
+    doc.text('Divisão de Ensino', MG, 147);
+
+    doc.setDrawColor(40,70,120); doc.setLineWidth(0.3);
+    doc.line(MG, 154, L-MG, 154);
+
+    const agora = new Date();
+    doc.setFontSize(6.6); doc.setCharSpace(0.6);
+    doc.setTextColor(...GOLD);
+    doc.text('EFETIVO', MG, 161);
+    doc.text('EMITIDA EM', MG+34, 161);
+
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setCharSpace(0);
+    doc.setTextColor(255,255,255);
+    doc.text(String(lista.length), MG, 168);
+    doc.text(agora.toLocaleDateString('pt-BR'), MG+34, 168);
+
+    doc.setFont('helvetica','normal'); doc.setFontSize(5.8); doc.setCharSpace(0.4);
+    doc.setTextColor(110,135,175);
+    doc.text('militares', MG, 172.5);
+    doc.text(agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}), MG+34, 172.5);
+
+    doc.setFontSize(5.6); doc.setCharSpace(0.2);
+    doc.setTextColor(90,112,148);
+    doc.text('Ordenada por antiguidade', MG, 182);
+
+    /* ───────── PÁGINAS DA LISTA ───────── */
+    const TOPO = 15, BASE = 11;
+    const ALT_ITEM = 8.6, ALT_GRUPO = 7.2;
+    let y = 0, pagina = 0, postoAtual = null;
+
+    function novaPagina(){
+      doc.addPage([L, A], 'portrait');
+      pagina++;
+      doc.setFillColor(...NAVY9);
+      doc.rect(0, 0, L, TOPO-3, 'F');
+      doc.setDrawColor(...GOLD); doc.setLineWidth(0.5);
+      doc.line(0, TOPO-3, L, TOPO-3);
+
+      doc.setTextColor(255,255,255);
+      doc.setFont('helvetica','bold'); doc.setFontSize(6.4); doc.setCharSpace(1.1);
+      doc.text('LISTA DE EFETIVO', MG, 7.8);
+      doc.setFont('helvetica','normal'); doc.setTextColor(...GOLD); doc.setCharSpace(0.8);
+      doc.text('DE · AFA', L-MG, 7.8, { align:'right' });
+      y = TOPO + 3;
+    }
+
+    function rodape(){
+      doc.setDrawColor(...NAVY1); doc.setLineWidth(0.25);
+      doc.line(MG, A-BASE+2, L-MG, A-BASE+2);
+      doc.setFont('helvetica','normal'); doc.setFontSize(5.6); doc.setCharSpace(0.3);
+      doc.setTextColor(...CINZA);
+      doc.text('Divisão de Ensino · AFA', MG, A-BASE+6);
+      doc.text(String(pagina), L-MG, A-BASE+6, { align:'right' });
+    }
+
+    novaPagina();
+
+    lista.forEach((m, i)=>{
+      const posto = (m.posto || '—').toUpperCase();
+      const trocaGrupo = posto !== postoAtual;
+      const precisa = ALT_ITEM + (trocaGrupo ? ALT_GRUPO : 0);
+
+      if (y + precisa > A - BASE){ rodape(); novaPagina(); postoAtual = null; }
+
+      // faixa de mudança de posto
+      if (posto !== postoAtual){
+        postoAtual = posto;
+        doc.setFillColor(...NAVY7);
+        doc.rect(MG, y, L-MG*2, 5, 'F');
+        doc.setTextColor(...GOLD);
+        doc.setFont('helvetica','bold'); doc.setFontSize(5.8); doc.setCharSpace(1);
+        doc.text((POSTO_NOME[posto] || posto).toUpperCase(), MG+2, y+3.5);
+        y += ALT_GRUPO;
+      }
+
+      // fundo alternado, bem discreto
+      if (i % 2 === 1){
+        doc.setFillColor(245,248,252);
+        doc.rect(MG, y-1.4, L-MG*2, ALT_ITEM-0.6, 'F');
+      }
+
+      // antiguidade
+      doc.setFont('helvetica','normal'); doc.setFontSize(5.6); doc.setCharSpace(0);
+      doc.setTextColor(160,178,205);
+      doc.text(String(i+1).padStart(2,'0'), MG+1, y+2.6);
+
+      // posto · especialidade
+      doc.setFont('helvetica','bold'); doc.setFontSize(5.8); doc.setCharSpace(0.5);
+      doc.setTextColor(...GOLD);
+      const chip = m.esp ? `${posto} · ${m.esp.toUpperCase()}` : posto;
+      doc.text(chip, MG+8, y+2.6);
+
+      // nome de guerra
+      doc.setFont('helvetica','bold'); doc.setFontSize(8.4); doc.setCharSpace(0.2);
+      doc.setTextColor(...NAVY9);
+      doc.text(m.guerra.toUpperCase(), MG+8, y+2.6 + 4.2);
+
+      // nome completo
+      doc.setFont('helvetica','normal'); doc.setFontSize(6.2); doc.setCharSpace(0);
+      doc.setTextColor(...CINZA);
+      const completo = m.completo || '(nome completo não cadastrado)';
+      const linhas = doc.splitTextToSize(completo, L - MG*2 - 9);
+      doc.text(linhas[0], MG+8, y+2.6 + 8.0);
+
+      y += ALT_ITEM + (linhas.length > 1 ? 0 : 0);
+    });
+
+    rodape();
+
+    const arq = `lista-efetivo-de-${agora.toISOString().slice(0,10)}.pdf`;
+    doc.save(arq);
+
+    nota.textContent = `${lista.length} militares · ${pagina} ${pagina===1?'página':'páginas'} · gerado agora`;
+  }catch(e){
+    console.error(e);
+    nota.textContent = 'Não foi possível gerar: ' + (e.message || 'erro');
+  }finally{
+    btn.disabled = false;
+    btn.classList.remove('carregando');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   9 · DADOS · DIÁRIAS  +  INSTRUMENTO ANALÓGICO
    Lê do Supabase — mesmo projeto usado em diarias.html.
    ═══════════════════════════════════════════════════════════════════ */
 const SUPABASE_URL  = 'https://sovrgsbdhdpxsaomspsp.supabase.co';
