@@ -48,45 +48,57 @@ body{
   -webkit-font-smoothing:antialiased;
 }
 
-/* ═══ FUNDO ═══
-   O vídeo e o hero ocupam a mesma caixa, com o mesmo cover e o mesmo
-   ponto focal. O cenário (estátua, palmeiras, prédios) já coincide
-   pixel a pixel entre os dois — medi: a estátua tem 844 px de largura
-   nos dois. Só os aviões diferem, que é o que o vídeo anima. Por isso
-   o cruzamento simples funciona como um "transformar": o cenário fica
-   cravado e apenas os aviões se dissolvem.                            */
-.bg-art, #intro{
-  position:fixed; inset:-6% 0 0 0;
+/* ═══ FUNDO ═══ */
+.bg-art{
+  position:fixed; inset:-6% 0 0 0; z-index:0;
   transform:translate3d(0,var(--heroShift),0) scale(1.06);
   will-change:transform;
-}
-.bg-art{
-  z-index:0;
   background:url('assets/hero-afa.jpg') center 42%/cover no-repeat;
 }
-#intro{
-  z-index:1;
-  width:100%; height:100%;
-  object-fit:cover; object-position:center 42%;   /* idêntico ao hero */
-  pointer-events:none;                            /* nunca bloqueia o scroll */
-  opacity:0; transition:opacity .45s ease;
+
+/* ═══ PALCO DA ABERTURA ═══
+   O vídeo nunca é ampliado além da resolução nativa (o JS refina a
+   largura pelo devicePixelRatio) — nitidez de pixel garantida. Ele
+   flutua como um cartão cinematográfico sobre o próprio hero
+   desfocado e escurecido (hero-blur.jpg, pré-renderizado, 12 KB).
+   Na saída acontece um "pull de foco": o fundo desfocado se dissolve
+   revelando o hero nítido por trás, enquanto o cartão cresce 5% e se
+   desfaz — a tela inteira entra em foco.                              */
+#palco{
+  position:fixed; inset:0; z-index:3; pointer-events:none;
+  display:grid; place-items:center;
+  background:url('assets/hero-blur.jpg') center 42%/cover no-repeat #061021;
+  opacity:0; transition:opacity .8s ease;
 }
-#intro.no-ar{opacity:1}
-/* Saída cinematográfica ("transformar"): o vídeo já congelou no ápice
-   dentro do próprio arquivo; aqui ele se dissolve no hero em 2.2s com
-   um leve desfoque (amacia a diferença de posição dos aviões) e um
-   micro-zoom de acomodação (o olho lê como continuação do movimento,
-   não como troca de imagem).                                          */
-#intro.saindo{
-  opacity:0;
-  filter:blur(2.5px);
-  transform:translate3d(0,var(--heroShift),0) scale(1.085);
+#palco.no-ar{opacity:1}
+#palco video{
+  display:block; aspect-ratio:16/9;
+  width:min(76vw, 1500px);          /* valor final vem do JS (dpr)   */
+  max-height:72vh;
+  object-fit:cover;
+  border-radius:18px;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.13),          /* filete de luz        */
+    0 12px 30px rgba(0,0,0,.45),              /* sombra de contato    */
+    0 45px 110px -20px rgba(0,0,0,.70);       /* sombra ambiente      */
+  transform:translateY(-2.5vh);               /* centro óptico        */
+}
+#palco.saindo{opacity:0; transition:opacity 2.2s cubic-bezier(.40,0,.18,1)}
+#palco.saindo video{
+  opacity:0; filter:blur(2px);
+  transform:translateY(-2.5vh) scale(1.05);
   transition:opacity 2.2s cubic-bezier(.40,0,.18,1),
              filter  2.2s ease,
              transform 2.2s cubic-bezier(.25,0,.15,1);
 }
 /* Saída rápida (usuário rolou): sem cerimônia, só some. */
-#intro.saindo-rapido{opacity:0; transition:opacity .55s ease}
+#palco.saindo-rapido{opacity:0; transition:opacity .55s ease}
+@media(max-width:760px){
+  #palco video{width:92vw; border-radius:14px; transform:translateY(-4vh)}
+  #palco.saindo video{transform:translateY(-4vh) scale(1.05)}
+}
+/* Cortina: o conteúdo segura a entrada até a abertura se resolver */
+body.cortina .rv, body.cortina .cue{animation-play-state:paused}
 /* Véu que escurece as bordas e preserva o miolo da arte legível */
 .bg-veil{
   position:fixed; inset:0; z-index:2; pointer-events:none;
@@ -468,9 +480,11 @@ body{
 <body>
 
 <div class="bg-art" aria-hidden="true"></div>
-<video id="intro" aria-hidden="true" muted playsinline autoplay
-       preload="auto" poster="assets/intro-poster.jpg"></video>
 <div class="bg-veil" aria-hidden="true"></div>
+<div id="palco" aria-hidden="true">
+  <video id="intro" muted playsinline autoplay
+         preload="auto" poster="assets/intro-poster.jpg"></video>
+</div>
 <canvas id="gl" aria-hidden="true"></canvas>
 
 <header class="top" id="top">
@@ -694,16 +708,14 @@ const CFG = {
 
 
 /* ═══════════════════════════════════════════════════════════════════
-   0 · ABERTURA EM VÍDEO
-   O arquivo já vem editado: corta no ápice da subida dos aviões
-   (t=2,38s do original) com uma desaceleração assada nos últimos
-   1,3s e um congelamento de 0,55s no fim. Ao terminar ('ended'),
-   entra a dissolução cinematográfica de 2,2s (opacidade + desfoque
-   + micro-zoom) para o hero. Como o cenário coincide entre o quadro
-   congelado e a arte, o efeito lê como um "transformar".
+   0 · ABERTURA EM VÍDEO — PALCO DE FOCO
+   O vídeo (cortado no ápice, com desaceleração assada) toca num
+   cartão em resolução nativa sobre o hero desfocado. O JS calcula a
+   largura pelo devicePixelRatio para nunca ampliar um pixel sequer.
+   Ao terminar ('ended'), o pull de foco de 2,2s revela o hero nítido
+   e a cortina libera a entrada do conteúdo.
 
-   Nunca bloqueia o scroll: o elemento é fixed e pointer-events:none,
-   e some (saída rápida) assim que a pessoa rola.
+   Nunca bloqueia o scroll: pointer-events:none e saída rápida ao rolar.
    ═══════════════════════════════════════════════════════════════════ */
 const INTRO = {
   umaVezPorSessao: false,  // true = toca só na primeira visita da sessão
@@ -714,19 +726,34 @@ const INTRO = {
 };
 
 (function abertura(){
+  const palco = document.getElementById('palco');
   const v  = document.getElementById('intro');
   const gl = document.getElementById('gl');
   const acenderGL = ()=> gl && gl.classList.add('no-ar');
-  if (!v){ acenderGL(); return; }
+  if (!palco || !v){ acenderGL(); return; }
 
   // Única razão para pular: preferência de movimento reduzido do sistema.
-  // (A trava de economia de dados foi removida — em vários Androids ela
-  // disparava sem necessidade e era a causa do vídeo sumir no celular.)
   const pular =
       matchMedia('(prefers-reduced-motion: reduce)').matches
    || (INTRO.umaVezPorSessao && (()=>{ try{ return sessionStorage.getItem('intro-vista')==='1'; }catch(e){ return false; } })());
 
-  if (pular){ v.remove(); acenderGL(); return; }
+  if (pular){ palco.remove(); acenderGL(); return; }
+
+  // Cortina: o conteúdo do hero espera a abertura se resolver.
+  document.body.classList.add('cortina');
+
+  // ── Dimensionamento em resolução nativa ──
+  // O cartão nunca exibe o vídeo acima do tamanho real do arquivo:
+  // largura CSS máxima = pixels do arquivo ÷ devicePixelRatio.
+  const mob    = innerWidth <= INTRO.larguraMob;
+  const nativo = mob ? 1280 : 1920;
+  const dpr    = Math.min(devicePixelRatio || 1, 3);
+  const larg   = Math.min(
+    innerWidth  * (mob ? .92 : .76),
+    innerHeight * .70 * (16/9),
+    nativo / dpr
+  );
+  v.style.width = Math.round(larg) + 'px';
 
   let fim = false;
   function encerrar(motivo, rapido){
@@ -734,9 +761,10 @@ const INTRO = {
     fim = true;
     if (motivo) console.info('[abertura]', motivo);
     try{ sessionStorage.setItem('intro-vista','1'); }catch(e){}
-    v.classList.add(rapido ? 'saindo-rapido' : 'saindo');
+    palco.classList.add(rapido ? 'saindo-rapido' : 'saindo');
+    document.body.classList.remove('cortina');   // conteúdo entra junto do foco
     acenderGL();
-    setTimeout(()=>{ try{ v.pause(); }catch(e){} v.remove(); }, rapido ? 700 : 2500);
+    setTimeout(()=>{ try{ v.pause(); }catch(e){} palco.remove(); }, rapido ? 700 : 2500);
   }
 
   // ① O ouvinte de scroll só é armado DEPOIS que o vídeo começa a rodar.
@@ -749,8 +777,8 @@ const INTRO = {
     }, { passive:true });
   }
 
-  v.addEventListener('playing', ()=>{ v.classList.add('no-ar'); armarScroll(); }, { once:true });
-  v.addEventListener('ended',  ()=> encerrar());                      // saída cinematográfica
+  v.addEventListener('playing', armarScroll, { once:true });
+  v.addEventListener('ended',  ()=> encerrar());                      // pull de foco
   v.addEventListener('error',  ()=> encerrar('falha ao carregar o vídeo', true));
 
   // ② Reforço para iOS/Android: mesmo com o atributo no HTML, alguns
@@ -781,7 +809,10 @@ const INTRO = {
     if (p && p.catch) p.catch(autoplayBarrado);
   }, { once:true });
 
-  v.src = innerWidth <= INTRO.larguraMob ? INTRO.fonteMob : INTRO.fonte;
+  // O palco entra em cena de imediato: o fundo desfocado (12 KB) e o
+  // poster em alta seguram a composição enquanto o vídeo carrega.
+  palco.classList.add('no-ar');
+  v.src = mob ? INTRO.fonteMob : INTRO.fonte;
   v.load();
 
   setTimeout(()=>{ if (!fim && v.readyState < 2) encerrar('vídeo demorou a carregar', true); }, INTRO.esperaMax);
