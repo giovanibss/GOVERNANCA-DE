@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Governança DE · Academia da Força Aérea</title>
 <meta name="description" content="Painel único para os sistemas de controle da Divisão de Ensino da Academia da Força Aérea." />
-<link rel="preload" as="image" href="assets/hero-still.jpg" />
+<link rel="preload" as="image" href="assets/hero-afa.jpg" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200;300;400;500;600&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -49,9 +49,12 @@ body{
 }
 
 /* ═══ FUNDO ═══
-   O vídeo e a imagem em repouso ocupam exatamente a mesma caixa e usam
-   o mesmo enquadramento (cover, centro). Como a imagem É o último quadro
-   do vídeo, o cruzamento entre os dois não desloca nada.               */
+   O vídeo e o hero ocupam a mesma caixa, com o mesmo cover e o mesmo
+   ponto focal. O cenário (estátua, palmeiras, prédios) já coincide
+   pixel a pixel entre os dois — medi: a estátua tem 844 px de largura
+   nos dois. Só os aviões diferem, que é o que o vídeo anima. Por isso
+   o cruzamento simples funciona como um "transformar": o cenário fica
+   cravado e apenas os aviões se dissolvem.                            */
 .bg-art, #intro{
   position:fixed; inset:-6% 0 0 0;
   transform:translate3d(0,var(--heroShift),0) scale(1.06);
@@ -59,17 +62,17 @@ body{
 }
 .bg-art{
   z-index:0;
-  background:url('assets/hero-still.jpg') center 50%/cover no-repeat;
+  background:url('assets/hero-afa.jpg') center 42%/cover no-repeat;
 }
 #intro{
   z-index:1;
   width:100%; height:100%;
-  object-fit:cover; object-position:center 50%;
-  pointer-events:none;                 /* nunca bloqueia o scroll */
-  opacity:0; transition:opacity .55s ease;
+  object-fit:cover; object-position:center 42%;   /* idêntico ao hero */
+  pointer-events:none;                            /* nunca bloqueia o scroll */
+  opacity:0; transition:opacity .45s ease;
 }
 #intro.no-ar{opacity:1}
-#intro.saindo{opacity:0}
+#intro.saindo{opacity:0; transition:opacity 1.5s cubic-bezier(.45,0,.30,1)}
 /* Véu que escurece as bordas e preserva o miolo da arte legível */
 .bg-veil{
   position:fixed; inset:0; z-index:2; pointer-events:none;
@@ -451,7 +454,7 @@ body{
 <body>
 
 <div class="bg-art" aria-hidden="true"></div>
-<video id="intro" aria-hidden="true" muted playsinline
+<video id="intro" aria-hidden="true" muted playsinline autoplay
        preload="auto" poster="assets/intro-poster.jpg"></video>
 <div class="bg-veil" aria-hidden="true"></div>
 <canvas id="gl" aria-hidden="true"></canvas>
@@ -678,67 +681,72 @@ const CFG = {
 
 /* ═══════════════════════════════════════════════════════════════════
    0 · ABERTURA EM VÍDEO
-   Os aviões se aproximam e a cena congela no último quadro — que é
-   exatamente a imagem de fundo da página, então o cruzamento entre
-   vídeo e imagem não desloca nada.
+   Os aviões se aproximam e a cena se dissolve no hero. Como o cenário
+   coincide entre o último quadro e a arte, só os aviões trocam — o
+   efeito lê como um "transformar", não como um corte.
 
-   Regras: nunca bloqueia o scroll, some assim que a pessoa rola,
-   e é pulado em conexão econômica, movimento reduzido ou repetição
-   na mesma sessão.
+   Nunca bloqueia o scroll: o elemento é fixed e pointer-events:none,
+   e some assim que a pessoa rola.
    ═══════════════════════════════════════════════════════════════════ */
 const INTRO = {
-  umaVezPorSessao: true,   // false = toca em toda visita
-  fonte:    'assets/intro.mp4',
-  fonteMob: 'assets/intro-mob.mp4',
-  larguraMob: 760
+  umaVezPorSessao: false,  // true = toca só na primeira visita da sessão
+  fonte:     'assets/intro.mp4',
+  fonteMob:  'assets/intro-mob.mp4',
+  larguraMob: 760,
+  esperaMax:  9000         // desiste se não conseguir começar
 };
 
-let introAtiva = false;
-
 (function abertura(){
-  const v = document.getElementById('intro');
+  const v  = document.getElementById('intro');
   const gl = document.getElementById('gl');
-  if (!v) return;
-
   const acenderGL = ()=> gl && gl.classList.add('no-ar');
+  if (!v){ acenderGL(); return; }
 
-  // motivos para não tocar
-  const conexao = navigator.connection || {};
+  const con = navigator.connection || {};
   const pular =
       matchMedia('(prefers-reduced-motion: reduce)').matches
-   || conexao.saveData === true
-   || /2g/.test(conexao.effectiveType || '')
-   || (INTRO.umaVezPorSessao && sessionStorage.getItem('intro-vista') === '1');
+   || con.saveData === true
+   || /(^|-)2g/.test(con.effectiveType || '')
+   || (INTRO.umaVezPorSessao && (()=>{ try{ return sessionStorage.getItem('intro-vista')==='1'; }catch(e){ return false; } })());
 
   if (pular){ v.remove(); acenderGL(); return; }
 
-  introAtiva = true;
-  v.src = innerWidth <= INTRO.larguraMob ? INTRO.fonteMob : INTRO.fonte;
-
-  let encerrada = false;
-  function encerrar(){
-    if (encerrada) return;
-    encerrada = true;
-    introAtiva = false;
+  let fim = false;
+  function encerrar(motivo){
+    if (fim) return;
+    fim = true;
+    if (motivo) console.info('[abertura]', motivo);
     try{ sessionStorage.setItem('intro-vista','1'); }catch(e){}
     v.classList.add('saindo');
     acenderGL();
-    setTimeout(()=>{ try{ v.pause(); }catch(e){} v.remove(); }, 700);
+    setTimeout(()=>{ try{ v.pause(); }catch(e){} v.remove(); }, 1700);
   }
 
-  v.addEventListener('playing', ()=> v.classList.add('no-ar'), { once:true });
-  v.addEventListener('ended', encerrar);
-  v.addEventListener('error', encerrar);
+  // ① O ouvinte de scroll só é armado DEPOIS que o vídeo começa a rodar.
+  //    Antes, a restauração de posição do navegador ao recarregar disparava
+  //    o encerramento antes de o vídeo sequer aparecer.
+  function armarScroll(){
+    const yInicial = scrollY;
+    addEventListener('scroll', ()=>{
+      if (Math.abs(scrollY - yInicial) > 40) encerrar('scroll do usuário');
+    }, { passive:true });
+  }
 
-  // rolou a página? a abertura já cumpriu o papel
-  addEventListener('scroll', ()=>{ if (scrollY > 40) encerrar(); }, { passive:true });
+  v.addEventListener('playing', ()=>{ v.classList.add('no-ar'); armarScroll(); }, { once:true });
+  v.addEventListener('ended',  ()=> encerrar());
+  v.addEventListener('error',  ()=> encerrar('falha ao carregar o vídeo'));
 
-  // rede lenta: não deixa a abertura virar espera
-  setTimeout(()=>{ if (!encerrada && v.readyState < 3) encerrar(); }, 2500);
-  setTimeout(encerrar, 9000);   // trava de segurança
+  // ② Espera o vídeo ter dados antes de mandar tocar, em vez de
+  //    matar a abertura por um readyState baixo cedo demais.
+  v.addEventListener('canplay', ()=>{
+    const p = v.play();
+    if (p && p.catch) p.catch(err => encerrar('autoplay barrado: ' + err.name));
+  }, { once:true });
 
-  const p = v.play();
-  if (p && p.catch) p.catch(encerrar);   // autoplay barrado → segue sem vídeo
+  v.src = innerWidth <= INTRO.larguraMob ? INTRO.fonteMob : INTRO.fonte;
+  v.load();
+
+  setTimeout(()=>{ if (!fim && v.readyState < 2) encerrar('vídeo demorou a carregar'); }, INTRO.esperaMax);
 })();
 
 
@@ -1270,7 +1278,7 @@ async function baixarListaEfetivo(){
     if (PDF_APLICAR_EXCLUSOES) lista = lista.filter(m => !m.excluido);
 
     nota.textContent = 'Montando o documento…';
-    const hero = await carregarImagem('assets/hero-still.jpg').catch(()=>null);
+    const hero = await carregarImagem('assets/hero-afa.jpg').catch(()=>null);
 
     const { jsPDF } = window.jspdf;
     const L = 90, A = 190;                    // largura × altura da página, em mm
