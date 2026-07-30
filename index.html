@@ -72,7 +72,21 @@ body{
   opacity:0; transition:opacity .45s ease;
 }
 #intro.no-ar{opacity:1}
-#intro.saindo{opacity:0; transition:opacity 1.5s cubic-bezier(.45,0,.30,1)}
+/* Saída cinematográfica ("transformar"): o vídeo já congelou no ápice
+   dentro do próprio arquivo; aqui ele se dissolve no hero em 2.2s com
+   um leve desfoque (amacia a diferença de posição dos aviões) e um
+   micro-zoom de acomodação (o olho lê como continuação do movimento,
+   não como troca de imagem).                                          */
+#intro.saindo{
+  opacity:0;
+  filter:blur(2.5px);
+  transform:translate3d(0,var(--heroShift),0) scale(1.085);
+  transition:opacity 2.2s cubic-bezier(.40,0,.18,1),
+             filter  2.2s ease,
+             transform 2.2s cubic-bezier(.25,0,.15,1);
+}
+/* Saída rápida (usuário rolou): sem cerimônia, só some. */
+#intro.saindo-rapido{opacity:0; transition:opacity .55s ease}
 /* Véu que escurece as bordas e preserva o miolo da arte legível */
 .bg-veil{
   position:fixed; inset:0; z-index:2; pointer-events:none;
@@ -681,19 +695,22 @@ const CFG = {
 
 /* ═══════════════════════════════════════════════════════════════════
    0 · ABERTURA EM VÍDEO
-   Os aviões se aproximam e a cena se dissolve no hero. Como o cenário
-   coincide entre o último quadro e a arte, só os aviões trocam — o
-   efeito lê como um "transformar", não como um corte.
+   O arquivo já vem editado: corta no ápice da subida dos aviões
+   (t=2,38s do original) com uma desaceleração assada nos últimos
+   1,3s e um congelamento de 0,55s no fim. Ao terminar ('ended'),
+   entra a dissolução cinematográfica de 2,2s (opacidade + desfoque
+   + micro-zoom) para o hero. Como o cenário coincide entre o quadro
+   congelado e a arte, o efeito lê como um "transformar".
 
    Nunca bloqueia o scroll: o elemento é fixed e pointer-events:none,
-   e some assim que a pessoa rola.
+   e some (saída rápida) assim que a pessoa rola.
    ═══════════════════════════════════════════════════════════════════ */
 const INTRO = {
   umaVezPorSessao: false,  // true = toca só na primeira visita da sessão
   fonte:     'assets/intro.mp4',
   fonteMob:  'assets/intro-mob.mp4',
   larguraMob: 760,
-  esperaMax:  9000         // desiste se não conseguir começar
+  esperaMax: 12000         // desiste se não conseguir começar
 };
 
 (function abertura(){
@@ -702,24 +719,24 @@ const INTRO = {
   const acenderGL = ()=> gl && gl.classList.add('no-ar');
   if (!v){ acenderGL(); return; }
 
-  const con = navigator.connection || {};
+  // Única razão para pular: preferência de movimento reduzido do sistema.
+  // (A trava de economia de dados foi removida — em vários Androids ela
+  // disparava sem necessidade e era a causa do vídeo sumir no celular.)
   const pular =
       matchMedia('(prefers-reduced-motion: reduce)').matches
-   || con.saveData === true
-   || /(^|-)2g/.test(con.effectiveType || '')
    || (INTRO.umaVezPorSessao && (()=>{ try{ return sessionStorage.getItem('intro-vista')==='1'; }catch(e){ return false; } })());
 
   if (pular){ v.remove(); acenderGL(); return; }
 
   let fim = false;
-  function encerrar(motivo){
+  function encerrar(motivo, rapido){
     if (fim) return;
     fim = true;
     if (motivo) console.info('[abertura]', motivo);
     try{ sessionStorage.setItem('intro-vista','1'); }catch(e){}
-    v.classList.add('saindo');
+    v.classList.add(rapido ? 'saindo-rapido' : 'saindo');
     acenderGL();
-    setTimeout(()=>{ try{ v.pause(); }catch(e){} v.remove(); }, 1700);
+    setTimeout(()=>{ try{ v.pause(); }catch(e){} v.remove(); }, rapido ? 700 : 2500);
   }
 
   // ① O ouvinte de scroll só é armado DEPOIS que o vídeo começa a rodar.
@@ -728,25 +745,46 @@ const INTRO = {
   function armarScroll(){
     const yInicial = scrollY;
     addEventListener('scroll', ()=>{
-      if (Math.abs(scrollY - yInicial) > 40) encerrar('scroll do usuário');
+      if (Math.abs(scrollY - yInicial) > 40) encerrar('scroll do usuário', true);
     }, { passive:true });
   }
 
   v.addEventListener('playing', ()=>{ v.classList.add('no-ar'); armarScroll(); }, { once:true });
-  v.addEventListener('ended',  ()=> encerrar());
-  v.addEventListener('error',  ()=> encerrar('falha ao carregar o vídeo'));
+  v.addEventListener('ended',  ()=> encerrar());                      // saída cinematográfica
+  v.addEventListener('error',  ()=> encerrar('falha ao carregar o vídeo', true));
 
-  // ② Espera o vídeo ter dados antes de mandar tocar, em vez de
+  // ② Reforço para iOS/Android: mesmo com o atributo no HTML, alguns
+  //    navegadores só respeitam mute definido via propriedade quando o
+  //    src é atribuído por script — e autoplay sem mute é sempre barrado.
+  v.muted = true;
+  v.defaultMuted = true;
+
+  // ③ Se o autoplay for barrado (modo de baixa energia do iOS, economia
+  //    de bateria do Android), NÃO desistimos de imediato: o primeiro
+  //    toque na tela reaproveita o gesto para dar o play. Se em 7s
+  //    ninguém tocar, seguimos direto para o hero, sem quebrar nada.
+  function autoplayBarrado(err){
+    console.info('[abertura] autoplay barrado (' + err.name + '); aguardando primeiro toque');
+    const tentar = ()=>{
+      const p = v.play();
+      if (p && p.catch) p.catch(()=> encerrar('play barrado mesmo com gesto', true));
+    };
+    addEventListener('pointerdown', tentar, { once:true, passive:true });
+    addEventListener('touchstart',  tentar, { once:true, passive:true });
+    setTimeout(()=>{ if (!fim && v.paused) encerrar('sem gesto do usuário', true); }, 7000);
+  }
+
+  // ④ Espera o vídeo ter dados antes de mandar tocar, em vez de
   //    matar a abertura por um readyState baixo cedo demais.
   v.addEventListener('canplay', ()=>{
     const p = v.play();
-    if (p && p.catch) p.catch(err => encerrar('autoplay barrado: ' + err.name));
+    if (p && p.catch) p.catch(autoplayBarrado);
   }, { once:true });
 
   v.src = innerWidth <= INTRO.larguraMob ? INTRO.fonteMob : INTRO.fonte;
   v.load();
 
-  setTimeout(()=>{ if (!fim && v.readyState < 2) encerrar('vídeo demorou a carregar'); }, INTRO.esperaMax);
+  setTimeout(()=>{ if (!fim && v.readyState < 2) encerrar('vídeo demorou a carregar', true); }, INTRO.esperaMax);
 })();
 
 
