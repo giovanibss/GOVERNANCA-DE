@@ -56,49 +56,111 @@ body{
   background:url('assets/hero-afa.jpg') center 42%/cover no-repeat;
 }
 
-/* ═══ PALCO DA ABERTURA ═══
-   O vídeo nunca é ampliado além da resolução nativa (o JS refina a
-   largura pelo devicePixelRatio) — nitidez de pixel garantida. Ele
-   flutua como um cartão cinematográfico sobre o próprio hero
-   desfocado e escurecido (hero-blur.jpg, pré-renderizado, 12 KB).
-   Na saída acontece um "pull de foco": o fundo desfocado se dissolve
-   revelando o hero nítido por trás, enquanto o cartão cresce 5% e se
-   desfaz — a tela inteira entra em foco.                              */
+/* ═══ PALCO DA ABERTURA — REVELAÇÃO POR EXPANSÃO DE QUADRO ═══
+   O vídeo nunca é ampliado além da resolução nativa (o JS calcula a
+   largura pelo devicePixelRatio) — nitidez de pixel garantida.
+
+   A saída NÃO troca duas imagens de tamanhos diferentes (era isso que
+   soava amador). O #quadro ocupa a tela inteira e é recortado por
+   clip-path no formato do cartão; dentro dele, o hero já está desde o
+   princípio no enquadramento FINAL, idêntico ao .bg-art de trás.
+   Na saída, o recorte se abre até a tela toda: o hero é revelado por
+   uma íris que cresce, sem nunca escalar nem se mover. Desencontro de
+   escala fica matematicamente impossível.
+
+   Geometria (--cl/--ct/--cw/--ch e os insets) vem do JS.             */
 #palco{
   position:fixed; inset:0; z-index:3; pointer-events:none;
-  display:grid; place-items:center;
-  background:url('assets/hero-blur.jpg') center 42%/cover no-repeat #061021;
   opacity:0; transition:opacity .8s ease;
 }
 #palco.no-ar{opacity:1}
-#palco video{
-  display:block; aspect-ratio:16/9;
-  width:min(76vw, 1500px);          /* valor final vem do JS (dpr)   */
-  max-height:72vh;
-  object-fit:cover;
-  border-radius:18px;
-  box-shadow:
-    0 0 0 1px rgba(255,255,255,.13),          /* filete de luz        */
-    0 12px 30px rgba(0,0,0,.45),              /* sombra de contato    */
-    0 45px 110px -20px rgba(0,0,0,.70);       /* sombra ambiente      */
-  transform:translateY(-2.5vh);               /* centro óptico        */
+
+/* ① Fundo: o próprio hero desfocado e escurecido (13 KB) */
+#palco-fundo{
+  position:absolute; inset:0;
+  background:url('assets/hero-blur.jpg') center 42%/cover no-repeat #061021;
 }
-#palco.saindo{opacity:0; transition:opacity 2.2s cubic-bezier(.40,0,.18,1)}
+
+/* ② A janela que vai crescer */
+#quadro{
+  position:absolute; inset:0;
+  clip-path:inset(var(--it) var(--ir) var(--ib) var(--il) round var(--rad));
+  will-change:clip-path;
+}
+/* ③ Hero interno: enquadramento final, idêntico ao .bg-art de trás.
+      Nunca se move — só é revelado.                                  */
+#quadro-hero{
+  position:absolute; inset:-6% 0 0 0;
+  transform:translate3d(0,var(--heroShift),0) scale(1.06);
+  background:url('assets/hero-afa.jpg') center 42%/cover no-repeat;
+}
+/* ④ Véu interno igual ao .bg-veil, para o repasse não ter degrau */
+#quadro-veu{
+  position:absolute; inset:0;
+  background:linear-gradient(180deg,
+    rgba(6,16,33,.60) 0%,
+    rgba(6,16,33,.10) 22%,
+    rgba(6,16,33,.10) 55%,
+    rgba(6,16,33,.72) 100%);
+}
+/* ⑤ O vídeo, em resolução nativa, preenchendo o recorte */
+#palco video{
+  position:absolute;
+  left:var(--cl); top:var(--ct); width:var(--cw); height:var(--ch);
+  display:block; object-fit:cover;
+  border-radius:var(--rad);
+}
+/* ⑥ Moldura: filete de luz + sombras. Acompanha a expansão e some
+      antes de chegar às bordas da tela.                              */
+#moldura{
+  position:absolute;
+  left:var(--cl); top:var(--ct); width:var(--cw); height:var(--ch);
+  border-radius:var(--rad);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.13),
+    0 12px 30px rgba(0,0,0,.45),
+    0 45px 110px -20px rgba(0,0,0,.70);
+}
+
+/* ═══ A SAÍDA, EM CAMADAS ═══
+   0,00–1,00s  o vídeo se dissolve no hero (o "transformar" que já
+               funcionava: mesmo cenário, só os aviões trocam)
+   0,45–1,95s  o quadro se abre até a tela inteira. A curva
+               (.45,0,.18,1) foi escolhida por medição: distribui o
+               movimento (32% do caminho em 30% do tempo, pouso longo)
+               em vez de estourar no primeiro quarto, como fazia o
+               expo-out — era isso que dava o ar amador.
+   0,90s       o conteúdo do hero sobe junto com a abertura
+   1,10–2,10s  o desfoque das bordas se dissolve por último
+   1,10–1,70s  a moldura se apaga antes de tocar as bordas           */
+#palco.saindo #quadro{
+  clip-path:inset(0px 0px 0px 0px round 0px);
+  transition:clip-path 1.5s cubic-bezier(.45,0,.18,1) .45s;
+}
 #palco.saindo video{
-  opacity:0; filter:blur(2px);
-  transform:translateY(-2.5vh) scale(1.05);
-  transition:opacity 2.2s cubic-bezier(.40,0,.18,1),
-             filter  2.2s ease,
-             transform 2.2s cubic-bezier(.25,0,.15,1);
+  opacity:0; filter:blur(1.5px); transform:scale(1.02);
+  transition:opacity 1s cubic-bezier(.4,0,.2,1),
+             filter  1s ease,
+             transform 1.9s cubic-bezier(.25,0,.15,1);
+}
+#palco.saindo #palco-fundo{
+  opacity:0; transition:opacity 1s cubic-bezier(.4,0,.2,1) 1.1s;
+}
+#palco.saindo #moldura{
+  left:0; top:0; width:100%; height:100%; border-radius:0; opacity:0;
+  transition:left 1.5s cubic-bezier(.45,0,.18,1) .45s,
+             top 1.5s cubic-bezier(.45,0,.18,1) .45s,
+             width 1.5s cubic-bezier(.45,0,.18,1) .45s,
+             height 1.5s cubic-bezier(.45,0,.18,1) .45s,
+             border-radius 1.5s cubic-bezier(.45,0,.18,1) .45s,
+             opacity .6s ease 1.1s;
 }
 /* Saída rápida (usuário rolou): sem cerimônia, só some. */
 #palco.saindo-rapido{opacity:0; transition:opacity .55s ease}
-@media(max-width:760px){
-  #palco video{width:92vw; border-radius:14px; transform:translateY(-4vh)}
-  #palco.saindo video{transform:translateY(-4vh) scale(1.05)}
-}
-/* Cortina: o conteúdo segura a entrada até a abertura se resolver */
-body.cortina .rv, body.cortina .cue{animation-play-state:paused}
+
+/* Cortina: o conteúdo do hero sobe junto com a abertura do quadro */
+body.cortina .rv.in{opacity:0; transform:translateY(26px)}
+body.cortina .cue{animation-play-state:paused}
 /* Véu que escurece as bordas e preserva o miolo da arte legível */
 .bg-veil{
   position:fixed; inset:0; z-index:2; pointer-events:none;
@@ -482,8 +544,14 @@ body.cortina .rv, body.cortina .cue{animation-play-state:paused}
 <div class="bg-art" aria-hidden="true"></div>
 <div class="bg-veil" aria-hidden="true"></div>
 <div id="palco" aria-hidden="true">
+  <div id="palco-fundo"></div>
+  <div id="quadro">
+    <div id="quadro-hero"></div>
+    <div id="quadro-veu"></div>
+  </div>
   <video id="intro" muted playsinline autoplay
          preload="auto" poster="assets/intro-poster.jpg"></video>
+  <div id="moldura"></div>
 </div>
 <canvas id="gl" aria-hidden="true"></canvas>
 
@@ -742,18 +810,35 @@ const INTRO = {
   // Cortina: o conteúdo do hero espera a abertura se resolver.
   document.body.classList.add('cortina');
 
-  // ── Dimensionamento em resolução nativa ──
+  // ── Geometria do quadro, em resolução nativa ──
   // O cartão nunca exibe o vídeo acima do tamanho real do arquivo:
   // largura CSS máxima = pixels do arquivo ÷ devicePixelRatio.
-  const mob    = innerWidth <= INTRO.larguraMob;
-  const nativo = mob ? 1280 : 1920;
-  const dpr    = Math.min(devicePixelRatio || 1, 3);
-  const larg   = Math.min(
-    innerWidth  * (mob ? .92 : .76),
-    innerHeight * .70 * (16/9),
-    nativo / dpr
-  );
-  v.style.width = Math.round(larg) + 'px';
+  // Os mesmos quatro números alimentam o vídeo, a moldura e o recorte
+  // do #quadro — por construção eles não têm como se desencontrar.
+  const mob = innerWidth <= INTRO.larguraMob;
+  function medir(){
+    const nativo = mob ? 1280 : 1920;
+    const dpr    = Math.min(devicePixelRatio || 1, 3);
+    const cw = Math.round(Math.min(
+      innerWidth  * (mob ? .92 : .76),
+      innerHeight * .70 * (16/9),
+      nativo / dpr
+    ));
+    const ch = Math.round(cw * 9/16);
+    const cl = Math.round((innerWidth  - cw) / 2);
+    const ct = Math.round((innerHeight - ch) / 2 - innerHeight * (mob ? .04 : .025));
+    const s  = palco.style;
+    s.setProperty('--cw', cw + 'px');  s.setProperty('--ch', ch + 'px');
+    s.setProperty('--cl', cl + 'px');  s.setProperty('--ct', ct + 'px');
+    s.setProperty('--rad', (mob ? 14 : 18) + 'px');
+    // insets do recorte = as bordas do mesmo retângulo
+    s.setProperty('--il', cl + 'px');
+    s.setProperty('--ir', (innerWidth  - cw - cl) + 'px');
+    s.setProperty('--it', ct + 'px');
+    s.setProperty('--ib', (innerHeight - ch - ct) + 'px');
+  }
+  medir();
+  addEventListener('resize', ()=>{ if (!fim) medir(); }, { passive:true });
 
   let fim = false;
   function encerrar(motivo, rapido){
@@ -762,9 +847,10 @@ const INTRO = {
     if (motivo) console.info('[abertura]', motivo);
     try{ sessionStorage.setItem('intro-vista','1'); }catch(e){}
     palco.classList.add(rapido ? 'saindo-rapido' : 'saindo');
-    document.body.classList.remove('cortina');   // conteúdo entra junto do foco
+    // O conteúdo sobe junto com a abertura do quadro (que começa em .35s)
+    setTimeout(()=> document.body.classList.remove('cortina'), rapido ? 0 : 900);
     acenderGL();
-    setTimeout(()=>{ try{ v.pause(); }catch(e){} palco.remove(); }, rapido ? 700 : 2500);
+    setTimeout(()=>{ try{ v.pause(); }catch(e){} palco.remove(); }, rapido ? 700 : 2600);
   }
 
   // ① O ouvinte de scroll só é armado DEPOIS que o vídeo começa a rodar.
