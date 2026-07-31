@@ -1921,38 +1921,48 @@ async function carregarTransporte(){
   if (!sbCli){ if (nota) nota.textContent = 'Auxílio transporte · configure o Supabase'; return; }
 
   try{
-    const comp = atCompCiclo();
+    const compCiclo = atCompCiclo();
     const [mil, dec] = await Promise.all([
       sbCli.from('at_militares').select('id').eq('ativo', true),
-      sbCli.from('at_declaracoes').select('status').eq('competencia', comp)
+      sbCli.from('at_declaracoes').select('status,competencia')
     ]);
     if (mil.error || dec.error) throw (mil.error || dec.error);
 
     const total = (mil.data || []).length;
-    const env   = (dec.data || []).filter(d => d.status !== 'rascunho').length;
-    const conf  = (dec.data || []).filter(d => d.status === 'conferida').length;
-    const pend  = fase === 1 ? (total - env) : (total - env) + (env - conf);
+    const todas = dec.data || [];
 
-    const põe = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
-    põe('at-env',  total ? env + '/' + total : env);
-    põe('at-conf', conf);
-    põe('at-pend', pend);
+    // prioriza a competência do ciclo; sem dados nela, usa a mais recente com declarações
+    let comp = compCiclo;
+    let doMes = todas.filter(d => d.competencia === comp);
+    if (!doMes.length && todas.length){
+      comp = todas.map(d => d.competencia).sort().pop();
+      doMes = todas.filter(d => d.competencia === comp);
+    }
+
+    const env  = doMes.filter(d => d.status !== 'rascunho').length;
+    const conf = doMes.filter(d => d.status === 'conferida').length;
+    const pend = fase === 1 ? (total - env) : (total - env) + (env - conf);
+
+    const defina = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+    defina('at-env',  total ? env + '/' + total : env);
+    defina('at-conf', conf);
+    defina('at-pend', Math.max(0, pend));
 
     const pct = v => (total ? v / total * 100 : 0).toFixed(1) + '%';
     const bar = document.getElementById('at-bar');
     if (bar) bar.innerHTML =
       '<span style="width:' + pct(conf) + ';background:var(--jade)"></span>' +
-      '<span style="width:' + pct(env - conf) + ';background:var(--amber)"></span>';
+      '<span style="width:' + pct(Math.max(0, env - conf)) + ';background:var(--amber)"></span>';
 
     const [aa, mm] = comp.split('-');
     if (nota) nota.textContent = total === 0
       ? 'Nenhum militar cadastrado · abra o módulo para começar'
-      : pend === 0
+      : pend <= 0
         ? 'Competência ' + mm + '/' + aa + ' em dia — nenhuma pendência'
-        : (fase === 3 ? '🚨 ' : '') + pend + ' pendência(s) na competência ' + mm + '/' + aa;
+        : (fase === 3 && comp === compCiclo ? '🚨 ' : '') + Math.max(0, pend) + ' pendência(s) na competência ' + mm + '/' + aa;
   }catch(e){
     console.warn('Auxílio transporte indisponível:', e.message);
-    if (nota) nota.textContent = /at_militares|relation/.test(e.message || '')
+    if (nota) nota.textContent = /at_militares|at_declaracoes|relation|does not exist/i.test(e.message || '')
       ? 'Rode o SQL do módulo no Supabase para ativar'
       : 'Auxílio transporte indisponível · abra o módulo';
   }
