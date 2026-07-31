@@ -456,6 +456,27 @@ body.cortina .cue{animation-play-state:paused}
 
 /* ═══ CARTÃO DE DIÁRIAS — instrumento + leitura ═══ */
 .card.wide{grid-column:1/-1}
+
+/* ═══ AUXÍLIO TRANSPORTE — trio + pista do ciclo ═══ */
+.at-duo{
+  display:grid;grid-template-columns:1fr minmax(0,300px);
+  gap:1.2rem;align-items:center;
+}
+.at-pista{display:flex;flex-direction:column;gap:6px}
+.at-tr{
+  border:1px dashed var(--hair);border-radius:9px;padding:.5rem .7rem;
+  font-family:var(--f-data);font-size:.56rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--contrail-dim);position:relative;
+}
+.at-tr b{display:block;font-size:.62rem;font-weight:600;letter-spacing:.13em;margin-bottom:.12rem}
+.at-tr.feita{border-style:solid;border-color:rgba(62,207,154,.35)}
+.at-tr.feita b{color:var(--jade)}
+.at-tr.ativa{border:1px solid rgba(212,168,75,.55);background:rgba(212,168,75,.07)}
+.at-tr.ativa b{color:var(--gold-lt)}
+.at-tr .at-aviao{
+  position:absolute;top:-9px;right:10px;font-size:.8rem;color:var(--gold-lt);
+  filter:drop-shadow(0 2px 5px rgba(0,0,0,.6));
+}
 .instr{
   display:grid;grid-template-columns:minmax(0,208px) 1fr;
   gap:1.6rem;align-items:center;
@@ -516,6 +537,7 @@ body.cortina .cue{animation-play-state:paused}
 /* ═══ RESPONSIVO ═══ */
 @media(max-width:900px){
   .modules{grid-template-columns:1fr}
+  .at-duo{grid-template-columns:1fr}
   .strip-in{grid-template-columns:repeat(2,1fr)}
   .intro-in{max-width:100%}
 }
@@ -720,6 +742,49 @@ body.cortina .cue{animation-play-state:paused}
           <span class="card-go">Abrir módulo
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
           </span>
+        </div>
+      </div>
+    </a>
+
+    <!-- AUXÍLIO TRANSPORTE -->
+    <a class="card wide rv" data-d="4" href="transporte.html">
+      <div class="card-top">
+        <img class="card-cocar" src="assets/cocar-fab.png" alt="" />
+        <div>
+          <h2>Auxílio Transporte</h2>
+          <small>Declaração mensal, cálculo automático e conferência</small>
+        </div>
+        <span class="card-tag" id="at-fase">Ciclo</span>
+      </div>
+
+      <div class="at-duo">
+        <div>
+          <dl class="trio">
+            <div>
+              <dt><i style="background:var(--gold)"></i> Enviadas</dt>
+              <dd id="at-env">—</dd>
+            </div>
+            <div>
+              <dt><i style="background:var(--jade)"></i> Conferidas</dt>
+              <dd id="at-conf">—</dd>
+            </div>
+            <div>
+              <dt><i style="background:var(--amber)"></i> Pendências</dt>
+              <dd id="at-pend">—</dd>
+            </div>
+          </dl>
+          <div class="bar" id="at-bar" role="img" aria-label="Progresso das declarações do auxílio transporte">
+            <span style="width:100%;background:rgba(207,228,255,.14)"></span>
+          </div>
+          <p class="note" id="at-note">Declarações do mês · sincronizadas entre dispositivos</p>
+          <span class="card-go">Abrir módulo
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+          </span>
+        </div>
+        <div class="at-pista" aria-label="Fases do ciclo mensal do auxílio">
+          <div class="at-tr" id="at-tr1"><b>Dias 01–05 · Declaração</b>Militar preenche e envia o mês anterior</div>
+          <div class="at-tr" id="at-tr2"><b>Dias 06–10 · Conferência</b>Secretaria confere e valida</div>
+          <div class="at-tr" id="at-tr3"><b>Após dia 10 · Remessa</b>Envio ao órgão pagador</div>
         </div>
       </div>
     </a>
@@ -1820,8 +1885,82 @@ async function carregarDiarias(){
 }
 
 
+/* ═══════════════════════════════════════════════════════════════════
+   10 · DADOS · AUXÍLIO TRANSPORTE  (governança do ciclo mensal)
+   Lê do Supabase — mesmo projeto, tabelas at_militares / at_declaracoes.
+   ═══════════════════════════════════════════════════════════════════ */
+function atCompCiclo(){ // no ciclo dos dias 01–10 declara-se sempre o mês anterior
+  const h = new Date();
+  let a = h.getFullYear(), m = h.getMonth();   // getMonth() em base 0 já é o mês anterior em base 1
+  if (m === 0){ a--; m = 12; }
+  return a + '-' + String(m).padStart(2,'0');
+}
+
+function pintarCicloAT(fase){
+  const tag = document.getElementById('at-fase');
+  if (tag) tag.textContent = fase === 1 ? 'Declaração 01–05' : fase === 2 ? 'Conferência 06–10' : 'Remessa';
+  [1,2,3].forEach(i => {
+    const el = document.getElementById('at-tr' + i);
+    if (!el) return;
+    el.classList.remove('ativa','feita');
+    el.querySelector('.at-aviao')?.remove();
+    if (i < fase) el.classList.add('feita');
+    if (i === fase){
+      el.classList.add('ativa');
+      const av = document.createElement('span');
+      av.className = 'at-aviao'; av.textContent = '✈';
+      el.appendChild(av);
+    }
+  });
+}
+
+async function carregarTransporte(){
+  const fase = (d => d <= 5 ? 1 : d <= 10 ? 2 : 3)(new Date().getDate());
+  pintarCicloAT(fase);
+  const nota = document.getElementById('at-note');
+  if (!sbCli){ if (nota) nota.textContent = 'Auxílio transporte · configure o Supabase'; return; }
+
+  try{
+    const comp = atCompCiclo();
+    const [mil, dec] = await Promise.all([
+      sbCli.from('at_militares').select('id').eq('ativo', true),
+      sbCli.from('at_declaracoes').select('status').eq('competencia', comp)
+    ]);
+    if (mil.error || dec.error) throw (mil.error || dec.error);
+
+    const total = (mil.data || []).length;
+    const env   = (dec.data || []).filter(d => d.status !== 'rascunho').length;
+    const conf  = (dec.data || []).filter(d => d.status === 'conferida').length;
+    const pend  = fase === 1 ? (total - env) : (total - env) + (env - conf);
+
+    const põe = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+    põe('at-env',  total ? env + '/' + total : env);
+    põe('at-conf', conf);
+    põe('at-pend', pend);
+
+    const pct = v => (total ? v / total * 100 : 0).toFixed(1) + '%';
+    const bar = document.getElementById('at-bar');
+    if (bar) bar.innerHTML =
+      '<span style="width:' + pct(conf) + ';background:var(--jade)"></span>' +
+      '<span style="width:' + pct(env - conf) + ';background:var(--amber)"></span>';
+
+    const [aa, mm] = comp.split('-');
+    if (nota) nota.textContent = total === 0
+      ? 'Nenhum militar cadastrado · abra o módulo para começar'
+      : pend === 0
+        ? 'Competência ' + mm + '/' + aa + ' em dia — nenhuma pendência'
+        : (fase === 3 ? '🚨 ' : '') + pend + ' pendência(s) na competência ' + mm + '/' + aa;
+  }catch(e){
+    console.warn('Auxílio transporte indisponível:', e.message);
+    if (nota) nota.textContent = /at_militares|relation/.test(e.message || '')
+      ? 'Rode o SQL do módulo no Supabase para ativar'
+      : 'Auxílio transporte indisponível · abra o módulo';
+  }
+}
+
+
 /* ═══ carga inicial + atualização periódica ═══ */
-function atualizar(){ carregarLimpeza(); carregarEfetivo(); carregarDiarias(); }
+function atualizar(){ carregarLimpeza(); carregarEfetivo(); carregarDiarias(); carregarTransporte(); }
 montarGaugeIdx();
 atualizar();
 setInterval(atualizar, 60000);
