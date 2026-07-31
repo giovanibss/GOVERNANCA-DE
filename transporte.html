@@ -176,18 +176,49 @@ table.cad input.curto{max-width:110px}
 
 footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
 
-/* ── impressão: só a tabela oficial ── */
+/* ── impressão: só a tabela oficial, com identidade visual ── */
 #areaImpressao{display:none}
 @media print{
-  body{background:#fff;color:#000}
+  @page{margin:10mm}
+  body{background:#fff;color:#0a1730}
   header.topo,main,footer{display:none!important}
-  #areaImpressao{display:block;font-family:Arial,Helvetica,sans-serif;color:#000;padding:8mm}
-  .impTitulo{text-align:center;font-weight:bold;font-size:12pt;margin-bottom:2mm}
-  table.imp{width:100%;border-collapse:collapse;font-size:8.4pt}
-  table.imp th,table.imp td{border:1px solid #000;padding:1.4mm 1.6mm;text-align:center}
-  table.imp th{background:#e8e8e8}
-  .impRodape{margin-top:8mm;font-size:9pt}
-  .impResumo{margin-top:3mm;font-size:9pt;text-align:right}
+  #areaImpressao{display:block;font-family:'Inter',Arial,Helvetica,sans-serif;color:#0a1730;
+    -webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .impFundo{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 42%;
+    opacity:.09;z-index:-1}
+  .impCab{display:flex;align-items:center;justify-content:space-between;gap:6mm;
+    border-bottom:2.5pt solid #d4a84b;padding-bottom:3mm;margin-bottom:4mm}
+  .impCab h1{font-family:'Rajdhani','Inter',sans-serif;font-size:15pt;letter-spacing:.06em;
+    text-transform:uppercase;color:#0a1730;line-height:1.15}
+  .impCab h1 small{display:block;font-size:8pt;letter-spacing:.18em;color:#5f7699;font-weight:600}
+  .impIdent{display:flex;gap:4mm;margin-bottom:4mm}
+  .impIdent .bloco{flex:1;border:1pt solid #c7d3e6;border-radius:2.5mm;padding:2.5mm 3.5mm;
+    background:rgba(255,255,255,.82)}
+  .impIdent .bloco b{display:block;font-size:6.4pt;letter-spacing:.14em;text-transform:uppercase;
+    color:#5f7699;margin-bottom:1mm}
+  .impIdent .bloco span{font-family:'Rajdhani',sans-serif;font-size:11.5pt;font-weight:700;color:#0a1730}
+  .impIdent .bloco.ouro span{color:#8a6a1e}
+  table.imp{width:100%;border-collapse:separate;border-spacing:0;font-size:7.8pt;
+    border:1pt solid #aebdd4;border-radius:2.5mm;overflow:hidden;background:rgba(255,255,255,.85)}
+  table.imp th{background:#0a1730;color:#fff;font-family:'Rajdhani',sans-serif;
+    font-size:7.4pt;letter-spacing:.1em;text-transform:uppercase;padding:1.8mm 1.6mm;
+    border-bottom:1.5pt solid #d4a84b}
+  table.imp td{padding:1.25mm 1.6mm;text-align:center;border-bottom:.5pt solid #dbe4f0}
+  table.imp tr:nth-child(even) td{background:rgba(10,23,48,.035)}
+  table.imp tr.fds td{background:rgba(10,23,48,.10);color:#5f7699}
+  table.imp tr:last-child td{border-bottom:none}
+  table.imp td.esq{text-align:left}
+  table.imp .marcaX{font-weight:700;color:#0a1730}
+  .impResumo{display:flex;gap:4mm;margin-top:4mm}
+  .impResumo .bloco{flex:1;border:1pt solid #c7d3e6;border-radius:2.5mm;padding:2.5mm 3.5mm;
+    background:rgba(255,255,255,.82);text-align:center}
+  .impResumo .bloco b{display:block;font-size:6.4pt;letter-spacing:.14em;text-transform:uppercase;
+    color:#5f7699;margin-bottom:1mm}
+  .impResumo .bloco span{font-family:'Rajdhani',sans-serif;font-size:12pt;font-weight:700;color:#0a1730}
+  .impResumo .bloco.final span{color:#1c7a55}
+  .impRodape{margin-top:8mm;font-size:8.6pt;color:#0a1730}
+  .impRodape .linhaAss{border-top:.8pt solid #0a1730;margin-top:9mm;padding-top:1.5mm;
+    width:110mm;font-size:7pt;letter-spacing:.14em;text-transform:uppercase;color:#5f7699}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -224,7 +255,6 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
   <nav class="abas" role="tablist">
     <button class="aba ativa" id="abaMil" role="tab" aria-selected="true">Minha declaração</button>
     <button class="aba" id="abaSec" role="tab" aria-selected="false">Secretaria</button>
-    <button class="aba" id="abaCad" role="tab" aria-selected="false">Cadastro</button>
   </nav>
 
   <!-- ═══ VISÃO DO MILITAR ═══ -->
@@ -259,17 +289,39 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
 
       <div class="linhaCtl" style="margin-top:1.2rem;margin-bottom:0">
         <button class="acao fantasma" id="btnSalvar">Salvar rascunho</button>
-        <button class="acao" id="btnEnviar">Enviar declaração</button>
         <button class="acao fantasma" id="btnPdf">Gerar PDF para assinatura</button>
+        <button class="acao" id="btnEnviar">Enviar declaração (anexar PDF assinado)</button>
+        <input type="file" id="arqPdf" accept="application/pdf" style="display:none" />
       </div>
-      <p style="font-size:.72rem;color:var(--texto-3);margin-top:.7rem">
-        Após enviar, gere o PDF, assine digitalmente no GOV.BR e encaminhe para <b>secde.afa@fab.mil.br</b>.
+      <p style="font-size:.72rem;color:var(--texto-3);margin-top:.7rem;line-height:1.6">
+        <b>Fluxo:</b> 1º preencha a declaração (salve o rascunho se precisar continuar depois) →
+        2º gere o PDF e assine digitalmente no GOV.BR →
+        3º clique em <b>Enviar declaração</b> e anexe o PDF assinado. A secretaria recebe a declaração e o comprovante de assinatura juntos.
       </p>
     </div>
   </section>
 
   <!-- ═══ VISÃO DA SECRETARIA ═══ -->
   <section id="telaSec" style="display:none">
+
+    <!-- portão de acesso -->
+    <div class="painel" id="pinGate" style="max-width:460px">
+      <h3>🔒 Acesso restrito à secretaria</h3>
+      <p style="font-size:.8rem;color:var(--texto-2);margin-bottom:1rem">
+        Informe o PIN da secretaria para abrir o painel de conferência e o cadastro de militares.
+      </p>
+      <div class="linhaCtl" style="margin-bottom:0">
+        <div class="campo">
+          <label for="pinCampo">PIN</label>
+          <input type="password" id="pinCampo" inputmode="numeric" autocomplete="off" style="letter-spacing:.35em;font-size:1.05rem;max-width:170px" />
+        </div>
+        <button class="acao" id="btnPin">Entrar</button>
+      </div>
+      <div id="pinMsg" class="faixaMsg erro" style="display:none;margin-top:1rem;margin-bottom:0"></div>
+    </div>
+
+    <!-- conteúdo liberado após o PIN -->
+    <div id="secArea" style="display:none">
     <div class="painel">
       <h3>Painel da secretaria</h3>
       <div class="linhaCtl">
@@ -279,6 +331,8 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
         </div>
         <button class="acao fantasma" id="btnCsv">Exportar CSV (base da Planilha 2)</button>
         <button class="acao fantasma" id="btnAtualizarSec">Atualizar</button>
+        <button class="acao fantasma" id="btnVerCad">Cadastro de militares</button>
+        <button class="acao fantasma" id="btnPinNovo">Alterar PIN</button>
       </div>
       <dl class="kpis">
         <div class="resCel"><dt>Militares ativos</dt><dd id="kAtivos">—</dd></div>
@@ -297,11 +351,9 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
         </table>
       </div>
     </div>
-  </section>
 
-  <!-- ═══ CADASTRO ═══ -->
-  <section id="telaCad" style="display:none">
-    <div class="painel">
+    <!-- ═══ CADASTRO (submódulo da secretaria) ═══ -->
+    <div class="painel" id="telaCad" style="display:none">
       <h3>Cadastro de militares do auxílio</h3>
       <p style="font-size:.78rem;color:var(--texto-2);margin-bottom:1rem">
         O <b>auxílio em vigência</b> é o valor mensal fixo (base legal de 22 dias) e o <b>valor diário</b> é o desconto por dia útil não utilizado — ambos variam pela localidade de residência.
@@ -322,6 +374,7 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
         </table>
       </div>
     </div>
+    </div><!-- /secArea -->
   </section>
 
 </main>
@@ -505,9 +558,10 @@ function pintarCiclo(){
   });
 }
 
-/* ══════════════ ABAS ══════════════ */
-const ABAS = [ ['abaMil','telaMil'], ['abaSec','telaSec'], ['abaCad','telaCad'] ];
+/* ══════════════ ABAS + ACESSO DA SECRETARIA ══════════════ */
+const ABAS = [ ['abaMil','telaMil'], ['abaSec','telaSec'] ];
 ABAS.forEach(([a, t]) => $(a).addEventListener('click', () => trocarAba(a)));
+function secLiberada(){ return sessionStorage.getItem('at_sec_ok') === '1'; }
 function trocarAba(id){
   ABAS.forEach(([a, t]) => {
     const on = a === id;
@@ -515,9 +569,61 @@ function trocarAba(id){
     $(a).setAttribute('aria-selected', on);
     $(t).style.display = on ? '' : 'none';
   });
-  if (id === 'abaSec') carregarSecretaria();
-  if (id === 'abaCad') pintarCadastro();
+  if (id === 'abaSec'){
+    if (secLiberada()){
+      $('pinGate').style.display = 'none';
+      $('secArea').style.display = '';
+      carregarSecretaria();
+    } else {
+      $('pinGate').style.display = '';
+      $('secArea').style.display = 'none';
+      $('pinCampo').focus();
+    }
+  }
 }
+async function lerPinServidor(){
+  const r = await sbGet('at_config?select=pin&id=eq.default');
+  return (r[0] && String(r[0].pin)) || null;
+}
+async function verificarPin(){
+  const digitado = $('pinCampo').value.trim();
+  esconde($('pinMsg'));
+  if (!digitado) return;
+  try {
+    const pin = await lerPinServidor();
+    if (pin === null){
+      faixa($('pinMsg'), 'erro', 'PIN não configurado no servidor — rode o SQL de atualização (v2) no Supabase.');
+      return;
+    }
+    if (digitado === pin){
+      sessionStorage.setItem('at_sec_ok', '1');
+      $('pinCampo').value = '';
+      trocarAba('abaSec');
+    } else {
+      faixa($('pinMsg'), 'erro', 'PIN incorreto. Em caso de dúvida, contate secde.afa@fab.mil.br.');
+      $('pinCampo').select();
+    }
+  } catch (e) {
+    faixa($('pinMsg'), 'erro', '⚠️ Não consegui validar o PIN: ' + e.message);
+  }
+}
+$('btnPin').addEventListener('click', verificarPin);
+$('pinCampo').addEventListener('keydown', e => { if (e.key === 'Enter') verificarPin(); });
+$('btnPinNovo').addEventListener('click', async () => {
+  const novo = prompt('Novo PIN da secretaria (mínimo 4 caracteres):');
+  if (novo === null) return;
+  if (novo.trim().length < 4){ alert('PIN muito curto — use pelo menos 4 caracteres.'); return; }
+  try {
+    await sbPatch('at_config?id=eq.default', { pin: novo.trim() });
+    alert('PIN alterado. Comunique o novo PIN à equipe por secde.afa@fab.mil.br.');
+  } catch (e){ alert('Não consegui alterar o PIN: ' + e.message); }
+});
+$('btnVerCad').addEventListener('click', () => {
+  const aberto = $('telaCad').style.display !== 'none';
+  $('telaCad').style.display = aberto ? 'none' : '';
+  $('btnVerCad').textContent = aberto ? 'Cadastro de militares' : 'Ocultar cadastro';
+  if (!aberto) pintarCadastro();
+});
 
 /* ══════════════ VISÃO DO MILITAR ══════════════ */
 async function carregarMilitares(){
@@ -615,13 +721,16 @@ function pintarGrade(){
 
 function pintarStatus(){
   const el = $('statusDecl');
-  if (!declAtual){ faixa(el, 'info', 'Declaração ainda não iniciada para esta competência.'); return; }
+  if (!declAtual){ faixa(el, 'info', 'Declaração ainda não iniciada para esta competência. Preencha os dias, gere o PDF, assine no GOV.BR e envie com o anexo.'); return; }
+  const linkPdf = declAtual.pdf_assinado
+    ? ' · <a href="' + urlPdf(declAtual.pdf_assinado) + '" target="_blank" style="color:var(--ouro-2)">ver PDF assinado</a>'
+    : '';
   if (declAtual.status === 'conferida')
-    faixa(el, 'ok', '✔ Declaração <b>conferida pela secretaria</b> em ' + new Date(declAtual.conferida_em).toLocaleString('pt-BR') + '. Edição bloqueada — procure a secretaria para reabrir.');
+    faixa(el, 'ok', '✔ Declaração <b>conferida pela secretaria</b> em ' + new Date(declAtual.conferida_em).toLocaleString('pt-BR') + linkPdf + '. Edição bloqueada — procure a secretaria para reabrir.');
   else if (declAtual.status === 'enviada')
-    faixa(el, 'ok', '📨 Declaração <b>enviada</b> em ' + new Date(declAtual.enviada_em).toLocaleString('pt-BR') + '. Você ainda pode ajustar e reenviar até a conferência.');
+    faixa(el, 'ok', '📨 Declaração <b>enviada com PDF assinado</b> em ' + new Date(declAtual.enviada_em).toLocaleString('pt-BR') + linkPdf + '. Se precisar corrigir, ajuste os dias e envie novamente com um novo PDF.');
   else
-    faixa(el, 'alerta', '📝 Rascunho salvo — lembre-se de <b>enviar</b> até o dia 05.');
+    faixa(el, 'alerta', '📝 Rascunho salvo — gere o PDF, assine no GOV.BR e <b>envie com o anexo</b> até o dia 05.');
 }
 
 function recomputar(){
@@ -651,27 +760,35 @@ $('btnTudoUtil').addEventListener('click', () => {
   pintarGrade(); recomputar();
 });
 
-async function salvarDecl(status){
+/* ── Storage: PDF assinado ── */
+async function sbUpload(caminho, arquivo){
+  const r = await fetch(SB.url + '/storage/v1/object/auxilio-transporte/' + caminho, {
+    method: 'POST',
+    headers: { apikey: SB.key, Authorization: 'Bearer ' + SB.key, 'Content-Type': 'application/pdf', 'x-upsert': 'true' },
+    body: arquivo
+  });
+  if (!r.ok) throw new Error('Upload do PDF falhou (' + r.status + ') — confirme que o SQL de atualização (v2) foi executado.');
+  return caminho;
+}
+function urlPdf(caminho){ return SB.url + '/storage/v1/object/public/auxilio-transporte/' + encodeURI(caminho); }
+
+async function salvarDecl(status, pdfCaminho){
   const mil = milSelecionado(); const comp = $('selComp').value;
   if (!mil || !comp){ faixa($('faixaGeral'), 'alerta', 'Selecione o militar e a competência.'); return; }
   const r = calcularDecl(comp, diasAtual, mil, zeradoAnterior);
-  if (status === 'enviada' && r.vazios > 0 && !r.zerado){
-    faixa($('faixaGeral'), 'alerta', 'Há ' + r.vazios + ' dia(s) útil(eis) sem motivo. Complete a declaração antes de enviar (use o botão “Marcar dias úteis como Utilizado” para agilizar).');
-    return;
-  }
   const corpo = {
     militar_id: mil.id, competencia: comp, dias: diasAtual,
     status: status || (declAtual ? declAtual.status : 'rascunho'),
     zera_mes_seguinte: r.zeraProx,
     atualizada_em: new Date().toISOString()
   };
-  if (status === 'enviada') corpo.enviada_em = new Date().toISOString();
+  if (status === 'enviada'){ corpo.enviada_em = new Date().toISOString(); corpo.pdf_assinado = pdfCaminho; }
   try {
     const res = await sbUpsert('at_declaracoes', corpo, 'militar_id,competencia');
     declAtual = res[0];
     pintarStatus();
     faixa($('faixaGeral'), 'ok', status === 'enviada'
-      ? '✔ Declaração enviada. Agora gere o PDF, assine no GOV.BR e encaminhe para secde.afa@fab.mil.br.'
+      ? '✔ Declaração enviada com o PDF assinado anexado. A secretaria já pode conferir.'
       : '✔ Rascunho salvo e sincronizado.');
     setTimeout(() => esconde($('faixaGeral')), 5000);
   } catch (e) {
@@ -679,7 +796,35 @@ async function salvarDecl(status){
   }
 }
 $('btnSalvar').addEventListener('click', () => salvarDecl(null));
-$('btnEnviar').addEventListener('click', () => salvarDecl('enviada'));
+
+/* Enviar = validar preenchimento → pedir o PDF assinado → subir → gravar como enviada */
+$('btnEnviar').addEventListener('click', () => {
+  const mil = milSelecionado(); const comp = $('selComp').value;
+  if (!mil || !comp){ faixa($('faixaGeral'), 'alerta', 'Selecione o militar e a competência.'); return; }
+  const r = calcularDecl(comp, diasAtual, mil, zeradoAnterior);
+  if (r.vazios > 0 && !r.zerado){
+    faixa($('faixaGeral'), 'alerta', 'Há ' + r.vazios + ' dia(s) útil(eis) sem motivo. Complete a declaração antes de enviar (use “Marcar dias úteis como Utilizado” para agilizar).');
+    return;
+  }
+  faixa($('faixaGeral'), 'info', '📎 Selecione o PDF <b>já assinado no GOV.BR</b> para concluir o envio.');
+  $('arqPdf').value = '';
+  $('arqPdf').click();
+});
+$('arqPdf').addEventListener('change', async () => {
+  const arq = $('arqPdf').files[0];
+  if (!arq) return;
+  const mil = milSelecionado(); const comp = $('selComp').value;
+  if (arq.type !== 'application/pdf'){ faixa($('faixaGeral'), 'alerta', 'O arquivo precisa ser um PDF.'); return; }
+  if (arq.size > 10 * 1024 * 1024){ faixa($('faixaGeral'), 'alerta', 'PDF acima de 10 MB — gere novamente ou compacte.'); return; }
+  faixa($('faixaGeral'), 'info', '⏳ Enviando o PDF assinado…');
+  try {
+    const caminho = comp + '/' + mil.saram + '-' + comp + '.pdf';
+    await sbUpload(caminho, arq);
+    await salvarDecl('enviada', caminho);
+  } catch (e) {
+    faixa($('faixaGeral'), 'erro', '⚠️ ' + e.message);
+  }
+});
 $('selMilitar').addEventListener('change', abrirDeclaracao);
 $('selComp').addEventListener('change', abrirDeclaracao);
 
@@ -718,10 +863,13 @@ async function carregarSecretaria(){
       enviadas++; conferidas++; chip = '<span class="chip jade">Conferida</span>';
       acoes = '<button class="acao fantasma mini" data-reab="' + d.id + '">Reabrir</button>';
     }
+    if (d && d.pdf_assinado)
+      acoes = '<a class="acao fantasma mini" style="text-decoration:none" target="_blank" href="' + urlPdf(d.pdf_assinado) + '">📄 PDF</a> ' + acoes;
     if (d && d.status !== 'rascunho') total += r.final;
     const regras = [
       r.zerado ? '<span class="chip rubi">MÊS ZERADO</span>' : '',
       r.zeraProx ? '<span class="chip" style="background:rgba(176,106,224,.16);color:#d9b3f2">ZERA PRÓX. MÊS</span>' : '',
+      (d && d.status !== 'rascunho' && !d.pdf_assinado) ? '<span class="chip rubi">SEM PDF ⚠</span>' : '',
       (d && r.vazios > 0) ? '<span class="chip ambar">' + r.vazios + ' dia(s) vazio(s)</span>' : ''
     ].filter(Boolean).join(' ') || '<span style="color:var(--texto-3)">—</span>';
     return '<tr><td><b>' + m.grad + ' ' + m.nome + '</b><br><small style="color:var(--texto-3)">SARAM ' + m.saram + '</small></td>' +
@@ -837,35 +985,51 @@ $('btnPdf').addEventListener('click', () => {
   const mil = milSelecionado(); const comp = $('selComp').value;
   if (!mil || !comp){ faixa($('faixaGeral'), 'alerta', 'Selecione o militar e a competência para gerar o PDF.'); return; }
   const r = calcularDecl(comp, diasAtual, mil, zeradoAnterior);
+  const X = '<span class="marcaX">\u2715</span>';
   const linhas = diasDoMes(comp).map(g => {
     const reg = diasAtual[g.d]; const mot = reg && M_IDX[reg.motivo];
     let mS='', mN='', tS='', tN='', motTxt='', obs = (reg && reg.obs) || '';
-    if (!g.util){ mS = mN = tS = tN = 'X'; motTxt = 'X'; }
+    if (!g.util){ mS = mN = tS = tN = motTxt = X; }
     else if (mot){
-      mS = mot.marca.m === 'S' ? 'X' : ''; mN = mot.marca.m === 'N' ? 'X' : '';
-      tS = mot.marca.t === 'S' ? 'X' : ''; tN = mot.marca.t === 'N' ? 'X' : '';
+      mS = mot.marca.m === 'S' ? X : ''; mN = mot.marca.m === 'N' ? X : '';
+      tS = mot.marca.t === 'S' ? X : ''; tN = mot.marca.t === 'N' ? X : '';
       motTxt = mot.rotulo;
     }
-    return '<tr><td>' + String(g.d).padStart(2,'0') + '</td><td>' + SEMANA[g.dow] + '</td>' +
+    return '<tr' + (!g.util ? ' class="fds"' : '') + '><td><b>' + String(g.d).padStart(2,'0') + '</b></td><td>' + SEMANA[g.dow] + '</td>' +
       '<td>' + mS + '</td><td>' + mN + '</td><td>' + tS + '</td><td>' + tN + '</td>' +
-      '<td style="text-align:left">' + motTxt + '</td><td style="text-align:left">' + obs + '</td></tr>';
+      '<td class="esq">' + motTxt + '</td><td class="esq">' + obs + '</td></tr>';
   }).join('');
 
   $('areaImpressao').innerHTML =
-    '<div class="impTitulo">TABELA DE FREQUÊNCIA - AUX. TRANSPORTE – ' + rotuloComp(comp) + '</div>' +
-    '<table class="imp"><tr>' +
-      '<td colspan="6" style="text-align:left"><b>GRAD./NOME DO MILITAR:</b> ' + mil.grad + ' ' + mil.nome + '</td>' +
-      '<td><b>AUXÍLIO EM VIGÊNCIA</b><br>' + fmtBRL(r.vig) + '</td>' +
-      '<td><b>VALOR DIÁRIO</b><br>' + fmtBRL(r.vDia) + '</td></tr>' +
-    '<tr><td colspan="8" style="text-align:left"><b>SARAM:</b> ' + mil.saram + '</td></tr>' +
-    '<tr><th rowspan="2" colspan="2">Dia</th><th colspan="2">MANHÃ</th><th colspan="2">TARDE</th><th rowspan="2">Motivo</th><th rowspan="2">Observações</th></tr>' +
-    '<tr><th>SIM</th><th>NÃO</th><th>SIM</th><th>NÃO</th></tr>' +
+    '<img class="impFundo" src="assets/hero-afa.jpg" alt="" />' +
+    '<div class="impCab">' +
+      '<h1>Tabela de Frequência \u2014 Auxílio Transporte' +
+        '<small>Academia da Força Aérea · Divisão de Ensino · ' + rotuloComp(comp) + '</small></h1>' +
+      '<img src="assets/cocar-fab.png" alt="" style="width:14mm;height:14mm;object-fit:contain" />' +
+    '</div>' +
+    '<div class="impIdent">' +
+      '<div class="bloco" style="flex:2"><b>Grad. / Nome do militar</b><span>' + mil.grad + ' ' + mil.nome + '</span></div>' +
+      '<div class="bloco"><b>SARAM</b><span>' + mil.saram + '</span></div>' +
+      '<div class="bloco ouro"><b>Auxílio em vigência</b><span>' + fmtBRL(r.vig) + '</span></div>' +
+      '<div class="bloco ouro"><b>Valor diário</b><span>' + fmtBRL(r.vDia) + '</span></div>' +
+    '</div>' +
+    '<table class="imp">' +
+    '<tr><th rowspan="2" colspan="2">Dia</th><th colspan="2">Manhã</th><th colspan="2">Tarde</th><th rowspan="2" style="text-align:left">Motivo</th><th rowspan="2" style="text-align:left">Observações</th></tr>' +
+    '<tr><th>Sim</th><th>Não</th><th>Sim</th><th>Não</th></tr>' +
     linhas + '</table>' +
-    '<div class="impResumo"><b>Dias descontados:</b> ' + (r.zerado ? '— (mês sem pagamento)' : r.diasDescNum) +
-      ' &nbsp;·&nbsp; <b>Desconto:</b> ' + fmtBRL(r.desconto) +
-      ' &nbsp;·&nbsp; <b>Valor a receber:</b> ' + fmtBRL(r.final) + '</div>' +
-    '<div class="impRodape">ASSINATURA GOV.BR: ______________________________________________</div>';
-  window.print();
+    '<div class="impResumo">' +
+      '<div class="bloco"><b>Dias descontados</b><span>' + (r.zerado ? '\u2014 (mês sem pagamento)' : r.diasDescNum) + '</span></div>' +
+      '<div class="bloco"><b>Desconto</b><span>' + fmtBRL(r.desconto) + '</span></div>' +
+      '<div class="bloco final"><b>Valor a receber</b><span>' + fmtBRL(r.final) + '</span></div>' +
+    '</div>' +
+    '<div class="impRodape">Declaro, sob minha responsabilidade, que as informações acima refletem a efetiva utilização do auxílio transporte na competência indicada.' +
+      '<div class="linhaAss">Assinatura digital GOV.BR \u2014 ' + mil.grad + ' ' + mil.nome + '</div>' +
+    '</div>';
+
+  // aguarda o hero carregar para não imprimir sem o fundo
+  const fundo = $('areaImpressao').querySelector('.impFundo');
+  if (fundo.complete) window.print();
+  else { fundo.onload = () => window.print(); fundo.onerror = () => window.print(); }
 });
 
 /* ══════════════ INICIALIZAÇÃO ══════════════ */
@@ -886,7 +1050,7 @@ $('btnPdf').addEventListener('click', () => {
   // sincronização leve: painel da secretaria se atualiza a cada 25 s quando visível
   setInterval(() => {
     if (document.hidden) return;
-    if ($('telaSec').style.display !== 'none') carregarSecretaria();
+    if ($('telaSec').style.display !== 'none' && secLiberada()) carregarSecretaria();
   }, 25000);
 })();
 </script>
