@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Auxílio Transporte · Governança DE</title>
+<meta name="description" content="Declaração mensal, cálculo automático e conferência do Auxílio Transporte da Divisão de Ensino." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --navy-0:#060d1d; --navy-1:#0a1730; --navy-2:#101f3e;
+  --linha:rgba(207,228,255,.12);
+  --texto:#cfe4ff; --texto-2:#8fa9cf; --texto-3:#5f7699;
+  --ouro:#d4a84b; --ouro-2:#e8c56f;
+  --jade:#3ecf9a; --ambar:#e8b13f; --rubi:#e05a5a; --ceu:#5aa2e0;
+  --card:rgba(16,31,62,.72);
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:
+    radial-gradient(1100px 520px at 85% -10%, rgba(90,162,224,.10), transparent 60%),
+    radial-gradient(900px 480px at -10% 110%, rgba(212,168,75,.07), transparent 55%),
+    linear-gradient(180deg,var(--navy-0),var(--navy-1) 40%,var(--navy-0));
+  color:var(--texto); min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.disp{font-family:'Rajdhani',sans-serif;letter-spacing:.04em}
+
+/* ── topo ── */
+header.topo{
+  display:flex;align-items:center;gap:1rem;flex-wrap:wrap;
+  padding:1.1rem clamp(1rem,4vw,2.4rem);
+  border-bottom:1px solid var(--linha);
+  background:rgba(6,13,29,.6);backdrop-filter:blur(10px);
+  position:sticky;top:0;z-index:50;
+}
+.volta{
+  display:inline-flex;align-items:center;gap:.45rem;
+  color:var(--texto-2);text-decoration:none;font-size:.82rem;font-weight:600;
+  padding:.45rem .8rem;border:1px solid var(--linha);border-radius:99px;
+  transition:color .2s,border-color .2s;
+}
+.volta:hover{color:var(--ouro-2);border-color:rgba(212,168,75,.5)}
+header.topo h1{font-size:clamp(1.25rem,3vw,1.7rem);font-weight:700;text-transform:uppercase}
+header.topo h1 span{color:var(--ouro)}
+.sub{font-size:.78rem;color:var(--texto-3);width:100%}
+@media(min-width:760px){.sub{width:auto;margin-left:auto;text-align:right;max-width:320px}}
+
+main{padding:clamp(1rem,3.5vw,2.2rem);max-width:1180px;margin:0 auto}
+
+/* ── faixa do ciclo (assinatura visual) ── */
+.ciclo{
+  border:1px solid var(--linha);border-radius:var(--r);
+  background:var(--card);overflow:hidden;margin-bottom:1.4rem;
+}
+.ciclo-cab{display:flex;align-items:baseline;gap:.8rem;flex-wrap:wrap;padding:1rem 1.2rem .4rem}
+.ciclo-cab h2{font-size:1.05rem;text-transform:uppercase;color:var(--ouro-2)}
+.ciclo-cab small{color:var(--texto-3);font-size:.75rem}
+.pista{display:flex;padding:0 1.2rem 1.1rem;gap:6px}
+.trecho{
+  flex:1;min-height:52px;border-radius:10px;position:relative;
+  border:1px dashed var(--linha);padding:.5rem .7rem;
+  font-size:.7rem;color:var(--texto-3);
+  display:flex;flex-direction:column;justify-content:center;gap:2px;
+}
+.trecho b{font-family:'Rajdhani';font-size:.85rem;letter-spacing:.06em;color:var(--texto-2);text-transform:uppercase}
+.trecho.ativa{border:1px solid rgba(212,168,75,.65);background:rgba(212,168,75,.08)}
+.trecho.ativa b{color:var(--ouro-2)}
+.trecho.feita{border-style:solid;border-color:rgba(62,207,154,.4)}
+.trecho.feita b{color:var(--jade)}
+.aviao{
+  position:absolute;top:-11px;left:12px;font-size:.95rem;color:var(--ouro-2);
+  filter:drop-shadow(0 2px 6px rgba(0,0,0,.6));
+}
+@media(max-width:640px){.pista{flex-direction:column}.trecho{min-height:44px}}
+
+/* ── abas ── */
+.abas{display:flex;gap:.5rem;margin-bottom:1.2rem;flex-wrap:wrap}
+.aba{
+  font-family:'Rajdhani';font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  font-size:.85rem;color:var(--texto-2);background:transparent;
+  border:1px solid var(--linha);border-radius:99px;padding:.55rem 1.15rem;cursor:pointer;
+  transition:all .2s;
+}
+.aba:hover{color:var(--texto)}
+.aba.ativa{color:var(--navy-0);background:linear-gradient(135deg,var(--ouro-2),var(--ouro));border-color:transparent}
+.aba:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--ouro-2);outline-offset:2px}
+
+/* ── cartões / painéis ── */
+.painel{border:1px solid var(--linha);border-radius:var(--r);background:var(--card);padding:1.2rem;margin-bottom:1.3rem}
+.painel h3{font-size:1rem;text-transform:uppercase;color:var(--ouro-2);margin-bottom:.9rem}
+.linhaCtl{display:flex;gap:.8rem;flex-wrap:wrap;align-items:flex-end;margin-bottom:1rem}
+.campo{display:flex;flex-direction:column;gap:.3rem}
+.campo label{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--texto-3);font-weight:600}
+select,input[type=text],input[type=number],input[type=month]{
+  background:var(--navy-1);border:1px solid var(--linha);color:var(--texto);
+  border-radius:9px;padding:.55rem .7rem;font-size:.88rem;font-family:inherit;min-width:120px;
+}
+select{cursor:pointer}
+button.acao{
+  font-family:'Rajdhani';font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  font-size:.82rem;border:none;border-radius:10px;padding:.62rem 1.1rem;cursor:pointer;
+  color:var(--navy-0);background:linear-gradient(135deg,var(--ouro-2),var(--ouro));
+  box-shadow:0 5px 16px rgba(212,168,75,.25);transition:transform .18s,box-shadow .18s,filter .18s;
+}
+button.acao:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 9px 22px rgba(212,168,75,.38)}
+button.acao:disabled{filter:saturate(.4) brightness(.75);cursor:not-allowed}
+button.acao.fantasma{background:transparent;color:var(--texto-2);border:1px solid var(--linha);box-shadow:none}
+button.acao.fantasma:hover:not(:disabled){color:var(--ouro-2);border-color:rgba(212,168,75,.5)}
+button.acao.verde{background:linear-gradient(135deg,#5fe0b0,var(--jade));box-shadow:0 5px 16px rgba(62,207,154,.25)}
+button.acao.vermelho{background:linear-gradient(135deg,#ef7a7a,var(--rubi));box-shadow:0 5px 16px rgba(224,90,90,.25)}
+
+.faixaMsg{border-radius:10px;padding:.7rem .9rem;font-size:.82rem;margin-bottom:1rem;border:1px solid}
+.faixaMsg.info{border-color:rgba(90,162,224,.4);background:rgba(90,162,224,.08);color:#a9cdf2}
+.faixaMsg.ok{border-color:rgba(62,207,154,.4);background:rgba(62,207,154,.08);color:#8fe9c8}
+.faixaMsg.erro{border-color:rgba(224,90,90,.45);background:rgba(224,90,90,.08);color:#f2a9a9}
+.faixaMsg.alerta{border-color:rgba(232,177,63,.45);background:rgba(232,177,63,.08);color:#f0cf8f}
+
+/* ── grade da declaração ── */
+.gradeDias{display:grid;grid-template-columns:repeat(auto-fill,minmax(216px,1fr));gap:.6rem;margin:1rem 0}
+.diaCard{
+  border:1px solid var(--linha);border-radius:11px;background:var(--navy-1);
+  padding:.6rem .7rem;display:flex;flex-direction:column;gap:.45rem;
+}
+.diaCard .cab{display:flex;align-items:baseline;gap:.5rem}
+.diaCard .num{font-family:'Rajdhani';font-weight:700;font-size:1.15rem;color:var(--texto)}
+.diaCard .sem{font-size:.66rem;letter-spacing:.1em;color:var(--texto-3);text-transform:uppercase}
+.diaCard .pill{margin-left:auto;width:9px;height:9px;border-radius:99px;background:var(--texto-3)}
+.diaCard select{width:100%;min-width:0;font-size:.78rem;padding:.42rem .5rem}
+.diaCard input{width:100%;min-width:0;font-size:.74rem;padding:.35rem .5rem}
+.diaCard.fds{opacity:.42;background:repeating-linear-gradient(135deg,var(--navy-1) 0 8px,rgba(207,228,255,.03) 8px 16px)}
+.diaCard.fds .num{color:var(--texto-3)}
+.diaCard.hoje{border-color:rgba(90,162,224,.6)}
+.efe-PAGA{background:var(--jade)!important}
+.efe-DESCONTA{background:var(--ambar)!important}
+.efe-ZERA_MES{background:var(--rubi)!important}
+.efe-ZERA_MES_SEGUINTE{background:#b06ae0!important}
+.efe-VAZIO{background:var(--texto-3)!important}
+
+/* ── resumo do cálculo ── */
+.resumo{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.7rem;margin-top:1rem}
+.resCel{border:1px solid var(--linha);border-radius:11px;padding:.7rem .8rem;background:rgba(6,13,29,.5)}
+.resCel dt{font-size:.64rem;text-transform:uppercase;letter-spacing:.09em;color:var(--texto-3);font-weight:600}
+.resCel dd{font-family:'Rajdhani';font-weight:700;font-size:1.35rem;margin-top:.15rem}
+.resCel dd.ouro{color:var(--ouro-2)} .resCel dd.jade{color:var(--jade)}
+.resCel dd.ambar{color:var(--ambar)} .resCel dd.rubi{color:var(--rubi)}
+.regrasLog{margin-top:.9rem;border-left:3px solid rgba(212,168,75,.5);padding:.4rem .8rem;font-size:.76rem;color:var(--texto-2);display:flex;flex-direction:column;gap:.25rem}
+.regrasLog b{color:var(--ouro-2)}
+
+/* ── tabela da secretaria ── */
+.tabScroll{overflow-x:auto}
+table.sec{width:100%;border-collapse:collapse;font-size:.82rem;min-width:720px}
+table.sec th{font-family:'Rajdhani';text-transform:uppercase;letter-spacing:.08em;font-size:.72rem;color:var(--texto-3);text-align:left;padding:.55rem .6rem;border-bottom:1px solid var(--linha)}
+table.sec td{padding:.55rem .6rem;border-bottom:1px solid rgba(207,228,255,.06)}
+table.sec tr:hover td{background:rgba(207,228,255,.03)}
+.chip{display:inline-block;font-size:.66rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-radius:99px;padding:.2rem .6rem}
+.chip.cinza{background:rgba(207,228,255,.1);color:var(--texto-2)}
+.chip.azul{background:rgba(90,162,224,.16);color:#a9cdf2}
+.chip.ambar{background:rgba(232,177,63,.16);color:#f0cf8f}
+.chip.jade{background:rgba(62,207,154,.16);color:#8fe9c8}
+.chip.rubi{background:rgba(224,90,90,.16);color:#f2a9a9}
+.mini{font-size:.72rem;padding:.35rem .7rem}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.7rem;margin-bottom:1.1rem}
+
+/* ── cadastro ── */
+table.cad{width:100%;border-collapse:collapse;font-size:.82rem;min-width:680px}
+table.cad th{font-size:.7rem;text-transform:uppercase;color:var(--texto-3);text-align:left;padding:.45rem .5rem;border-bottom:1px solid var(--linha)}
+table.cad td{padding:.4rem .5rem;border-bottom:1px solid rgba(207,228,255,.06)}
+table.cad input{min-width:0;width:100%;padding:.4rem .5rem;font-size:.8rem}
+table.cad input.curto{max-width:110px}
+
+footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
+
+/* ── impressão: só a tabela oficial ── */
+#areaImpressao{display:none}
+@media print{
+  body{background:#fff;color:#000}
+  header.topo,main,footer{display:none!important}
+  #areaImpressao{display:block;font-family:Arial,Helvetica,sans-serif;color:#000;padding:8mm}
+  .impTitulo{text-align:center;font-weight:bold;font-size:12pt;margin-bottom:2mm}
+  table.imp{width:100%;border-collapse:collapse;font-size:8.4pt}
+  table.imp th,table.imp td{border:1px solid #000;padding:1.4mm 1.6mm;text-align:center}
+  table.imp th{background:#e8e8e8}
+  .impRodape{margin-top:8mm;font-size:9pt}
+  .impResumo{margin-top:3mm;font-size:9pt;text-align:right}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header class="topo">
+  <a class="volta" href="index.html">← Hub</a>
+  <h1>Auxílio <span>Transporte</span></h1>
+  <p class="sub">Declaração mensal do militar, cálculo automático conforme as regras e conferência da secretaria — em um só lugar.</p>
+</header>
+
+<main>
+
+  <!-- ═══ FAIXA DO CICLO ═══ -->
+  <section class="ciclo" aria-label="Ciclo mensal do auxílio">
+    <div class="ciclo-cab">
+      <h2 id="cicloTitulo">Ciclo do mês</h2>
+      <small id="cicloSub">competência —</small>
+    </div>
+    <div class="pista" id="pista">
+      <div class="trecho" id="tr1"><b>Dias 01–05 · Declaração</b><span>Militar preenche e envia o mês anterior</span></div>
+      <div class="trecho" id="tr2"><b>Dias 06–10 · Conferência</b><span>Secretaria confere as declarações</span></div>
+      <div class="trecho" id="tr3"><b>Após dia 10 · Remessa</b><span>Envio ao órgão pagador</span></div>
+    </div>
+  </section>
+
+  <div id="avisoConfig" class="faixaMsg alerta" style="display:none">
+    ⚙️ Falta configurar o Supabase: abra o arquivo e preencha <b>SUPABASE_KEY</b> no topo do script (é a mesma chave anônima usada no <code>diarias.html</code>). Depois rode o SQL <code>supabase-auxilio-transporte.sql</code> uma única vez no projeto.
+  </div>
+  <div id="faixaGeral" class="faixaMsg info" style="display:none"></div>
+
+  <!-- ═══ ABAS ═══ -->
+  <nav class="abas" role="tablist">
+    <button class="aba ativa" id="abaMil" role="tab" aria-selected="true">Minha declaração</button>
+    <button class="aba" id="abaSec" role="tab" aria-selected="false">Secretaria</button>
+    <button class="aba" id="abaCad" role="tab" aria-selected="false">Cadastro</button>
+  </nav>
+
+  <!-- ═══ VISÃO DO MILITAR ═══ -->
+  <section id="telaMil">
+    <div class="painel">
+      <h3>Declaração de frequência</h3>
+      <div class="linhaCtl">
+        <div class="campo">
+          <label for="selMilitar">Militar</label>
+          <select id="selMilitar"><option value="">— selecione —</option></select>
+        </div>
+        <div class="campo">
+          <label for="selComp">Competência (mês declarado)</label>
+          <input type="month" id="selComp" />
+        </div>
+        <button class="acao fantasma" id="btnTudoUtil">Marcar dias úteis como “Utilizado”</button>
+      </div>
+
+      <div id="cabMilitar" class="faixaMsg info" style="display:none"></div>
+      <div id="statusDecl" class="faixaMsg" style="display:none"></div>
+
+      <div class="gradeDias" id="gradeDias"></div>
+
+      <dl class="resumo" id="resumo" style="display:none">
+        <div class="resCel"><dt>Auxílio em vigência</dt><dd class="ouro" id="rVig">—</dd></div>
+        <div class="resCel"><dt>Valor diário</dt><dd id="rDia">—</dd></div>
+        <div class="resCel"><dt>Dias descontados</dt><dd class="ambar" id="rDesc">—</dd></div>
+        <div class="resCel"><dt>Desconto total</dt><dd class="rubi" id="rDescV">—</dd></div>
+        <div class="resCel"><dt>Valor a receber</dt><dd class="jade" id="rFinal">—</dd></div>
+      </dl>
+      <div class="regrasLog" id="regrasLog" style="display:none"></div>
+
+      <div class="linhaCtl" style="margin-top:1.2rem;margin-bottom:0">
+        <button class="acao fantasma" id="btnSalvar">Salvar rascunho</button>
+        <button class="acao" id="btnEnviar">Enviar declaração</button>
+        <button class="acao fantasma" id="btnPdf">Gerar PDF para assinatura</button>
+      </div>
+      <p style="font-size:.72rem;color:var(--texto-3);margin-top:.7rem">
+        Após enviar, gere o PDF, assine digitalmente no GOV.BR e encaminhe para <b>secde.afa@fab.mil.br</b>.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══ VISÃO DA SECRETARIA ═══ -->
+  <section id="telaSec" style="display:none">
+    <div class="painel">
+      <h3>Painel da secretaria</h3>
+      <div class="linhaCtl">
+        <div class="campo">
+          <label for="selCompSec">Competência</label>
+          <input type="month" id="selCompSec" />
+        </div>
+        <button class="acao fantasma" id="btnCsv">Exportar CSV (base da Planilha 2)</button>
+        <button class="acao fantasma" id="btnAtualizarSec">Atualizar</button>
+      </div>
+      <dl class="kpis">
+        <div class="resCel"><dt>Militares ativos</dt><dd id="kAtivos">—</dd></div>
+        <div class="resCel"><dt>Enviadas</dt><dd class="ouro" id="kEnviadas">—</dd></div>
+        <div class="resCel"><dt>Conferidas</dt><dd class="jade" id="kConf">—</dd></div>
+        <div class="resCel"><dt>Pendências</dt><dd class="rubi" id="kPend">—</dd></div>
+        <div class="resCel"><dt>Total a pagar</dt><dd class="jade" id="kTotal">—</dd></div>
+      </dl>
+      <div id="alertaSec" class="faixaMsg alerta" style="display:none"></div>
+      <div class="tabScroll">
+        <table class="sec">
+          <thead><tr>
+            <th>Militar</th><th>Status</th><th>Dias desc.</th><th>Desconto</th><th>A pagar</th><th>Regras</th><th style="text-align:right">Ações</th>
+          </tr></thead>
+          <tbody id="corpoSec"><tr><td colspan="7" style="color:var(--texto-3)">Carregando…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ CADASTRO ═══ -->
+  <section id="telaCad" style="display:none">
+    <div class="painel">
+      <h3>Cadastro de militares do auxílio</h3>
+      <p style="font-size:.78rem;color:var(--texto-2);margin-bottom:1rem">
+        O <b>auxílio em vigência</b> é o valor mensal fixo (base legal de 22 dias) e o <b>valor diário</b> é o desconto por dia útil não utilizado — ambos variam pela localidade de residência.
+      </p>
+      <div class="tabScroll">
+        <table class="cad">
+          <thead><tr><th>Grad.</th><th>Nome</th><th>SARAM</th><th>Auxílio mensal (R$)</th><th>Valor diário (R$)</th><th>Ativo</th><th></th></tr></thead>
+          <tbody id="corpoCad"></tbody>
+          <tfoot><tr>
+            <td><input id="nGrad" class="curto" placeholder="1S" /></td>
+            <td><input id="nNome" placeholder="Nome de guerra" /></td>
+            <td><input id="nSaram" class="curto" placeholder="0000000" /></td>
+            <td><input id="nVig" class="curto" type="number" step="0.01" placeholder="639,76" /></td>
+            <td><input id="nDia" class="curto" type="number" step="0.01" placeholder="29,08" /></td>
+            <td>—</td>
+            <td><button class="acao mini" id="btnAddMil">Adicionar</button></td>
+          </tr></tfoot>
+        </table>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div id="areaImpressao"></div>
+
+<footer>Governança DE · Academia da Força Aérea — módulo Auxílio Transporte</footer>
+<script>
+/* ══════════════════════════════════════════════════════════════
+   CONFIGURAÇÃO
+   Mesma base Supabase dos outros módulos do site.
+   Copie a chave anônima (a mesma usada no diarias.html) abaixo.
+   ══════════════════════════════════════════════════════════════ */
+const SB = {
+  url: 'https://sovrgsbdhdpxsaomspsp.supabase.co',
+  key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg'   // mesma chave anônima do index/diarias
+};
+
+/* ══════════════════════════════════════════════════════════════
+   MOTIVOS E EFEITOS — o coração das regras do auxílio
+   efeito:
+     PAGA              → dia conta como utilizado (sem desconto)
+     DESCONTA          → desconta 1 × valor diário (só dias úteis)
+     ZERA_MES          → o auxílio do mês inteiro não é pago
+     ZERA_MES_SEGUINTE → desconta o dia E zera o mês seguinte
+   marca: como o dia aparece no PDF oficial (MANHÃ / TARDE)
+   ══════════════════════════════════════════════════════════════ */
+const MOTIVOS = [
+  { id:'UTILIZADO',        rotulo:'Utilizado',                              efeito:'PAGA',              marca:{m:'S',t:'S'} },
+  { id:'ENTRANDO_SERVICO', rotulo:'Entrando de Serviço',                    efeito:'PAGA',              marca:{m:'S',t:'N'} },
+  { id:'SAINDO_SERVICO',   rotulo:'Saindo de Serviço',                      efeito:'DESCONTA',          marca:{m:'N',t:'S'} },
+  { id:'FERIADO',          rotulo:'Feriado',                                efeito:'DESCONTA',          marca:{m:'N',t:'N'} },
+  { id:'SEM_EXPEDIENTE',   rotulo:'Sem Expediente',                        efeito:'DESCONTA',          marca:{m:'N',t:'N'} },
+  { id:'DISPENSA',         rotulo:'Dispensa',                               efeito:'DESCONTA',          marca:{m:'N',t:'N'} },
+  { id:'ATESTADO',         rotulo:'Atestado / Saúde',                       efeito:'DESCONTA',          marca:{m:'N',t:'N'} },
+  { id:'MISSAO',           rotulo:'Missão fora da sede',                    efeito:'DESCONTA',          marca:{m:'N',t:'N'} },
+  { id:'FERIAS_P1',        rotulo:'Férias — 1ª parcela (10 dias)',          efeito:'ZERA_MES',          marca:{m:'N',t:'N'} },
+  { id:'FERIAS_P2',        rotulo:'Férias — 2ª parcela (10 dias)',          efeito:'PAGA',              marca:{m:'N',t:'N'} },
+  { id:'FERIAS_P3',        rotulo:'Férias — 3ª parcela (10 dias)',          efeito:'PAGA',              marca:{m:'N',t:'N'} },
+  { id:'FERIAS_COMPLETA',  rotulo:'Férias completas — 30 dias (início)',    efeito:'ZERA_MES',          marca:{m:'N',t:'N'} },
+  { id:'FERIAS_CONT',      rotulo:'Férias — continuação do mês anterior',   efeito:'PAGA',              marca:{m:'N',t:'N'} },
+  { id:'DESCONTO_FERIAS',  rotulo:'Desconto em Férias',                     efeito:'PAGA',              marca:{m:'N',t:'N'} },
+  { id:'FERIAS_RESTANTES', rotulo:'Férias Restantes',                       efeito:'ZERA_MES_SEGUINTE', marca:{m:'N',t:'N'} },
+];
+const M_IDX = Object.fromEntries(MOTIVOS.map(m => [m.id, m]));
+
+/* ══════════════ utilidades ══════════════ */
+const $ = id => document.getElementById(id);
+const fmtBRL = v => (v ?? 0).toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
+const SEMANA = ['DOM.','SEG.','TER.','QUA.','QUI.','SEX.','SÁB.'];
+const MESES = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+
+function compAnterior(comp){
+  const [a, m] = comp.split('-').map(Number);
+  return m === 1 ? (a-1)+'-12' : a+'-'+String(m-1).padStart(2,'0');
+}
+function diasDoMes(comp){
+  const [a, m] = comp.split('-').map(Number);
+  const tot = new Date(a, m, 0).getDate();
+  const lista = [];
+  for (let d = 1; d <= tot; d++){
+    const dow = new Date(a, m-1, d).getDay();
+    lista.push({ d, dow, util: dow >= 1 && dow <= 5 });
+  }
+  return lista;
+}
+function rotuloComp(comp){
+  const [a, m] = comp.split('-').map(Number);
+  return MESES[m-1] + '/' + a;
+}
+function compDoCiclo(){ // no ciclo dos dias 01–10, declara-se sempre o mês anterior
+  const h = new Date();
+  return compAnterior(h.getFullYear() + '-' + String(h.getMonth()+1).padStart(2,'0'));
+}
+function faseDoCiclo(){
+  const d = new Date().getDate();
+  return d <= 5 ? 1 : d <= 10 ? 2 : 3;
+}
+
+/* ══════════════ MOTOR DE CÁLCULO ══════════════ */
+function calcularDecl(comp, diasObj, mil, zeradoPorMesAnterior){
+  const grade = diasDoMes(comp);
+  const log = [];
+  let vazios = 0, diasDesc = 0, zerado = false, zeraProx = false;
+  let temP1 = false, temCompleta = false, servFechadas = 0;
+
+  grade.forEach(g => {
+    if (!g.util) return;                       // sáb/dom nunca entram no cômputo
+    const reg = diasObj[g.d];
+    const mot = reg && M_IDX[reg.motivo];
+    if (!mot){ vazios++; return; }
+    if (mot.efeito === 'DESCONTA' || mot.efeito === 'ZERA_MES_SEGUINTE') diasDesc++;
+    if (mot.id === 'SAINDO_SERVICO') servFechadas++;
+    if (mot.id === 'FERIAS_P1') temP1 = true;
+    if (mot.id === 'FERIAS_COMPLETA') temCompleta = true;
+    if (mot.efeito === 'ZERA_MES_SEGUINTE') zeraProx = true;
+    if (mot.id === 'ENTRANDO_SERVICO' && g.dow === 5)
+      log.push('Serviço iniciado na <b>sexta-feira (dia ' + g.d + ')</b>: dia pago integralmente — a saída no fim de semana não gera desconto (regra do administrador).');
+  });
+
+  if (zeradoPorMesAnterior){
+    zerado = true;
+    log.unshift('<b>Auxílio do mês zerado</b>: no mês anterior foram declaradas férias que avançam sobre esta competência (Férias Restantes).');
+  } else if (temP1){
+    zerado = true;
+    log.unshift('<b>1ª parcela de férias</b> declarada: o auxílio deste mês não é pago (o desconto integral ocorre na primeira parcela — por isso a 2ª e a 3ª contam como trabalho normal).');
+  } else if (temCompleta){
+    zerado = true;
+    log.unshift('<b>Férias completas (30 dias)</b> iniciadas neste mês: o auxílio da competência não é pago. Os dias que avançarem no mês seguinte devem ser marcados como “Férias — continuação”, que não desconta.');
+  }
+
+  if (servFechadas > 0)
+    log.push(servFechadas + ' diária(s) de serviço fechada(s): cada par <b>Entrando + Saindo de Serviço</b> paga uma única diária (o dia da saída é o descontado).');
+  if (zeraProx)
+    log.push('<b>Férias Restantes</b> declaradas: o auxílio do <b>mês seguinte</b> não será pago.');
+
+  const vig = Number(mil?.valor_mensal || 0);
+  const vDia = Number(mil?.valor_diario || 0);
+  const desconto = zerado ? vig : diasDesc * vDia;
+  const final = zerado ? 0 : Math.max(0, vig - desconto);
+
+  return { vig, vDia, diasDesc: zerado ? '—' : diasDesc, diasDescNum: diasDesc,
+           desconto: zerado ? vig : Math.min(desconto, vig), final, zerado, zeraProx, vazios, log };
+}
+
+/* ══════════════ Supabase via REST ══════════════ */
+function sbCab(extra){
+  return Object.assign({ apikey: SB.key, Authorization: 'Bearer ' + SB.key, 'Content-Type': 'application/json' }, extra || {});
+}
+async function sbGet(caminho){
+  const r = await fetch(SB.url + '/rest/v1/' + caminho, { headers: sbCab() });
+  if (!r.ok) throw new Error('Leitura falhou (' + r.status + ')');
+  return r.json();
+}
+async function sbUpsert(tabela, corpo, conflito){
+  const r = await fetch(SB.url + '/rest/v1/' + tabela + '?on_conflict=' + conflito, {
+    method: 'POST',
+    headers: sbCab({ Prefer: 'resolution=merge-duplicates,return=representation' }),
+    body: JSON.stringify(corpo)
+  });
+  if (!r.ok) throw new Error('Gravação falhou (' + r.status + ')');
+  return r.json();
+}
+async function sbPatch(caminho, corpo){
+  const r = await fetch(SB.url + '/rest/v1/' + caminho, {
+    method: 'PATCH', headers: sbCab({ Prefer: 'return=representation' }), body: JSON.stringify(corpo)
+  });
+  if (!r.ok) throw new Error('Atualização falhou (' + r.status + ')');
+  return r.json();
+}
+async function sbDel(caminho){
+  const r = await fetch(SB.url + '/rest/v1/' + caminho, { method: 'DELETE', headers: sbCab() });
+  if (!r.ok) throw new Error('Exclusão falhou (' + r.status + ')');
+}
+
+/* ══════════════ ESTADO ══════════════ */
+let militares = [];          // cadastro
+let declAtual = null;        // declaração aberta na visão do militar
+let diasAtual = {};          // { dia: {motivo, obs} } em edição
+let zeradoAnterior = false;  // flag herdada do mês anterior
+let secDecls = [], secDeclsPrev = [];
+
+function faixa(el, tipo, html){
+  el.className = 'faixaMsg ' + tipo; el.innerHTML = html; el.style.display = 'block';
+}
+function esconde(el){ el.style.display = 'none'; }
+
+/* ══════════════ FAIXA DO CICLO ══════════════ */
+function pintarCiclo(){
+  const fase = faseDoCiclo();
+  $('cicloSub').textContent = 'competência ' + rotuloComp(compDoCiclo()) + ' · hoje é dia ' + String(new Date().getDate()).padStart(2,'0');
+  [ $('tr1'), $('tr2'), $('tr3') ].forEach((el, i) => {
+    el.classList.remove('ativa','feita');
+    if (i + 1 < fase) el.classList.add('feita');
+    if (i + 1 === fase){
+      el.classList.add('ativa');
+      const av = document.createElement('span');
+      av.className = 'aviao'; av.textContent = '✈';
+      el.appendChild(av);
+    }
+  });
+}
+
+/* ══════════════ ABAS ══════════════ */
+const ABAS = [ ['abaMil','telaMil'], ['abaSec','telaSec'], ['abaCad','telaCad'] ];
+ABAS.forEach(([a, t]) => $(a).addEventListener('click', () => trocarAba(a)));
+function trocarAba(id){
+  ABAS.forEach(([a, t]) => {
+    const on = a === id;
+    $(a).classList.toggle('ativa', on);
+    $(a).setAttribute('aria-selected', on);
+    $(t).style.display = on ? '' : 'none';
+  });
+  if (id === 'abaSec') carregarSecretaria();
+  if (id === 'abaCad') pintarCadastro();
+}
+
+/* ══════════════ VISÃO DO MILITAR ══════════════ */
+async function carregarMilitares(){
+  militares = await sbGet('at_militares?select=*&order=nome');
+  const sel = $('selMilitar');
+  sel.innerHTML = '<option value="">— selecione —</option>' +
+    militares.filter(m => m.ativo).map(m => '<option value="' + m.id + '">' + m.grad + ' ' + m.nome + '</option>').join('');
+}
+
+function milSelecionado(){
+  return militares.find(m => String(m.id) === $('selMilitar').value) || null;
+}
+
+async function abrirDeclaracao(){
+  const mil = milSelecionado();
+  const comp = $('selComp').value;
+  $('gradeDias').innerHTML = '';
+  esconde($('cabMilitar')); esconde($('statusDecl'));
+  $('resumo').style.display = 'none'; $('regrasLog').style.display = 'none';
+  declAtual = null; diasAtual = {}; zeradoAnterior = false;
+  if (!mil || !comp) return;
+
+  faixa($('cabMilitar'), 'info',
+    '<b>' + mil.grad + ' ' + mil.nome + '</b> · SARAM ' + mil.saram +
+    ' · Auxílio em vigência: <b>' + fmtBRL(Number(mil.valor_mensal)) + '</b>' +
+    ' · Valor diário: <b>' + fmtBRL(Number(mil.valor_diario)) + '</b>');
+
+  try {
+    const [atual, anterior] = await Promise.all([
+      sbGet('at_declaracoes?select=*&militar_id=eq.' + mil.id + '&competencia=eq.' + comp),
+      sbGet('at_declaracoes?select=zera_mes_seguinte&militar_id=eq.' + mil.id + '&competencia=eq.' + compAnterior(comp))
+    ]);
+    declAtual = atual[0] || null;
+    diasAtual = declAtual ? JSON.parse(JSON.stringify(declAtual.dias || {})) : {};
+    zeradoAnterior = !!(anterior[0] && anterior[0].zera_mes_seguinte);
+  } catch (e) {
+    faixa($('faixaGeral'), 'erro', '⚠️ Não consegui ler as declarações: ' + e.message);
+  }
+
+  pintarGrade();
+  pintarStatus();
+  recomputar();
+}
+
+function pintarGrade(){
+  const comp = $('selComp').value;
+  const hoje = new Date();
+  const compHoje = hoje.getFullYear() + '-' + String(hoje.getMonth()+1).padStart(2,'0');
+  const bloqueada = declAtual && declAtual.status === 'conferida';
+  const opcoes = '<option value="">—</option>' +
+    MOTIVOS.map(m => '<option value="' + m.id + '">' + m.rotulo + '</option>').join('');
+
+  $('gradeDias').innerHTML = diasDoMes(comp).map(g => {
+    const reg = diasAtual[g.d] || {};
+    const mot = M_IDX[reg.motivo];
+    const efe = g.util ? (mot ? mot.efeito : 'VAZIO') : '';
+    const eHoje = comp === compHoje && g.d === hoje.getDate();
+    if (!g.util){
+      return '<div class="diaCard fds"><div class="cab"><span class="num">' + String(g.d).padStart(2,'0') +
+        '</span><span class="sem">' + SEMANA[g.dow] + '</span><span class="pill"></span></div>' +
+        '<span style="font-size:.68rem;color:var(--texto-3)">Fim de semana — não entra no cômputo</span></div>';
+    }
+    return '<div class="diaCard' + (eHoje ? ' hoje' : '') + '">' +
+      '<div class="cab"><span class="num">' + String(g.d).padStart(2,'0') + '</span>' +
+      '<span class="sem">' + SEMANA[g.dow] + '</span><span class="pill efe-' + efe + '"></span></div>' +
+      '<select data-dia="' + g.d + '" ' + (bloqueada ? 'disabled' : '') + '>' + opcoes + '</select>' +
+      '<input data-obs="' + g.d + '" placeholder="Observação (opcional)" value="' + (reg.obs || '').replace(/"/g,'&quot;') + '" ' + (bloqueada ? 'disabled' : '') + ' />' +
+      '</div>';
+  }).join('');
+
+  // aplica valores e escuta mudanças
+  $('gradeDias').querySelectorAll('select[data-dia]').forEach(s => {
+    const d = Number(s.dataset.dia);
+    s.value = (diasAtual[d] && diasAtual[d].motivo) || '';
+    s.addEventListener('change', () => {
+      if (s.value) diasAtual[d] = Object.assign(diasAtual[d] || {}, { motivo: s.value });
+      else { if (diasAtual[d]) delete diasAtual[d].motivo; if (diasAtual[d] && !diasAtual[d].obs) delete diasAtual[d]; }
+      const mot = M_IDX[s.value];
+      s.closest('.diaCard').querySelector('.pill').className = 'pill efe-' + (mot ? mot.efeito : 'VAZIO');
+      recomputar();
+    });
+  });
+  $('gradeDias').querySelectorAll('input[data-obs]').forEach(i => {
+    const d = Number(i.dataset.obs);
+    i.addEventListener('input', () => {
+      if (i.value.trim()) diasAtual[d] = Object.assign(diasAtual[d] || {}, { obs: i.value });
+      else if (diasAtual[d]){ delete diasAtual[d].obs; if (!diasAtual[d].motivo) delete diasAtual[d]; }
+    });
+  });
+
+  $('btnTudoUtil').disabled = bloqueada;
+  $('btnSalvar').disabled = bloqueada;
+  $('btnEnviar').disabled = bloqueada;
+}
+
+function pintarStatus(){
+  const el = $('statusDecl');
+  if (!declAtual){ faixa(el, 'info', 'Declaração ainda não iniciada para esta competência.'); return; }
+  if (declAtual.status === 'conferida')
+    faixa(el, 'ok', '✔ Declaração <b>conferida pela secretaria</b> em ' + new Date(declAtual.conferida_em).toLocaleString('pt-BR') + '. Edição bloqueada — procure a secretaria para reabrir.');
+  else if (declAtual.status === 'enviada')
+    faixa(el, 'ok', '📨 Declaração <b>enviada</b> em ' + new Date(declAtual.enviada_em).toLocaleString('pt-BR') + '. Você ainda pode ajustar e reenviar até a conferência.');
+  else
+    faixa(el, 'alerta', '📝 Rascunho salvo — lembre-se de <b>enviar</b> até o dia 05.');
+}
+
+function recomputar(){
+  const mil = milSelecionado(); const comp = $('selComp').value;
+  if (!mil || !comp) return;
+  const r = calcularDecl(comp, diasAtual, mil, zeradoAnterior);
+  $('resumo').style.display = '';
+  $('rVig').textContent = fmtBRL(r.vig);
+  $('rDia').textContent = fmtBRL(r.vDia);
+  $('rDesc').textContent = r.zerado ? '—' : r.diasDesc;
+  $('rDescV').textContent = fmtBRL(r.desconto);
+  $('rFinal').textContent = fmtBRL(r.final);
+  const log = r.log.slice();
+  if (r.vazios > 0) log.push('<b>' + r.vazios + ' dia(s) útil(eis) sem motivo</b> — complete antes de enviar.');
+  const el = $('regrasLog');
+  if (log.length){ el.style.display = ''; el.innerHTML = log.map(l => '• ' + l).join('<br>'); }
+  else esconde(el);
+  return r;
+}
+
+$('btnTudoUtil').addEventListener('click', () => {
+  const comp = $('selComp').value; if (!comp) return;
+  diasDoMes(comp).forEach(g => {
+    if (g.util && !(diasAtual[g.d] && diasAtual[g.d].motivo))
+      diasAtual[g.d] = Object.assign(diasAtual[g.d] || {}, { motivo: 'UTILIZADO' });
+  });
+  pintarGrade(); recomputar();
+});
+
+async function salvarDecl(status){
+  const mil = milSelecionado(); const comp = $('selComp').value;
+  if (!mil || !comp){ faixa($('faixaGeral'), 'alerta', 'Selecione o militar e a competência.'); return; }
+  const r = calcularDecl(comp, diasAtual, mil, zeradoAnterior);
+  if (status === 'enviada' && r.vazios > 0 && !r.zerado){
+    faixa($('faixaGeral'), 'alerta', 'Há ' + r.vazios + ' dia(s) útil(eis) sem motivo. Complete a declaração antes de enviar (use o botão “Marcar dias úteis como Utilizado” para agilizar).');
+    return;
+  }
+  const corpo = {
+    militar_id: mil.id, competencia: comp, dias: diasAtual,
+    status: status || (declAtual ? declAtual.status : 'rascunho'),
+    zera_mes_seguinte: r.zeraProx,
+    atualizada_em: new Date().toISOString()
+  };
+  if (status === 'enviada') corpo.enviada_em = new Date().toISOString();
+  try {
+    const res = await sbUpsert('at_declaracoes', corpo, 'militar_id,competencia');
+    declAtual = res[0];
+    pintarStatus();
+    faixa($('faixaGeral'), 'ok', status === 'enviada'
+      ? '✔ Declaração enviada. Agora gere o PDF, assine no GOV.BR e encaminhe para secde.afa@fab.mil.br.'
+      : '✔ Rascunho salvo e sincronizado.');
+    setTimeout(() => esconde($('faixaGeral')), 5000);
+  } catch (e) {
+    faixa($('faixaGeral'), 'erro', '⚠️ Não consegui gravar: ' + e.message);
+  }
+}
+$('btnSalvar').addEventListener('click', () => salvarDecl(null));
+$('btnEnviar').addEventListener('click', () => salvarDecl('enviada'));
+$('selMilitar').addEventListener('change', abrirDeclaracao);
+$('selComp').addEventListener('change', abrirDeclaracao);
+
+/* ══════════════ VISÃO DA SECRETARIA ══════════════ */
+async function carregarSecretaria(){
+  const comp = $('selCompSec').value; if (!comp) return;
+  $('corpoSec').innerHTML = '<tr><td colspan="7" style="color:var(--texto-3)">Carregando…</td></tr>';
+  try {
+    [secDecls, secDeclsPrev] = await Promise.all([
+      sbGet('at_declaracoes?select=*&competencia=eq.' + comp),
+      sbGet('at_declaracoes?select=militar_id,zera_mes_seguinte&competencia=eq.' + compAnterior(comp))
+    ]);
+  } catch (e) {
+    $('corpoSec').innerHTML = '<tr><td colspan="7" style="color:var(--rubi)">⚠️ ' + e.message + '</td></tr>';
+    return;
+  }
+  const prevFlag = Object.fromEntries(secDeclsPrev.map(d => [d.militar_id, d.zera_mes_seguinte]));
+  const ativos = militares.filter(m => m.ativo);
+  let enviadas = 0, conferidas = 0, pend = 0, total = 0;
+  const fase = faseDoCiclo();
+  const eCicloAtual = comp === compDoCiclo();
+
+  $('corpoSec').innerHTML = ativos.map(m => {
+    const d = secDecls.find(x => x.militar_id === m.id);
+    const r = calcularDecl(comp, (d && d.dias) || {}, m, !!prevFlag[m.id]);
+    let chip, acoes = '';
+    if (!d || d.status === 'rascunho'){
+      pend++;
+      const atrasada = eCicloAtual && fase > 1;
+      chip = d ? '<span class="chip ambar">Rascunho</span>'
+               : '<span class="chip ' + (atrasada ? 'rubi' : 'cinza') + '">' + (atrasada ? 'Não enviada ⚠' : 'Não iniciada') + '</span>';
+    } else if (d.status === 'enviada'){
+      enviadas++; chip = '<span class="chip azul">Enviada</span>';
+      acoes = '<button class="acao verde mini" data-conf="' + d.id + '">Conferir ✓</button>';
+    } else {
+      enviadas++; conferidas++; chip = '<span class="chip jade">Conferida</span>';
+      acoes = '<button class="acao fantasma mini" data-reab="' + d.id + '">Reabrir</button>';
+    }
+    if (d && d.status !== 'rascunho') total += r.final;
+    const regras = [
+      r.zerado ? '<span class="chip rubi">MÊS ZERADO</span>' : '',
+      r.zeraProx ? '<span class="chip" style="background:rgba(176,106,224,.16);color:#d9b3f2">ZERA PRÓX. MÊS</span>' : '',
+      (d && r.vazios > 0) ? '<span class="chip ambar">' + r.vazios + ' dia(s) vazio(s)</span>' : ''
+    ].filter(Boolean).join(' ') || '<span style="color:var(--texto-3)">—</span>';
+    return '<tr><td><b>' + m.grad + ' ' + m.nome + '</b><br><small style="color:var(--texto-3)">SARAM ' + m.saram + '</small></td>' +
+      '<td>' + chip + '</td>' +
+      '<td>' + (d ? r.diasDesc : '—') + '</td>' +
+      '<td>' + (d ? fmtBRL(r.desconto) : '—') + '</td>' +
+      '<td><b>' + (d ? fmtBRL(r.final) : '—') + '</b></td>' +
+      '<td>' + regras + '</td>' +
+      '<td style="text-align:right;white-space:nowrap">' +
+        '<button class="acao fantasma mini" data-abrir="' + m.id + '">Abrir</button> ' + acoes + '</td></tr>';
+  }).join('') || '<tr><td colspan="7" style="color:var(--texto-3)">Nenhum militar ativo — cadastre na aba Cadastro.</td></tr>';
+
+  $('kAtivos').textContent = ativos.length;
+  $('kEnviadas').textContent = enviadas;
+  $('kConf').textContent = conferidas;
+  $('kPend').textContent = pend;
+  $('kTotal').textContent = fmtBRL(total);
+
+  const alerta = $('alertaSec');
+  if (eCicloAtual){
+    if (fase === 1 && pend > 0) faixa(alerta, 'info', '📥 Fase de declaração (dias 01–05): ' + pend + ' militar(es) ainda não enviaram.');
+    else if (fase === 2 && enviadas - conferidas > 0) faixa(alerta, 'alerta', '🔎 Fase de conferência (dias 06–10): ' + (enviadas - conferidas) + ' declaração(ões) aguardando conferência.');
+    else if (fase === 3 && (pend > 0 || enviadas - conferidas > 0)) faixa(alerta, 'erro', '🚨 Prazo encerrado com pendências: ' + pend + ' não enviada(s) e ' + (enviadas - conferidas) + ' sem conferência.');
+    else faixa(alerta, 'ok', '✔ Ciclo em dia — nenhuma pendência nesta fase.');
+  } else esconde(alerta);
+
+  $('corpoSec').querySelectorAll('[data-conf]').forEach(b => b.addEventListener('click', async () => {
+    await sbPatch('at_declaracoes?id=eq.' + b.dataset.conf, { status:'conferida', conferida_em:new Date().toISOString() });
+    carregarSecretaria();
+  }));
+  $('corpoSec').querySelectorAll('[data-reab]').forEach(b => b.addEventListener('click', async () => {
+    await sbPatch('at_declaracoes?id=eq.' + b.dataset.reab, { status:'enviada', conferida_em:null });
+    carregarSecretaria();
+  }));
+  $('corpoSec').querySelectorAll('[data-abrir]').forEach(b => b.addEventListener('click', () => {
+    trocarAba('abaMil');
+    $('selMilitar').value = b.dataset.abrir;
+    $('selComp').value = $('selCompSec').value;
+    abrirDeclaracao();
+  }));
+}
+$('btnAtualizarSec').addEventListener('click', carregarSecretaria);
+$('selCompSec').addEventListener('change', carregarSecretaria);
+
+$('btnCsv').addEventListener('click', () => {
+  const comp = $('selCompSec').value; if (!comp) return;
+  const prevFlag = Object.fromEntries(secDeclsPrev.map(d => [d.militar_id, d.zera_mes_seguinte]));
+  const linhas = [['SARAM','GRAD','NOME','COMPETENCIA','DIAS_DESCONTADOS','VALOR_DIARIO','VALOR_DESCONTO','VALOR_A_PAGAR','STATUS'].join(';')];
+  militares.filter(m => m.ativo).forEach(m => {
+    const d = secDecls.find(x => x.militar_id === m.id);
+    const r = calcularDecl(comp, (d && d.dias) || {}, m, !!prevFlag[m.id]);
+    const num = v => v.toFixed(2).replace('.', ',');
+    linhas.push([m.saram, m.grad, m.nome, rotuloComp(comp),
+      r.zerado ? 'MES ZERADO' : r.diasDescNum, num(r.vDia), num(r.desconto), num(r.final),
+      d ? d.status.toUpperCase() : 'SEM DECLARACAO'].join(';'));
+  });
+  const blob = new Blob(['\uFEFF' + linhas.join('\r\n')], { type:'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'auxilio-transporte-' + comp + '.csv';
+  a.click(); URL.revokeObjectURL(a.href);
+});
+
+/* ══════════════ CADASTRO ══════════════ */
+function pintarCadastro(){
+  $('corpoCad').innerHTML = militares.map(m =>
+    '<tr data-id="' + m.id + '">' +
+    '<td><input class="curto" data-c="grad" value="' + m.grad + '" /></td>' +
+    '<td><input data-c="nome" value="' + m.nome + '" /></td>' +
+    '<td><input class="curto" data-c="saram" value="' + m.saram + '" /></td>' +
+    '<td><input class="curto" data-c="valor_mensal" type="number" step="0.01" value="' + m.valor_mensal + '" /></td>' +
+    '<td><input class="curto" data-c="valor_diario" type="number" step="0.01" value="' + m.valor_diario + '" /></td>' +
+    '<td><button class="acao mini ' + (m.ativo ? 'verde' : 'fantasma') + '" data-tog>' + (m.ativo ? 'Ativo' : 'Inativo') + '</button></td>' +
+    '<td><button class="acao vermelho mini" data-del>Remover</button></td></tr>'
+  ).join('') || '<tr><td colspan="7" style="color:var(--texto-3)">Nenhum militar cadastrado ainda.</td></tr>';
+
+  $('corpoCad').querySelectorAll('tr[data-id]').forEach(tr => {
+    const id = tr.dataset.id;
+    tr.querySelectorAll('input[data-c]').forEach(inp => inp.addEventListener('change', async () => {
+      const corpo = {}; corpo[inp.dataset.c] = inp.type === 'number' ? Number(inp.value || 0) : inp.value.trim();
+      try { await sbPatch('at_militares?id=eq.' + id, corpo); await carregarMilitares(); }
+      catch (e){ faixa($('faixaGeral'), 'erro', '⚠️ ' + e.message); }
+    }));
+    tr.querySelector('[data-tog]').addEventListener('click', async () => {
+      const m = militares.find(x => String(x.id) === id);
+      await sbPatch('at_militares?id=eq.' + id, { ativo: !m.ativo });
+      await carregarMilitares(); pintarCadastro();
+    });
+    tr.querySelector('[data-del]').addEventListener('click', async () => {
+      const m = militares.find(x => String(x.id) === id);
+      if (!confirm('Remover ' + m.grad + ' ' + m.nome + '? As declarações dele também serão apagadas.')) return;
+      await sbDel('at_militares?id=eq.' + id);
+      await carregarMilitares(); pintarCadastro();
+    });
+  });
+}
+$('btnAddMil').addEventListener('click', async () => {
+  const corpo = {
+    grad: $('nGrad').value.trim(), nome: $('nNome').value.trim().toUpperCase(),
+    saram: $('nSaram').value.trim(),
+    valor_mensal: Number($('nVig').value || 0), valor_diario: Number($('nDia').value || 0)
+  };
+  if (!corpo.nome || !corpo.saram){ faixa($('faixaGeral'), 'alerta', 'Preencha ao menos nome e SARAM.'); return; }
+  try {
+    await sbUpsert('at_militares', corpo, 'saram');
+    ['nGrad','nNome','nSaram','nVig','nDia'].forEach(i => $(i).value = '');
+    await carregarMilitares(); pintarCadastro();
+  } catch (e){ faixa($('faixaGeral'), 'erro', '⚠️ ' + e.message); }
+});
+
+/* ══════════════ PDF OFICIAL (impressão) ══════════════ */
+$('btnPdf').addEventListener('click', () => {
+  const mil = milSelecionado(); const comp = $('selComp').value;
+  if (!mil || !comp){ faixa($('faixaGeral'), 'alerta', 'Selecione o militar e a competência para gerar o PDF.'); return; }
+  const r = calcularDecl(comp, diasAtual, mil, zeradoAnterior);
+  const linhas = diasDoMes(comp).map(g => {
+    const reg = diasAtual[g.d]; const mot = reg && M_IDX[reg.motivo];
+    let mS='', mN='', tS='', tN='', motTxt='', obs = (reg && reg.obs) || '';
+    if (!g.util){ mS = mN = tS = tN = 'X'; motTxt = 'X'; }
+    else if (mot){
+      mS = mot.marca.m === 'S' ? 'X' : ''; mN = mot.marca.m === 'N' ? 'X' : '';
+      tS = mot.marca.t === 'S' ? 'X' : ''; tN = mot.marca.t === 'N' ? 'X' : '';
+      motTxt = mot.rotulo;
+    }
+    return '<tr><td>' + String(g.d).padStart(2,'0') + '</td><td>' + SEMANA[g.dow] + '</td>' +
+      '<td>' + mS + '</td><td>' + mN + '</td><td>' + tS + '</td><td>' + tN + '</td>' +
+      '<td style="text-align:left">' + motTxt + '</td><td style="text-align:left">' + obs + '</td></tr>';
+  }).join('');
+
+  $('areaImpressao').innerHTML =
+    '<div class="impTitulo">TABELA DE FREQUÊNCIA - AUX. TRANSPORTE – ' + rotuloComp(comp) + '</div>' +
+    '<table class="imp"><tr>' +
+      '<td colspan="6" style="text-align:left"><b>GRAD./NOME DO MILITAR:</b> ' + mil.grad + ' ' + mil.nome + '</td>' +
+      '<td><b>AUXÍLIO EM VIGÊNCIA</b><br>' + fmtBRL(r.vig) + '</td>' +
+      '<td><b>VALOR DIÁRIO</b><br>' + fmtBRL(r.vDia) + '</td></tr>' +
+    '<tr><td colspan="8" style="text-align:left"><b>SARAM:</b> ' + mil.saram + '</td></tr>' +
+    '<tr><th rowspan="2" colspan="2">Dia</th><th colspan="2">MANHÃ</th><th colspan="2">TARDE</th><th rowspan="2">Motivo</th><th rowspan="2">Observações</th></tr>' +
+    '<tr><th>SIM</th><th>NÃO</th><th>SIM</th><th>NÃO</th></tr>' +
+    linhas + '</table>' +
+    '<div class="impResumo"><b>Dias descontados:</b> ' + (r.zerado ? '— (mês sem pagamento)' : r.diasDescNum) +
+      ' &nbsp;·&nbsp; <b>Desconto:</b> ' + fmtBRL(r.desconto) +
+      ' &nbsp;·&nbsp; <b>Valor a receber:</b> ' + fmtBRL(r.final) + '</div>' +
+    '<div class="impRodape">ASSINATURA GOV.BR: ______________________________________________</div>';
+  window.print();
+});
+
+/* ══════════════ INICIALIZAÇÃO ══════════════ */
+(async function init(){
+  pintarCiclo();
+  const compPadrao = compDoCiclo();
+  $('selComp').value = compPadrao;
+  $('selCompSec').value = compPadrao;
+  if (!SB.key){
+    $('avisoConfig').style.display = 'block';
+    return;
+  }
+  try {
+    await carregarMilitares();
+  } catch (e) {
+    faixa($('faixaGeral'), 'erro', '⚠️ Não consegui conectar ao Supabase: ' + e.message + '. Verifique a chave e se o SQL do módulo já foi executado.');
+  }
+  // sincronização leve: painel da secretaria se atualiza a cada 25 s quando visível
+  setInterval(() => {
+    if (document.hidden) return;
+    if ($('telaSec').style.display !== 'none') carregarSecretaria();
+  }, 25000);
+})();
+</script>
+</body>
+</html>
