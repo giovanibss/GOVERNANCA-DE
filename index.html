@@ -1918,18 +1918,25 @@ async function carregarTransporte(){
   const fase = (d => d <= 5 ? 1 : d <= 10 ? 2 : 3)(new Date().getDate());
   pintarCicloAT(fase);
   const nota = document.getElementById('at-note');
-  if (!sbCli){ if (nota) nota.textContent = 'Auxílio transporte · configure o Supabase'; return; }
+
+  // leitura direta via REST, imune a cache (mesma base/chave do sbCli)
+  const atGet = async (caminho) => {
+    const r = await fetch(SUPABASE_URL + '/rest/v1/' + caminho + '&_ts=' + Date.now(), {
+      headers: { apikey: SUPABASE_ANON, Authorization: 'Bearer ' + SUPABASE_ANON },
+      cache: 'no-store'
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  };
 
   try{
     const compCiclo = atCompCiclo();
-    const [mil, dec] = await Promise.all([
-      sbCli.from('at_militares').select('id').eq('ativo', true),
-      sbCli.from('at_declaracoes').select('status,competencia')
+    const [mils, todas] = await Promise.all([
+      atGet('at_militares?select=id&ativo=eq.true'),
+      atGet('at_declaracoes?select=status,competencia')
     ]);
-    if (mil.error || dec.error) throw (mil.error || dec.error);
 
-    const total = (mil.data || []).length;
-    const todas = dec.data || [];
+    const total = mils.length;
 
     // prioriza a competência do ciclo; sem dados nela, usa a mais recente com declarações
     let comp = compCiclo;
@@ -1941,28 +1948,33 @@ async function carregarTransporte(){
 
     const env  = doMes.filter(d => d.status !== 'rascunho').length;
     const conf = doMes.filter(d => d.status === 'conferida').length;
-    const pend = fase === 1 ? (total - env) : (total - env) + (env - conf);
+    const semEnvio = Math.max(0, total - env);
+    const semConf  = Math.max(0, env - conf);
+    const pend = fase === 1 ? semEnvio : semEnvio + semConf;
 
     const defina = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
-    defina('at-env',  total ? env + '/' + total : env);
-    defina('at-conf', conf);
-    defina('at-pend', Math.max(0, pend));
+    defina('at-env',  total ? env + '/' + total : String(env));
+    defina('at-conf', String(conf));
+    defina('at-pend', String(pend));
 
     const pct = v => (total ? v / total * 100 : 0).toFixed(1) + '%';
     const bar = document.getElementById('at-bar');
     if (bar) bar.innerHTML =
       '<span style="width:' + pct(conf) + ';background:var(--jade)"></span>' +
-      '<span style="width:' + pct(Math.max(0, env - conf)) + ';background:var(--amber)"></span>';
+      '<span style="width:' + pct(semConf) + ';background:var(--amber)"></span>';
 
     const [aa, mm] = comp.split('-');
+    const partes = [];
+    if (semEnvio) partes.push(semEnvio + ' sem envio');
+    if (fase > 1 && semConf) partes.push(semConf + ' sem conferência');
     if (nota) nota.textContent = total === 0
       ? 'Nenhum militar cadastrado · abra o módulo para começar'
-      : pend <= 0
+      : pend === 0
         ? 'Competência ' + mm + '/' + aa + ' em dia — nenhuma pendência'
-        : (fase === 3 && comp === compCiclo ? '🚨 ' : '') + Math.max(0, pend) + ' pendência(s) na competência ' + mm + '/' + aa;
+        : (fase === 3 && comp === compCiclo ? '🚨 ' : '') + partes.join(' · ') + ' — competência ' + mm + '/' + aa;
   }catch(e){
     console.warn('Auxílio transporte indisponível:', e.message);
-    if (nota) nota.textContent = /at_militares|at_declaracoes|relation|does not exist/i.test(e.message || '')
+    if (nota) nota.textContent = /at_militares|at_declaracoes|relation|does not exist|404/i.test(e.message || '')
       ? 'Rode o SQL do módulo no Supabase para ativar'
       : 'Auxílio transporte indisponível · abra o módulo';
   }
