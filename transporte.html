@@ -412,9 +412,9 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
 
 <div id="areaImpressao"></div>
 
-<footer>Governança DE · Academia da Força Aérea — módulo Auxílio Transporte · <b>v3</b> (PDF 1 página + modal + anti-cache)</footer>
+<footer>Governança DE · Academia da Força Aérea — módulo Auxílio Transporte · <b>v3.1</b> (correção da leitura 400)</footer>
 <script>
-console.log('%cAuxílio Transporte · v3 (PDF 1 página + modal + anti-cache)', 'color:#d4a84b;font-weight:bold');
+console.log('%cAuxílio Transporte · v3.1 (correção da leitura 400)', 'color:#d4a84b;font-weight:bold');
 /* ══════════════════════════════════════════════════════════════
    CONFIGURAÇÃO
    Mesma base Supabase dos outros módulos do site.
@@ -537,8 +537,9 @@ function sbCab(extra){
   return Object.assign({ apikey: SB.key, Authorization: 'Bearer ' + SB.key, 'Content-Type': 'application/json' }, extra || {});
 }
 async function sbGet(caminho){
-  const anti = (caminho.includes('?') ? '&' : '?') + '_ts=' + Date.now();  // nunca aceitar resposta em cache
-  const r = await fetch(SB.url + '/rest/v1/' + caminho + anti, { headers: sbCab(), cache: 'no-store' });
+  // cache:'no-store' obriga o navegador a buscar sempre no servidor (sem tocar na URL,
+  // pois o PostgREST interpreta parâmetros extras como filtros de coluna)
+  const r = await fetch(SB.url + '/rest/v1/' + caminho, { headers: sbCab(), cache: 'no-store' });
   if (!r.ok) throw new Error('Leitura falhou (' + r.status + ')');
   return r.json();
 }
