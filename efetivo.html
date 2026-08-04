@@ -250,18 +250,276 @@
     footer { text-align:center; padding:1.5rem; font-size:.72rem; color:var(--gray-500); display:flex; align-items:center; justify-content:center; gap:.5rem; position:relative; z-index:5; }
 
     @media(max-width:600px){
-      header { padding: 0 .75rem; height: 62px; }
+      header { padding: 0 .75rem; height: auto; min-height: 62px; flex-wrap: wrap; gap: .5rem; padding-top: .4rem; padding-bottom: .4rem; }
       .logo-text { font-size: .9rem; }
       .logo-sub { font-size: .6rem; }
       .crest { width: 42px; height: 42px; }
       .last-update { display:none; }
-      .nav-btn span, .refresh-btn span { display:none; }
-      .nav-btn, .refresh-btn, .save-btn { padding:.35rem .55rem; font-size:.65rem; }
+      .nav-btn span, .refresh-btn span, .header-nav-btn span { display:none; }
+      .nav-btn, .refresh-btn, .save-btn, .header-nav-btn { padding:.35rem .55rem; font-size:.65rem; }
       main { padding:.85rem; }
       .summary { padding:.75rem; gap:.5rem; }
       .summary-card { min-width:104px; padding:.45rem .75rem; }
       .summary-count { font-size:1.2rem; }
     }
+
+    /* ── ABAS NO HEADER / SUBHEADER ── */
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: .35rem;
+      background: rgba(10,22,40,.35);
+      padding: .25rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,.12);
+      margin-right: .25rem;
+    }
+    .header-nav-btn {
+      display: flex;
+      align-items: center;
+      gap: .45rem;
+      font-family: var(--font-body);
+      font-size: .78rem;
+      font-weight: 600;
+      color: var(--navy-300);
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      padding: .4rem .85rem;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      transition: all .2s;
+    }
+    .header-nav-btn:hover {
+      color: white;
+      background: rgba(255,255,255,.1);
+    }
+    .header-nav-btn.active {
+      color: var(--navy-900);
+      background: linear-gradient(135deg, var(--gold-400), var(--gold-500));
+      border-color: var(--gold-300);
+      box-shadow: 0 2px 8px rgba(212,168,75,.35);
+    }
+
+    /* ── PORTÃO DE PIN (ACESSO RESTRITO) ── */
+    .pin-gate-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: calc(100vh - 160px);
+      padding: 2rem;
+      position: relative;
+      z-index: 10;
+    }
+    .pin-gate-card {
+      background: white;
+      border: 1px solid var(--navy-100);
+      border-top: 4px solid var(--gold-500);
+      border-radius: 12px;
+      padding: 2.5rem 2rem;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 40px rgba(10,22,40,.12);
+    }
+    .pin-gate-icon {
+      width: 54px;
+      height: 54px;
+      margin: 0 auto 1.2rem;
+      background: var(--navy-50);
+      border: 2px solid var(--gold-500);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+    }
+    .pin-gate-title {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--navy-900);
+      text-transform: uppercase;
+      letter-spacing: .03em;
+      margin-bottom: .5rem;
+    }
+    .pin-gate-desc {
+      font-size: .82rem;
+      color: var(--gray-500);
+      line-height: 1.45;
+      margin-bottom: 1.5rem;
+    }
+    .pin-gate-form {
+      display: flex;
+      gap: .5rem;
+      justify-content: center;
+    }
+    .pin-gate-input {
+      width: 150px;
+      font-family: var(--font-mono);
+      font-size: 1.2rem;
+      letter-spacing: .3em;
+      text-align: center;
+      padding: .55rem .7rem;
+      border: 2px solid var(--navy-200);
+      border-radius: 6px;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .pin-gate-input:focus { border-color: var(--navy-600); }
+    .pin-gate-submit {
+      font-family: var(--font-body);
+      font-size: .8rem;
+      font-weight: 600;
+      padding: .55rem 1.3rem;
+      background: var(--gold-500);
+      color: var(--navy-900);
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: .03em;
+      transition: background .2s;
+    }
+    .pin-gate-submit:hover { background: var(--gold-400); }
+    .pin-gate-err {
+      margin-top: .9rem;
+      padding: .55rem .8rem;
+      background: #fef2f2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+      border-radius: 6px;
+      font-size: .78rem;
+      font-weight: 500;
+    }
+
+    /* ── PAINEL DE CONTROLE ── */
+    .controle-container {
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 1.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      position: relative;
+      z-index: 5;
+    }
+    .controle-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      background: white;
+      border: 1px solid var(--navy-100);
+      border-left: 4px solid var(--gold-500);
+      border-radius: 8px;
+      padding: 1rem 1.4rem;
+    }
+    .controle-header-info h2 {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--navy-900);
+    }
+    .controle-header-info p {
+      font-size: .78rem;
+      color: var(--gray-500);
+      margin-top: 2px;
+    }
+    .controle-grid {
+      display: grid;
+      grid-template-columns: 2.2fr 1fr;
+      gap: 1.5rem;
+    }
+    @media(max-width: 960px){ .controle-grid { grid-template-columns: 1fr; } }
+    .controle-card {
+      background: white;
+      border: 1px solid var(--navy-100);
+      border-radius: 10px;
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 2px 8px rgba(10, 22, 40, 0.03);
+    }
+    .controle-card-title {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--navy-900);
+      margin-bottom: 1rem;
+      padding-bottom: .6rem;
+      border-bottom: 1px solid var(--navy-100);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .controle-table-wrap {
+      overflow-x: auto;
+      max-height: 480px;
+      overflow-y: auto;
+    }
+    .controle-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .8rem;
+    }
+    .controle-table th {
+      position: sticky;
+      top: 0;
+      background: var(--navy-50);
+      color: var(--navy-700);
+      font-family: var(--font-display);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      font-size: .68rem;
+      padding: .6rem .8rem;
+      text-align: left;
+      border-bottom: 2px solid var(--navy-100);
+      z-index: 2;
+    }
+    .controle-table td {
+      padding: .6rem .8rem;
+      border-bottom: 1px solid var(--navy-100);
+      color: var(--navy-900);
+      vertical-align: middle;
+    }
+    .controle-table tr:hover td { background: var(--navy-50); }
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: .3rem;
+      padding: .2rem .5rem;
+      border-radius: 4px;
+      font-size: .68rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .badge-status.present { background: var(--green-50); color: var(--green-500); border: 1px solid #bbf7d0; }
+    .badge-status.absent  { background: var(--red-50); color: var(--red-500); border: 1px solid #fecaca; }
+    .badge-status.pool    { background: var(--navy-50); color: var(--navy-600); border: 1px solid var(--navy-100); }
+    .badge-status.excluded { background: var(--gray-100); color: var(--gray-500); border: 1px solid var(--gray-300); }
+    .btn-ctl {
+      font-size: .72rem;
+      padding: .35rem .7rem;
+      border-radius: 5px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--navy-200);
+      background: white;
+      color: var(--navy-800);
+      transition: all .15s;
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+    }
+    .btn-ctl:hover { background: var(--navy-50); border-color: var(--navy-400); }
+    .btn-ctl.danger { color: var(--red-500); border-color: #fecaca; }
+    .btn-ctl.danger:hover { background: var(--red-50); }
+    .btn-ctl.gold { background: var(--gold-500); color: var(--navy-900); border-color: var(--gold-500); }
+    .btn-ctl.gold:hover { background: var(--gold-400); }
   </style>
 </head>
 <body>
@@ -275,6 +533,16 @@
     </div>
   </div>
   <div class="header-right">
+    <nav class="header-nav" role="tablist">
+      <button class="header-nav-btn active" id="tab-chamada-btn" onclick="trocarAba('chamada')" role="tab" aria-selected="true">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        <span>Chamada</span>
+      </button>
+      <button class="header-nav-btn" id="tab-controle-btn" onclick="trocarAba('controle')" role="tab" aria-selected="false">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>Controle</span>
+      </button>
+    </nav>
     <a class="nav-btn" href="index.html">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
       <span>Página Inicial</span>
@@ -287,6 +555,10 @@
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
       <span>Gravar chamada</span>
     </button>
+    <button class="nav-btn" id="lock-btn" onclick="bloquearSessao()" title="Bloquear acesso com PIN" style="display:none;">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <span>Bloquear</span>
+    </button>
     <span class="last-update" id="last-update">—</span>
     <span class="live-dot" title="Sincronização entre aparelhos"><span class="pulse" id="sync-dot" style="background:var(--green-400)"></span> Sinc.</span>
   </div>
@@ -294,55 +566,150 @@
 
 <div id="status-banner"><span id="status-msg"></span></div>
 
-<div class="summary" id="summary-bar">
-  <div class="summary-card gray"><div><div class="summary-count" id="cnt-total">—</div><div class="summary-label">Efetivo Total</div></div></div>
-  <div class="summary-card green"><div><div class="summary-count" id="cnt-present">0</div><div class="summary-label">Presentes</div></div></div>
-  <div class="summary-card red"><div><div class="summary-count" id="cnt-absent">0</div><div class="summary-label">Faltas</div></div></div>
-  <div class="summary-card gray"><div><div class="summary-count" id="cnt-pending">—</div><div class="summary-label">Pendentes</div></div></div>
-  <div class="summary-card gold"><div><div class="summary-count" id="cnt-pct">—</div><div class="summary-label">Presença</div></div></div>
+<!-- PORTÃO DE PIN DE ACESSO RESTRITO -->
+<div id="pinGate" class="pin-gate-wrap" style="display:none;">
+  <div class="pin-gate-card">
+    <div class="pin-gate-icon">🔒</div>
+    <div class="pin-gate-title">Acesso Restrito ao Efetivo</div>
+    <div class="pin-gate-desc">Informe o PIN cadastrado para acessar a chamada e o painel de controle da Divisão de Ensino.</div>
+    <div class="pin-gate-form">
+      <input type="password" id="pinInput" class="pin-gate-input" placeholder="••••" maxlength="12" inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter') verificarPinEfetivo()" />
+      <button class="pin-gate-submit" onclick="verificarPinEfetivo()">Entrar</button>
+    </div>
+    <div id="pinErrorMsg" class="pin-gate-err" style="display:none;"></div>
+  </div>
 </div>
 
-<main>
-  <div class="toolbar">
-    <div class="date-pill" id="date-pill">—</div>
-    <div class="search-box">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
-      <input type="text" id="search" placeholder="Buscar militar…" oninput="renderBoard()" />
+<!-- CONTEÚDO DA PÁGINA (LIBERADO APÓS PIN) -->
+<div id="efetivoContent" style="display:none;">
+
+  <!-- ══ ABA 1: CHAMADA ══ -->
+  <div id="sec-chamada">
+    <div class="summary" id="summary-bar">
+      <div class="summary-card gray"><div><div class="summary-count" id="cnt-total">—</div><div class="summary-label">Efetivo Total</div></div></div>
+      <div class="summary-card green"><div><div class="summary-count" id="cnt-present">0</div><div class="summary-label">Presentes</div></div></div>
+      <div class="summary-card red"><div><div class="summary-count" id="cnt-absent">0</div><div class="summary-label">Faltas</div></div></div>
+      <div class="summary-card gray"><div><div class="summary-count" id="cnt-pending">—</div><div class="summary-label">Pendentes</div></div></div>
+      <div class="summary-card gold"><div><div class="summary-count" id="cnt-pct">—</div><div class="summary-label">Presença</div></div></div>
+    </div>
+
+    <main>
+      <div class="toolbar">
+        <div class="date-pill" id="date-pill">—</div>
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input type="text" id="search" placeholder="Buscar militar…" oninput="renderBoard()" />
+        </div>
+      </div>
+
+      <div class="board">
+        <!-- PRESENTES -->
+        <div class="column present" id="col-present" data-status="present">
+          <div class="col-head">
+            <span class="col-badge present">✓</span>
+            <span class="col-title">Presentes</span>
+            <span class="col-count" id="head-present">0</span>
+          </div>
+          <div class="col-body" id="body-present"></div>
+        </div>
+
+        <!-- POOL / A CHAMAR -->
+        <div class="column pool" id="col-pool" data-status="pool">
+          <div class="col-head">
+            <img src="assets/cocar-fab.png" class="cocar-icon lg" alt="" />
+            <span class="col-title">Em Forma — A Chamar</span>
+            <span class="col-count" id="head-pool">0</span>
+          </div>
+          <div class="col-body" id="body-pool"></div>
+        </div>
+
+        <!-- FALTAS -->
+        <div class="column absent" id="col-absent" data-status="absent">
+          <div class="col-head">
+            <span class="col-badge absent">✕</span>
+            <span class="col-title">Faltas</span>
+            <span class="col-count" id="head-absent">0</span>
+          </div>
+          <div class="col-body" id="body-absent"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ══ ABA 2: CONTROLE ══ -->
+  <div id="sec-controle" style="display:none;">
+    <div class="controle-container">
+      <div class="controle-header-bar">
+        <div class="controle-header-info">
+          <h2>Painel de Controle do Efetivo</h2>
+          <p>Visão geral de militares, gestão de exceções e relatório oficial de presença.</p>
+        </div>
+        <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+          <button class="btn-ctl gold" onclick="copiarResumoWhatsApp()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+            Copiar Resumo Oficial
+          </button>
+          <button class="btn-ctl" onclick="alterarPinModal()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Alterar PIN
+          </button>
+        </div>
+      </div>
+
+      <div class="controle-grid">
+        <!-- Tabela Completa de Militares -->
+        <div class="controle-card">
+          <div class="controle-card-title">
+            <span>Militares Cadastrados e Situação</span>
+            <input type="text" id="controle-search" placeholder="Filtrar militar…" oninput="renderControleTab()" style="font-size:.78rem; padding:.35rem .6rem; border:1px solid var(--navy-200); border-radius:4px; outline:none; font-family:var(--font-body);" />
+          </div>
+          <div class="controle-table-wrap">
+            <table class="controle-table">
+              <thead>
+                <tr>
+                  <th>Posto/Grad.</th>
+                  <th>Nome</th>
+                  <th>Especialidade</th>
+                  <th>Situação Hoje</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody id="controle-table-body">
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Coluna Lateral de Exclusões e Estatísticas -->
+        <div style="display:flex; flex-direction:column; gap:1.5rem;">
+          <!-- Excluídos da Chamada -->
+          <div class="controle-card">
+            <div class="controle-card-title">
+              <span>Nomes Excluídos da Chamada</span>
+            </div>
+            <p style="font-size:.75rem; color:var(--gray-500); margin-bottom:.8rem; line-height:1.4;">
+              Militares com esses nomes/sobrenomes são ignorados na lista de chamada diária.
+            </p>
+            <div style="display:flex; gap:.4rem; margin-bottom:.8rem;">
+              <input type="text" id="add-excluir-input" placeholder="Novo nome a excluir…" onkeydown="if(event.key==='Enter') adicionarExcluidoCustom()" style="flex:1; min-width:0; font-family:var(--font-body); font-size:.78rem; padding:.35rem .6rem; border:1px solid var(--navy-200); border-radius:4px; outline:none;" />
+              <button class="btn-ctl primary" onclick="adicionarExcluidoCustom()">Adicionar</button>
+            </div>
+            <div id="excluidos-list-badges" style="display:flex; flex-wrap:wrap; gap:.4rem;">
+            </div>
+          </div>
+
+          <!-- Resumo de Motivos -->
+          <div class="controle-card">
+            <div class="controle-card-title">Distribuição dos Motivos de Falta</div>
+            <div id="motivos-breakdown" style="display:flex; flex-direction:column; gap:.5rem; font-size:.8rem;">
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="board">
-    <!-- PRESENTES -->
-    <div class="column present" id="col-present" data-status="present">
-      <div class="col-head">
-        <span class="col-badge present">✓</span>
-        <span class="col-title">Presentes</span>
-        <span class="col-count" id="head-present">0</span>
-      </div>
-      <div class="col-body" id="body-present"></div>
-    </div>
-
-    <!-- POOL / A CHAMAR -->
-    <div class="column pool" id="col-pool" data-status="pool">
-      <div class="col-head">
-        <img src="assets/cocar-fab.png" class="cocar-icon lg" alt="" />
-        <span class="col-title">Em Forma — A Chamar</span>
-        <span class="col-count" id="head-pool">0</span>
-      </div>
-      <div class="col-body" id="body-pool"></div>
-    </div>
-
-    <!-- FALTAS -->
-    <div class="column absent" id="col-absent" data-status="absent">
-      <div class="col-head">
-        <span class="col-badge absent">✕</span>
-        <span class="col-title">Faltas</span>
-        <span class="col-count" id="head-absent">0</span>
-      </div>
-      <div class="col-body" id="body-absent"></div>
-    </div>
-  </div>
-</main>
+</div>
 
 <footer>
   <img src="assets/cocar-fab.png" class="cocar-icon" alt="" />
@@ -355,14 +722,14 @@
    CONFIG
    ══════════════════════════════════════════════════════════════ */
 
-// Planilha de EFETIVO (somente leitura) — aba "efetivo", linhas 5..75, colunas C..E
+// Planilha de EFETIVO (somente leitura) — aba "efetivo", linhas 5..150, colunas C..E
 // C = Posto/Graduação | D = Especialidade | E = Nome
 const EFETIVO_SHEET_ID = '1UOMh4y-wHL8kHcB9TUUcEmkeF7z6KYAs4vipsoOFgfA';
 const EFETIVO_TAB      = 'efetivo';
 const ROW_START = 5;   // primeira linha de dados
-const ROW_END   = 75;  // última linha de dados
+const ROW_END   = 150; // última linha de dados (ampliado para englobar todo o efetivo)
 
-// gviz com range explícito C5:E75 (col C=índice 0 no resultado, D=1, E=2)
+// gviz com range explícito C5:E150 (col C=índice 0 no resultado, D=1, E=2)
 const EFETIVO_URL = () =>
   `https://docs.google.com/spreadsheets/d/${EFETIVO_SHEET_ID}/gviz/tq` +
   `?tqx=out:json&sheet=${encodeURIComponent(EFETIVO_TAB)}` +
@@ -393,8 +760,7 @@ function norm(s) {
 }
 const EXCLUIR_NORM = EXCLUIR.map(norm);
 function ehExcluido(nome) {
-  const tokens = norm(nome).split(' ');
-  return EXCLUIR_NORM.some(ex => tokens.includes(ex));
+  return ehExcluidoTotal(nome);
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -1014,7 +1380,285 @@ async function saveChamada() {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   HELPERS
+   SUPABASE REST & PIN GATE
+   ══════════════════════════════════════════════════════════════ */
+const SB = {
+  url: 'https://sovrgsbdhdpxsaomspsp.supabase.co',
+  key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg'
+};
+
+function sbCab(extra){
+  return Object.assign({ apikey: SB.key, Authorization: 'Bearer ' + SB.key, 'Content-Type': 'application/json' }, extra || {});
+}
+async function sbGet(caminho){
+  const r = await fetch(SB.url + '/rest/v1/' + caminho, { headers: sbCab(), cache: 'no-store' });
+  if (!r.ok) throw new Error('Leitura falhou (' + r.status + ')');
+  return r.json();
+}
+async function sbPatch(caminho, corpo){
+  const r = await fetch(SB.url + '/rest/v1/' + caminho, {
+    method: 'PATCH', headers: sbCab({ Prefer: 'return=representation' }), body: JSON.stringify(corpo)
+  });
+  if (!r.ok) throw new Error('Gravação falhou (' + r.status + ')');
+  return r.json();
+}
+
+async function lerPinServidor(){
+  try {
+    const r = await sbGet('at_config?select=pin&id=eq.default');
+    if (r && r[0] && r[0].pin) return String(r[0].pin).trim();
+  } catch(e){}
+  return localStorage.getItem('efetivo_pin') || '1234';
+}
+
+function checarAutenticacaoPIN() {
+  const pinOk = sessionStorage.getItem('efetivo_pin_ok') === '1';
+  const gate = document.getElementById('pinGate');
+  const content = document.getElementById('efetivoContent');
+  const lockBtn = document.getElementById('lock-btn');
+  if (pinOk) {
+    if (gate) gate.style.display = 'none';
+    if (content) content.style.display = 'block';
+    if (lockBtn) lockBtn.style.display = 'inline-flex';
+  } else {
+    if (gate) gate.style.display = 'flex';
+    if (content) content.style.display = 'none';
+    if (lockBtn) lockBtn.style.display = 'none';
+    const input = document.getElementById('pinInput');
+    if (input) { input.value = ''; input.focus(); }
+  }
+}
+
+async function verificarPinEfetivo() {
+  const input = document.getElementById('pinInput');
+  const errDiv = document.getElementById('pinErrorMsg');
+  const val = (input?.value || '').trim();
+  if (errDiv) errDiv.style.display = 'none';
+  if (!val) return;
+
+  try {
+    const pinServidor = await lerPinServidor();
+    if (val === pinServidor) {
+      sessionStorage.setItem('efetivo_pin_ok', '1');
+      checarAutenticacaoPIN();
+    } else {
+      if (errDiv) {
+        errDiv.textContent = 'PIN incorreto. Tente novamente.';
+        errDiv.style.display = 'block';
+      }
+    }
+  } catch(e) {
+    if (errDiv) {
+      errDiv.textContent = 'Erro ao verificar PIN: ' + e.message;
+      errDiv.style.display = 'block';
+    }
+  }
+}
+
+function bloquearSessao() {
+  sessionStorage.removeItem('efetivo_pin_ok');
+  checarAutenticacaoPIN();
+}
+
+async function alterarPinModal() {
+  const novo = prompt('Digite o novo PIN de acesso (mínimo 4 caracteres):');
+  if (novo === null) return;
+  const pinLimpo = novo.trim();
+  if (pinLimpo.length < 4) {
+    alert('O PIN deve ter no mínimo 4 caracteres.');
+    return;
+  }
+  try {
+    await sbPatch('at_config?id=eq.default', { pin: pinLimpo });
+    localStorage.setItem('efetivo_pin', pinLimpo);
+    alert('PIN alterado com sucesso!');
+  } catch(e) {
+    localStorage.setItem('efetivo_pin', pinLimpo);
+    alert('PIN salvo localmente. (Nota: ' + e.message + ')');
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GESTÃO DE ABAS & PAINEL DE CONTROLE
+   ══════════════════════════════════════════════════════════════ */
+function trocarAba(aba) {
+  const secChamada = document.getElementById('sec-chamada');
+  const secControle = document.getElementById('sec-controle');
+  const btnChamada = document.getElementById('tab-chamada-btn');
+  const btnControle = document.getElementById('tab-controle-btn');
+
+  if (aba === 'chamada') {
+    if (secChamada) secChamada.style.display = 'block';
+    if (secControle) secControle.style.display = 'none';
+    btnChamada.classList.add('active');
+    btnChamada.setAttribute('aria-selected', 'true');
+    btnControle.classList.remove('active');
+    btnControle.setAttribute('aria-selected', 'false');
+  } else if (aba === 'controle') {
+    if (secChamada) secChamada.style.display = 'none';
+    if (secControle) secControle.style.display = 'block';
+    btnChamada.classList.remove('active');
+    btnChamada.setAttribute('aria-selected', 'false');
+    btnControle.classList.add('active');
+    btnControle.setAttribute('aria-selected', 'true');
+    renderControleTab();
+  }
+}
+
+function carregarExcluidosCustom() {
+  try {
+    const raw = localStorage.getItem('efetivo_custom_excluir');
+    return raw ? JSON.parse(raw) : [];
+  } catch(e) { return []; }
+}
+function salvarExcluidosCustom(lista) {
+  localStorage.setItem('efetivo_custom_excluir', JSON.stringify(lista));
+}
+
+let customExcluidosList = carregarExcluidosCustom();
+
+function getTodasExclusoesNorm() {
+  const base = EXCLUIR.map(norm);
+  const custom = customExcluidosList.map(norm);
+  return [...base, ...custom];
+}
+
+function ehExcluidoTotal(nome) {
+  const tokens = norm(nome).split(' ');
+  const excl = getTodasExclusoesNorm();
+  return excl.some(ex => tokens.includes(ex));
+}
+
+function adicionarExcluidoCustom() {
+  const input = document.getElementById('add-excluir-input');
+  if (!input) return;
+  const val = (input.value || '').trim();
+  if (!val) return;
+  if (!customExcluidosList.includes(val)) {
+    customExcluidosList.push(val);
+    salvarExcluidosCustom(customExcluidosList);
+    input.value = '';
+    loadEfetivo();
+    renderControleTab();
+  }
+}
+
+function removerExcluidoCustom(nome) {
+  customExcluidosList = customExcluidosList.filter(n => n !== nome);
+  salvarExcluidosCustom(customExcluidosList);
+  loadEfetivo();
+  renderControleTab();
+}
+
+function renderControleTab() {
+  const q = (document.getElementById('controle-search')?.value || '').toLowerCase().trim();
+  const tbody = document.getElementById('controle-table-body');
+  if (!tbody) return;
+
+  const militaresFiltrados = efetivo.filter(m => 
+    !q || m.name.toLowerCase().includes(q) || (m.rank||'').toLowerCase().includes(q) || (m.spec||'').toLowerCase().includes(q)
+  );
+
+  let htmlRows = '';
+  militaresFiltrados.forEach(m => {
+    let sitBadge = '';
+    if (m.status === 'present') sitBadge = '<span class="badge-status present">✓ Presente</span>';
+    else if (m.status === 'absent') {
+      const motive = (m.tags && m.tags.length) ? m.tags.join(', ') : 'Falta';
+      sitBadge = `<span class="badge-status absent">✕ ${motive}</span>`;
+    } else {
+      sitBadge = '<span class="badge-status pool">Em Forma</span>';
+    }
+
+    htmlRows += `
+      <tr>
+        <td><strong>${escapeHtml_(m.rank)}</strong></td>
+        <td><strong>${escapeHtml_(m.name)}</strong></td>
+        <td>${escapeHtml_(m.spec || '—')}</td>
+        <td>${sitBadge}</td>
+        <td>
+          <button class="btn-ctl ${m.status === 'present' ? '' : 'gold'}" onclick="setStatus('${m.id}', '${m.status === 'present' ? 'pool' : 'present'}'); renderControleTab();">
+            ${m.status === 'present' ? 'Marcar Ausente' : 'Marcar Presente'}
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+
+  tbody.innerHTML = htmlRows || '<tr><td colspan="5" style="text-align:center; color:var(--gray-400); padding:1.5rem;">Nenhum militar encontrado.</td></tr>';
+
+  // Badges da lista de excluídos
+  const badgesDiv = document.getElementById('excluidos-list-badges');
+  if (badgesDiv) {
+    const baseBadges = EXCLUIR.map(n => `<span class="tag" style="background:var(--navy-50); color:var(--navy-700); border-color:var(--navy-200);">${escapeHtml_(n)} (padrão)</span>`).join('');
+    const customBadges = customExcluidosList.map(n => `
+      <span class="tag" style="background:#fee2e2; color:#991b1b; border-color:#fecaca;">
+        ${escapeHtml_(n)}
+        <button class="tag-x" onclick="removerExcluidoCustom('${escapeHtml_(n)}')" title="Remover exclusão">×</button>
+      </span>
+    `).join('');
+    badgesDiv.innerHTML = baseBadges + customBadges;
+  }
+
+  // Resumo por Motivo
+  const motivosDiv = document.getElementById('motivos-breakdown');
+  if (motivosDiv) {
+    const faltas = efetivo.filter(m => m.status === 'absent');
+    const contagemTags = {};
+    faltas.forEach(m => {
+      const tags = (m.tags && m.tags.length) ? m.tags : [ETIQUETA_PADRAO];
+      tags.forEach(t => {
+        contagemTags[t] = (contagemTags[t] || 0) + 1;
+      });
+    });
+
+    let motivosHtml = '';
+    Object.keys(contagemTags).forEach(tag => {
+      motivosHtml += `
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:.45rem .7rem; background:var(--navy-50); border-radius:6px; border:1px solid var(--navy-100);">
+          <span style="font-weight:600; color:var(--navy-900);">${escapeHtml_(tag)}</span>
+          <span style="font-family:var(--font-mono); font-weight:700; color:var(--red-500);">${contagemTags[tag]}</span>
+        </div>
+      `;
+    });
+    if (!motivosHtml) motivosHtml = '<div style="color:var(--gray-400); text-align:center; padding:.8rem;">Nenhuma falta registrada hoje.</div>';
+    motivosDiv.innerHTML = motivosHtml;
+  }
+}
+
+function copiarResumoWhatsApp() {
+  const hoje = new Date().toLocaleDateString('pt-BR');
+  const presentes = efetivo.filter(m => m.status === 'present');
+  const faltas = efetivo.filter(m => m.status === 'absent');
+  const pendentes = efetivo.filter(m => m.status === 'pool');
+
+  let txt = `*PARTE DIÁRIA DE EFETIVO — DE*\n`;
+  txt += `*Data:* ${hoje}\n`;
+  txt += `*Efetivo Total:* ${efetivo.length}\n`;
+  txt += `*Presentes:* ${presentes.length}\n`;
+  txt += `*Faltas:* ${faltas.length}\n`;
+  txt += `*Pendentes:* ${pendentes.length}\n\n`;
+
+  if (faltas.length > 0) {
+    txt += `*RELAÇÃO DE FALTAS / MOTIVOS:*\n`;
+    faltas.forEach(m => {
+      const mot = (m.tags && m.tags.length) ? m.tags.join(', ') : 'SEM MOTIVO';
+      txt += `• ${m.rank} ${m.name} - ${mot}\n`;
+    });
+  } else {
+    txt += `*Sem faltas registradas.*\n`;
+  }
+
+  navigator.clipboard.writeText(txt).then(() => {
+    setBanner('success', '✓ Resumo oficial copiado para a área de transferência!');
+    setTimeout(() => setBanner(null), 4000);
+  }).catch(() => {
+    alert('Copie o texto abaixo:\n\n' + txt);
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   HELPERS & INIT
    ══════════════════════════════════════════════════════════════ */
 function setBanner(type, msg='') {
   const el = document.getElementById('status-banner');
@@ -1031,6 +1675,7 @@ function updateClock() {
 
 /* INIT */
 updateClock();
+checarAutenticacaoPIN();
 loadEfetivo();
 setInterval(updateClock, 30000);
 

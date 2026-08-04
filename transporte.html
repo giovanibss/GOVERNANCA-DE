@@ -362,6 +362,7 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
         </div>
         <button class="acao fantasma" id="btnCsv">Exportar CSV</button>
         <button class="acao fantasma" id="btnDocProcesso">📁 Documentos do Processo</button>
+        <button class="acao fantasma" id="btnSyncPlanilha" onclick="sincronizarMilitaresComPlanilhaCentral()">🔄 Sincronizar Planilha Central</button>
         <button class="acao fantasma" id="btnAtualizarSec">Atualizar</button>
         <button class="acao fantasma" id="btnVerCad">Cadastro de militares</button>
         <button class="acao fantasma" id="btnPinNovo">Alterar PIN</button>
@@ -414,6 +415,7 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
 <div id="areaImpressao"></div>
 
 <footer>Governança DE · Academia da Força Aérea — módulo Auxílio Transporte · <b>v3.1</b> (correção da leitura 400)</footer>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="compiladordoc.js"></script>
 <script>
 console.log('%cAuxílio Transporte · v3.1 (correção da leitura 400)', 'color:#d4a84b;font-weight:bold');
@@ -954,8 +956,65 @@ async function carregarSecretaria(){
     abrirDeclaracao();
   }));
 }
+async function sincronizarMilitaresComPlanilhaCentral() {
+  const sheetId = '1UOMh4y-wHL8kHcB9TUUcEmkeF7z6KYAs4vipsoOFgfA';
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=efetivo&range=A5:Z150`;
+
+  try {
+    const res = await fetch(url);
+    const text = await res.text();
+    const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
+    if (!match) throw new Error('Resposta inesperada da planilha');
+    const json = JSON.parse(match[1]);
+    if (json?.status === 'error') throw new Error('Planilha indisponível');
+
+    const rows = json?.table?.rows || [];
+    let importados = 0;
+    
+    for (const row of rows) {
+      const c = row.c || [];
+      const posto = (c[2]?.v ?? '').toString().trim();
+      const esp = (c[3]?.v ?? '').toString().trim();
+      const nomeGuerra = (c[4]?.v ?? '').toString().trim();
+      const saram = (c[19]?.v ?? '').toString().trim();
+
+      if (!nomeGuerra) continue;
+
+      const gradFormatada = [posto, esp].filter(Boolean).join(' ');
+      
+      try {
+        const payload = {
+          nome: nomeGuerra,
+          grad: gradFormatada,
+          saram: saram || '0000000',
+          ativo: true
+        };
+        await sbUpsert('at_militares', payload, 'nome');
+        importados++;
+      } catch(e) {
+        console.warn('Falha ao upsert militar:', nomeGuerra, e);
+      }
+    }
+
+    await carregarMilitares();
+    if (typeof carregarSecretaria === 'function') await carregarSecretaria();
+    alert(`✓ ${importados} militares sincronizados com sucesso da Planilha Central (AFA DE)!`);
+  } catch(e) {
+    alert('Erro ao sincronizar com a planilha central: ' + (e.message || e));
+  }
+}
+
 $('btnAtualizarSec').addEventListener('click', carregarSecretaria);
 $('selCompSec').addEventListener('change', carregarSecretaria);
+
+function baixarArquivoCsv(comp, textoCsv) {
+  const blob = new Blob(['\uFEFF' + textoCsv], { type:'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'auxilio-transporte-' + comp + '.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
 
 $('btnCsv').addEventListener('click', () => {
   const comp = $('selCompSec').value; if (!comp) return;
@@ -969,11 +1028,53 @@ $('btnCsv').addEventListener('click', () => {
       r.zerado ? 'MES ZERADO' : r.diasDescNum, num(r.vDia), num(r.desconto), num(r.final),
       d ? d.status.toUpperCase() : 'SEM DECLARACAO'].join(';'));
   });
-  const blob = new Blob(['\uFEFF' + linhas.join('\r\n')], { type:'text/csv;charset=utf-8' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'auxilio-transporte-' + comp + '.csv';
-  a.click(); URL.revokeObjectURL(a.href);
+
+  const textoCsv = linhas.join('\r\n');
+
+  if (typeof Swal !== 'undefined') {
+    Swal.fire({
+      title: 'Base CSV (Planilha 2)',
+      html: `
+        <p style="font-size:.82rem;color:var(--texto-2);margin-bottom:.8rem;text-align:left">
+          Dados em formato CSV (separados por ponto e vírgula) referentes a <b>${rotuloComp(comp)}</b>:
+        </p>
+        <textarea id="swalTxtCsv" readonly style="width:100%;height:190px;background:#060d1d;color:#cfe4ff;border:1px solid var(--linha);border-radius:10px;padding:.7rem;font-family:monospace;font-size:.76rem;resize:vertical;line-height:1.4">${textoCsv}</textarea>
+      `,
+      showCancelButton: true,
+      showDenyButton: true,
+      confirmButtonText: '📋 Copiar CSV',
+      denyButtonText: '💾 Exportar Arquivo',
+      cancelButtonText: 'Fechar',
+      confirmButtonColor: '#d4a84b',
+      denyButtonColor: '#3ecf9a',
+      background: '#101f3e',
+      color: '#cfe4ff',
+      width: '620px'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const ta = document.getElementById('swalTxtCsv');
+        if (ta) ta.select();
+        navigator.clipboard.writeText(textoCsv).then(() => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Copiado!',
+            text: 'O conteúdo CSV foi copiado para a área de transferência.',
+            timer: 1800,
+            showConfirmButton: false,
+            background: '#101f3e',
+            color: '#cfe4ff'
+          });
+        }).catch(() => {
+          document.execCommand('copy');
+          alert('Copiado para a área de transferência!');
+        });
+      } else if (result.isDenied) {
+        baixarArquivoCsv(comp, textoCsv);
+      }
+    });
+  } else {
+    baixarArquivoCsv(comp, textoCsv);
+  }
 });
 
 /* ══════════════ DOCUMENTOS DO PROCESSO ══════════════ */
