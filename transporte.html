@@ -360,7 +360,8 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
           <label for="selCompSec">Competência</label>
           <input type="month" id="selCompSec" />
         </div>
-        <button class="acao fantasma" id="btnCsv">Exportar CSV (base da Planilha 2)</button>
+        <button class="acao fantasma" id="btnCsv">Exportar CSV</button>
+        <button class="acao fantasma" id="btnDocProcesso">📁 Documentos do Processo</button>
         <button class="acao fantasma" id="btnAtualizarSec">Atualizar</button>
         <button class="acao fantasma" id="btnVerCad">Cadastro de militares</button>
         <button class="acao fantasma" id="btnPinNovo">Alterar PIN</button>
@@ -413,6 +414,7 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
 <div id="areaImpressao"></div>
 
 <footer>Governança DE · Academia da Força Aérea — módulo Auxílio Transporte · <b>v3.1</b> (correção da leitura 400)</footer>
+<script src="compiladordoc.js"></script>
 <script>
 console.log('%cAuxílio Transporte · v3.1 (correção da leitura 400)', 'color:#d4a84b;font-weight:bold');
 /* ══════════════════════════════════════════════════════════════
@@ -905,7 +907,7 @@ async function carregarSecretaria(){
       acoes = '<button class="acao fantasma mini" data-reab="' + d.id + '">Reabrir</button>';
     }
     if (d && d.pdf_assinado)
-      acoes = '<a class="acao fantasma mini" style="text-decoration:none" target="_blank" href="' + urlPdf(d.pdf_assinado) + '">📄 PDF</a> ' + acoes;
+      acoes = '<a class="acao fantasma mini" style="text-decoration:none;display:inline-flex;align-items:center;gap:.3rem" target="_blank" href="' + urlPdf(d.pdf_assinado) + '">📄 PDF</a> ' + acoes;
     if (d && d.status !== 'rascunho') total += r.final;
     const regras = [
       r.zerado ? '<span class="chip rubi">MÊS ZERADO</span>' : '',
@@ -974,6 +976,12 @@ $('btnCsv').addEventListener('click', () => {
   a.click(); URL.revokeObjectURL(a.href);
 });
 
+/* ══════════════ DOCUMENTOS DO PROCESSO ══════════════ */
+$('btnDocProcesso').addEventListener('click', () => {
+  const comp = $('selCompSec').value; if (!comp) return;
+  CompiladorDoc.compilarTodos(comp, militares, secDecls, secDeclsPrev, urlPdf);
+});
+
 /* ══════════════ CADASTRO ══════════════ */
 function pintarCadastro(){
   $('corpoCad').innerHTML = militares.map(m =>
@@ -1026,6 +1034,14 @@ $('btnPdf').addEventListener('click', () => {
   const mil = milSelecionado(); const comp = $('selComp').value;
   if (!mil || !comp){ faixa($('faixaGeral'), 'alerta', 'Selecione o militar e a competência para gerar o PDF.'); return; }
   const r = calcularDecl(comp, diasAtual, mil, zeradoAnterior);
+
+  // Nome do arquivo de impressão/PDF dinâmico no padrão do sistema
+  const [ano, mes] = comp.split('-').map(Number);
+  const mesAbrev = MESES[mes-1].substring(0,3);
+  const postoNome = (mil.grad + '_' + mil.nome).replace(/\s+/g, '_').toUpperCase();
+  const tituloOriginal = document.title;
+  document.title = `Auxilio_Transporte_-_${postoNome}_-_${mesAbrev}_-_${ano}`;
+
   const X = '<span class="marcaX">X</span>';   // letra X: robusta em qualquer fonte de impressão
   const TR = '\u2013';                          // fim de semana: apenas um traço representativo
   const linhas = diasDoMes(comp).map(g => {
@@ -1074,8 +1090,12 @@ $('btnPdf').addEventListener('click', () => {
     '</div>';
 
   const fundo = $('areaImpressao').querySelector('.impFundo');
-  if (fundo.complete) window.print();
-  else { fundo.onload = () => window.print(); fundo.onerror = () => window.print(); }
+  const executarImpressao = () => {
+    window.print();
+    setTimeout(() => { document.title = tituloOriginal; }, 1000);
+  };
+  if (fundo.complete) executarImpressao();
+  else { fundo.onload = executarImpressao; fundo.onerror = executarImpressao; }
 });
 
 /* ══════════════ INICIALIZAÇÃO ══════════════ */
