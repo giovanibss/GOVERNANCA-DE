@@ -331,7 +331,22 @@
     let listaEfetivo = [];
 
     const EFETIVO_SHEET_ID = '1UOMh4y-wHL8kHcB9TUUcEmkeF7z6KYAs4vipsoOFgfA';
-    const EFETIVO_URL = `https://docs.google.com/spreadsheets/d/${EFETIVO_SHEET_ID}/gviz/tq?tqx=out:json&sheet=efetivo&range=C5:E150&headers=0`;
+    const EFETIVO_URL = `https://docs.google.com/spreadsheets/d/${EFETIVO_SHEET_ID}/gviz/tq?tqx=out:json&sheet=efetivo&range=A5:AC250&headers=0`;
+
+    function formatarCPF(raw) {
+      if (!raw) return '';
+      let str = String(raw).replace(/\.0$/, '').replace(/\D/g, '');
+      if (!str) return '';
+      str = str.padStart(11, '0');
+      return str.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    }
+
+    function formatarSARAM(raw) {
+      if (!raw) return '';
+      let str = String(raw).replace(/\.0$/, '').replace(/\D/g, '');
+      if (!str) return '';
+      return str.padStart(7, '0');
+    }
 
     async function carregarEfetivo() {
       try {
@@ -352,13 +367,24 @@
           listaEfetivo = data.table.rows
             .map(r => {
               const c = r.c || [];
+              const v = idx => (c[idx]?.v !== undefined && c[idx]?.v !== null) ? c[idx].v.toString().trim() : '';
               return {
-                posto: (c[0]?.v || '').toString().trim(),
-                esp: (c[1]?.v || '').toString().trim(),
-                nome: (c[2]?.v || '').toString().trim()
+                posto: v(2),           // Col C
+                esp: v(3),             // Col D
+                nome: v(4),            // Col E (Guerra)
+                funcao: v(7),          // Col H
+                nome_completo: v(13),  // Col N (Completo)
+                cpf: formatarCPF(v(14)),   // Col O (CPF)
+                email: v(15),          // Col P
+                saram: formatarSARAM(v(19)), // Col T (SARAM)
+                rg: v(20),             // Col U
+                banco: v(23),          // Col X
+                banco_cod: v(24),      // Col Y
+                agencia: v(25),        // Col Z
+                conta: v(26)           // Col AA
               };
             })
-            .filter(m => m.nome);
+            .filter(m => m.nome || m.nome_completo);
 
           localStorage.setItem('afa_efetivo_cache_v1', JSON.stringify(listaEfetivo));
           renderMilitares();
@@ -413,7 +439,9 @@
       if (idxEf === '' || !listaEfetivo[idxEf]) return;
       const m = listaEfetivo[idxEf];
       listaMilitares[idxItem].posto_grad = (m.posto + ' ' + (m.esp || '')).trim();
-      listaMilitares[idxItem].nome = m.nome;
+      listaMilitares[idxItem].nome = m.nome_completo || m.nome;
+      if (m.cpf) listaMilitares[idxItem].cpf = m.cpf;
+      if (m.saram) listaMilitares[idxItem].saram = m.saram;
       renderMilitares();
     }
 

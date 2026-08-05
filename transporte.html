@@ -539,7 +539,7 @@ function calcularDecl(comp, diasObj, mil, zeradoPorMesAnterior){
     log.push('<b>Férias Restantes</b> declaradas: o auxílio do <b>mês seguinte</b> não será pago.');
 
   const vig = Number(mil?.valor_mensal || 0);
-  const vDia = Number(mil?.valor_diario || 0);
+  const vDia = Number(mil?.valor_diario || (vig > 0 ? Number((vig / 22).toFixed(2)) : 0));
   const desconto = zerado ? vig : diasDesc * vDia;
   const final = zerado ? 0 : Math.max(0, vig - desconto);
 
@@ -989,7 +989,7 @@ async function carregarSecretaria(){
 }
 async function sincronizarMilitaresComPlanilhaCentral() {
   const sheetId = '1UOMh4y-wHL8kHcB9TUUcEmkeF7z6KYAs4vipsoOFgfA';
-  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=efetivo&range=A5:Z150`;
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=efetivo&range=A5:AC250`;
 
   try {
     const res = await fetch(url);
@@ -1004,23 +1004,40 @@ async function sincronizarMilitaresComPlanilhaCentral() {
     
     for (const row of rows) {
       const c = row.c || [];
-      const posto = (c[2]?.v ?? '').toString().trim();
-      const esp = (c[3]?.v ?? '').toString().trim();
-      const nomeGuerra = (c[4]?.v ?? '').toString().trim();
-      const saram = (c[19]?.v ?? '').toString().trim();
+      const posto = (c[2]?.v ?? '').toString().trim();       // Coluna C (índice 2)
+      const esp = (c[3]?.v ?? '').toString().trim();         // Coluna D (índice 3)
+      const nomeGuerra = (c[4]?.v ?? '').toString().trim();  // Coluna E (índice 4)
+      const saram = (c[19]?.v ?? '').toString().trim();       // Coluna T (índice 19)
+      const usaAux = (c[27]?.v ?? '').toString().trim().toLowerCase(); // Coluna AB (índice 27)
 
       if (!nomeGuerra) continue;
+      // Filtra apenas quem utiliza Auxílio (Coluna AB = "Sim")
+      if (!usaAux.includes('sim')) continue;
 
-      const gradFormatada = [posto, esp].filter(Boolean).join(' ');
+      // Parsing do valor do auxílio (Coluna AC - índice 28)
+      let valorMensal = 0;
+      if (c[28]) {
+        if (typeof c[28].v === 'number') {
+          valorMensal = c[28].v;
+        } else {
+          const raw = (c[28].v ?? c[28].f ?? '').toString().replace(/[^\d.,]/g, '').replace(',', '.');
+          valorMensal = parseFloat(raw) || 0;
+        }
+      }
+      const valorDiario = valorMensal > 0 ? Number((valorMensal / 22).toFixed(2)) : 0;
+
+      const gradFormatada = [posto, esp].filter(Boolean).join(' ') || posto;
       
       try {
         const payload = {
-          nome: nomeGuerra,
+          nome: nomeGuerra.toUpperCase(),
           grad: gradFormatada,
           saram: saram || '0000000',
+          valor_mensal: valorMensal,
+          valor_diario: valorDiario,
           ativo: true
         };
-        await sbUpsert('at_militares', payload, 'nome');
+        await sbUpsert('at_militares', payload, 'saram');
         importados++;
       } catch(e) {
         console.warn('Falha ao upsert militar:', nomeGuerra, e);
@@ -1029,7 +1046,7 @@ async function sincronizarMilitaresComPlanilhaCentral() {
 
     await carregarMilitares();
     if (typeof carregarSecretaria === 'function') await carregarSecretaria();
-    alert(`✓ ${importados} militares sincronizados com sucesso da Planilha Central (AFA DE)!`);
+    alert(`✓ ${importados} militares com Auxílio Transporte ("Sim" na Coluna AB) sincronizados da Planilha Central!`);
   } catch(e) {
     alert('Erro ao sincronizar com a planilha central: ' + (e.message || e));
   }
@@ -1130,7 +1147,15 @@ function pintarCadastro(){
   $('corpoCad').querySelectorAll('tr[data-id]').forEach(tr => {
     const id = tr.dataset.id;
     tr.querySelectorAll('input[data-c]').forEach(inp => inp.addEventListener('change', async () => {
-      const corpo = {}; corpo[inp.dataset.c] = inp.type === 'number' ? Number(inp.value || 0) : inp.value.trim();
+      const corpo = {};
+      const val = inp.type === 'number' ? Number(inp.value || 0) : inp.value.trim();
+      corpo[inp.dataset.c] = val;
+      if (inp.dataset.c === 'valor_mensal') {
+        const vDia = val > 0 ? Number((val / 22).toFixed(2)) : 0;
+        corpo['valor_diario'] = vDia;
+        const inDia = tr.querySelector('input[data-c="valor_diario"]');
+        if (inDia) inDia.value = vDia;
+      }
       try { await sbPatch('at_militares?id=eq.' + id, corpo); await carregarMilitares(); }
       catch (e){ faixa($('faixaGeral'), 'erro', '⚠️ ' + e.message); }
     }));
@@ -1147,11 +1172,18 @@ function pintarCadastro(){
     });
   });
 }
+$('nVig').addEventListener('input', () => {
+  const v = Number($('nVig').value || 0);
+  if (v > 0) $('nDia').value = (v / 22).toFixed(2);
+});
+
 $('btnAddMil').addEventListener('click', async () => {
+  const vMensal = Number($('nVig').value || 0);
+  const vDiaCalculado = Number($('nDia').value || (vMensal > 0 ? (vMensal / 22).toFixed(2) : 0));
   const corpo = {
     grad: $('nGrad').value.trim(), nome: $('nNome').value.trim().toUpperCase(),
     saram: $('nSaram').value.trim(),
-    valor_mensal: Number($('nVig').value || 0), valor_diario: Number($('nDia').value || 0)
+    valor_mensal: vMensal, valor_diario: vDiaCalculado
   };
   if (!corpo.nome || !corpo.saram){ faixa($('faixaGeral'), 'alerta', 'Preencha ao menos nome e SARAM.'); return; }
   try {

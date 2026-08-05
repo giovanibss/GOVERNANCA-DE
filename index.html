@@ -740,13 +740,13 @@ body.cortina .cue{animation-play-state:paused}
             <span style="width:100%;background:rgba(207,228,255,.14)"></span>
           </div>
           <p class="note" id="dg-note">Nenhuma dotação registrada</p>
-          <span class="card-go">Abrir módulo
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
-          </span>
-          <div style="margin-top:.6rem;text-align:right" onclick="event.preventDefault(); window.open('solicitar.html','_blank')">
-            <span style="font-size:.7rem;font-weight:700;color:var(--gold-500);text-decoration:underline;cursor:pointer">
-              📝 Solicitar Missão (Sem Senha) →
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:.75rem">
+            <span class="card-go" style="margin-top:0">Abrir módulo
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
             </span>
+            <button style="background:var(--gold-500);color:var(--navy-900);border:none;padding:.35rem .75rem;border-radius:4px;font-family:var(--f-display);font-size:.72rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;transition:all .2s" onclick="event.preventDefault(); event.stopPropagation(); window.open('solicitar.html','_blank')">
+              📝 Solicitar OS
+            </button>
           </div>
         </div>
       </div>
