@@ -1,3 +1,212 @@
+
+Gemini
+
+Conversa
+
+Spark
+Beta
+Nova conversa
+Pesquisar conversas
+Imagens
+Vídeos
+Biblioteca
+Gems
+Novo notebook
+Volkswagen Tera Owner's Manual 2025
+PATAGONIA
+Todos os notebooks
+AVALIAÇÃO PARCIAL
+Adicionar Exclusão de Cursos
+Fine Art Portrait Photography Prompt
+Fine Art Portrait Photography Prompt
+Pedido de Música Engenheiros do Hawaii
+Plano de Voo: Rota e Dados
+Prompt para Vídeo de Águia Estilizada
+Criação Módulo Auxílio Transporte FAB
+Liberar Instalação APK no Family Link
+Substituir Botão Higiene por Página Inicial
+Transformando Pedido em Prompt Técnico
+Ilustração Elegante para Fundo de Site
+Quero que faça uma análise do orçamento que a concessionária me passou da primeira revisão do meu VW TERA 2026 (revisão de 10000 Km). como achei o orçamento mais caro que eu esperava, quero que me diga quais itens eventualmente eu poderia cortar, sem infringir nenhuma regra do manual. Por isso, observe e analise as fontes do Gemini Notebook e atue como meu mecânico de confiança para dizer se o orçamento está condizente ou a concessionária está querendo obter vantagem sobre mim.
+Tocar Tema de Mestres do Universo
+Monetização de App de Viagem
+Melhorando Logo de Viagens de Aventura
+Meditação Bíblica Sobre Adversidades
+Prompt para Claude: Web App Viagem
+Roteiro Patagônia: El Calafate e Torres.
+Roteiro Patagônia: Família e Aventura
+WhatsApp Chamadas Não Aparecem Tela
+Bloquear Chamadas no Android One UI
+Por que Fevereiro tem 28 dias
+Pode Pôr, Manda Bala!
+Salvar Página Web Como PDF
+Deltametrina vs. Azadiractina: Escolha Certa
+Tocar Música Tema Jogos Vorazes
+Encontrar iPhone Perdido em Casa
+Jogo do Brasil Hoje
+Studio Portrait of Man in Suit
+Avaliação Anual de Tenente Temporária
+Horário do Jogo do Brasil
+Animais Que Passam Por Metamorfose
+Conversa com o Gemini
+quero fazer uma alteração no meu módulo de cursos (cursos.html).
+
+quero que seja possível excluir um curso já cadastrado. Existe a opção de eu alterar o curso cadastrado, mas não de excluir.
+
+Excelente adição. Atualmente, o módulo permite que você crie cursos inopinados ou faça "ajustes" (como adicionar datas) em cursos que vêm da planilha, mas não permite a exclusão completa.
+
+Para resolver isso de forma inteligente e evitar a quebra de estrutura, implementaremos uma lógica dupla:
+
+Cursos Inopinados: O botão excluirá permanentemente o curso do banco de dados.
+
+Cursos da TCA (Planilha): Como eles vêm da base do Google Sheets, o botão os marcará como "Ocultos", fazendo com que desapareçam do mural de cursos ofertados para os usuários (mas permaneçam visíveis para você na aba Secretaria, caso queira restaurá-los depois).
+
+Para implementar essa melhoria, substitua os trechos de código no seu arquivo cursos.html conforme as instruções abaixo.
+
+1. Adicionar o array cursosTodos nas variáveis globais
+Encontre as declarações de estado perto da linha 341 e adicione a variável cursosTodos.
+
+Substitua isto:
+
+JavaScript
+/* ══════════════ ESTADO ══════════════ */
+let militares = [], civis = [], cursosPlan = [], cursosBase = [], cursos = [];
+Por isto:
+
+JavaScript
+/* ══════════════ ESTADO ══════════════ */
+let militares = [], civis = [], cursosPlan = [], cursosBase = [], cursos = [], cursosTodos = [];
+2. Atualizar a lógica de Carregamento e Busca de Cursos
+Encontre o final da função carregarCursos e a função acharCurso (logo em seguida), entre as linhas 440 e 460, e altere para que eles abasteçam e consumam o cursosTodos.
+
+Substitua o trecho de fusão:
+
+JavaScript
+  cursos = cursosPlan.map(c => {
+    const a = ajustes[c.chave];
+    if (!a) return c;
+    const juntos = Object.assign({}, c);
+    ['comando','sigla','nome','modalidade','local','vagas','prereq','publico','tca','obs'].forEach(k => { if (a[k]) juntos[k] = a[k]; });
+    ['limite','inicio','termino'].forEach(k => { if (a[k]) juntos[k] = a[k]; });
+    juntos.id = a.id; juntos.oculto = a.oculto; juntos.ajustado = true;
+    return juntos;
+  }).concat(proprios).filter(c => !c.oculto);
+
+  /* filtro de comandos */
+Por isto:
+
+JavaScript
+  cursosTodos = cursosPlan.map(c => {
+    const a = ajustes[c.chave];
+    if (!a) return c;
+    const juntos = Object.assign({}, c);
+    ['comando','sigla','nome','modalidade','local','vagas','prereq','publico','tca','obs'].forEach(k => { if (a[k]) juntos[k] = a[k]; });
+    ['limite','inicio','termino'].forEach(k => { if (a[k]) juntos[k] = a[k]; });
+    juntos.id = a.id; juntos.oculto = a.oculto; juntos.ajustado = true;
+    return juntos;
+  }).concat(proprios);
+
+  cursos = cursosTodos.filter(c => !c.oculto);
+
+  /* filtro de comandos */
+Logo abaixo, substitua a função acharCurso:
+
+JavaScript
+function acharCurso(chave){ return cursos.find(c => c.chave === chave) || null; }
+Por isto:
+
+JavaScript
+function acharCurso(chave){ return cursosTodos.find(c => c.chave === chave) || null; }
+3. Evitar que cursos ocultos sumam do seletor da Secretaria
+Na função preencherSelectCursoSec (linha 577), alteraremos para que, se um curso foi ocultado, mas já tem indicações em andamento, ele ainda possa ser acessado pelo menu da Secretaria.
+
+Substitua as constantes comPedido e sem:
+
+JavaScript
+  const comPedido = cursos.filter(c => cont[c.chave]);
+  const sem = cursos.filter(c => !cont[c.chave]);
+Por isto:
+
+JavaScript
+  const comPedido = cursosTodos.filter(c => cont[c.chave]);
+  const sem = cursos.filter(c => !cont[c.chave]);
+4. Reescrever a listagem e adicionar as ações Excluir / Restaurar
+Finalmente, substitua a função listarCursosSec() inteira (por volta da linha 742). Esta nova versão renderiza os botões "Excluir" ou "Restaurar" dependendo da origem, e reordena os gatilhos no banco de dados.
+
+Substitua a função inteira listarCursosSec:
+
+JavaScript
+function listarCursosSec(){
+  $('corpoCursosSec').innerHTML = cursosTodos.map(c =>
+    '<tr' + (c.oculto ? ' style="opacity:0.5"' : '') + '><td><b>' + esc(c.sigla || '—') + '</b></td><td>' + esc(c.nome || '') + '</td><td>' + esc(c.comando || '') + '</td>' +
+    '<td>' + esc(dataBR(c.limite) || '—') + '</td>' +
+    '<td>' + (c.origem === 'INOPINADO' ? '<span class="chip lilas">Inopinado</span>' : '<span class="chip cinza">TCA</span>') +
+      (c.ajustado ? ' <span class="chip ouro">ajustado</span>' : '') + 
+      (c.oculto ? ' <span class="chip rubi">oculto</span>' : '') + '</td>' +
+    '<td style="text-align:right;white-space:nowrap">' +
+      '<button class="acao fantasma mini" data-edit="' + esc(c.chave) + '">Ajustar</button> ' +
+      (c.oculto 
+        ? '<button class="acao fantasma mini" data-restaurar="' + esc(c.chave) + '" data-id="' + c.id + '">Restaurar</button>'
+        : '<button class="acao fantasma mini" data-excluir="' + esc(c.chave) + '" data-origem="' + c.origem + '" data-id="' + (c.id || '') + '">Excluir</button>') +
+      (c.ajustado && c.origem === 'TCA' ? ' <button class="acao fantasma mini" data-delc="' + c.id + '">Desfazer ajuste</button>' : '') + 
+    '</td></tr>').join('');
+
+  $('corpoCursosSec').querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => abrirModalCurso(b.dataset.edit)));
+  
+  $('corpoCursosSec').querySelectorAll('[data-delc]').forEach(b => b.addEventListener('click', async () => {
+    if (!confirm('Desfazer as alterações deste curso? Ele voltará a exibir os dados originais da planilha.')) return;
+    await sbDel('cur_cursos?id=eq.' + b.dataset.delc);
+    await carregarCursos(); pintarCursos(); listarCursosSec(); pintarSecretaria();
+  }));
+
+  $('corpoCursosSec').querySelectorAll('[data-excluir]').forEach(b => b.addEventListener('click', async () => {
+    const origem = b.dataset.origem;
+    const id = b.dataset.id;
+    const chave = b.dataset.excluir;
+    
+    if (origem === 'INOPINADO') {
+      if (!confirm('Tem certeza que deseja excluir este curso inopinado permanentemente?')) return;
+      await sbDel('cur_cursos?id=eq.' + id);
+    } else {
+      if (!confirm('Deseja ocultar este curso da TCA? Ele não aparecerá mais para os usuários do sistema.')) return;
+      if (id) {
+        await sbPatch('cur_cursos?id=eq.' + id, { oculto: true });
+      } else {
+        await sbPost('cur_cursos', { chave_planilha: chave, oculto: true });
+      }
+    }
+    await carregarCursos(); pintarCursos(); listarCursosSec(); pintarSecretaria();
+  }));
+
+  $('corpoCursosSec').querySelectorAll('[data-restaurar]').forEach(b => b.addEventListener('click', async () => {
+    const id = b.dataset.id;
+    await sbPatch('cur_cursos?id=eq.' + id, { oculto: false });
+    await carregarCursos(); pintarCursos(); listarCursosSec(); pintarSecretaria();
+  }));
+}
+forneça-me o html completo e modificado, conforme suas instruções
+
+O seu arquivo html foi modificado e está pronto
+
+Ícone do app HTML
+cursos
+ HTML 
+Aberto
+A nova versão de cursos.html agora suporta a funcionalidade dupla de exclusão, distinguindo entre cursos inopinados criados no sistema e os cursos provenientes da planilha (TCA).
+
+Aqui está um resumo do que foi implementado:
+
+A nova variável de estado cursosTodos guarda todos os cursos, incluindo os que foram marcados como "ocultos".
+
+Os métodos de filtragem (preencherSelectCursoSec e acharCurso) utilizam a variável cursosTodos permitindo o acesso posterior.
+
+A lista na Área da Secretaria mostrará visualmente (e com opções diferenciadas) os cursos que estão ocultos, providenciando inclusive um botão para "Restaurar" a visualização de um curso ocultado da TCA, ou "Excluir" definitivamente se tratar-se de um curso inopinado.
+
+
+
+
+O Gemini é uma IA e pode cometer erros.
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -706,7 +915,7 @@ function mapear(cabecalho, regras){
 }
 
 /* ══════════════ ESTADO ══════════════ */
-let militares = [], civis = [], cursosPlan = [], cursosBase = [], cursos = [];
+let militares = [], civis = [], cursosPlan = [], cursosBase = [], cursos = [], cursosTodos = [];
 let manifs = [], tcas = [];
 let diag = { efetivo:'', civis:'', cursos:'' };
 let cursoAlvo = null;   // curso do modal de manifestação
@@ -877,7 +1086,7 @@ async function carregarCursos(){
     if (b.chave_planilha) ajustes[b.chave_planilha] = c; else proprios.push(c);
   });
 
-  cursos = cursosPlan.map(c => {
+  cursosTodos = cursosPlan.map(c => {
     const a = ajustes[c.chave];
     if (!a) return c;
     const juntos = Object.assign({}, c);
@@ -885,7 +1094,9 @@ async function carregarCursos(){
     ['limite','inicio','termino'].forEach(k => { if (a[k]) juntos[k] = a[k]; });
     juntos.id = a.id; juntos.oculto = a.oculto; juntos.ajustado = true;
     return juntos;
-  }).concat(proprios).filter(c => !c.oculto);
+  }).concat(proprios);
+
+  cursos = cursosTodos.filter(c => !c.oculto);
 
   /* filtro de comandos */
   const comandos = [...new Set(cursos.map(c => c.comando).filter(Boolean))].sort();
@@ -952,7 +1163,7 @@ function pintarCursos(){
   $('gradeCursos').querySelectorAll('[data-detalhe]').forEach(b => b.addEventListener('click', () => verDetalhe(b.dataset.detalhe)));
 }
 
-function acharCurso(chave){ return cursos.find(c => c.chave === chave) || null; }
+function acharCurso(chave){ return cursosTodos.find(c => c.chave === chave) || null; }
 
 function verDetalhe(chave){
   const c = acharCurso(chave); if (!c) return;
@@ -1129,7 +1340,7 @@ async function verificarPin(){
 function preencherSelectCursoSec(){
   const cont = {};
   manifs.forEach(m => { if (m.status !== 'cancelada') cont[m.curso_chave] = (cont[m.curso_chave] || 0) + 1; });
-  const comPedido = cursos.filter(c => cont[c.chave]);
+  const comPedido = cursosTodos.filter(c => cont[c.chave]);
   const sem = cursos.filter(c => !cont[c.chave]);
   const opc = c => '<option value="' + esc(c.chave) + '">' + esc((c.sigla || '') + ' — ' + (c.nome || '')) +
                    (cont[c.chave] ? ' (' + cont[c.chave] + ')' : '') + '</option>';
@@ -1422,18 +1633,51 @@ async function salvarCurso(){
   } catch (e){ alert('Não consegui salvar: ' + e.message); }
 }
 function listarCursosSec(){
-  $('corpoCursosSec').innerHTML = cursos.map(c =>
-    '<tr><td><b>' + esc(c.sigla || '—') + '</b></td><td>' + esc(c.nome || '') + '</td><td>' + esc(c.comando || '') + '</td>' +
+  $('corpoCursosSec').innerHTML = cursosTodos.map(c =>
+    '<tr' + (c.oculto ? ' style="opacity:0.5"' : '') + '><td><b>' + esc(c.sigla || '—') + '</b></td><td>' + esc(c.nome || '') + '</td><td>' + esc(c.comando || '') + '</td>' +
     '<td>' + esc(dataBR(c.limite) || '—') + '</td>' +
     '<td>' + (c.origem === 'INOPINADO' ? '<span class="chip lilas">Inopinado</span>' : '<span class="chip cinza">TCA</span>') +
-      (c.ajustado ? ' <span class="chip ouro">ajustado</span>' : '') + '</td>' +
-    '<td style="text-align:right;white-space:nowrap"><button class="acao fantasma mini" data-edit="' + esc(c.chave) + '">Ajustar</button>' +
-      (c.id ? ' <button class="acao fantasma mini" data-delc="' + c.id + '">Excluir ajuste</button>' : '') + '</td></tr>').join('');
+      (c.ajustado ? ' <span class="chip ouro">ajustado</span>' : '') + 
+      (c.oculto ? ' <span class="chip rubi">oculto</span>' : '') + '</td>' +
+    '<td style="text-align:right;white-space:nowrap">' +
+      '<button class="acao fantasma mini" data-edit="' + esc(c.chave) + '">Ajustar</button> ' +
+      (c.oculto 
+        ? '<button class="acao fantasma mini" data-restaurar="' + esc(c.chave) + '" data-id="' + c.id + '">Restaurar</button>'
+        : '<button class="acao fantasma mini" data-excluir="' + esc(c.chave) + '" data-origem="' + c.origem + '" data-id="' + (c.id || '') + '">Excluir</button>') +
+      (c.ajustado && c.origem === 'TCA' ? ' <button class="acao fantasma mini" data-delc="' + c.id + '">Desfazer ajuste</button>' : '') + 
+    '</td></tr>').join('');
+
   $('corpoCursosSec').querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => abrirModalCurso(b.dataset.edit)));
+  
   $('corpoCursosSec').querySelectorAll('[data-delc]').forEach(b => b.addEventListener('click', async () => {
-    if (!confirm('Excluir este registro? Cursos da TCA voltam a exibir os dados originais da planilha.')) return;
+    if (!confirm('Desfazer as alterações deste curso? Ele voltará a exibir os dados originais da planilha.')) return;
     await sbDel('cur_cursos?id=eq.' + b.dataset.delc);
-    await carregarCursos(); pintarCursos(); listarCursosSec();
+    await carregarCursos(); pintarCursos(); listarCursosSec(); pintarSecretaria();
+  }));
+
+  $('corpoCursosSec').querySelectorAll('[data-excluir]').forEach(b => b.addEventListener('click', async () => {
+    const origem = b.dataset.origem;
+    const id = b.dataset.id;
+    const chave = b.dataset.excluir;
+    
+    if (origem === 'INOPINADO') {
+      if (!confirm('Tem certeza que deseja excluir este curso inopinado permanentemente?')) return;
+      await sbDel('cur_cursos?id=eq.' + id);
+    } else {
+      if (!confirm('Deseja ocultar este curso da TCA? Ele não aparecerá mais para os usuários do sistema.')) return;
+      if (id) {
+        await sbPatch('cur_cursos?id=eq.' + id, { oculto: true });
+      } else {
+        await sbPost('cur_cursos', { chave_planilha: chave, oculto: true });
+      }
+    }
+    await carregarCursos(); pintarCursos(); listarCursosSec(); pintarSecretaria();
+  }));
+
+  $('corpoCursosSec').querySelectorAll('[data-restaurar]').forEach(b => b.addEventListener('click', async () => {
+    const id = b.dataset.id;
+    await sbPatch('cur_cursos?id=eq.' + id, { oculto: false });
+    await carregarCursos(); pintarCursos(); listarCursosSec(); pintarSecretaria();
   }));
 }
 
@@ -1552,3 +1796,5 @@ iniciar();
 </script>
 </body>
 </html>
+cursos.html
+Exibindo cursos.html.
