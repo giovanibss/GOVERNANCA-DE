@@ -1408,11 +1408,11 @@ async function lerPinServidor(){
     const r = await sbGet('at_config?select=pin&id=eq.default');
     if (r && r[0] && r[0].pin) return String(r[0].pin).trim();
   } catch(e){}
-  return localStorage.getItem('efetivo_pin') || '1234';
+  return localStorage.getItem('efetivo_pin') || '123456';
 }
 
 function checarAutenticacaoPIN() {
-  const pinOk = sessionStorage.getItem('efetivo_pin_ok') === '1';
+  const pinOk = sessionStorage.getItem('secretaria_pin_ok') === '1' || sessionStorage.getItem('efetivo_pin_ok') === '1' || sessionStorage.getItem('at_sec_ok') === '1';
   const gate = document.getElementById('pinGate');
   const content = document.getElementById('efetivoContent');
   const lockBtn = document.getElementById('lock-btn');
@@ -1439,7 +1439,9 @@ async function verificarPinEfetivo() {
   try {
     const pinServidor = await lerPinServidor();
     if (val === pinServidor) {
+      sessionStorage.setItem('secretaria_pin_ok', '1');
       sessionStorage.setItem('efetivo_pin_ok', '1');
+      sessionStorage.setItem('at_sec_ok', '1');
       checarAutenticacaoPIN();
     } else {
       if (errDiv) {
@@ -1456,7 +1458,9 @@ async function verificarPinEfetivo() {
 }
 
 function bloquearSessao() {
+  sessionStorage.removeItem('secretaria_pin_ok');
   sessionStorage.removeItem('efetivo_pin_ok');
+  sessionStorage.removeItem('at_sec_ok');
   checarAutenticacaoPIN();
 }
 

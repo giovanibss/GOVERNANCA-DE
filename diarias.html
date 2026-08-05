@@ -816,7 +816,9 @@ function ouvirRealtime(){
   sb.channel('diarias-live')
     .on('postgres_changes', { event:'*', schema:'public', table:'diarias_os' },     () => recarregar())
     .on('postgres_changes', { event:'*', schema:'public', table:'diarias_config' }, () => recarregar())
-    .subscribe();
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') setSync('ok','Sincronizado');
+    });
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -1336,7 +1338,9 @@ function ouvirRealtimeSolicitacoes() {
   if (!configurado) return;
   sb.channel('solicitacoes-live')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'solicitacoes_missao' }, () => recarregarSolicitacoes())
-    .subscribe();
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') setSync('ok','Sincronizado');
+    });
 }
 
 /* ── CACHE & SINCRONIZAÇÃO GRATIFICAÇÃO ── */
@@ -1371,7 +1375,9 @@ function ouvirRealtimeGratificacao() {
   if (!configurado) return;
   sb.channel('gratificacao-live')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'gratificacao_representacao' }, () => recarregarGratificacao())
-    .subscribe();
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') setSync('ok','Sincronizado');
+    });
 }
 
 /* ── EFETIVO GOOGLE SHEETS ── */
@@ -1910,11 +1916,11 @@ async function lerPinServidor(){
     const { data } = await sb.from('at_config').select('pin').eq('id', 'default').maybeSingle();
     if (data && data.pin) return String(data.pin).trim();
   } catch(e){}
-  return localStorage.getItem('secretaria_pin') || '1234';
+  return localStorage.getItem('secretaria_pin') || '123456';
 }
 
 function checarAutenticacaoPIN() {
-  const pinOk = sessionStorage.getItem('secretaria_pin_ok') === '1';
+  const pinOk = sessionStorage.getItem('secretaria_pin_ok') === '1' || sessionStorage.getItem('efetivo_pin_ok') === '1' || sessionStorage.getItem('at_sec_ok') === '1';
   const gate = document.getElementById('pinGate');
   const content = document.getElementById('missoesContent');
   const lockBtn = document.getElementById('lock-btn');
@@ -1942,6 +1948,8 @@ async function verificarPinMissoes() {
     const pinServidor = await lerPinServidor();
     if (val === pinServidor) {
       sessionStorage.setItem('secretaria_pin_ok', '1');
+      sessionStorage.setItem('efetivo_pin_ok', '1');
+      sessionStorage.setItem('at_sec_ok', '1');
       checarAutenticacaoPIN();
     } else {
       if (errDiv) {
@@ -1959,6 +1967,8 @@ async function verificarPinMissoes() {
 
 function bloquearSessaoMissoes() {
   sessionStorage.removeItem('secretaria_pin_ok');
+  sessionStorage.removeItem('efetivo_pin_ok');
+  sessionStorage.removeItem('at_sec_ok');
   checarAutenticacaoPIN();
 }
 

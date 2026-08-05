@@ -610,7 +610,7 @@ function pintarCiclo(){
 /* ══════════════ ABAS + ACESSO DA SECRETARIA ══════════════ */
 const ABAS = [ ['abaMil','telaMil'], ['abaSec','telaSec'] ];
 ABAS.forEach(([a, t]) => $(a).addEventListener('click', () => trocarAba(a)));
-function secLiberada(){ return sessionStorage.getItem('at_sec_ok') === '1'; }
+function secLiberada(){ return sessionStorage.getItem('secretaria_pin_ok') === '1' || sessionStorage.getItem('efetivo_pin_ok') === '1' || sessionStorage.getItem('at_sec_ok') === '1'; }
 function trocarAba(id){
   ABAS.forEach(([a, t]) => {
     const on = a === id;
@@ -632,7 +632,7 @@ function trocarAba(id){
 }
 async function lerPinServidor(){
   const r = await sbGet('at_config?select=pin&id=eq.default');
-  return (r[0] && String(r[0].pin)) || null;
+  return (r[0] && String(r[0].pin)) || '123456';
 }
 async function verificarPin(){
   const digitado = $('pinCampo').value.trim();
@@ -645,6 +645,8 @@ async function verificarPin(){
       return;
     }
     if (digitado === pin){
+      sessionStorage.setItem('secretaria_pin_ok', '1');
+      sessionStorage.setItem('efetivo_pin_ok', '1');
       sessionStorage.setItem('at_sec_ok', '1');
       $('pinCampo').value = '';
       trocarAba('abaSec');
