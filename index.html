@@ -305,7 +305,7 @@ body.cortina .cue{animation-play-state:paused}
 /* ═══ FAIXA DE SITUAÇÃO ═══ */
 .strip{max-width:var(--shell);margin:0 auto;padding:0 var(--gutter)}
 .strip-in{
-  display:grid;grid-template-columns:repeat(4,1fr);
+  display:grid;grid-template-columns:repeat(5,1fr);
   gap:1px;background:var(--hair);
   border:1px solid var(--hair);border-radius:11px;overflow:hidden;
   backdrop-filter:blur(15px) saturate(150%);
@@ -478,6 +478,52 @@ body.cortina .cue{animation-play-state:paused}
   position:absolute;top:-9px;right:10px;font-size:.8rem;color:var(--gold-lt);
   filter:drop-shadow(0 2px 5px rgba(0,0,0,.6));
 }
+
+/* ═══ INDICAÇÃO PARA CURSOS — trio + próximos prazos ═══ */
+.cu-alerta{
+  display:block;margin-bottom:1.05rem;border-radius:8px;padding:.6rem .75rem;
+  font-size:.7rem;line-height:1.55;border:1px solid;
+  border-color:rgba(192,38,211,.42);background:rgba(192,38,211,.09);color:#f0abfc;
+}
+.cu-alerta.aten{border-color:rgba(245,158,11,.42);background:rgba(245,158,11,.08);color:#fcd34d}
+.cu-alerta.ok{border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.07);color:#6ee7b7}
+.cu-alerta b{font-weight:600;color:#fff}
+.cu-pista{display:flex;flex-direction:column;gap:6px}
+.cu-item{
+  display:grid;grid-template-columns:44px 1fr;gap:.6rem;align-items:center;
+  border:1px dashed var(--hair);border-radius:9px;padding:.48rem .62rem;
+}
+.cu-item.crit{border-style:solid;border-color:rgba(192,38,211,.45);background:rgba(192,38,211,.06)}
+.cu-item.aten{border-style:solid;border-color:rgba(245,158,11,.34)}
+.cu-d{text-align:center;font-family:var(--f-display);line-height:1}
+.cu-d b{display:block;font-size:1.08rem;font-weight:500;color:#fff;font-variant-numeric:tabular-nums}
+.cu-d small{display:block;margin-top:.12rem;font-size:.5rem;letter-spacing:.11em;text-transform:uppercase;color:var(--contrail-dim)}
+.cu-item.crit .cu-d b{color:#f0abfc}
+.cu-item.aten .cu-d b{color:var(--amber)}
+.cu-t{min-width:0}
+.cu-t strong{
+  display:block;font-family:var(--f-display);font-weight:500;font-size:.72rem;
+  letter-spacing:.08em;text-transform:uppercase;color:#fff;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.cu-t span{
+  display:block;margin-top:.16rem;font-family:var(--f-data);font-size:.55rem;
+  letter-spacing:.05em;color:rgba(207,228,255,.46);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.cu-vazio{
+  font-family:var(--f-data);font-size:.58rem;letter-spacing:.09em;text-transform:uppercase;
+  color:rgba(207,228,255,.40);border:1px dashed var(--hair);border-radius:9px;
+  padding:.8rem;text-align:center;
+}
+.cu-sino{
+  font-family:var(--f-data);font-size:.55rem;letter-spacing:.13em;text-transform:uppercase;
+  color:#f0abfc;border:1px solid rgba(192,38,211,.45);background:rgba(192,38,211,.10);
+  border-radius:3px;padding:.18rem .45rem;margin-left:.4rem;white-space:nowrap;
+  animation:cuPulsa 1.9s ease-in-out infinite;
+}
+@keyframes cuPulsa{0%,100%{box-shadow:0 0 0 0 rgba(192,38,211,.45)}50%{box-shadow:0 0 0 7px rgba(192,38,211,0)}}
+
 .instr{
   display:grid;grid-template-columns:minmax(0,208px) 1fr;
   gap:1.6rem;align-items:center;
@@ -536,6 +582,9 @@ body.cortina .cue{animation-play-state:paused}
 }
 
 /* ═══ RESPONSIVO ═══ */
+@media(max-width:1180px){
+  .strip-in{grid-template-columns:repeat(3,1fr)}
+}
 @media(max-width:900px){
   .modules{grid-template-columns:1fr}
   .at-duo{grid-template-columns:1fr}
@@ -627,6 +676,10 @@ body.cortina .cue{animation-play-state:paused}
       <div class="stat">
         <div class="stat-k"><i style="background:var(--gold)"></i> Efetivo presente</div>
         <div class="stat-v"><span id="kpi-pres">—</span><small id="kpi-pres-tot"></small></div>
+      </div>
+      <div class="stat">
+        <div class="stat-k"><i style="background:#5aa2e0"></i> Cursos · prazo ≤15d</div>
+        <div class="stat-v"><span id="kpi-cur">—</span><small id="kpi-cur-tot"></small></div>
       </div>
     </div>
   </section>
@@ -791,6 +844,48 @@ body.cortina .cue{animation-play-state:paused}
           <div class="at-tr" id="at-tr1"><b>Dias 01–05 · Declaração</b>Militar preenche e envia o mês anterior</div>
           <div class="at-tr" id="at-tr2"><b>Dias 06–10 · Conferência</b>Secretaria confere e valida</div>
           <div class="at-tr" id="at-tr3"><b>Após dia 10 · Remessa</b>Envio ao órgão pagador</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- INDICAÇÃO PARA CURSOS -->
+    <a class="card wide rv" data-d="5" href="cursos.html" id="cu-card">
+      <div class="card-top">
+        <img class="card-cocar" src="assets/cocar-fab.png" alt="" />
+        <div>
+          <h2>Indicação para Cursos</h2>
+          <small>Oferta por grande comando, prazos da TCA e remessa ao SIGADAER</small>
+        </div>
+        <span class="card-tag" id="cu-tag">Prazos</span>
+      </div>
+
+      <div class="at-duo">
+        <div>
+          <div class="cu-alerta ok" id="cu-alerta">⏳ Consultando prazos e manifestações…</div>
+          <dl class="trio">
+            <div>
+              <dt><i style="background:var(--jade)"></i> Cursos abertos</dt>
+              <dd id="cu-abertos">—</dd>
+            </div>
+            <div>
+              <dt><i style="background:var(--magenta)"></i> Prazo ≤ 15 dias</dt>
+              <dd id="cu-criticos">—</dd>
+            </div>
+            <div>
+              <dt><i style="background:var(--gold)"></i> Interessados</dt>
+              <dd id="cu-pedidos">—</dd>
+            </div>
+          </dl>
+          <div class="bar" id="cu-bar" role="img" aria-label="Proporção de cursos com prazo crítico">
+            <span style="width:100%;background:rgba(207,228,255,.14)"></span>
+          </div>
+          <p class="note" id="cu-note">Prazos de indicação · manifestações da tropa em tempo real</p>
+          <span class="card-go">Abrir módulo
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+          </span>
+        </div>
+        <div class="cu-pista" id="cu-pista" aria-label="Próximos prazos de indicação">
+          <div class="cu-vazio">Carregando prazos…</div>
         </div>
       </div>
     </a>
@@ -1336,7 +1431,7 @@ function efJsonp(baseUrl){
     const cb = 'cb_' + Math.random().toString(36).slice(2);
     const s = document.createElement('script');
     let done = false;
-    const cleanup = ()=>{ window[cb] = ()=>{}; setTimeout(()=>{ try{ delete window[cb]; }catch(_){ window[cb]=undefined; } }, 10000); s.remove(); };
+    const cleanup = ()=>{ try{ delete window[cb]; }catch(_){ window[cb]=undefined; } s.remove(); };
     window[cb] = d => { done = true; cleanup(); resolve(d); };
     s.onerror = ()=>{ if(!done){ cleanup(); reject(new Error('rede')); } };
     s.src = baseUrl + (baseUrl.includes('?')?'&':'?') + 'callback=' + cb + '&_=' + Date.now();
@@ -1925,15 +2020,10 @@ async function carregarTransporte(){
   pintarCicloAT(fase);
   const nota = document.getElementById('at-note');
 
-  const AT_SB = {
-    url: 'https://sovrgsbdhdpxsaomspsp.supabase.co',
-    key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg'
-  };
-
-  // leitura direta via REST no Supabase do Auxílio Transporte (imune a cache)
+  // leitura direta via REST, imune a cache (mesma base/chave do sbCli)
   const atGet = async (caminho) => {
-    const r = await fetch(AT_SB.url + '/rest/v1/' + caminho, {
-      headers: { apikey: AT_SB.key, Authorization: 'Bearer ' + AT_SB.key },
+    const r = await fetch(SUPABASE_URL + '/rest/v1/' + caminho, {
+      headers: { apikey: SUPABASE_ANON, Authorization: 'Bearer ' + SUPABASE_ANON },
       cache: 'no-store'
     });
     if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -1992,8 +2082,234 @@ async function carregarTransporte(){
 }
 
 
+/* ═══════════════════════════════════════════════════════════════════
+   11 · DADOS · INDICAÇÃO PARA CURSOS
+   Lê a aba BANCO DE CURSOS (Google Sheets) + as tabelas cur_* do
+   Supabase. Estas duas constantes precisam apontar para o MESMO
+   projeto usado no cursos.html.
+   ═══════════════════════════════════════════════════════════════════ */
+const CUR_URL  = 'https://sovrgsbdhdpxsaomspsp.supabase.co';
+const CUR_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg';
+const CUR_PLAN = { id:'1x3nkmh-XndGlPW3BuPlp-C1kqK1nr2cx6NlQVOPmELw', aba:'BANCO DE CURSOS', faixa:'A1:AZ400' };
+
+const cuEl    = id => document.getElementById(id);
+const cuNorm  = s => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/\s+/g,' ').trim();
+const cuEsc   = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const cuHoje  = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+const cuBR    = d => d ? String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear() : '';
+const cuDias  = d => d ? Math.ceil((d - cuHoje()) / 86400000) : null;
+const cuIso   = s => { if(!s) return null; const m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? new Date(+m[1], +m[2]-1, +m[3]) : null; };
+
+async function cuGet(caminho){
+  const r = await fetch(CUR_URL + '/rest/v1/' + caminho, {
+    headers: { apikey: CUR_ANON, Authorization: 'Bearer ' + CUR_ANON }, cache:'no-store'
+  });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+function cuVal(c){
+  if (!c) return '';
+  if (c.f != null && c.f !== '') return String(c.f).trim();
+  if (c.v == null) return '';
+  if (typeof c.v === 'string' && /^Date\(/.test(c.v)){ const p = c.v.match(/\d+/g).map(Number); return cuBR(new Date(p[0], p[1], p[2])); }
+  return String(c.v).trim();
+}
+function cuData(c){
+  if (!c) return null;
+  if (typeof c.v === 'string' && /^Date\(/.test(c.v)){ const p = c.v.match(/\d+/g).map(Number); return new Date(p[0], p[1], p[2]); }
+  const a = String((c.f || c.v) || '');
+  const m = a.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+  if (m){ let an = +m[3]; if (an < 100) an += 2000; return new Date(an, +m[2]-1, +m[1]); }
+  const i = a.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return i ? new Date(+i[1], +i[2]-1, +i[3]) : null;
+}
+function cuChave(c){ return cuNorm((c.comando || 'SC') + '|' + String(c.sigla || c.nome || '').slice(0,40)).replace(/[^A-Z0-9|]/g,''); }
+
+async function cuLerPlanilha(){
+  const url = 'https://docs.google.com/spreadsheets/d/' + CUR_PLAN.id +
+              '/gviz/tq?tqx=out:json&headers=0&sheet=' + encodeURIComponent(CUR_PLAN.aba) +
+              '&range=' + CUR_PLAN.faixa;
+  const txt = await (await fetch(url)).text();
+  const m = txt.match(/setResponse\(([\s\S]*)\)/);
+  if (!m) throw new Error('planilha');
+  const j = JSON.parse(m[1]);
+  if (j.status === 'error') throw new Error('planilha');
+  const rows = (j.table && j.table.rows) || [];
+
+  /* descobre a linha de cabeçalho */
+  let iCab = 0, melhor = -1;
+  for (let i = 0; i < Math.min(rows.length, 12); i++){
+    const t = (rows[i].c || []).map(cuVal), jj = cuNorm(t.join(' '));
+    let s = t.filter(Boolean).length;
+    if (/CURSO/.test(jj)) s += 6;
+    if (/SIGLA/.test(jj)) s += 4;
+    if (/INICIO|TERMINO|DATA|PRAZO|LIMITE/.test(jj)) s += 3;
+    if (/COMANDO|TCA/.test(jj)) s += 2;
+    if (s > melhor){ melhor = s; iCab = i; }
+  }
+  const cab = (rows[iCab].c || []).map(cuVal).map(cuNorm);
+  const acha = res => { for (let i = 0; i < cab.length; i++){ if (cab[i] && res.some(r => r.test(cab[i]))) return i; } return null; };
+  const ix = {
+    sigla:   acha([/SIGLA/, /^COD/, /ABREV/]),
+    nome:    acha([/NOME DO CURSO/, /^CURSO$/, /^NOME$/, /DENOMINA/, /CURSO/]),
+    comando: acha([/COMANDO/, /^ODSA/, /^COM$/, /ORGAO/]),
+    limite:  acha([/LIMITE/, /INSCRI/, /MATRICULA/, /PRAZO/, /REMESSA/, /INDICACAO/]),
+    inicio:  acha([/INICIO/])
+  };
+  return rows.slice(iCab + 1).map(r => {
+    const cs = r.c || [], t = cs.map(cuVal), g = i => (i == null ? '' : (t[i] || '').trim());
+    const c = {
+      comando: g(ix.comando) || 'COMGEP', sigla: g(ix.sigla), nome: g(ix.nome),
+      limite: ix.limite == null ? null : cuData(cs[ix.limite]),
+      inicio: ix.inicio == null ? null : cuData(cs[ix.inicio])
+    };
+    c.chave = cuChave(c);
+    return c;
+  }).filter(c => c.sigla || c.nome);
+}
+
+async function carregarCursos(){
+  const nota = cuEl('cu-note'), alerta = cuEl('cu-alerta');
+  try {
+    const [plan, base, manifsTodas] = await Promise.all([
+      cuLerPlanilha().catch(() => []),
+      cuGet('cur_cursos?select=*').catch(() => []),
+      cuGet('cur_manifestacoes?select=id,curso_chave,status,aval_chefia,criada_em,nome_guerra')
+    ]);
+    const manifs = manifsTodas.filter(m => m.status !== 'cancelada');
+
+    /* funde planilha + cadastros e ajustes do Supabase */
+    const ajustes = {}, proprios = [];
+    base.forEach(b => {
+      const c = {
+        comando: b.comando, sigla: b.sigla, nome: b.nome,
+        limite: cuIso(b.data_limite), inicio: cuIso(b.data_inicio), oculto: b.oculto
+      };
+      c.chave = b.chave_planilha || cuChave(c);
+      if (b.chave_planilha) ajustes[b.chave_planilha] = c; else proprios.push(c);
+    });
+    const cursos = plan.map(c => {
+      const a = ajustes[c.chave];
+      if (!a) return c;
+      return { chave:c.chave, comando:a.comando || c.comando, sigla:a.sigla || c.sigla,
+               nome:a.nome || c.nome, limite:a.limite || c.limite, inicio:a.inicio || c.inicio, oculto:a.oculto };
+    }).concat(proprios).filter(c => !c.oculto);
+
+    /* contagens por curso */
+    const porCurso = {};
+    manifs.forEach(m => {
+      const o = porCurso[m.curso_chave] || (porCurso[m.curso_chave] = { total:0, semAval:0, aRemeter:0 });
+      o.total++;
+      if (!m.aval_chefia) o.semAval++;
+      if (m.status === 'recebida') o.aRemeter++;
+    });
+
+    const dados = cursos.map(c => ({ c, d: cuDias(c.limite), r: porCurso[c.chave] || { total:0, semAval:0, aRemeter:0 } }));
+    const abertos  = dados.filter(x => x.d == null || x.d >= 0);
+    const criticos = dados.filter(x => x.d != null && x.d >= 0 && x.d <= 15);
+    const prontos  = criticos.filter(x => x.r.aRemeter > 0);
+    const vazios   = criticos.filter(x => x.r.total === 0);
+    const aRemeter = manifs.filter(m => m.status === 'recebida').length;
+    const semAval  = manifs.filter(m => !m.aval_chefia && m.status === 'recebida').length;
+    const novas7   = manifs.filter(m => (Date.now() - new Date(m.criada_em).getTime()) < 7 * 86400000);
+
+    /* números */
+    countTo(cuEl('cu-abertos'),  abertos.length);
+    countTo(cuEl('cu-criticos'), criticos.length);
+    countTo(cuEl('cu-pedidos'),  manifs.length);
+
+    /* KPI da faixa do topo */
+    countTo(cuEl('kpi-cur'), criticos.length);
+    cuEl('kpi-cur-tot').textContent = '/' + abertos.length;
+    cuEl('kpi-cur').style.color = criticos.length ? '#f0abfc' : '';
+
+    /* barra: crítico · atenção · folga */
+    const aten = abertos.filter(x => x.d != null && x.d > 15 && x.d <= 40).length;
+    const folga = Math.max(0, abertos.length - criticos.length - aten);
+    const tot = Math.max(1, abertos.length);
+    cuEl('cu-bar').innerHTML =
+      `<span style="width:${criticos.length/tot*100}%;background:var(--magenta)"></span>` +
+      `<span style="width:${aten/tot*100}%;background:var(--amber)"></span>` +
+      `<span style="width:${folga/tot*100}%;background:var(--jade)"></span>`;
+
+    /* etiqueta do card */
+    const tag = cuEl('cu-tag');
+    tag.textContent = criticos.length ? criticos.length + ' prazo(s) crítico(s)' : (abertos.length ? 'Ativo' : 'Sem oferta');
+
+    /* alerta — a mensagem principal */
+    const linhas = [];
+    let nivel = 'ok';
+    if (prontos.length){
+      nivel = '';
+      linhas.push('🚨 <b>' + prontos.length + ' curso(s)</b> com prazo em até 15 dias já têm indicação pronta para remeter.');
+    }
+    if (vazios.length){
+      if (nivel === 'ok') nivel = 'aten';
+      linhas.push('⏳ <b>' + vazios.length + ' curso(s)</b> encerram em até 15 dias <b>sem nenhum interessado</b>.');
+    }
+    if (novas7.length){
+      if (nivel === 'ok') nivel = 'aten';
+      linhas.push('👥 <b>' + novas7.length + '</b> manifestação(ões) nos últimos 7 dias' + (semAval ? ' — <b>' + semAval + '</b> sem aval da chefia' : '') + '.');
+    } else if (semAval){
+      if (nivel === 'ok') nivel = 'aten';
+      linhas.push('⚠️ <b>' + semAval + '</b> pedido(s) aguardando o aval da chefia imediata.');
+    }
+    if (!linhas.length){
+      const prox = abertos.filter(x => x.d != null).sort((a,b) => a.d - b.d)[0];
+      linhas.push('✔ Nenhuma pendência de indicação.' + (prox ? ' Próximo prazo: <b>' + cuEsc(prox.c.sigla || prox.c.nome) + '</b> em ' + prox.d + ' dia(s).' : ''));
+    }
+    alerta.className = 'cu-alerta' + (nivel ? ' ' + nivel : '');
+    alerta.innerHTML = linhas.join('<br>');
+
+    /* sino de manifestações novas desde a última visita ao módulo */
+    const visto = Number(localStorage.getItem('cu_visto') || 0);
+    const novas = manifs.filter(m => new Date(m.criada_em).getTime() > visto);
+    const sinoAntigo = tag.parentElement.querySelector('.cu-sino');
+    if (sinoAntigo) sinoAntigo.remove();
+    if (visto && novas.length){
+      const s = document.createElement('span');
+      s.className = 'cu-sino';
+      s.textContent = novas.length + ' nova' + (novas.length > 1 ? 's' : '');
+      s.title = novas.slice(0,6).map(m => m.nome_guerra).filter(Boolean).join(', ');
+      tag.parentElement.appendChild(s);
+    }
+    if (!visto) localStorage.setItem('cu_visto', String(Date.now()));
+
+    /* próximos prazos */
+    const lista = abertos.filter(x => x.d != null).sort((a,b) => a.d - b.d).slice(0, 3);
+    cuEl('cu-pista').innerHTML = lista.length ? lista.map(x => {
+      const cls = x.d <= 15 ? 'crit' : (x.d <= 40 ? 'aten' : '');
+      const extra = x.r.total ? x.r.total + ' interessado(s)' : 'sem interessados';
+      return '<div class="cu-item ' + cls + '">' +
+        '<div class="cu-d"><b>' + x.d + '</b><small>' + (x.d === 1 ? 'dia' : 'dias') + '</small></div>' +
+        '<div class="cu-t"><strong>' + cuEsc(x.c.sigla || x.c.nome || '—') + '</strong>' +
+        '<span>' + cuEsc(x.c.comando || '') + ' · limite ' + cuEsc(cuBR(x.c.limite)) + ' · ' + extra + '</span></div></div>';
+    }).join('') : '<div class="cu-vazio">Nenhum curso com prazo em aberto</div>';
+
+    if (nota) nota.textContent = manifs.length
+      ? manifs.length + ' manifestação(ões) registradas · ' + aRemeter + ' aguardando remessa'
+      : 'Nenhuma manifestação registrada até agora';
+
+  } catch (e){
+    console.warn('Indicação para cursos indisponível:', e.message);
+    if (alerta){
+      alerta.className = 'cu-alerta aten';
+      alerta.textContent = /cur_|relation|does not exist|404/i.test(e.message || '')
+        ? 'Rode o SQL do módulo no Supabase para ativar'
+        : 'Módulo de cursos indisponível · abra para verificar';
+    }
+    if (nota) nota.textContent = 'Prazos de indicação · manifestações da tropa em tempo real';
+  }
+}
+
+/* zera o contador de novidades ao entrar no módulo */
+document.getElementById('cu-card')?.addEventListener('click', () => {
+  localStorage.setItem('cu_visto', String(Date.now()));
+});
+
+
 /* ═══ carga inicial + atualização periódica ═══ */
-function atualizar(){ carregarLimpeza(); carregarEfetivo(); carregarDiarias(); carregarTransporte(); }
+function atualizar(){ carregarLimpeza(); carregarEfetivo(); carregarDiarias(); carregarTransporte(); carregarCursos(); }
 montarGaugeIdx();
 atualizar();
 setInterval(atualizar, 60000);
