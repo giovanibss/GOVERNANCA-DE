@@ -126,24 +126,36 @@ button.acao.vermelho{background:linear-gradient(135deg,#ef7a7a,var(--rubi));box-
 /* ── grade de cursos ── */
 .filtros{display:flex;gap:.7rem;flex-wrap:wrap;align-items:flex-end;margin-bottom:1.1rem}
 .gradeCursos{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:.9rem}
-.cursoCard{
+
+/* Estilo novo para o acordeão dos cursos */
+details.cursoCard {
   border:1px solid var(--linha);border-radius:13px;background:var(--navy-1);
-  padding:.95rem 1rem;display:flex;flex-direction:column;gap:.55rem;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;position:relative;overflow:hidden;
   transition:border-color .2s,transform .2s;
 }
-.cursoCard:hover{border-color:rgba(212,168,75,.45);transform:translateY(-2px)}
-.cursoCard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--texto-3)}
-.cursoCard.aberto::before{background:var(--jade)}
-.cursoCard.atencao::before{background:var(--ambar)}
-.cursoCard.urgente::before{background:var(--rubi)}
-.cursoCard.encerrado{opacity:.55}
-.cursoCard .topoCard{display:flex;align-items:flex-start;gap:.5rem;flex-wrap:wrap}
-.cursoCard .sigla{font-family:'Rajdhani';font-weight:700;font-size:1.25rem;color:var(--ouro-2);letter-spacing:.05em;line-height:1}
-.cursoCard h4{font-size:.86rem;font-weight:600;color:var(--texto);line-height:1.35}
+details.cursoCard:hover{border-color:rgba(212,168,75,.45);transform:translateY(-2px)}
+details.cursoCard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--texto-3)}
+details.cursoCard.aberto::before{background:var(--jade)}
+details.cursoCard.atencao::before{background:var(--ambar)}
+details.cursoCard.urgente::before{background:var(--rubi)}
+details.cursoCard.encerrado{opacity:.55}
+
+details.cursoCard summary {
+  padding:.8rem 1rem; cursor:pointer; list-style:none; position:relative;
+}
+details.cursoCard summary::-webkit-details-marker{display:none}
+details.cursoCard[open] summary{border-bottom:1px solid var(--linha);background:rgba(207,228,255,.02)}
+details.cursoCard summary::after{content:'▼';position:absolute;right:1rem;top:1.1rem;font-size:.7rem;color:var(--texto-3);transition:transform .2s}
+details.cursoCard[open] summary::after{transform:rotate(180deg)}
+
+.cursoCard .topoCard{display:flex;align-items:flex-start;gap:.5rem;flex-wrap:wrap;padding-right:1rem}
+.cursoCard .sigla{font-family:'Rajdhani';font-weight:700;font-size:1.15rem;color:var(--ouro-2);letter-spacing:.05em;line-height:1}
+.cursoCard h4{font-size:.84rem;font-weight:600;color:var(--texto);line-height:1.3;margin-top:.3rem;padding-right:1rem}
+
+.cursoDetalhes{padding:.8rem 1rem;display:flex;flex-direction:column;gap:.55rem}
 .cursoCard .meta{display:flex;flex-wrap:wrap;gap:.35rem .9rem;font-size:.72rem;color:var(--texto-3)}
 .cursoCard .meta b{color:var(--texto-2);font-weight:600}
-.cursoCard .prazo{font-size:.74rem;font-weight:600}
-.cursoCard .rodapeCard{display:flex;gap:.45rem;margin-top:auto;padding-top:.5rem;flex-wrap:wrap}
+.cursoCard .rodapeCard{display:flex;gap:.45rem;margin-top:.3rem;padding-top:.5rem;flex-wrap:wrap;border-top:1px dashed var(--linha)}
 .vazio{color:var(--texto-3);font-size:.84rem;padding:1.4rem;text-align:center;border:1px dashed var(--linha);border-radius:12px}
 
 /* ── tabelas ── */
@@ -356,7 +368,7 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
     <div class="painel" id="pinGate" style="max-width:460px">
       <h3>🔒 Acesso restrito à secretaria</h3>
       <p style="font-size:.8rem;color:var(--texto-2);margin-bottom:1rem">
-        Informe o PIN da secretaria para abrir a consolidação das indicações, o cadastro de cursos e o envio das TCA.
+        Informe o PIN da secretaria para abrir a consolidação das indicações e gerenciar cursos.
       </p>
       <div class="linhaCtl" style="margin-bottom:0">
         <div class="campo">
@@ -436,15 +448,15 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
       <div class="painel">
         <h3>Cadastro de cursos</h3>
         <p style="font-size:.78rem;color:var(--texto-2);margin-bottom:1rem">
-          Use para <b>cursos inopinados</b> (fora da TCA) ou para <b>ajustar/completar</b> um curso vindo da planilha — por exemplo, incluir a data limite de matrícula que faltou.
+          Cadastre os cursos que serão ofertados. Eles aparecerão para o efetivo manifestar interesse na página principal.
         </p>
         <div class="linhaCtl">
-          <button class="acao fantasma" id="btnNovoCurso">+ Novo curso inopinado</button>
+          <button class="acao fantasma" id="btnNovoCurso">+ Novo curso</button>
           <button class="acao fantasma" id="btnListarCursosSec">Ver cursos cadastrados</button>
         </div>
         <div class="tabScroll" id="boxCursosSec" style="display:none">
           <table class="sec">
-            <thead><tr><th>Sigla</th><th>Curso</th><th>Comando</th><th>Limite</th><th>Origem</th><th style="text-align:right">Ações</th></tr></thead>
+            <thead><tr><th>Sigla</th><th>Curso</th><th>Comando</th><th>Limite</th><th style="text-align:right">Ações</th></tr></thead>
             <tbody id="corpoCursosSec"></tbody>
           </table>
         </div>
@@ -467,8 +479,8 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
 
       <!-- diagnóstico -->
       <div class="painel">
-        <h3>Diagnóstico das planilhas</h3>
-        <p style="font-size:.78rem;color:var(--texto-2);margin-bottom:.8rem">Conferência das colunas que o módulo reconheceu em cada planilha de origem.</p>
+        <h3>Diagnóstico do Módulo</h3>
+        <p style="font-size:.78rem;color:var(--texto-2);margin-bottom:.8rem">Conferência dos cadastros em banco de dados e sincronização.</p>
         <div id="diagnostico" style="font-size:.76rem;color:var(--texto-2);line-height:1.7"></div>
       </div>
     </div>
@@ -582,11 +594,10 @@ const SB = {
 
 const PLAN = {
   efetivo:  { id:'1UOMh4y-wHL8kHcB9TUUcEmkeF7z6KYAs4vipsoOFgfA', aba:'Efetivo',          faixa:'A4:AZ200' },
-  civis:    { id:'1x3nkmh-XndGlPW3BuPlp-C1kqK1nr2cx6NlQVOPmELw', aba:'BANCO DE CIVIS',   faixa:'A2:Z200'  },
-  cursos:   { id:'1x3nkmh-XndGlPW3BuPlp-C1kqK1nr2cx6NlQVOPmELw', aba:'BANCO DE CURSOS',  faixa:'A1:AZ400' }
+  civis:    { id:'1x3nkmh-XndGlPW3BuPlp-C1kqK1nr2cx6NlQVOPmELw', aba:'BANCO DE CIVIS',   faixa:'A2:Z200'  }
 };
 
-/* imagem de fundo do PDF — o módulo tenta caminhos baseados na estrutura */
+/* imagem de fundo do PDF */
 const HERO_CANDIDATOS = ['assets/hero-afa.jpg','assets/hero.jpg','assets/hero.png','assets/afa.jpg'];
 let HERO_OK = '';
 
@@ -621,13 +632,6 @@ async function sbGet(caminho){
 async function sbPost(tabela, corpo){
   const r = await fetch(SB.url + '/rest/v1/' + tabela, {
     method: 'POST', headers: sbCab({ Prefer: 'return=representation' }), body: JSON.stringify(corpo)
-  });
-  if (!r.ok) throw new Error('Gravação falhou (' + r.status + ')');
-  return r.json();
-}
-async function sbUpsert(tabela, corpo, conflito){
-  const r = await fetch(SB.url + '/rest/v1/' + tabela + '?on_conflict=' + conflito, {
-    method: 'POST', headers: sbCab({ Prefer: 'resolution=merge-duplicates,return=representation' }), body: JSON.stringify(corpo)
   });
   if (!r.ok) throw new Error('Gravação falhou (' + r.status + ')');
   return r.json();
@@ -677,19 +681,6 @@ function celValor(c){
   }
   return String(c.v).trim();
 }
-function celData(c){
-  if (!c) return null;
-  if (typeof c.v === 'string' && /^Date\(/.test(c.v)){
-    const p = c.v.match(/\d+/g).map(Number);
-    return new Date(p[0], p[1], p[2]);
-  }
-  const alvo = String(c.f || c.v || '');
-  const m = alvo.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
-  if (m){ let a = +m[3]; if (a < 100) a += 2000; return new Date(a, +m[2]-1, +m[1]); }
-  const iso = alvo.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (iso) return new Date(+iso[1], +iso[2]-1, +iso[3]);
-  return null;
-}
 function linhaTextos(row){ return (row.c || []).map(celValor); }
 
 /* mapeia um cabeçalho por lista de expressões */
@@ -706,7 +697,7 @@ function mapear(cabecalho, regras){
 }
 
 /* ══════════════ ESTADO ══════════════ */
-let militares = [], civis = [], cursosPlan = [], cursosBase = [], cursos = [], cursosTodos = [];
+let militares = [], civis = [], cursos = [];
 let manifs = [], tcas = [];
 let diag = { efetivo:'', civis:'', cursos:'' };
 let cursoAlvo = null;   // curso do modal de manifestação
@@ -793,101 +784,24 @@ function preencherSelectPessoas(sel, tipo){
 }
 
 /* ══════════════ CURSOS ══════════════ */
-function chaveCurso(c){
-  return norm((c.comando || 'SC') + '|' + (c.sigla || c.nome || '').slice(0, 40)).replace(/[^A-Z0-9|]/g, '');
-}
-
 async function carregarCursos(){
-  /* --- planilha BANCO DE CURSOS --- */
-  cursosPlan = [];
+  cursos = [];
   try {
-    const rows = await lerPlanilha(PLAN.cursos);
-    /* acha a linha de cabeçalho: a que mais “parece” um cabeçalho de cursos */
-    let iCab = 0, melhor = -1;
-    for (let i = 0; i < Math.min(rows.length, 12); i++){
-      const t = linhaTextos(rows[i]);
-      const cheios = t.filter(Boolean).length;
-      const j = norm(t.join(' '));
-      let s = cheios;
-      if (/CURSO/.test(j)) s += 6;
-      if (/SIGLA/.test(j)) s += 4;
-      if (/INICIO|TERMINO|DATA|PRAZO|LIMITE/.test(j)) s += 3;
-      if (/COMANDO|TCA/.test(j)) s += 2;
-      if (s > melhor){ melhor = s; iCab = i; }
-    }
-    const cab = linhaTextos(rows[iCab] || { c: [] });
-    const ix = mapear(cab, {
-      sigla:    [/SIGLA/, /^COD/, /ABREV/],
-      nome:     [/NOME DO CURSO/, /^CURSO$/, /^NOME$/, /DENOMINA/, /CURSO/],
-      comando:  [/COMANDO/, /^ODSA/, /^COM$/, /ORGAO/],
-      limite:   [/LIMITE/, /INSCRI/, /MATRICULA/, /PRAZO/, /REMESSA/, /INDICACAO/],
-      inicio:   [/INICIO/, /^DE$/],
-      termino:  [/TERMINO/, /^FIM$/, /^ATE$/],
-      modalidade:[/MODALIDADE/, /^TIPO$/, /EAD/],
-      local:    [/LOCAL/, /SEDE/],
-      vagas:    [/VAGA/],
-      prereq:   [/PRE.?REQUISITO/, /REQUISITO/],
-      publico:  [/PUBLICO/, /DESTINA/, /ALVO/],
-      tca:      [/TCA/, /NORMA/],
-      obs:      [/OBSERVA/, /^OBS/]
-    });
-    diag.cursos = 'cabeçalho na linha ' + (iCab + 1) + ' · ' +
-      (Object.entries(ix).map(([k,v]) => k + '→' + (cab[v] || '?')).join(' · ') || 'nenhuma coluna reconhecida');
-
-    cursosPlan = rows.slice(iCab + 1).map((r, n) => {
-      const cs = r.c || [];
-      const t = linhaTextos(r);
-      const g = i => (i == null ? '' : (t[i] || '').trim());
-      const gd = i => (i == null ? null : celData(cs[i]));
-      const extras = cab.map((h, i) => ({ k: h, v: t[i] })).filter(x => x.k && x.v);
-      const c = {
-        origem:'TCA', linha: n,
-        comando: g(ix.comando) || 'COMGEP',
-        sigla: g(ix.sigla), nome: g(ix.nome),
-        limite: gd(ix.limite), inicio: gd(ix.inicio), termino: gd(ix.termino),
-        modalidade: g(ix.modalidade), local: g(ix.local), vagas: g(ix.vagas),
-        prereq: g(ix.prereq), publico: g(ix.publico), tca: g(ix.tca), obs: g(ix.obs),
-        extras
-      };
-      c.chave = chaveCurso(c);
-      return c;
-    }).filter(c => (c.sigla || c.nome));
-  } catch (e){
-    diag.cursos = '⚠️ ' + e.message;
-    console.warn(e);
-  }
-
-  /* --- cursos do Supabase (inopinados + ajustes) --- */
-  cursosBase = [];
-  try { cursosBase = await sbGet('cur_cursos?select=*&order=data_limite'); }
-  catch (e){ console.warn(e); }
-
-  /* --- fusão --- */
-  const ajustes = {}, proprios = [];
-  cursosBase.forEach(b => {
-    const c = {
-      id: b.id, origem: b.chave_planilha ? 'TCA' : 'INOPINADO',
-      chave: b.chave_planilha || chaveCurso({ comando: b.comando, sigla: b.sigla, nome: b.nome }),
+    const res = await sbGet('cur_cursos?select=*&order=data_limite');
+    cursos = res.map(b => ({
+      id: b.id, chave: b.id,
       comando: b.comando, sigla: b.sigla, nome: b.nome,
       limite: isoParaData(b.data_limite), inicio: isoParaData(b.data_inicio), termino: isoParaData(b.data_termino),
       modalidade: b.modalidade, local: b.local_presencial, vagas: b.vagas,
       prereq: b.pre_requisitos, publico: b.publico_alvo, tca: b.tca, obs: b.observacoes,
-      oculto: b.oculto, extras: []
-    };
-    if (b.chave_planilha) ajustes[b.chave_planilha] = c; else proprios.push(c);
-  });
-
-  cursosTodos = cursosPlan.map(c => {
-    const a = ajustes[c.chave];
-    if (!a) return c;
-    const juntos = Object.assign({}, c);
-    ['comando','sigla','nome','modalidade','local','vagas','prereq','publico','tca','obs'].forEach(k => { if (a[k]) juntos[k] = a[k]; });
-    ['limite','inicio','termino'].forEach(k => { if (a[k]) juntos[k] = a[k]; });
-    juntos.id = a.id; juntos.oculto = a.oculto; juntos.ajustado = true;
-    return juntos;
-  }).concat(proprios);
-
-  cursos = cursosTodos.filter(c => !c.oculto);
+      extras: []
+    }));
+  } catch (e){
+    diag.cursos = '⚠️ Erro ao carregar cursos do banco: ' + e.message;
+    console.warn(e);
+  }
+  
+  diag.cursos = 'Cursos carregados com sucesso de forma 100% independente da planilha.';
 
   /* filtro de comandos */
   const comandos = [...new Set(cursos.map(c => c.comando).filter(Boolean))].sort();
@@ -928,16 +842,15 @@ function pintarCursos(){
 
   $('gradeCursos').innerHTML = lista.length ? lista.map(c => {
     const s = situacao(c);
-    const n = cont[c.chave] || 0;
+    const n = cont[c.id] || 0;
     const periodo = [c.inicio ? dataBR(c.inicio) : '', c.termino ? dataBR(c.termino) : ''].filter(Boolean).join(' a ');
     return '<details class="cursoCard ' + s.classe + '">' +
       '<summary>' +
-        '<div style="display:flex;align-items:flex-start;gap:.5rem;flex-wrap:wrap">' +
+        '<div class="topoCard">' +
           '<span class="sigla">' + esc(c.sigla || '—') + '</span>' + s.chip +
-          (c.origem === 'INOPINADO' ? ' <span class="chip lilas">Inopinado</span>' : '') +
         '</div>' +
         '<h4>' + esc(c.nome || 'Curso sem denominação') + '</h4>' +
-        '<div style="font-size:.72rem;color:var(--texto-3);margin-top:.2rem"><b>' + esc(c.comando || '—') + '</b>' + (s.txt ? ' · 🗓 ' + esc(s.txt) : '') + '</div>' +
+        '<div style="font-size:.72rem;color:var(--texto-3);margin-top:.2rem;padding-right:1rem"><b>' + esc(c.comando || '—') + '</b>' + (s.txt ? ' · 🗓 ' + esc(s.txt) : '') + '</div>' +
       '</summary>' +
       '<div class="cursoDetalhes">' +
         '<div class="meta">' +
@@ -948,8 +861,8 @@ function pintarCursos(){
         (c.prereq ? '<div style="font-size:.72rem;color:var(--texto-3);line-height:1.45"><b style="color:var(--texto-2)">Pré-requisitos:</b> ' + esc(c.prereq) + '</div>' : '') +
         (n ? '<div style="font-size:.72rem;color:var(--texto-3)">👥 ' + n + ' manifestação(ões) na secretaria</div>' : '') +
         '<div class="rodapeCard">' +
-          '<button class="acao mini" data-manif="' + esc(c.chave) + '"' + (s.dias != null && s.dias < 0 ? ' disabled title="Prazo encerrado"' : '') + '>Manifestar interesse</button>' +
-          '<button class="acao fantasma mini" data-detalhe="' + esc(c.chave) + '">Detalhes</button>' +
+          '<button class="acao mini" data-manif="' + c.id + '"' + (s.dias != null && s.dias < 0 ? ' disabled title="Prazo encerrado"' : '') + '>Manifestar interesse</button>' +
+          '<button class="acao fantasma mini" data-detalhe="' + c.id + '">Detalhes</button>' +
         '</div>' +
       '</div></details>';
   }).join('') : '<div class="vazio">Nenhum curso encontrado com esses filtros.</div>';
@@ -959,10 +872,10 @@ function pintarCursos(){
   $('gradeCursos').querySelectorAll('[data-detalhe]').forEach(b => b.addEventListener('click', () => verDetalhe(b.dataset.detalhe)));
 }
 
-function acharCurso(chave){ return cursosTodos.find(c => c.chave === chave) || null; }
+function acharCurso(id){ return cursos.find(c => c.id === id) || null; }
 
-function verDetalhe(chave){
-  const c = acharCurso(chave); if (!c) return;
+function verDetalhe(id){
+  const c = acharCurso(id); if (!c) return;
   const linhas = [];
   const add = (k, v) => { if (v) linhas.push('<b style="color:var(--ouro-2)">' + esc(k) + ':</b> ' + esc(v)); };
   add('Grande comando', c.comando); add('Sigla', c.sigla); add('Curso', c.nome);
@@ -977,8 +890,8 @@ function verDetalhe(chave){
 }
 
 /* ══════════════ MANIFESTAÇÃO ══════════════ */
-function abrirManifestacao(chave){
-  cursoAlvo = acharCurso(chave);
+function abrirManifestacao(id){
+  cursoAlvo = acharCurso(id);
   if (!cursoAlvo) return;
   const s = situacao(cursoAlvo);
   $('manifCurso').innerHTML = '<b style="color:var(--ouro-2)">' + esc(cursoAlvo.sigla || '') + '</b> — ' +
@@ -1018,7 +931,7 @@ async function enviarManifestacao(){
   }
   const aval = document.querySelector('input[name=aval]:checked').value === 'sim';
   const corpo = {
-    curso_chave: cursoAlvo.chave,
+    curso_chave: cursoAlvo.id,
     curso_snapshot: {
       comando: cursoAlvo.comando, sigla: cursoAlvo.sigla, nome: cursoAlvo.nome,
       local: cursoAlvo.local || '', modalidade: cursoAlvo.modalidade || '',
@@ -1136,10 +1049,10 @@ async function verificarPin(){
 function preencherSelectCursoSec(){
   const cont = {};
   manifs.forEach(m => { if (m.status !== 'cancelada') cont[m.curso_chave] = (cont[m.curso_chave] || 0) + 1; });
-  const comPedido = cursosTodos.filter(c => cont[c.chave]);
-  const sem = cursos.filter(c => !cont[c.chave]);
-  const opc = c => '<option value="' + esc(c.chave) + '">' + esc((c.sigla || '') + ' — ' + (c.nome || '')) +
-                   (cont[c.chave] ? ' (' + cont[c.chave] + ')' : '') + '</option>';
+  const comPedido = cursos.filter(c => cont[c.id]);
+  const sem = cursos.filter(c => !cont[c.id]);
+  const opc = c => '<option value="' + esc(c.id) + '">' + esc((c.sigla || '') + ' — ' + (c.nome || '')) +
+                   (cont[c.id] ? ' (' + cont[c.id] + ')' : '') + '</option>';
   const atual = $('secCurso').value;
   $('secCurso').innerHTML = '<option value="">— selecione o curso —</option>' +
     (comPedido.length ? '<optgroup label="Com manifestações">' + comPedido.map(opc).join('') + '</optgroup>' : '') +
@@ -1148,14 +1061,14 @@ function preencherSelectCursoSec(){
 }
 
 function manifsDoCurso(){
-  const ch = $('secCurso').value;
-  return manifs.filter(m => m.curso_chave === ch && m.status !== 'cancelada')
+  const id = $('secCurso').value;
+  return manifs.filter(m => m.curso_chave === id && m.status !== 'cancelada')
     .sort((a,b) => (a.prioridade || 999) - (b.prioridade || 999) || new Date(a.criada_em) - new Date(b.criada_em));
 }
 
 /* ── radar de prazos: a visão que a secretaria abre primeiro ── */
 function resumoDoCurso(c){
-  const meus = manifs.filter(m => m.curso_chave === c.chave && m.status !== 'cancelada');
+  const meus = manifs.filter(m => m.curso_chave === c.id && m.status !== 'cancelada');
   return {
     total: meus.length,
     semAval: meus.filter(m => !m.aval_chefia).length,
@@ -1220,14 +1133,14 @@ function pintarPrazos(){
       r.remetidos ? '<span class="chip ouro">' + r.remetidos + ' remetido(s)</span>' : '',
       r.matriculados ? '<span class="chip jade">' + r.matriculados + ' matriculado(s)</span>' : ''
     ].filter(Boolean).join(' ');
-    return '<div class="prazoLinha' + (c.chave === selecionado ? ' sel' : '') + '" data-pz="' + esc(c.chave) + '">' +
+    return '<div class="prazoLinha' + (c.id === selecionado ? ' sel' : '') + '" data-pz="' + c.id + '">' +
       '<div class="prazoDias ' + cor + pulsa + '"><b>' + numero + '</b><small>' + legenda + '</small></div>' +
       '<div class="prazoCorpo">' +
         '<div class="titulo">' + esc(c.sigla || '—') + ' <em>' + esc(c.nome || '') + '</em></div>' +
         '<div class="sub"><span>' + esc(c.comando || '—') + '</span>' +
           '<span>🗓 limite ' + esc(dataBR(c.limite) || 'não informado') + '</span>' +
           (c.inicio ? '<span>início ' + esc(dataBR(c.inicio)) + '</span>' : '') +
-          (c.origem === 'INOPINADO' ? '<span>inopinado</span>' : '') + '</div>' +
+          '</div>' +
         '<div class="barra"><i style="width:' + pct + '%;background:' + corBarra + '"></i></div>' +
       '</div>' +
       '<div class="prazoAcoes">' + marcas + '</div>' +
@@ -1299,7 +1212,7 @@ function pintarSecretaria(){
   $('diagnostico').innerHTML =
     '<b style="color:var(--ouro-2)">Efetivo (militares):</b> ' + esc(diag.efetivo) + ' — <b>' + militares.length + '</b> registros<br>' +
     '<b style="color:var(--ouro-2)">Banco de civis:</b> ' + esc(diag.civis) + ' — <b>' + civis.length + '</b> registros<br>' +
-    '<b style="color:var(--ouro-2)">Banco de cursos:</b> ' + esc(diag.cursos) + ' — <b>' + cursosPlan.length + '</b> cursos da TCA + <b>' + cursosBase.filter(c => !c.chave_planilha).length + '</b> inopinados';
+    '<b style="color:var(--ouro-2)">Banco de cursos (Supabase):</b> ' + esc(diag.cursos) + ' — <b>' + cursos.length + '</b> cursos ativos';
 }
 
 async function marcarRemetida(){
@@ -1391,12 +1304,10 @@ function gerarPdf(){
 }
 
 /* ══════════════ CADASTRO DE CURSOS ══════════════ */
-function abrirModalCurso(chave){
-  cursoEdit = chave ? acharCurso(chave) : null;
-  $('cursoTitulo').textContent = cursoEdit ? 'Ajustar curso' : 'Novo curso inopinado';
-  $('cursoLegenda').textContent = cursoEdit
-    ? 'Os campos preenchidos aqui substituem o que vem da planilha da TCA. Deixe em branco o que não quiser alterar.'
-    : 'Preencha os dados que aparecerão para os militares e no cabeçalho da planilha.';
+function abrirModalCurso(id){
+  cursoEdit = id ? acharCurso(id) : null;
+  $('cursoTitulo').textContent = cursoEdit ? 'Ajustar curso' : 'Novo curso';
+  $('cursoLegenda').textContent = 'Preencha os dados que aparecerão para os militares e no cabeçalho da planilha.';
   const c = cursoEdit || {};
   $('cComando').value = c.comando || ''; $('cSigla').value = c.sigla || ''; $('cNome').value = c.nome || '';
   $('cLimite').value = dataParaIso(c.limite) || ''; $('cInicio').value = dataParaIso(c.inicio) || '';
@@ -1415,10 +1326,7 @@ async function salvarCurso(){
   };
   if (!corpo.sigla && !corpo.nome){ alert('Informe pelo menos a sigla ou o nome do curso.'); return; }
   try {
-    if (cursoEdit && cursoEdit.origem === 'TCA'){
-      corpo.chave_planilha = cursoEdit.chave;
-      await sbUpsert('cur_cursos', corpo, 'chave_planilha');
-    } else if (cursoEdit && cursoEdit.id){
+    if (cursoEdit && cursoEdit.id){
       await sbPatch('cur_cursos?id=eq.' + cursoEdit.id, corpo);
     } else {
       await sbPost('cur_cursos', corpo);
@@ -1432,39 +1340,21 @@ function listarCursosSec(){
   $('corpoCursosSec').innerHTML = cursos.map(c =>
     '<tr><td><b>' + esc(c.sigla || '—') + '</b></td><td>' + esc(c.nome || '') + '</td><td>' + esc(c.comando || '') + '</td>' +
     '<td>' + esc(dataBR(c.limite) || '—') + '</td>' +
-    '<td>' + (c.origem === 'INOPINADO' ? '<span class="chip lilas">Inopinado</span>' : '<span class="chip cinza">TCA</span>') +
-      (c.ajustado ? ' <span class="chip ouro">ajustado</span>' : '') + '</td>' +
     '<td style="text-align:right;white-space:nowrap">' +
-      '<button class="acao fantasma mini" data-edit="' + esc(c.chave) + '">Ajustar</button> ' +
-      '<button class="acao fantasma mini" data-excluir="' + esc(c.chave) + '" data-origem="' + c.origem + '" data-id="' + (c.id || '') + '">Excluir</button>' +
-      (c.ajustado && c.origem === 'TCA' ? ' <button class="acao fantasma mini" data-delc="' + c.id + '">Desfazer ajuste</button>' : '') + 
+      '<button class="acao fantasma mini" data-edit="' + c.id + '">Ajustar</button> ' +
+      '<button class="acao fantasma mini" data-excluir="' + c.id + '">Excluir</button>' +
     '</td></tr>').join('');
 
   $('corpoCursosSec').querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => abrirModalCurso(b.dataset.edit)));
   
-  $('corpoCursosSec').querySelectorAll('[data-delc]').forEach(b => b.addEventListener('click', async () => {
-    if (!confirm('Desfazer as alterações deste curso? Ele voltará a exibir os dados originais da planilha.')) return;
-    await sbDel('cur_cursos?id=eq.' + b.dataset.delc);
-    await carregarCursos(); pintarCursos(); listarCursosSec(); pintarSecretaria();
-  }));
-
   $('corpoCursosSec').querySelectorAll('[data-excluir]').forEach(b => b.addEventListener('click', async () => {
-    const origem = b.dataset.origem;
-    const id = b.dataset.id;
-    const chave = b.dataset.excluir;
-    
-    if (!confirm('Tem certeza que deseja excluir este curso? Ele será removido permanentemente da visualização.')) return;
-
-    if (origem === 'INOPINADO') {
-      await sbDel('cur_cursos?id=eq.' + id);
-    } else {
-      if (id) {
-        await sbPatch('cur_cursos?id=eq.' + id, { oculto: true });
-      } else {
-        await sbPost('cur_cursos', { chave_planilha: chave, oculto: true });
-      }
+    if (!confirm('Tem certeza que deseja excluir este curso permanentemente? O curso será removido da base de dados.')) return;
+    try {
+      await sbDel('cur_cursos?id=eq.' + b.dataset.excluir);
+      await carregarCursos(); pintarCursos(); listarCursosSec(); pintarSecretaria();
+    } catch (e) {
+      alert('Não consegui excluir: ' + e.message);
     }
-    await carregarCursos(); pintarCursos(); listarCursosSec(); pintarSecretaria();
   }));
 }
 
@@ -1575,8 +1465,6 @@ async function iniciar(recarga){
   await carregarCursos();
   pintarCursos();
   preencherSelectPessoas($('mPessoa'), 'militar');
-  if (!cursos.length) faixa($('faixaCursos'), 'alerta',
-    '⚠️ Nenhum curso foi lido. Confira o compartilhamento da planilha (“qualquer pessoa com o link”) e o nome da aba <b>BANCO DE CURSOS</b>. O painel da secretaria mostra o diagnóstico completo.');
   if (secLiberada() && $('telaSec').style.display !== 'none') pintarSecretaria();
 }
 iniciar();
