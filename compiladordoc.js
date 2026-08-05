@@ -21,7 +21,7 @@ const CompiladorDoc = (function() {
     return (v ?? 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   }
 
-  const logoAfa = 'assets/cocar-fab.png';
+  const logoAfa = 'assets/brasao-afa.jpg';
 
   const estiloBase = `
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -83,7 +83,7 @@ const CompiladorDoc = (function() {
     <title>DIAS_A_SEREM_DEDUZIDOS_TODOS_${mesAbrev}_${ano}</title>
     <style>${estiloBase}</style></head><body>
     <div class="cab-doc">
-      <div class="logo-area"><img src="${logoAfa}" alt="AFA" /><span>AFA</span></div>
+      <div class="logo-area"><img src="${logoAfa}" alt="AFA" /></div>
       <div class="titulo-area">
         <h1>Planilha de Controle Auxílio-Transporte – AFA/DE</h1>
         <p>MINISTÉRIO DA DEFESA · COMANDO DA AERONÁUTICA · DIVISÃO ADMINISTRATIVA · SUBDIVISÃO DE PESSOAL</p>
@@ -126,11 +126,15 @@ const CompiladorDoc = (function() {
 
     const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
     <title>Auxílio Transporte DE - Desconto (conferenciaaci) ${mesNome}</title>
-    <style>${estiloBase}
-      .titulo-tabela{background:#0a1730;color:#fff;text-align:center;font-size:10.5pt;font-weight:700;
-        letter-spacing:.08em;text-transform:uppercase;padding:3mm;margin-bottom:4mm;border-radius:1.5mm}
-    </style></head><body>
-    <div class="titulo-tabela">DESCONTO AUXÍLIO TRANSPORTE REFERENTE A ${mesNome}/${ano}</div>
+    <style>${estiloBase}</style></head><body>
+    <div class="cab-doc">
+      <div class="logo-area"><img src="${logoAfa}" alt="AFA" /></div>
+      <div class="titulo-area">
+        <h1>DESCONTO AUXÍLIO TRANSPORTE REFERENTE A ${mesNome}/${ano}</h1>
+        <p>MINISTÉRIO DA DEFESA · COMANDO DA AERONÁUTICA · DIVISÃO ADMINISTRATIVA · SUBDIVISÃO DE PESSOAL</p>
+      </div>
+      <div class="mes-area">${mesNome}<br>${ano}</div>
+    </div>
     <table>
       <thead><tr>
         <th style="text-align:center">SARAM</th>
@@ -224,6 +228,26 @@ const CompiladorDoc = (function() {
         const util = dow >= 1 && dow <= 5;
         let mS = '', mN = '', tS = '', tN = '', motRotulo = '', obs = reg.obs || '';
 
+        const rotulos = {
+          'UTILIZADO': 'Utilizado',
+          'ENTRANDO_SERVICO': 'Entrando de Serviço',
+          'SAINDO_SERVICO': 'Saindo de Serviço',
+          'FERIADO': 'Feriado',
+          'SEM_EXPEDIENTE': 'Sem Expediente',
+          'DISPENSA': 'Dispensa',
+          'ATESTADO': 'Atestado / Saúde',
+          'MISSAO': 'Missão fora da sede',
+          'FERIAS_P1': 'Férias — 1ª parcela (10 dias)',
+          'FERIAS_P2': 'Férias — 2ª parcela (10 dias)',
+          'FERIAS_P3': 'Férias — 3ª parcela (10 dias)',
+          'FERIAS_P1_15': 'Férias — 1º 15 (15 dias)',
+          'FERIAS_P2_15': 'Férias — 2º 15 (15 dias)',
+          'FERIAS_COMPLETA': 'Férias completas — 30 dias (início)',
+          'FERIAS_CONT': 'Férias — continuação do mês anterior',
+          'DESCONTO_FERIAS': 'Desconto em Férias',
+          'FERIAS_RESTANTES': 'Férias Restantes'
+        };
+
         if (!util) {
           mS = mN = tS = tN = motRotulo = '–';
         } else if (mot === 'UTILIZADO') {
@@ -232,12 +256,8 @@ const CompiladorDoc = (function() {
           mS = 'X'; tN = 'X'; motRotulo = 'Entrando de Serviço';
         } else if (mot === 'SAINDO_SERVICO') {
           mN = 'X'; tS = 'X'; motRotulo = 'Saindo de Serviço';
-        } else if (mot === 'FERIADO') {
-          mN = 'X'; tN = 'X'; motRotulo = 'Feriado';
-        } else if (mot === 'SEM_EXPEDIENTE') {
-          mN = 'X'; tN = 'X'; motRotulo = 'Sem Expediente';
         } else if (mot) {
-          mN = 'X'; tN = 'X'; motRotulo = mot;
+          mN = 'X'; tN = 'X'; motRotulo = rotulos[mot] || mot;
         }
 
         diasGrade.push(`<tr ${!util ? 'style="background:#eee;color:#777"' : ''}>
@@ -255,8 +275,9 @@ const CompiladorDoc = (function() {
       const ehUltimo = idx === dadosMilitares.length - 1;
 
       return `<div class="${!ehUltimo ? 'quebra-pagina' : ''}">
-        <div style="border:1pt solid #0a1730;padding:2mm 4mm;margin-bottom:3mm;display:flex;justify-space-between;align-items:center">
-          <div>
+        <div style="border:1pt solid #0a1730;padding:2mm 4mm;margin-bottom:3mm;display:flex;align-items:center;gap:3mm">
+          <img src="${logoAfa}" alt="AFA" style="width:13mm;height:13mm;object-fit:contain" />
+          <div style="flex:1">
             <h2 style="font-size:9pt;text-transform:uppercase">TABELA DE FREQUÊNCIA - AUX. TRANSPORTE – ${mesNome}/${ano}</h2>
             <p style="font-size:8pt">GRAD. / NOME DO MILITAR: <b>${m.grad} ${m.nome}</b> | SARAM: <b>${m.saram}</b></p>
           </div>
@@ -295,10 +316,231 @@ const CompiladorDoc = (function() {
     <title>TABELAS_DE_FREQUENCIA_INDIVIDUAL_${mesAbrev}_${ano}</title>
     <style>${estiloBase}</style></head><body>
     ${paginasHtml}
-    <script>window.onload=()=>window.print();<\/script>
+    <script>window.onload=()=>window.print();</script>
     </body></html>`;
 
     baixarHtml(htmlCompleto, `TABELAS_DE_FREQUENCIA_INDIVIDUAL_${mesAbrev}_${ano}.html`);
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // MÓDULO DE GRATIFICAÇÃO DE REPRESENTAÇÃO (MISSÕES)
+  // Modelos extraídos do Processo 23/DE/2026
+  // ══════════════════════════════════════════════════════════════
+
+  function estiloGratificacao() {
+    return `
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:'Inter',Arial,sans-serif;color:#000;background:#fff;padding:12mm 15mm;font-size:9pt;line-height:1.35}
+      .head-fab{text-align:center;font-weight:700;font-size:10pt;text-transform:uppercase;margin-bottom:4mm;line-height:1.2}
+      .head-fab small{display:block;font-size:9pt;font-weight:600}
+      .head-fab .doc-title{margin-top:2mm;font-size:10.5pt;color:#0a1730;border-bottom:1.5pt solid #0a1730;padding-bottom:1.5mm;display:inline-block}
+      .sub-title{text-align:center;font-weight:700;font-size:9.5pt;margin-bottom:4mm;text-transform:uppercase;color:#333}
+      .sec-title{font-weight:700;font-size:9pt;text-transform:uppercase;margin:3mm 0 1.5mm 0}
+      table.grid-doc{width:100%;border-collapse:collapse;margin:2mm 0 4mm 0;font-size:8.5pt}
+      table.grid-doc th, table.grid-doc td{border:1pt solid #000;padding:2mm;text-align:center;vertical-align:middle}
+      table.grid-doc th{background:#eef2f7;font-weight:700;text-transform:uppercase;font-size:7.5pt}
+      .box-info{border:1pt solid #000;padding:2.5mm;margin-bottom:3mm;font-size:8.5pt;background:#fafafa}
+      .box-info strong{display:inline-block;margin-bottom:1mm;font-size:8.5pt}
+      .check-item{display:flex;align-items:center;gap:3mm;margin:1.5mm 0}
+      .check-box{display:inline-block;width:12px;height:12px;border:1pt solid #000;text-align:center;line-height:10px;font-size:8pt;font-weight:700}
+      .ass-block{margin-top:10mm;text-align:right;font-size:9pt}
+      .ass-block .ass-digital{margin-top:6mm;text-align:center;font-size:8.5pt;font-style:italic;color:#444}
+      .ass-block .ass-nome{font-weight:700;text-transform:uppercase;margin-top:1mm}
+      @media print{
+        @page{size:A4 portrait;margin:10mm}
+        body{padding:0}
+        .nao-imprimir{display:none!important}
+      }
+    `;
+  }
+
+  // 1. OS de Designação Específica
+  function gerarOSGratificacaoHtml(d) {
+    const ano = d.ano || new Date().getFullYear();
+    const numOs = d.num_os || '23/DE/' + ano;
+    const antecipado = !!d.pagamento_antecipado;
+    const art5 = d.enquadramento_legal || 'Art 5°, Inc II (Viagem de Instrução)';
+
+    return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+    <title>OS_${numOs.replace(/\//g, '_')}</title>
+    <style>${estiloGratificacao()}</style></head><body>
+    <div class="head-fab">
+      COMANDO DA AERONÁUTICA<br>
+      ACADEMIA DA FORÇA AÉREA
+      <div class="doc-title">ORDEM DE SERVIÇO DE DESIGNAÇÃO ESPECÍFICA Nº ${numOs}</div>
+    </div>
+    <div class="sub-title">GRATIFICAÇÃO DE REPRESENTAÇÃO SOMENTE MILITARES DA ATIVA</div>
+
+    <div class="sec-title">I - AUTORIZAÇÃO PARA REALIZAÇÃO DA MISSÃO:</div>
+    <div style="font-weight:700;margin-bottom:1.5mm">I.1 - DETERMINAÇÃO:</div>
+    <p style="margin-bottom:2mm">Determino ao militar(es) abaixo que realize(m) o serviço especificado:</p>
+
+    <table class="grid-doc">
+      <thead>
+        <tr>
+          <th>Ordem</th>
+          <th>Posto/Grad / Esp</th>
+          <th>NOME COMPLETO / CPF</th>
+          <th>SARAM</th>
+          <th>OM</th>
+          <th>PERÍODO (DATA / HORA)</th>
+          <th>DIAS</th>
+          <th>PASSAGEM AÉREA / RODOVIÁRIA / SIM E NÃO</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>${d.posto_grad || ''} ${d.especialidade || ''}</td>
+          <td><strong>${d.nome || ''}</strong> / ${d.cpf || '—'}</td>
+          <td>${d.saram || '—'}</td>
+          <td>${d.om || 'AFA'}</td>
+          <td>${d.data_inicio_fmt || ''}<br>${d.hora_inicio || '08:00'} a ${d.data_fim_fmt || ''}<br>${d.hora_fim || '18:00'}</td>
+          <td><strong>${d.dias || 1}</strong></td>
+          <td>${d.passagem || 'NÃO'}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="box-info">
+      <strong>SERVIÇO A REALIZAR / LOCAL:</strong><br>
+      ${d.servico_local || 'Participar de missão de interesse da Administração Militar.'}
+    </div>
+
+    <div class="box-info">
+      <strong>APOIO RECEBIDO:</strong><br>
+      ${d.apoio_recebido || 'Apoio de Hospedagem, Transporte e Rancho fornecidos conforme disponibilidade.'}
+    </div>
+
+    <div class="box-info">
+      <strong>ENQUADRAMENTO LEGAL:</strong> baseado no Decreto nº 11.002, de 17 de março de 2022<br>
+      <div style="margin-top:1.5mm">
+        <span class="check-box">X</span> <strong>${art5}</strong>
+      </div>
+    </div>
+
+    <div class="sec-title">I.2 MISSÕES REALIZADAS COM CRÉDITO DE PASSAGENS DE OUTRA ORGANIZAÇÃO</div>
+    <div class="box-info">${d.passagens_outra_om || 'Não se aplica.'}</div>
+
+    <div class="sec-title">I.3 PAGAMENTO ANTECIPADO DA GRATIFICAÇÃO DE REPRESENTAÇÃO</div>
+    <div class="box-info">
+      NECESSIDADE DE PAGAMENTO ANTECIPADO : [ ${antecipado ? 'X' : ' '} ] SIM &nbsp;&nbsp;&nbsp; [ ${!antecipado ? 'X' : ' '} ] NÃO<br>
+      <strong>JUSTIFICATIVA:</strong> ${antecipado ? (d.justificativa_antecipacao || 'Necessidade de custeio inicial.') : 'Não se Aplica'}
+    </div>
+
+    <div class="sec-title">I.4 JUSTIFICATIVA PARA O NÃO CUMPRIMENTO DO PRAZO PREVISTO NO §1º DO ART. 10º DA PORTARIA GABAER / GC4 Nº1636, DE 20 DE MAIO DE 2026.</div>
+    <div class="box-info">
+      <strong>JUSTIFICATIVA:</strong> ${d.justificativa_prazo || 'Justifica-se a apresentação da presente Ordem de Serviço fora do prazo previsto no parágrafo 1° do Art. 10 da Portaria GABAER/GC4 n° 1636/2026 devido à recente entrada em vigor da referida Portaria e adequações dos procedimentos internos para atendimento aos novos procedimentos.'}
+    </div>
+
+    <div class="ass-block">
+      Pirassununga - SP, ${d.data_os_fmt || new Date().toLocaleDateString('pt-BR')}<br>
+      <div class="ass-digital">Assinado Digitalmente</div>
+      <div class="ass-nome">${d.comandante_nome || 'Brig Ar GUSTAVO PESTANA GARCEZ'}<br><small style="font-weight:400">${d.comandante_cargo || 'Comandante da Academia da Força Aérea'}</small></div>
+    </div>
+    </body></html>`;
+  }
+
+  // 2. Autorização para Pagamento
+  function gerarAutorizacaoGratificacaoHtml(d) {
+    const ano = d.ano || new Date().getFullYear();
+    const numOs = d.num_os || '23/DE/' + ano;
+    const antecipado = !!d.pagamento_antecipado;
+    const pct = d.percentual || '2%';
+
+    return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+    <title>AUTORIZACAO_${numOs.replace(/\//g, '_')}</title>
+    <style>${estiloGratificacao()}</style></head><body>
+    <div class="head-fab">
+      COMANDO DA AERONÁUTICA<br>
+      ACADEMIA DA FORÇA AÉREA
+      <div class="doc-title">AUTORIZAÇÃO PARA PAGAMENTO DE GRATIFICAÇÃO DE REPRESENTAÇÃO Nº ${numOs}</div>
+    </div>
+
+    <p style="margin:6mm 0;text-align:justify;line-height:1.6">
+      Autorizo o pagamento da gratificação de representação de <strong>${pct} (dois por cento)</strong> do soldo, pelo número de dias declarado ao lado de cada militar relacionado no item I.1 da Ordem de Serviço de designação específica nº <strong>${numOs}</strong>.
+    </p>
+
+    <div style="margin:5mm 0;line-height:1.6">
+      <div style="margin-bottom:3mm">
+        ( ${antecipado ? 'X' : '&nbsp;&nbsp;'} ) Autorizando também o pagamento antecipado, conforme justificativa constante do item I.3 da ordem de serviço de designação específica nº ${numOs}.
+      </div>
+      <div>
+        ( ${!antecipado ? 'X' : '&nbsp;&nbsp;'} ) Não autorizando o pagamento antecipado, ficando ele condicionado e vinculado às informações constantes na ficha de apresentação por retorno de missão referente à Ordem de Serviço de designação específica nº ${numOs}.
+      </div>
+    </div>
+
+    <div class="ass-block" style="margin-top:20mm;text-align:center">
+      Brasilia-DF, ${d.data_autorizacao_fmt || '____ de _____________ de ' + ano}<br><br><br>
+      <div style="font-weight:700;text-transform:uppercase">${d.chefe_nome || 'GABRIEL HENRIQUES DE OLIVEIRA FARIAS Cel Av'}</div>
+      <div>${d.chefe_cargo || 'Chefe da 2SC'}</div>
+    </div>
+    </body></html>`;
+  }
+
+  // 3. Ficha de Apresentação por Retorno de Missão
+  function gerarFichaApresentacaoGratificacaoHtml(d) {
+    const ano = d.ano || new Date().getFullYear();
+    const numOs = d.num_os || '23/DE/' + ano;
+    const teveAlteracao = d.teve_alteracao_retorno !== false;
+
+    return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
+    <title>FICHA_APRESENTACAO_${numOs.replace(/\//g, '_')}</title>
+    <style>${estiloGratificacao()}</style></head><body>
+    <div class="head-fab">
+      COMANDO DA AERONÁUTICA<br>
+      ACADEMIA DA FORÇA AÉREA
+      <div class="doc-title" style="border-bottom:none">Ficha de Apresentação por Retorno de Missão referente à Ordem de Serviço de designação específica nº ${numOs}</div>
+    </div>
+
+    <div class="sec-title" style="margin-top:4mm">RELATO DO RESPONSÁVEL PELO SERVIÇO:</div>
+    <p style="margin-bottom:2.5mm">
+      Ocorreram, por motivo de força maior, alterações no local de realização do serviço e/ou nas datas de início/retorno autorizados inicialmente?
+    </p>
+
+    <div style="margin-bottom:3mm">
+      ( ${teveAlteracao ? 'X' : '&nbsp;&nbsp;'} ) SIM, CONFORME TABELA ABAIXO &nbsp;&nbsp;&nbsp;&nbsp; ( ${!teveAlteracao ? 'X' : '&nbsp;&nbsp;'} ) NÃO
+    </div>
+
+    <div class="box-info">
+      <strong>JUSTIFICATIVA:</strong> ${d.justificativa_alteracao_retorno || 'Por motivos de trânsito, o militar retornou no horário informado na tabela abaixo.'}
+    </div>
+
+    <table class="grid-doc">
+      <thead>
+        <tr>
+          <th>Ordem</th>
+          <th>Posto Grad/Esp</th>
+          <th>Nome Completo / CPF</th>
+          <th>Saram</th>
+          <th>OM</th>
+          <th>Período (data/hora)</th>
+          <th>DIAS</th>
+          <th>Passagem Aérea/Rodoviárias</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td>${d.posto_grad || ''} ${d.especialidade || ''}</td>
+          <td><strong>${d.nome || ''}</strong> / ${d.cpf || '—'}</td>
+          <td>${d.saram || '—'}</td>
+          <td>${d.om || 'AFA'}</td>
+          <td>${d.retorno_inicio_fmt || d.data_inicio_fmt || ''}<br>${d.retorno_hora_inicio || d.hora_inicio || '10:00'}<br>a ${d.retorno_fim_fmt || d.data_fim_fmt || ''}<br>${d.retorno_hora_fim || d.hora_fim || '01:00'}</td>
+          <td><strong>${d.dias_retorno || d.dias || 1}</strong></td>
+          <td>${d.passagem || 'NÃO'}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="ass-block" style="margin-top:12mm">
+      Pirassununga-SP, ${d.data_retorno_fmt || d.data_fim_fmt || new Date().toLocaleDateString('pt-BR')}<br>
+      <div style="margin-top:3mm;font-weight:600">Responsável pelo serviço:</div>
+      <div class="ass-digital">assinado digitalmente</div>
+      <div class="ass-nome">${d.nome || ''} ${d.posto_grad || ''}</div>
+    </div>
+    </body></html>`;
   }
 
   // ── MÉTODOS PÚBLICOS DO MOTOR ──
@@ -307,7 +549,32 @@ const CompiladorDoc = (function() {
     gerarDescontoAuxilio,
     gerarTabelasCompiladas,
 
-    // Compila os 3 documentos de uma vez
+    // Gratificação de Representação
+    gerarOSGratificacao: function(d, baixar = true) {
+      const html = gerarOSGratificacaoHtml(d);
+      if (baixar) baixarHtml(html, `OS_${(d.num_os || 'OS').replace(/\//g, '_')}.html`);
+      return html;
+    },
+
+    gerarAutorizacaoGratificacao: function(d, baixar = true) {
+      const html = gerarAutorizacaoGratificacaoHtml(d);
+      if (baixar) baixarHtml(html, `AUTORIZACAO_${(d.num_os || 'OS').replace(/\//g, '_')}.html`);
+      return html;
+    },
+
+    gerarFichaApresentacaoGratificacao: function(d, baixar = true) {
+      const html = gerarFichaApresentacaoGratificacaoHtml(d);
+      if (baixar) baixarHtml(html, `FICHA_APRESENTACAO_${(d.num_os || 'OS').replace(/\//g, '_')}.html`);
+      return html;
+    },
+
+    compilarPacoteGratificacao: function(d) {
+      this.gerarOSGratificacao(d, true);
+      setTimeout(() => this.gerarAutorizacaoGratificacao(d, true), 400);
+      setTimeout(() => this.gerarFichaApresentacaoGratificacao(d, true), 800);
+    },
+
+    // Compila os 3 documentos de auxílio transporte de uma vez
     compilarTodos: async function(comp, militares, secDecls, secDeclsPrev, urlPdfFn) {
       const prevFlag = Object.fromEntries(secDeclsPrev.map(d => [d.militar_id, d.zera_mes_seguinte]));
       const ativos = militares.filter(m => m.ativo);

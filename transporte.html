@@ -447,10 +447,12 @@ const MOTIVOS = [
   { id:'DISPENSA',         rotulo:'Dispensa',                               efeito:'DESCONTA',          marca:{m:'N',t:'N'} },
   { id:'ATESTADO',         rotulo:'Atestado / Saúde',                       efeito:'DESCONTA',          marca:{m:'N',t:'N'} },
   { id:'MISSAO',           rotulo:'Missão fora da sede',                    efeito:'DESCONTA',          marca:{m:'N',t:'N'} },
-  { id:'FERIAS_P1',        rotulo:'Férias — 1ª parcela (10 dias)',          efeito:'ZERA_MES',          marca:{m:'N',t:'N'} },
-  { id:'FERIAS_P2',        rotulo:'Férias — 2ª parcela (10 dias)',          efeito:'PAGA',              marca:{m:'N',t:'N'} },
-  { id:'FERIAS_P3',        rotulo:'Férias — 3ª parcela (10 dias)',          efeito:'PAGA',              marca:{m:'N',t:'N'} },
-  { id:'FERIAS_COMPLETA',  rotulo:'Férias completas — 30 dias (início)',    efeito:'ZERA_MES',          marca:{m:'N',t:'N'} },
+  { id:'FERIAS_P1',        rotulo:'Férias — 1ª parcela (10 dias)',          efeito:'ZERA_MES',          marca:{m:'N',t:'N'}, duracao:10 },
+  { id:'FERIAS_P2',        rotulo:'Férias — 2ª parcela (10 dias)',          efeito:'PAGA',              marca:{m:'N',t:'N'}, duracao:10 },
+  { id:'FERIAS_P3',        rotulo:'Férias — 3ª parcela (10 dias)',          efeito:'PAGA',              marca:{m:'N',t:'N'}, duracao:10 },
+  { id:'FERIAS_P1_15',     rotulo:'Férias — 1º 15 (15 dias)',               efeito:'ZERA_MES',          marca:{m:'N',t:'N'}, duracao:15 },
+  { id:'FERIAS_P2_15',     rotulo:'Férias — 2º 15 (15 dias)',               efeito:'PAGA',              marca:{m:'N',t:'N'}, duracao:15 },
+  { id:'FERIAS_COMPLETA',  rotulo:'Férias completas — 30 dias (início)',    efeito:'ZERA_MES',          marca:{m:'N',t:'N'}, duracao:30 },
   { id:'FERIAS_CONT',      rotulo:'Férias — continuação do mês anterior',   efeito:'PAGA',              marca:{m:'N',t:'N'} },
   { id:'DESCONTO_FERIAS',  rotulo:'Desconto em Férias',                     efeito:'PAGA',              marca:{m:'N',t:'N'} },
   { id:'FERIAS_RESTANTES', rotulo:'Férias Restantes',                       efeito:'ZERA_MES_SEGUINTE', marca:{m:'N',t:'N'} },
@@ -504,9 +506,18 @@ function calcularDecl(comp, diasObj, mil, zeradoPorMesAnterior){
     if (!mot){ vazios++; return; }
     if (mot.efeito === 'DESCONTA' || mot.efeito === 'ZERA_MES_SEGUINTE') diasDesc++;
     if (mot.id === 'SAINDO_SERVICO') servFechadas++;
-    if (mot.id === 'FERIAS_P1') temP1 = true;
+    if (mot.id === 'FERIAS_P1' || mot.id === 'FERIAS_P1_15') temP1 = true;
     if (mot.id === 'FERIAS_COMPLETA') temCompleta = true;
     if (mot.efeito === 'ZERA_MES_SEGUINTE') zeraProx = true;
+    if (mot.duracao && g.d + mot.duracao - 1 > grade.length) {
+      const excedente = (g.d + mot.duracao - 1) - grade.length;
+      if (mot.efeito === 'ZERA_MES' || mot.efeito === 'ZERA_MES_SEGUINTE') {
+        zeraProx = true;
+        log.push('<b>' + mot.rotulo + '</b> iniciadas no dia ' + g.d + ': avançam <b>' + excedente + ' dia(s)</b> no mês seguinte (mês posterior zerado automaticamente).');
+      } else {
+        log.push('<b>' + mot.rotulo + '</b> iniciadas no dia ' + g.d + ': avançam <b>' + excedente + ' dia(s)</b> no mês seguinte (devem ser marcadas como Férias — continuação no próximo mês).');
+      }
+    }
     if (mot.id === 'ENTRANDO_SERVICO' && g.dow === 5)
       log.push('Serviço iniciado na <b>sexta-feira (dia ' + g.d + ')</b>: dia pago integralmente — a saída no fim de semana não gera desconto (regra do administrador).');
   });
@@ -737,9 +748,29 @@ function pintarGrade(){
     const d = Number(s.dataset.dia);
     s.value = (diasAtual[d] && diasAtual[d].motivo) || '';
     s.addEventListener('change', () => {
-      if (s.value) diasAtual[d] = Object.assign(diasAtual[d] || {}, { motivo: s.value });
+      const val = s.value;
+      if (val) diasAtual[d] = Object.assign(diasAtual[d] || {}, { motivo: val });
       else { if (diasAtual[d]) delete diasAtual[d].motivo; if (diasAtual[d] && !diasAtual[d].obs) delete diasAtual[d]; }
-      const mot = M_IDX[s.value];
+
+      const mot = M_IDX[val];
+      if (mot && mot.duracao) {
+        const comp = $('selComp').value;
+        const totDias = diasDoMes(comp).length;
+        const fim = Math.min(d + mot.duracao - 1, totDias);
+        for (let i = d + 1; i <= fim; i++) {
+          diasAtual[i] = Object.assign(diasAtual[i] || {}, { motivo: val });
+          const selI = $('gradeDias').querySelector(`select[data-dia="${i}"]`);
+          if (selI && !selI.disabled) {
+            selI.value = val;
+            const cardI = selI.closest('.diaCard');
+            if (cardI) {
+              const pillI = cardI.querySelector('.pill');
+              if (pillI) pillI.className = 'pill efe-' + mot.efeito;
+            }
+          }
+        }
+      }
+
       s.closest('.diaCard').querySelector('.pill').className = 'pill efe-' + (mot ? mot.efeito : 'VAZIO');
       recomputar();
     });
@@ -1162,9 +1193,9 @@ $('btnPdf').addEventListener('click', () => {
   $('areaImpressao').innerHTML =
     '<img class="impFundo" src="assets/hero-afa.jpg" alt="" />' +
     '<div class="impCab">' +
-      '<h1>Tabela de Frequência \u2014 Auxílio Transporte' +
+      '<img src="assets/brasao-afa.jpg" alt="AFA" style="width:14mm;height:14mm;object-fit:contain" />' +
+      '<h1 style="flex:1">Tabela de Frequência \u2014 Auxílio Transporte' +
         '<small>Academia da Força Aérea · Divisão de Ensino · ' + rotuloComp(comp) + '</small></h1>' +
-      '<img src="assets/cocar-fab.png" alt="" style="width:12mm;height:12mm;object-fit:contain" />' +
     '</div>' +
     '<div class="impIdent">' +
       '<div class="bloco" style="flex:2"><b>Grad. / Nome do militar</b><span>' + mil.grad + ' ' + mil.nome + '</span></div>' +

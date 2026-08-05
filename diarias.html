@@ -3,8 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>AFA · Controle de Diárias — DE</title>
+<title>AFA · Missões — DE</title>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<script src="compiladordoc.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -22,6 +23,28 @@
   --f-mono:'JetBrains Mono',monospace;
 }
 body{font-family:var(--f-body);background:var(--navy-50);color:var(--navy-900);min-height:100vh}
+
+/* ═══ TABS NAV ═══ */
+.tabs-bar{
+  display:flex;gap:.5rem;padding:.75rem 2rem 0 2rem;background:#fff;
+  border-bottom:2px solid var(--navy-100);position:sticky;top:78px;z-index:90;
+}
+.tab-btn{
+  display:inline-flex;align-items:center;gap:.5rem;padding:.65rem 1.2rem;
+  font-family:var(--f-display);font-size:.85rem;font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--gray-500);background:transparent;
+  border:none;border-bottom:3px solid transparent;cursor:pointer;transition:all .2s;
+}
+.tab-btn:hover{color:var(--navy-700);background:var(--navy-50)}
+.tab-btn.active{color:var(--navy-900);border-bottom-color:var(--gold-500);background:rgba(212,168,75,.08)}
+.tab-btn svg{width:16px;height:16px}
+.tab-badge{font-family:var(--f-mono);font-size:.65rem;background:var(--navy-100);color:var(--navy-700);padding:2px 6px;border-radius:10px;margin-left:4px}
+.tab-btn.active .tab-badge{background:var(--gold-500);color:var(--navy-900)}
+.grat-actions{display:flex;gap:.35rem;margin-top:.6rem;flex-wrap:wrap}
+.btn-doc{padding:.3rem .55rem;font-size:.66rem;font-family:var(--f-mono);font-weight:600;border-radius:4px;border:1px solid var(--navy-200);background:var(--navy-50);color:var(--navy-700);cursor:pointer;transition:all .15s}
+.btn-doc:hover{background:var(--navy-700);color:#fff;border-color:var(--navy-700)}
+.btn-doc.gold{background:var(--gold-500);color:var(--navy-900);border-color:var(--gold-500)}
+.btn-doc.gold:hover{background:var(--gold-400)}
 body::after{
   content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
   background-image:linear-gradient(rgba(20,49,90,.04) 1px,transparent 1px),
@@ -262,7 +285,7 @@ footer img{width:16px;vertical-align:middle;margin:0 .5rem;opacity:.5}
   <div class="logo">
     <div class="crest"><img src="assets/brasao-afa.jpg" alt="Brasão da AFA" /></div>
     <div>
-      <div class="logo-text">Controle de Diárias</div>
+      <div class="logo-text">Missões</div>
       <div class="logo-sub">Divisão de Ensino · AFA</div>
     </div>
   </div>
@@ -271,92 +294,138 @@ footer img{width:16px;vertical-align:middle;margin:0 .5rem;opacity:.5}
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m3 10 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
       <span>Início</span>
     </a>
-    <button class="hbtn gold" id="btn-nova" onclick="abrirModal()">
+    <button class="hbtn gold" id="btn-header-acao" onclick="acaoAbaAtual()">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-      <span>Nova OS</span>
+      <span id="txt-header-acao">Nova OS</span>
     </button>
     <span class="sync" id="sync"><i></i><span id="sync-txt">Conectando…</span></span>
   </div>
 </header>
 
-<div class="summary">
-  <div class="scard gold"><div><div class="scount" id="s-total">—</div><div class="slabel">Dotação total</div></div></div>
-  <div class="scard red"><div><div class="scount" id="s-gasto">—</div><div class="slabel">Empenhado</div></div></div>
-  <div class="scard green"><div><div class="scount" id="s-saldo">—</div><div class="slabel">Saldo disponível</div></div></div>
-  <div class="scard navy"><div><div class="scount" id="s-qtd">—</div><div class="slabel">Ordens de serviço</div></div></div>
+<div class="tabs-bar">
+  <button class="tab-btn active" id="tab-btn-diarias" onclick="trocarAba('diarias')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    Diária
+    <span class="tab-badge" id="badge-diarias-count">0</span>
+  </button>
+  <button class="tab-btn" id="tab-btn-gratificacao" onclick="trocarAba('gratificacao')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>
+    Gratificação de representação
+    <span class="tab-badge" id="badge-grat-count">0</span>
+  </button>
 </div>
 
-<main>
-  <div>
-    <div class="section-title">Ordens de Serviço</div>
-    <div class="toolbar">
-      <button class="btn btn-primary" onclick="abrirModal()">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 5v14M5 12h14"/></svg>
-        Nova OS
-      </button>
-      <input class="search" id="busca" type="search" placeholder="Buscar por número, missão ou servidor…" oninput="render()" />
-      <select class="search" style="flex:0 0 auto;min-width:150px" id="ordem" onchange="render()">
-        <option value="data-desc">Data ↓ (recente)</option>
-        <option value="data-asc">Data ↑ (antiga)</option>
-        <option value="valor-desc">Maior valor</option>
-        <option value="valor-asc">Menor valor</option>
-        <option value="num">Nº da OS</option>
-      </select>
-    </div>
-    <div class="os-grid" id="lista">
-      <div class="skel"></div><div class="skel"></div>
-    </div>
+<!-- ABA 1: DIÁRIA -->
+<div id="view-diarias">
+  <div class="summary">
+    <div class="scard gold"><div><div class="scount" id="s-total">—</div><div class="slabel">Dotação total</div></div></div>
+    <div class="scard red"><div><div class="scount" id="s-gasto">—</div><div class="slabel">Empenhado</div></div></div>
+    <div class="scard green"><div><div class="scount" id="s-saldo">—</div><div class="slabel">Saldo disponível</div></div></div>
+    <div class="scard navy"><div><div class="scount" id="s-qtd">—</div><div class="slabel">Ordens de serviço</div></div></div>
   </div>
 
-  <aside class="sidebar">
-    <div class="panel gauge-panel">
-      <div class="section-title">Indicador de saldo</div>
-      <svg id="gauge" viewBox="0 0 260 260" role="img" aria-label="Indicador analógico de saldo de diárias"></svg>
-      <dl class="gauge-read">
-        <div><dt>Dotação</dt><dd id="g-total">—</dd></div>
-        <div><dt>Empenhado</dt><dd class="spent" id="g-gasto">—</dd></div>
-        <div><dt>Saldo</dt><dd class="left" id="g-saldo">—</dd></div>
-      </dl>
-    </div>
-
-    <div class="panel">
-      <div class="section-title">Dotação orçamentária</div>
-      <div class="field">
-        <label for="in-total">Valor total disponível</label>
-        <input class="money" id="in-total" type="text" inputmode="decimal" placeholder="R$ 0,00" />
-        <div class="hint">Montante autorizado para pagamento de diárias.</div>
-      </div>
-      <button class="btn btn-primary" style="width:100%" id="btn-dot" onclick="salvarDotacao()">Atualizar dotação</button>
-
-      <div class="warn hide" id="alerta">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
-        <span id="alerta-txt"></span>
-      </div>
-
-      <div class="warn setup hide" id="setup">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
-        <span>Supabase não configurado. Preencha <code>SUPABASE_URL</code> e <code>SUPABASE_ANON</code> no início do script.</span>
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="section-title">Dados</div>
-      <div style="display:flex;flex-direction:column;gap:.5rem">
-        <button class="btn btn-ghost" onclick="recarregar(true)">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.9-3.4L23 10M1 14l4.6 4.4A9 9 0 0 0 20.5 15"/></svg>
-          Recarregar do servidor
+  <main>
+    <div>
+      <div class="section-title">Ordens de Serviço (Diárias)</div>
+      <div class="toolbar">
+        <button class="btn btn-primary" onclick="abrirModal()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 5v14M5 12h14"/></svg>
+          Nova OS
         </button>
-        <button class="btn btn-ghost" onclick="exportar()">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-          Exportar planilha (CSV)
-        </button>
+        <input class="search" id="busca" type="search" placeholder="Buscar por número, missão ou servidor…" oninput="render()" />
+        <select class="search" style="flex:0 0 auto;min-width:150px" id="ordem" onchange="render()">
+          <option value="data-desc">Data ↓ (recente)</option>
+          <option value="data-asc">Data ↑ (antiga)</option>
+          <option value="valor-desc">Maior valor</option>
+          <option value="valor-asc">Menor valor</option>
+          <option value="num">Nº da OS</option>
+        </select>
       </div>
-      <div class="hint" style="margin-top:.6rem;font-size:.62rem;color:var(--gray-400)">
-        Os lançamentos ficam no Supabase e aparecem em qualquer aparelho.
+      <div class="os-grid" id="lista">
+        <div class="skel"></div><div class="skel"></div>
       </div>
     </div>
-  </aside>
-</main>
+
+    <aside class="sidebar">
+      <div class="panel gauge-panel">
+        <div class="section-title">Indicador de saldo</div>
+        <svg id="gauge" viewBox="0 0 260 260" role="img" aria-label="Indicador analógico de saldo de diárias"></svg>
+        <dl class="gauge-read">
+          <div><dt>Dotação</dt><dd id="g-total">—</dd></div>
+          <div><dt>Empenhado</dt><dd class="spent" id="g-gasto">—</dd></div>
+          <div><dt>Saldo</dt><dd class="left" id="g-saldo">—</dd></div>
+        </dl>
+      </div>
+
+      <div class="panel">
+        <div class="section-title">Dotação orçamentária</div>
+        <div class="field">
+          <label for="in-total">Valor total disponível</label>
+          <input class="money" id="in-total" type="text" inputmode="decimal" placeholder="R$ 0,00" />
+          <div class="hint">Montante autorizado para pagamento de diárias.</div>
+        </div>
+        <button class="btn btn-primary" style="width:100%" id="btn-dot" onclick="salvarDotacao()">Atualizar dotação</button>
+
+        <div class="warn hide" id="alerta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+          <span id="alerta-txt"></span>
+        </div>
+
+        <div class="warn setup hide" id="setup">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+          <span>Supabase não configurado. Preencha <code>SUPABASE_URL</code> e <code>SUPABASE_ANON</code> no início do script.</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="section-title">Dados</div>
+        <div style="display:flex;flex-direction:column;gap:.5rem">
+          <button class="btn btn-ghost" onclick="recarregar(true)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.9-3.4L23 10M1 14l4.6 4.4A9 9 0 0 0 20.5 15"/></svg>
+            Recarregar do servidor
+          </button>
+          <button class="btn btn-ghost" onclick="exportar()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Exportar planilha (CSV)
+          </button>
+        </div>
+        <div class="hint" style="margin-top:.6rem;font-size:.62rem;color:var(--gray-400)">
+          Os lançamentos ficam no Supabase e aparecem em qualquer aparelho.
+        </div>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<!-- ABA 2: GRATIFICAÇÃO DE REPRESENTAÇÃO -->
+<div id="view-gratificacao" style="display:none">
+  <div class="summary">
+    <div class="scard gold"><div><div class="scount" id="sg-qtd">0</div><div class="slabel">Processos no Ano</div></div></div>
+    <div class="scard green"><div><div class="scount" id="sg-dias">0</div><div class="slabel">Total de Dias</div></div></div>
+    <div class="scard navy" style="margin-left:0"><div><div class="scount" id="sg-militares">0</div><div class="slabel">Militares Atendidos</div></div></div>
+  </div>
+
+  <main style="grid-template-columns:1fr;max-width:1500px">
+    <div>
+      <div class="section-title">Processos de Gratificação de Representação</div>
+      <div class="toolbar">
+        <button class="btn btn-primary" onclick="abrirModalGratificacao()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 5v14M5 12h14"/></svg>
+          Nova Gratificação
+        </button>
+        <select class="search" style="flex:0 0 auto;min-width:110px;font-weight:700" id="grat-ano" onchange="renderGratificacao()">
+          <option value="2026" selected>Ano 2026</option>
+          <option value="2025">Ano 2025</option>
+          <option value="2024">Ano 2024</option>
+        </select>
+        <input class="search" id="grat-busca" type="search" placeholder="Buscar por OS, militar, CPF, SARAM ou missão..." oninput="renderGratificacao()" />
+      </div>
+      <div class="os-grid" id="lista-gratificacao">
+        <div class="skel"></div><div class="skel"></div>
+      </div>
+    </div>
+  </main>
+</div>
 
 <footer>
   <img src="assets/cocar-fab.png" alt="" />
@@ -375,6 +444,12 @@ footer img{width:16px;vertical-align:middle;margin:0 .5rem;opacity:.5}
     </div>
     <div class="modal-body">
       <input type="hidden" id="f-id" />
+      <div class="field" style="margin-bottom:.85rem">
+        <label for="f-serv-select">Selecionar do Efetivo (opcional)</label>
+        <select id="f-serv-select" onchange="if(this.value!=='' && listaEfetivo[this.value]) document.getElementById('f-serv').value = (listaEfetivo[this.value].posto+' '+listaEfetivo[this.value].esp+' '+listaEfetivo[this.value].nome).trim()">
+          <option value="">-- Selecione para preencher automaticamente --</option>
+        </select>
+      </div>
       <div class="grid2">
         <div class="field">
           <label for="f-num">Nº da OS *</label>
@@ -421,6 +496,112 @@ footer img{width:16px;vertical-align:middle;margin:0 .5rem;opacity:.5}
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button>
       <button class="btn btn-primary" id="btn-salvar" onclick="salvarOS()">Salvar OS</button>
+    </div>
+  </div>
+</div>
+
+<div class="backdrop" id="backdrop-grat" onclick="if(event.target===this)fecharModalGrat()">
+  <div class="modal" style="max-width:720px" role="dialog" aria-modal="true" aria-labelledby="modal-grat-title">
+    <div class="modal-head">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold-500)" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>
+      <h2 id="modal-grat-title">Nova Gratificação de Representação</h2>
+      <button class="icon-btn" onclick="fecharModalGrat()" aria-label="Fechar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" style="max-height:75vh;overflow-y:auto">
+      <input type="hidden" id="fg-id" />
+      <div class="grid2">
+        <div class="field">
+          <label for="fg-num">Nº da OS / Processo *</label>
+          <input id="fg-num" type="text" placeholder="Ex.: 23/DE/2026" />
+          <div class="err" id="eg-num">Informe o número da OS.</div>
+        </div>
+        <div class="field">
+          <label for="fg-militar-select">Selecionar Militar do Efetivo *</label>
+          <select id="fg-militar-select" onchange="selecionarMilitarGrat(this.value)">
+            <option value="">-- Carregando efetivo... --</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label for="fg-posto">Posto / Graduação / Esp *</label>
+          <input id="fg-posto" type="text" placeholder="Ex.: TC AV" />
+          <div class="err" id="eg-posto">Informe o posto/graduação.</div>
+        </div>
+        <div class="field">
+          <label for="fg-nome">Nome Completo *</label>
+          <input id="fg-nome" type="text" placeholder="Nome completo do militar" />
+          <div class="err" id="eg-nome">Informe o nome do militar.</div>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label for="fg-cpf">CPF *</label>
+          <input id="fg-cpf" type="text" placeholder="000.000.000-00" />
+          <div class="err" id="eg-cpf">Informe o CPF.</div>
+        </div>
+        <div class="field">
+          <label for="fg-saram">SARAM *</label>
+          <input id="fg-saram" type="text" placeholder="Ex.: 3410773" />
+          <div class="err" id="eg-saram">Informe o SARAM.</div>
+        </div>
+      </div>
+      <div class="field">
+        <label for="fg-servico">Serviço a Realizar / Local (Missão) *</label>
+        <textarea id="fg-servico" placeholder="Objeto da missão e local"></textarea>
+        <div class="err" id="eg-servico">Descreva a missão.</div>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label for="fg-ini">Data / Hora de Início *</label>
+          <input id="fg-ini" type="datetime-local" onchange="calcDiasGrat()" />
+          <div class="err" id="eg-ini">Informe início.</div>
+        </div>
+        <div class="field">
+          <label for="fg-fim">Data / Hora de Término *</label>
+          <input id="fg-fim" type="datetime-local" onchange="calcDiasGrat()" />
+          <div class="err" id="eg-fim">Término deve ser após início.</div>
+        </div>
+      </div>
+      <div class="calc" id="calc-grat-dias">Período computado: — dias</div>
+      <div class="grid2">
+        <div class="field">
+          <label for="fg-passagem">Passagem Aérea/Rodoviária</label>
+          <select id="fg-passagem">
+            <option value="NÃO">NÃO</option>
+            <option value="SIM">SIM</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="fg-antecipado">Pagamento Antecipado</label>
+          <select id="fg-antecipado">
+            <option value="false">NÃO</option>
+            <option value="true">SIM</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="fg-enquadramento">Enquadramento Legal</label>
+        <input id="fg-enquadramento" type="text" value="Art 5°, Inc II (Viagem de Instrução)" />
+      </div>
+      <div class="field">
+        <label for="fg-apoio">Apoio Recebido</label>
+        <input id="fg-apoio" type="text" value="Apoio de Hospedagem, Transporte e Rancho foram fornecidos pela UNIFA." />
+      </div>
+      <div class="field">
+        <label for="fg-just-prazo">Justificativa de Prazo (Portaria GABAER/GC4 nº 1636/2026)</label>
+        <textarea id="fg-just-prazo" rows="2">Justifica-se a apresentação da presente Ordem de Serviço fora do prazo previsto no parágrafo 1° do Art. 10 da Portaria GABAER/GC4 n° 1636/2026 devido à recente entrada em vigor da referida Portaria e adequações dos procedimentos internos para atendimento aos novos procedimentos.</textarea>
+      </div>
+      <div class="field">
+        <label for="fg-just-retorno">Ficha de Retorno - Justificativa de Alteração no Retorno</label>
+        <input id="fg-just-retorno" type="text" value="Por motivos de trânsito, o militar retornou no horário informado." />
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="fecharModalGrat()">Cancelar</button>
+      <button class="btn btn-primary" id="btn-salvar-grat" onclick="salvarGratificacao()">Salvar Gratificação</button>
     </div>
   </div>
 </div>
@@ -1005,10 +1186,366 @@ if (lerCache()){                       // pinta na hora com o que já se sabe
   document.getElementById('in-total').value = dados.dotacao ? fmtM(dados.dotacao) : '';
   render();
 }
+lerCacheGrat();
+carregarEfetivo();
 recarregar();                          // depois reconcilia com o servidor
+recarregarGratificacao();
 ouvirRealtime();
-addEventListener('online',  ()=>recarregar());
+ouvirRealtimeGratificacao();
+addEventListener('online',  ()=>{ recarregar(); recarregarGratificacao(); });
 addEventListener('offline', ()=>setSync('off','Sem conexão'));
+
+/* ══════════════════════════════════════════════════════════════
+   13 · ABA & GRATIFICAÇÃO DE REPRESENTAÇÃO & EFETIVO
+   ══════════════════════════════════════════════════════════════ */
+let abaAtual = 'diarias';
+let dadosGratificacao = [];
+let listaEfetivo = [];
+const CACHE_GRAT_KEY = 'afa_gratificacao_cache_v1';
+const CACHE_EFETIVO_KEY = 'afa_efetivo_cache_v1';
+
+function trocarAba(aba) {
+  abaAtual = aba;
+  document.getElementById('tab-btn-diarias').classList.toggle('active', aba === 'diarias');
+  document.getElementById('tab-btn-gratificacao').classList.toggle('active', aba === 'gratificacao');
+  document.getElementById('view-diarias').style.display = (aba === 'diarias') ? 'block' : 'none';
+  document.getElementById('view-gratificacao').style.display = (aba === 'gratificacao') ? 'block' : 'none';
+  document.getElementById('txt-header-acao').textContent = (aba === 'diarias') ? 'Nova OS' : 'Nova Gratificação';
+
+  if (aba === 'gratificacao') {
+    renderGratificacao();
+  }
+}
+
+function acaoAbaAtual() {
+  if (abaAtual === 'diarias') abrirModal();
+  else abrirModalGratificacao();
+}
+
+/* ── EFETIVO GOOGLE SHEETS ── */
+const EFETIVO_SHEET_ID = '1UOMh4y-wHL8kHcB9TUUcEmkeF7z6KYAs4vipsoOFgfA';
+const EFETIVO_URL = `https://docs.google.com/spreadsheets/d/${EFETIVO_SHEET_ID}/gviz/tq?tqx=out:json&sheet=efetivo&range=C5:E150&headers=0`;
+
+async function carregarEfetivo() {
+  try {
+    const raw = localStorage.getItem(CACHE_EFETIVO_KEY);
+    if (raw) {
+      listaEfetivo = JSON.parse(raw);
+      preencherSelectEfetivo();
+    }
+  } catch (e) {}
+
+  try {
+    const res = await fetch(EFETIVO_URL);
+    const txt = await res.text();
+    const jsonStr = txt.replace(/^\/\*O_o\*\/\s*google\.visualization\.Query\.setResponse\(/, '').replace(/\);?\s*$/, '');
+    const data = JSON.parse(jsonStr);
+
+    if (data.table && data.table.rows) {
+      listaEfetivo = data.table.rows
+        .map(r => {
+          const c = r.c || [];
+          return {
+            posto: (c[0]?.v || '').toString().trim(),
+            esp: (c[1]?.v || '').toString().trim(),
+            nome: (c[2]?.v || '').toString().trim()
+          };
+        })
+        .filter(m => m.nome);
+
+      localStorage.setItem(CACHE_EFETIVO_KEY, JSON.stringify(listaEfetivo));
+      preencherSelectEfetivo();
+    }
+  } catch (e) {
+    console.warn('Efetivo carregado do cache ou offline', e);
+  }
+}
+
+function preencherSelectEfetivo() {
+  const options = '<option value="">-- Selecione um militar do Efetivo --</option>' +
+    listaEfetivo.map((m, idx) => `<option value="${idx}">${esc(m.posto)} ${esc(m.esp)} ${esc(m.nome)}</option>`).join('');
+
+  const sel1 = document.getElementById('fg-militar-select');
+  if (sel1) sel1.innerHTML = options;
+
+  const sel2 = document.getElementById('f-serv-select');
+  if (sel2) sel2.innerHTML = options;
+}
+
+function selecionarMilitarGrat(idx) {
+  if (idx === '' || !listaEfetivo[idx]) return;
+  const m = listaEfetivo[idx];
+  document.getElementById('fg-posto').value = (m.posto + ' ' + (m.esp || '')).trim();
+  document.getElementById('fg-nome').value = m.nome;
+}
+
+/* ── CACHE & SINCRONIZAÇÃO GRATIFICAÇÃO ── */
+function lerCacheGrat() {
+  try {
+    const raw = localStorage.getItem(CACHE_GRAT_KEY);
+    if (raw) {
+      dadosGratificacao = JSON.parse(raw);
+      return true;
+    }
+  } catch (e) {}
+  return false;
+}
+function gravarCacheGrat() {
+  try { localStorage.setItem(CACHE_GRAT_KEY, JSON.stringify(dadosGratificacao)); } catch (e) {}
+}
+
+async function recarregarGratificacao() {
+  if (!configurado) return;
+  try {
+    const { data, error } = await sb.from('gratificacao_representacao').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    dadosGratificacao = data || [];
+    gravarCacheGrat();
+    renderGratificacao();
+  } catch (e) {
+    console.error('Falha ao buscar gratificação:', e);
+  }
+}
+
+function ouvirRealtimeGratificacao() {
+  if (!configurado) return;
+  sb.channel('gratificacao-live')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'gratificacao_representacao' }, () => recarregarGratificacao())
+    .subscribe();
+}
+
+function calcDiasGrat() {
+  const iniStr = document.getElementById('fg-ini').value;
+  const fimStr = document.getElementById('fg-fim').value;
+  if (!iniStr || !fimStr) {
+    document.getElementById('calc-grat-dias').textContent = 'Período computado: — dias';
+    return 1;
+  }
+  const dIni = new Date(iniStr);
+  const dFim = new Date(fimStr);
+  const diffHours = (dFim - dIni) / (1000 * 60 * 60);
+  const dias = Math.max(1, Math.ceil(diffHours / 24));
+  document.getElementById('calc-grat-dias').textContent = `Período computado: ${dias} dia(s) (${diffHours.toFixed(1)}h)`;
+  return dias;
+}
+
+function abrirModalGratificacao(id) {
+  limparErrosGrat();
+  preencherSelectEfetivo();
+  if (id) {
+    const g = dadosGratificacao.find(x => String(x.id) === String(id));
+    if (!g) return;
+    document.getElementById('modal-grat-title').textContent = 'Editar Gratificação de Representação';
+    document.getElementById('fg-id').value = g.id;
+    document.getElementById('fg-num').value = g.num_os || '';
+    document.getElementById('fg-posto').value = g.posto_grad || '';
+    document.getElementById('fg-nome').value = g.nome || '';
+    document.getElementById('fg-cpf').value = g.cpf || '';
+    document.getElementById('fg-saram').value = g.saram || '';
+    document.getElementById('fg-servico').value = g.servico_local || '';
+    document.getElementById('fg-ini').value = g.data_inicio ? (g.data_inicio + 'T' + (g.hora_inicio || '08:00')) : '';
+    document.getElementById('fg-fim').value = g.data_fim ? (g.data_fim + 'T' + (g.hora_fim || '18:00')) : '';
+    document.getElementById('fg-passagem').value = g.passagem || 'NÃO';
+    document.getElementById('fg-antecipado').value = g.pagamento_antecipado ? 'true' : 'false';
+    document.getElementById('fg-enquadramento').value = g.enquadramento_legal || 'Art 5°, Inc II (Viagem de Instrução)';
+    document.getElementById('fg-apoio').value = g.apoio_recebido || 'Apoio de Hospedagem, Transporte e Rancho foram fornecidos pela UNIFA.';
+    document.getElementById('fg-just-prazo').value = g.justificativa_prazo || '';
+    document.getElementById('fg-just-retorno').value = g.justificativa_alteracao_retorno || '';
+  } else {
+    document.getElementById('modal-grat-title').textContent = 'Nova Gratificação de Representação';
+    ['fg-id','fg-num','fg-posto','fg-nome','fg-cpf','fg-saram','fg-servico','fg-ini','fg-fim'].forEach(i => document.getElementById(i).value = '');
+    document.getElementById('fg-num').value = '23/DE/' + new Date().getFullYear();
+    document.getElementById('fg-passagem').value = 'NÃO';
+    document.getElementById('fg-antecipado').value = 'false';
+  }
+  calcDiasGrat();
+  document.getElementById('backdrop-grat').classList.add('open');
+}
+
+function fecharModalGrat() {
+  document.getElementById('backdrop-grat').classList.remove('open');
+}
+
+function limparErrosGrat() {
+  ['eg-num','eg-posto','eg-nome','eg-cpf','eg-saram','eg-servico','eg-ini','eg-fim'].forEach(i => {
+    const el = document.getElementById(i);
+    if (el) el.classList.remove('show');
+  });
+}
+
+async function salvarGratificacao() {
+  limparErrosGrat();
+  const id = document.getElementById('fg-id').value;
+  const num_os = document.getElementById('fg-num').value.trim();
+  const posto_grad = document.getElementById('fg-posto').value.trim();
+  const nome = document.getElementById('fg-nome').value.trim();
+  const cpf = document.getElementById('fg-cpf').value.trim();
+  const saram = document.getElementById('fg-saram').value.trim();
+  const servico_local = document.getElementById('fg-servico').value.trim();
+  const iniVal = document.getElementById('fg-ini').value;
+  const fimVal = document.getElementById('fg-fim').value;
+
+  let erro = false;
+  const marcar = k => { document.getElementById(k).classList.add('show'); erro = true; };
+  if (!num_os) marcar('eg-num');
+  if (!posto_grad) marcar('eg-posto');
+  if (!nome) marcar('eg-nome');
+  if (!cpf) marcar('eg-cpf');
+  if (!saram) marcar('eg-saram');
+  if (!servico_local) marcar('eg-servico');
+  if (!iniVal) marcar('eg-ini');
+  if (!fimVal || fimVal < iniVal) marcar('eg-fim');
+  if (erro) return;
+
+  const data_inicio = iniVal.split('T')[0];
+  const hora_inicio = iniVal.split('T')[1] || '08:00';
+  const data_fim = fimVal.split('T')[0];
+  const hora_fim = fimVal.split('T')[1] || '18:00';
+  const ano = parseInt(data_inicio.split('-')[0]) || new Date().getFullYear();
+  const dias = calcDiasGrat();
+
+  const reg = {
+    ano, num_os, posto_grad, nome, cpf, saram,
+    servico_local, data_inicio, hora_inicio, data_fim, hora_fim, dias,
+    passagem: document.getElementById('fg-passagem').value,
+    pagamento_antecipado: document.getElementById('fg-antecipado').value === 'true',
+    enquadramento_legal: document.getElementById('fg-enquadramento').value.trim(),
+    apoio_recebido: document.getElementById('fg-apoio').value.trim(),
+    justificativa_prazo: document.getElementById('fg-just-prazo').value.trim(),
+    justificativa_alteracao_retorno: document.getElementById('fg-just-retorno').value.trim(),
+    updated_at: new Date().toISOString()
+  };
+
+  const btn = document.getElementById('btn-salvar-grat');
+  btn.disabled = true;
+
+  try {
+    if (id) {
+      if (configurado) {
+        const { error } = await sb.from('gratificacao_representacao').update(reg).eq('id', id);
+        if (error) throw error;
+      }
+      const idx = dadosGratificacao.findIndex(x => String(x.id) === String(id));
+      if (idx >= 0) dadosGratificacao[idx] = { id, ...reg };
+      toast('Gratificação atualizada');
+    } else {
+      if (configurado) {
+        const { data, error } = await sb.from('gratificacao_representacao').insert([reg]).select().single();
+        if (error) throw error;
+        dadosGratificacao.unshift(data);
+      } else {
+        reg.id = 'temp_' + Date.now();
+        dadosGratificacao.unshift(reg);
+      }
+      toast('Gratificação lançada');
+    }
+    gravarCacheGrat();
+    renderGratificacao();
+    fecharModalGrat();
+  } catch (e) {
+    console.error(e);
+    toast('Erro ao salvar: ' + (e.message || 'erro'), true);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function excluirGratificacao(id) {
+  const g = dadosGratificacao.find(x => String(x.id) === String(id));
+  if (!g) return;
+  if (!confirm(`Excluir a Gratificação OS ${g.num_os} (${g.nome})?`)) return;
+
+  const backup = [...dadosGratificacao];
+  dadosGratificacao = dadosGratificacao.filter(x => String(x.id) !== String(id));
+  renderGratificacao();
+
+  try {
+    if (configurado && !String(id).startsWith('temp_')) {
+      const { error } = await sb.from('gratificacao_representacao').delete().eq('id', id);
+      if (error) throw error;
+    }
+    gravarCacheGrat();
+    toast('Gratificação excluída');
+  } catch (e) {
+    dadosGratificacao = backup;
+    renderGratificacao();
+    toast('Erro ao excluir: ' + (e.message || 'erro'), true);
+  }
+}
+
+function renderGratificacao() {
+  document.getElementById('badge-diarias-count').textContent = dados.ordens.length;
+  document.getElementById('badge-grat-count').textContent = dadosGratificacao.length;
+
+  const anoSel = parseInt(document.getElementById('grat-ano').value) || 2026;
+  const termo = (document.getElementById('grat-busca').value || '').toLowerCase().trim();
+
+  let lista = dadosGratificacao.filter(g => (g.ano || 2026) === anoSel);
+  if (termo) {
+    lista = lista.filter(g =>
+      [g.num_os, g.nome, g.posto_grad, g.cpf, g.saram, g.servico_local].some(c => (c || '').toLowerCase().includes(termo))
+    );
+  }
+
+  // Métricas
+  const totalDias = lista.reduce((s, g) => s + (Number(g.dias) || 0), 0);
+  const militaresUnicos = new Set(lista.map(g => g.nome)).size;
+
+  document.getElementById('sg-qtd').textContent = lista.length;
+  document.getElementById('sg-dias').textContent = totalDias;
+  document.getElementById('sg-militares').textContent = militaresUnicos;
+
+  const alvo = document.getElementById('lista-gratificacao');
+  if (!lista.length) {
+    alvo.innerHTML = `
+      <div class="empty">
+        <img src="assets/cocar-fab.png" alt="" />
+        <p>${dadosGratificacao.length ? `Nenhuma gratificação encontrada para o ano de ${anoSel}.` : 'Nenhum processo de gratificação cadastrado ainda.'}</p>
+        <button class="btn btn-primary" onclick="abrirModalGratificacao()">Lançar a primeira Gratificação</button>
+      </div>`;
+    return;
+  }
+
+  alvo.innerHTML = lista.map(g => {
+    const dataIniFmt = fmtData(g.data_inicio);
+    const dataFimFmt = fmtData(g.data_fim);
+    const jsonStr = JSON.stringify(g).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+
+    return `
+    <article class="os st-curso" style="border-top-color:var(--gold-500)">
+      <div class="os-acts">
+        <button class="icon-btn" onclick="abrirModalGratificacao('${g.id}')" aria-label="Editar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+        </button>
+        <button class="icon-btn del" onclick="excluirGratificacao('${g.id}')" aria-label="Excluir">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+        </button>
+      </div>
+      <div class="os-head">
+        <div class="os-num">OS ${esc(g.num_os)}<span>Gratificação de Representação</span></div>
+        <span class="os-badge badge-futura">${g.dias} ${g.dias === 1 ? 'dia' : 'dias'}</span>
+      </div>
+      <p class="os-desc">${esc(g.servico_local)}</p>
+      <div class="os-meta">
+        <div class="os-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <b>${esc(g.posto_grad)} ${esc(g.nome)}</b>
+        </div>
+        <div class="os-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          ${dataIniFmt} (${g.hora_inicio || '08:00'}) → ${dataFimFmt} (${g.hora_fim || '18:00'})
+          <u>SARAM ${esc(g.saram || '—')}</u>
+        </div>
+      </div>
+      <div class="grat-actions">
+        <button class="btn-doc" onclick='CompiladorDoc.gerarOSGratificacao(${jsonStr})'>📄 OS</button>
+        <button class="btn-doc" onclick='CompiladorDoc.gerarAutorizacaoGratificacao(${jsonStr})'>📄 Autorização</button>
+        <button class="btn-doc" onclick='CompiladorDoc.gerarFichaApresentacaoGratificacao(${jsonStr})'>📄 Ficha Retorno</button>
+        <button class="btn-doc gold" onclick='CompiladorDoc.compilarPacoteGratificacao(${jsonStr})'>📦 Baixar 3 Docs</button>
+      </div>
+    </article>`;
+  }).join('');
+}
 </script>
 </body>
 </html>
