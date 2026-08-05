@@ -1336,7 +1336,7 @@ function efJsonp(baseUrl){
     const cb = 'cb_' + Math.random().toString(36).slice(2);
     const s = document.createElement('script');
     let done = false;
-    const cleanup = ()=>{ try{ delete window[cb]; }catch(_){ window[cb]=undefined; } s.remove(); };
+    const cleanup = ()=>{ window[cb] = ()=>{}; setTimeout(()=>{ try{ delete window[cb]; }catch(_){ window[cb]=undefined; } }, 10000); s.remove(); };
     window[cb] = d => { done = true; cleanup(); resolve(d); };
     s.onerror = ()=>{ if(!done){ cleanup(); reject(new Error('rede')); } };
     s.src = baseUrl + (baseUrl.includes('?')?'&':'?') + 'callback=' + cb + '&_=' + Date.now();
@@ -1925,10 +1925,15 @@ async function carregarTransporte(){
   pintarCicloAT(fase);
   const nota = document.getElementById('at-note');
 
-  // leitura direta via REST, imune a cache (mesma base/chave do sbCli)
+  const AT_SB = {
+    url: 'https://sovrgsbdhdpxsaomspsp.supabase.co',
+    key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg'
+  };
+
+  // leitura direta via REST no Supabase do Auxílio Transporte (imune a cache)
   const atGet = async (caminho) => {
-    const r = await fetch(SUPABASE_URL + '/rest/v1/' + caminho, {
-      headers: { apikey: SUPABASE_ANON, Authorization: 'Bearer ' + SUPABASE_ANON },
+    const r = await fetch(AT_SB.url + '/rest/v1/' + caminho, {
+      headers: { apikey: AT_SB.key, Authorization: 'Bearer ' + AT_SB.key },
       cache: 'no-store'
     });
     if (!r.ok) throw new Error('HTTP ' + r.status);
