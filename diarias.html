@@ -314,6 +314,10 @@ footer img{width:16px;vertical-align:middle;margin:0 .5rem;opacity:.5}
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m3 10 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
       <span>Início</span>
     </a>
+    <a class="hbtn gold" href="solicitar.html" target="_blank" title="Abrir formulário de solicitação sem senha">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>
+      <span>Formulário Sem Senha</span>
+    </a>
     <button class="hbtn gold" id="btn-header-acao" onclick="acaoAbaAtual()">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
       <span id="txt-header-acao">Nova OS</span>
@@ -332,6 +336,11 @@ footer img{width:16px;vertical-align:middle;margin:0 .5rem;opacity:.5}
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>
     Gratificação de representação
     <span class="tab-badge" id="badge-grat-count">0</span>
+  </button>
+  <button class="tab-btn" id="tab-btn-solicitacoes" onclick="trocarAba('solicitacoes')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    Solicitações Pendentes
+    <span class="tab-badge" id="badge-solic-count" style="background:#ef4444;color:#fff">0</span>
   </button>
 </div>
 
@@ -441,6 +450,32 @@ footer img{width:16px;vertical-align:middle;margin:0 .5rem;opacity:.5}
         <input class="search" id="grat-busca" type="search" placeholder="Buscar por OS, militar, CPF, SARAM ou missão..." oninput="renderGratificacao()" />
       </div>
       <div class="os-grid" id="lista-gratificacao">
+        <div class="skel"></div><div class="skel"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ABA 3: SOLICITAÇÕES PENDENTES -->
+<div id="view-solicitacoes" style="display:none">
+  <div class="summary">
+    <div class="scard gold"><div><div class="scount" id="ss-qtd">0</div><div class="slabel">Solicitações Pendentes</div></div></div>
+    <div class="scard navy"><div><div class="scount" id="ss-diarias">0</div><div class="slabel">Diárias</div></div></div>
+    <div class="scard navy"><div><div class="scount" id="ss-grat">0</div><div class="slabel">Gratificações</div></div></div>
+    <div class="scard navy"><div><div class="scount" id="ss-semcusto">0</div><div class="slabel">Sem Custo</div></div></div>
+  </div>
+
+  <main>
+    <div>
+      <div class="section-title">Solicitações Pré-montadas pelos Militares</div>
+      <div class="toolbar">
+        <a class="btn btn-primary" href="solicitar.html" target="_blank">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 5v14M5 12h14"/></svg>
+          Abrir Formulário Sem Senha
+        </a>
+        <input class="search" id="solic-busca" type="search" placeholder="Buscar por protocolo, militar ou missão..." oninput="renderSolicitacoes()" />
+      </div>
+      <div class="os-grid" id="lista-solicitacoes">
         <div class="skel"></div><div class="skel"></div>
       </div>
     </div>
@@ -649,8 +684,16 @@ const sb = configurado ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANO
 /* ══════════════════════════════════════════════════════════════
    2 · ESTADO
    ══════════════════════════════════════════════════════════════ */
+let abaAtual = 'diarias';
 let dados = { dotacao:0, ordens:[] };
+let dadosGratificacao = [];
+let dadosSolicitacoes = [];
+let listaEfetivo = [];
 let carregando = true;
+
+const CACHE_GRAT_KEY = 'afa_gratificacao_cache_v1';
+const CACHE_EFETIVO_KEY = 'afa_efetivo_cache_v1';
+const CACHE_SOLICITACOES_KEY = 'afa_solicitacoes_cache_v1';
 
 /* cache local: só para pintar a tela na hora enquanto o servidor responde */
 function lerCache(){
@@ -1200,48 +1243,68 @@ function toast(msg, ruim){
 }
 
 /* ══════════════════════════════════════════════════════════════
-   12 · INÍCIO
+   12 · INÍCIO DA PÁGINA (executado ao carregar)
    ══════════════════════════════════════════════════════════════ */
-montarGauge();
-if (lerCache()){                       // pinta na hora com o que já se sabe
-  carregando = false;
-  document.getElementById('in-total').value = dados.dotacao ? fmtM(dados.dotacao) : '';
-  render();
-}
-lerCacheGrat();
-carregarEfetivo();
-recarregar();                          // depois reconcilia com o servidor
-recarregarGratificacao();
-ouvirRealtime();
-ouvirRealtimeGratificacao();
-addEventListener('online',  ()=>{ recarregar(); recarregarGratificacao(); });
-addEventListener('offline', ()=>setSync('off','Sem conexão'));
-
-/* ══════════════════════════════════════════════════════════════
-   13 · ABA & GRATIFICAÇÃO DE REPRESENTAÇÃO & EFETIVO
-   ══════════════════════════════════════════════════════════════ */
-let abaAtual = 'diarias';
-let dadosGratificacao = [];
-let listaEfetivo = [];
-const CACHE_GRAT_KEY = 'afa_gratificacao_cache_v1';
-const CACHE_EFETIVO_KEY = 'afa_efetivo_cache_v1';
+// As chamadas de inicialização ficam no final do script após todas as funções declaradas.
 
 function trocarAba(aba) {
   abaAtual = aba;
   document.getElementById('tab-btn-diarias').classList.toggle('active', aba === 'diarias');
   document.getElementById('tab-btn-gratificacao').classList.toggle('active', aba === 'gratificacao');
+  document.getElementById('tab-btn-solicitacoes').classList.toggle('active', aba === 'solicitacoes');
+
   document.getElementById('view-diarias').style.display = (aba === 'diarias') ? 'block' : 'none';
   document.getElementById('view-gratificacao').style.display = (aba === 'gratificacao') ? 'block' : 'none';
-  document.getElementById('txt-header-acao').textContent = (aba === 'diarias') ? 'Nova OS' : 'Nova Gratificação';
+  document.getElementById('view-solicitacoes').style.display = (aba === 'solicitacoes') ? 'block' : 'none';
 
-  if (aba === 'gratificacao') {
-    renderGratificacao();
-  }
+  const txtAcao = document.getElementById('txt-header-acao');
+  if (aba === 'diarias') txtAcao.textContent = 'Nova OS';
+  else if (aba === 'gratificacao') txtAcao.textContent = 'Nova Gratificação';
+  else txtAcao.textContent = '+ Solicitação';
+
+  if (aba === 'gratificacao') renderGratificacao();
+  if (aba === 'solicitacoes') renderSolicitacoes();
 }
 
 function acaoAbaAtual() {
   if (abaAtual === 'diarias') abrirModal();
-  else abrirModalGratificacao();
+  else if (abaAtual === 'gratificacao') abrirModalGratificacao();
+  else window.open('solicitar.html', '_blank');
+}
+
+/* ── CACHE & SINCRONIZAÇÃO DE SOLICITAÇÕES ── */
+function lerCacheSolicitacoes() {
+  try {
+    const raw = localStorage.getItem(CACHE_SOLICITACOES_KEY);
+    if (raw) {
+      dadosSolicitacoes = JSON.parse(raw);
+      return true;
+    }
+  } catch (e) {}
+  return false;
+}
+function gravarCacheSolicitacoes() {
+  try { localStorage.setItem(CACHE_SOLICITACOES_KEY, JSON.stringify(dadosSolicitacoes)); } catch (e) {}
+}
+
+async function recarregarSolicitacoes() {
+  if (!configurado) return;
+  try {
+    const { data, error } = await sb.from('solicitacoes_missao').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    dadosSolicitacoes = data || [];
+    gravarCacheSolicitacoes();
+    renderSolicitacoes();
+  } catch (e) {
+    console.error('Falha ao buscar solicitações:', e);
+  }
+}
+
+function ouvirRealtimeSolicitacoes() {
+  if (!configurado) return;
+  sb.channel('solicitacoes-live')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'solicitacoes_missao' }, () => recarregarSolicitacoes())
+    .subscribe();
 }
 
 /* ── EFETIVO GOOGLE SHEETS ── */
@@ -1745,6 +1808,149 @@ function renderGratificacao() {
     </article>`;
   }).join('');
 }
+
+function renderSolicitacoes() {
+  const termo = (document.getElementById('solic-busca') ? document.getElementById('solic-busca').value : '').toLowerCase().trim();
+  let pendentes = dadosSolicitacoes.filter(s => (s.status || 'pendente') === 'pendente');
+
+  if (termo) {
+    pendentes = pendentes.filter(s => {
+      const mils = Array.isArray(s.militares) ? s.militares : [];
+      return [s.protocolo, s.servico_local, s.modalidade, ...mils.map(m => m.nome + ' ' + m.cpf)].some(c => (c || '').toLowerCase().includes(termo));
+    });
+  }
+
+  const badgeEl = document.getElementById('badge-solic-count');
+  if (badgeEl) badgeEl.textContent = pendentes.length;
+
+  document.getElementById('ss-qtd').textContent = pendentes.length;
+  document.getElementById('ss-diarias').textContent = pendentes.filter(s => s.modalidade === 'diaria').length;
+  document.getElementById('ss-grat').textContent = pendentes.filter(s => s.modalidade === 'gratificacao').length;
+  document.getElementById('ss-semcusto').textContent = pendentes.filter(s => s.modalidade === 'sem_custo').length;
+
+  const alvo = document.getElementById('lista-solicitacoes');
+  if (!alvo) return;
+
+  if (!pendentes.length) {
+    alvo.innerHTML = `
+      <div class="empty">
+        <img src="assets/cocar-fab.png" alt="" />
+        <p>Nenhuma solicitação de missão pendente de homologação.</p>
+        <a class="btn btn-primary" href="solicitar.html" target="_blank">Abrir Formulário Sem Senha</a>
+      </div>`;
+    return;
+  }
+
+  alvo.innerHTML = pendentes.map(s => {
+    const mils = Array.isArray(s.militares) && s.militares.length > 0 ? s.militares : [{ posto_grad: '', nome: 'Militar' }];
+    const primMilitar = mils[0] || {};
+    const labelModalidade = s.modalidade === 'gratificacao' ? 'Gratificação' : (s.modalidade === 'diaria' ? 'Diária' : 'Sem Custo');
+
+    return `
+    <article class="os st-analise" style="border-top-color:var(--gold-500)">
+      <div class="os-head">
+        <div class="os-num">${esc(s.protocolo)}<span>${labelModalidade}</span></div>
+        <span class="os-badge badge-analise">${mils.length} ${mils.length === 1 ? 'militar' : 'militares'}</span>
+      </div>
+      <p class="os-desc">${esc(s.servico_local)}</p>
+      <div class="os-meta">
+        <div class="os-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <b>${esc(primMilitar.posto_grad)} ${esc(primMilitar.nome)}</b> ${mils.length > 1 ? `(+${mils.length - 1})` : ''}
+        </div>
+        <div class="os-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          Período: ${fmtData(s.data_inicio)} (${s.hora_inicio || '04:00'}) → ${fmtData(s.data_fim)} (${s.hora_fim || '16:00'})
+        </div>
+      </div>
+      <div class="grat-actions" style="margin-top:.8rem">
+        <button class="btn-doc gold" onclick="aprovarSolicitacao('${s.id}')">✅ Aprovar & Pré-Carregar OS</button>
+        <button class="btn-doc" onclick="rejeitarSolicitacao('${s.id}')" style="color:#ef4444">❌ Rejeitar</button>
+      </div>
+    </article>`;
+  }).join('');
+}
+
+async function aprovarSolicitacao(id) {
+  const solic = dadosSolicitacoes.find(x => String(x.id) === String(id));
+  if (!solic) return;
+
+  if (solic.modalidade === 'gratificacao' || solic.modalidade === 'sem_custo') {
+    trocarAba('gratificacao');
+    abrirModalGratificacao();
+    document.getElementById('fg-servico').value = solic.servico_local || '';
+    if (solic.fora_prazo) {
+      document.getElementById('fg-toggle-prazo').checked = true;
+      alternarAccordion('fg-toggle-prazo', 'acc-prazo');
+      if (solic.justificativa_prazo) document.getElementById('fg-just-prazo').value = solic.justificativa_prazo;
+    }
+    if (solic.pagamento_antecipado) {
+      document.getElementById('fg-toggle-antecipado').checked = true;
+      alternarAccordion('fg-toggle-antecipado', 'acc-antecipado');
+      if (solic.justificativa_antecipacao) document.getElementById('fg-just-antecipado').value = solic.justificativa_antecipacao;
+    }
+    if (Array.isArray(solic.militares) && solic.militares.length > 0) {
+      listaMilitaresGratModal = JSON.parse(JSON.stringify(solic.militares));
+      renderMilitaresGratModal();
+    }
+  } else {
+    trocarAba('diarias');
+    abrirModal();
+    const prim = Array.isArray(solic.militares) && solic.militares[0] ? solic.militares[0] : {};
+    document.getElementById('f-serv').value = `${prim.posto_grad || ''} ${prim.nome || ''}`.trim();
+    document.getElementById('f-desc').value = solic.servico_local || '';
+    document.getElementById('f-ini').value = solic.data_inicio || '';
+    document.getElementById('f-fim').value = solic.data_fim || '';
+  }
+
+  // Atualizar status no Supabase
+  try {
+    if (configurado && !String(id).startsWith('loc_')) {
+      await sb.from('solicitacoes_missao').update({ status: 'aprovado' }).eq('id', id);
+    }
+  } catch(e){}
+  solic.status = 'aprovado';
+  gravarCacheSolicitacoes();
+  renderSolicitacoes();
+  toast('Solicitação aprovada e dados pré-carregados no formulário!');
+}
+
+async function rejeitarSolicitacao(id) {
+  const solic = dadosSolicitacoes.find(x => String(x.id) === String(id));
+  if (!solic) return;
+  if (!confirm(`Deseja rejeitar a solicitação ${solic.protocolo}?`)) return;
+
+  try {
+    if (configurado && !String(id).startsWith('loc_')) {
+      await sb.from('solicitacoes_missao').update({ status: 'rejeitado' }).eq('id', id);
+    }
+  } catch(e){}
+  solic.status = 'rejeitado';
+  gravarCacheSolicitacoes();
+  renderSolicitacoes();
+  toast('Solicitação rejeitada');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   14 · EXECUÇÃO DE INÍCIO
+   ══════════════════════════════════════════════════════════════ */
+montarGauge();
+if (lerCache()){
+  carregando = false;
+  document.getElementById('in-total').value = dados.dotacao ? fmtM(dados.dotacao) : '';
+  render();
+}
+lerCacheGrat();
+lerCacheSolicitacoes();
+carregarEfetivo();
+recarregar();
+recarregarGratificacao();
+recarregarSolicitacoes();
+ouvirRealtime();
+ouvirRealtimeGratificacao();
+ouvirRealtimeSolicitacoes();
+addEventListener('online',  ()=>{ recarregar(); recarregarGratificacao(); recarregarSolicitacoes(); });
+addEventListener('offline', ()=>setSync('off','Sem conexão'));
 </script>
 </body>
 </html>
