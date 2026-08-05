@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>AFA · Missões — DE</title>
+<link rel="icon" href="assets/cocar-fab.png" type="image/png" />
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
 <script src="compiladordoc.js"></script>
 <style>
@@ -1304,6 +1305,41 @@ function ouvirRealtimeSolicitacoes() {
   if (!configurado) return;
   sb.channel('solicitacoes-live')
     .on('postgres_changes', { event: '*', schema: 'public', table: 'solicitacoes_missao' }, () => recarregarSolicitacoes())
+    .subscribe();
+}
+
+/* ── CACHE & SINCRONIZAÇÃO GRATIFICAÇÃO ── */
+function lerCacheGrat() {
+  try {
+    const raw = localStorage.getItem(CACHE_GRAT_KEY);
+    if (raw) {
+      dadosGratificacao = JSON.parse(raw);
+      return true;
+    }
+  } catch (e) {}
+  return false;
+}
+function gravarCacheGrat() {
+  try { localStorage.setItem(CACHE_GRAT_KEY, JSON.stringify(dadosGratificacao)); } catch (e) {}
+}
+
+async function recarregarGratificacao() {
+  if (!configurado) return;
+  try {
+    const { data, error } = await sb.from('gratificacao_representacao').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    dadosGratificacao = data || [];
+    gravarCacheGrat();
+    renderGratificacao();
+  } catch (e) {
+    console.error('Falha ao buscar gratificação:', e);
+  }
+}
+
+function ouvirRealtimeGratificacao() {
+  if (!configurado) return;
+  sb.channel('gratificacao-live')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'gratificacao_representacao' }, () => recarregarGratificacao())
     .subscribe();
 }
 
