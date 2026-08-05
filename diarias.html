@@ -45,6 +45,26 @@ body{font-family:var(--f-body);background:var(--navy-50);color:var(--navy-900);m
 .btn-doc:hover{background:var(--navy-700);color:#fff;border-color:var(--navy-700)}
 .btn-doc.gold{background:var(--gold-500);color:var(--navy-900);border-color:var(--gold-500)}
 .btn-doc.gold:hover{background:var(--gold-400)}
+
+/* ═══ TOGGLES & ACCORDION ═══ */
+.toggle-field{background:var(--navy-50);border:1px solid var(--navy-200);border-radius:6px;padding:.75rem .9rem;margin-bottom:.85rem}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;cursor:pointer;user-select:none}
+.toggle-title{font-size:.76rem;font-weight:600;color:var(--navy-900);text-transform:uppercase;letter-spacing:.04em}
+.toggle-sub{font-size:.64rem;color:var(--gray-500);margin-top:2px}
+.switch{position:relative;display:inline-block;width:38px;height:22px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;inset:0;background-color:var(--gray-300);transition:.24s;border-radius:22px}
+.slider:before{position:absolute;content:"";height:16px;width:16px;left:3px;bottom:3px;background-color:white;transition:.24s;border-radius:50%}
+input:checked + .slider{background-color:var(--gold-500)}
+input:checked + .slider:before{transform:translateX(16px)}
+
+.accordion-body{display:none;margin-top:.75rem;padding-top:.75rem;border-top:1px dashed var(--navy-200)}
+.accordion-body.show{display:block}
+
+/* Multimilitar List */
+.militar-item-card{background:#fff;border:1px solid var(--navy-200);border-left:3px solid var(--gold-500);border-radius:6px;padding:.75rem;margin-bottom:.6rem;position:relative}
+.militar-item-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;font-size:.75rem;font-weight:700;color:var(--navy-900)}
+
 body::after{
   content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
   background-image:linear-gradient(rgba(20,49,90,.04) 1px,transparent 1px),
@@ -509,95 +529,97 @@ footer img{width:16px;vertical-align:middle;margin:0 .5rem;opacity:.5}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
     </div>
-    <div class="modal-body" style="max-height:75vh;overflow-y:auto">
+    <div class="modal-body" style="max-height:78vh;overflow-y:auto">
       <input type="hidden" id="fg-id" />
-      <div class="grid2">
-        <div class="field">
-          <label for="fg-num">Nº da OS / Processo *</label>
-          <input id="fg-num" type="text" placeholder="Ex.: 23/DE/2026" />
-          <div class="err" id="eg-num">Informe o número da OS.</div>
-        </div>
-        <div class="field">
-          <label for="fg-militar-select">Selecionar Militar do Efetivo *</label>
-          <select id="fg-militar-select" onchange="selecionarMilitarGrat(this.value)">
-            <option value="">-- Carregando efetivo... --</option>
-          </select>
-        </div>
+      
+      <div class="field">
+        <label for="fg-num">Nº da OS / Processo *</label>
+        <input id="fg-num" type="text" placeholder="Ex.: 24/DE/2026" />
+        <div class="err" id="eg-num">Informe o número da OS.</div>
       </div>
-      <div class="grid2">
-        <div class="field">
-          <label for="fg-posto">Posto / Graduação / Esp *</label>
-          <input id="fg-posto" type="text" placeholder="Ex.: TC AV" />
-          <div class="err" id="eg-posto">Informe o posto/graduação.</div>
+
+      <!-- SEÇÃO MULTIMILITAR -->
+      <div style="margin-bottom:1rem;background:var(--navy-50);padding:.85rem;border-radius:6px;border:1px solid var(--navy-100)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">
+          <label style="margin-bottom:0">Militares Designados para a Missão *</label>
+          <button class="btn btn-ghost" style="padding:.3rem .6rem;font-size:.7rem" onclick="adicionarMilitarGratItem()">
+            + Adicionar Militar
+          </button>
         </div>
-        <div class="field">
-          <label for="fg-nome">Nome Completo *</label>
-          <input id="fg-nome" type="text" placeholder="Nome completo do militar" />
-          <div class="err" id="eg-nome">Informe o nome do militar.</div>
-        </div>
+        <div id="lista-militares-container"></div>
+        <div class="err" id="eg-militares">Adicione pelo menos um militar à missão.</div>
       </div>
-      <div class="grid2">
-        <div class="field">
-          <label for="fg-cpf">CPF *</label>
-          <input id="fg-cpf" type="text" placeholder="000.000.000-00" />
-          <div class="err" id="eg-cpf">Informe o CPF.</div>
-        </div>
-        <div class="field">
-          <label for="fg-saram">SARAM *</label>
-          <input id="fg-saram" type="text" placeholder="Ex.: 3410773" />
-          <div class="err" id="eg-saram">Informe o SARAM.</div>
-        </div>
-      </div>
+
       <div class="field">
         <label for="fg-servico">Serviço a Realizar / Local (Missão) *</label>
-        <textarea id="fg-servico" placeholder="Objeto da missão e local"></textarea>
+        <textarea id="fg-servico" placeholder="Ex.: Participação no Curso de Gestão de Informação na Área de Biblioteconomia, em São Paulo - SP"></textarea>
         <div class="err" id="eg-servico">Descreva a missão.</div>
       </div>
-      <div class="grid2">
-        <div class="field">
-          <label for="fg-ini">Data / Hora de Início *</label>
-          <input id="fg-ini" type="datetime-local" onchange="calcDiasGrat()" />
-          <div class="err" id="eg-ini">Informe início.</div>
-        </div>
-        <div class="field">
-          <label for="fg-fim">Data / Hora de Término *</label>
-          <input id="fg-fim" type="datetime-local" onchange="calcDiasGrat()" />
-          <div class="err" id="eg-fim">Término deve ser após início.</div>
-        </div>
+
+      <div class="field">
+        <label for="fg-apoio">Apoio Recebido</label>
+        <input id="fg-apoio" type="text" value="Apoio de hospedagem e rancho serão prestados pelo (NOME DA UNIDADE), e o apoio de transporte será prestado pela AFA." />
       </div>
-      <div class="calc" id="calc-grat-dias">Período computado: — dias</div>
-      <div class="grid2">
-        <div class="field">
-          <label for="fg-passagem">Passagem Aérea/Rodoviária</label>
-          <select id="fg-passagem">
-            <option value="NÃO">NÃO</option>
-            <option value="SIM">SIM</option>
-          </select>
-        </div>
-        <div class="field">
-          <label for="fg-antecipado">Pagamento Antecipado</label>
-          <select id="fg-antecipado">
-            <option value="false">NÃO</option>
-            <option value="true">SIM</option>
-          </select>
-        </div>
-      </div>
+
       <div class="field">
         <label for="fg-enquadramento">Enquadramento Legal</label>
         <input id="fg-enquadramento" type="text" value="Art 5°, Inc II (Viagem de Instrução)" />
       </div>
-      <div class="field">
-        <label for="fg-apoio">Apoio Recebido</label>
-        <input id="fg-apoio" type="text" value="Apoio de Hospedagem, Transporte e Rancho foram fornecidos pela UNIFA." />
+
+      <!-- TOGGLE 1: FORA DO PRAZO -->
+      <div class="toggle-field">
+        <div class="toggle-row" onclick="toggleSwitch('fg-toggle-prazo')">
+          <div>
+            <div class="toggle-title">Solicitação fora do prazo (Portaria GABAER/GC4 1636/2026)</div>
+            <div class="toggle-sub">Desativado = "Não se aplica." | Ativado = Abrir campo de justificativa</div>
+          </div>
+          <label class="switch" onclick="event.stopPropagation()">
+            <input type="checkbox" id="fg-toggle-prazo" onchange="alternarAccordion('fg-toggle-prazo', 'acc-prazo')" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="accordion-body" id="acc-prazo">
+          <label for="fg-just-prazo">Justificativa para o não cumprimento do prazo:</label>
+          <textarea id="fg-just-prazo" rows="2" placeholder="Digite a justificativa de atraso...">Devido à natureza da missão a solicitação foi feita fora do prazo</textarea>
+        </div>
       </div>
-      <div class="field">
-        <label for="fg-just-prazo">Justificativa de Prazo (Portaria GABAER/GC4 nº 1636/2026)</label>
-        <textarea id="fg-just-prazo" rows="2">Justifica-se a apresentação da presente Ordem de Serviço fora do prazo previsto no parágrafo 1° do Art. 10 da Portaria GABAER/GC4 n° 1636/2026 devido à recente entrada em vigor da referida Portaria e adequações dos procedimentos internos para atendimento aos novos procedimentos.</textarea>
+
+      <!-- TOGGLE 2: PAGAMENTO ANTECIPADO -->
+      <div class="toggle-field">
+        <div class="toggle-row" onclick="toggleSwitch('fg-toggle-antecipado')">
+          <div>
+            <div class="toggle-title">Pagamento Antecipado da Gratificação</div>
+            <div class="toggle-sub">Desativado = Não autorizando antecipação | Ativado = Autorizando antecipação</div>
+          </div>
+          <label class="switch" onclick="event.stopPropagation()">
+            <input type="checkbox" id="fg-toggle-antecipado" onchange="alternarAccordion('fg-toggle-antecipado', 'acc-antecipado')" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="accordion-body" id="acc-antecipado">
+          <label for="fg-just-antecipado">Justificativa do Pagamento Antecipado:</label>
+          <input id="fg-just-antecipado" type="text" placeholder="Ex.: Necessidade impreterível de custeio inicial da missão" value="Necessidade de custeio inicial da missão." />
+        </div>
       </div>
-      <div class="field">
-        <label for="fg-just-retorno">Ficha de Retorno - Justificativa de Alteração no Retorno</label>
-        <input id="fg-just-retorno" type="text" value="Por motivos de trânsito, o militar retornou no horário informado." />
+
+      <!-- TOGGLE 3: ALTERAÇÃO NO RETORNO -->
+      <div class="toggle-field">
+        <div class="toggle-row" onclick="toggleSwitch('fg-toggle-retorno')">
+          <div>
+            <div class="toggle-title">Alterações no Retorno (Ficha de Apresentação)</div>
+            <div class="toggle-sub">Desativado = "Não se aplica." | Ativado = Houve alteração por força maior</div>
+          </div>
+          <label class="switch" onclick="event.stopPropagation()">
+            <input type="checkbox" id="fg-toggle-retorno" onchange="alternarAccordion('fg-toggle-retorno', 'acc-retorno')" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="accordion-body" id="acc-retorno">
+          <label for="fg-just-retorno">Justificativa de Alteração de Retorno:</label>
+          <input id="fg-just-retorno" type="text" placeholder="Ex.: Por motivos de trânsito, o militar retornou no horário informado." value="Por motivos de trânsito, o militar retornou no horário informado." />
+        </div>
       </div>
+
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="fecharModalGrat()">Cancelar</button>
@@ -1272,93 +1294,245 @@ function preencherSelectEfetivo() {
   if (sel2) sel2.innerHTML = options;
 }
 
-function selecionarMilitarGrat(idx) {
-  if (idx === '' || !listaEfetivo[idx]) return;
-  const m = listaEfetivo[idx];
-  document.getElementById('fg-posto').value = (m.posto + ' ' + (m.esp || '')).trim();
-  document.getElementById('fg-nome').value = m.nome;
+/* ── TOGGLES & ACCORDION ── */
+function toggleSwitch(id) {
+  const chk = document.getElementById(id);
+  if (!chk) return;
+  chk.checked = !chk.checked;
+  chk.dispatchEvent(new Event('change'));
 }
 
-/* ── CACHE & SINCRONIZAÇÃO GRATIFICAÇÃO ── */
-function lerCacheGrat() {
-  try {
-    const raw = localStorage.getItem(CACHE_GRAT_KEY);
-    if (raw) {
-      dadosGratificacao = JSON.parse(raw);
-      return true;
-    }
-  } catch (e) {}
-  return false;
-}
-function gravarCacheGrat() {
-  try { localStorage.setItem(CACHE_GRAT_KEY, JSON.stringify(dadosGratificacao)); } catch (e) {}
-}
-
-async function recarregarGratificacao() {
-  if (!configurado) return;
-  try {
-    const { data, error } = await sb.from('gratificacao_representacao').select('*').order('created_at', { ascending: false });
-    if (error) throw error;
-    dadosGratificacao = data || [];
-    gravarCacheGrat();
-    renderGratificacao();
-  } catch (e) {
-    console.error('Falha ao buscar gratificação:', e);
+function alternarAccordion(chkId, accId) {
+  const chk = document.getElementById(chkId);
+  const acc = document.getElementById(accId);
+  if (!chk || !acc) return;
+  if (chk.checked) {
+    acc.classList.add('show');
+  } else {
+    acc.classList.remove('show');
   }
 }
 
-function ouvirRealtimeGratificacao() {
-  if (!configurado) return;
-  sb.channel('gratificacao-live')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'gratificacao_representacao' }, () => recarregarGratificacao())
-    .subscribe();
+/* ── MULTIMILITAR EM GRATIFICAÇÃO ── */
+let listaMilitaresGratModal = [];
+
+function adicionarMilitarGratItem(m) {
+  const item = m || {
+    posto_grad: '',
+    especialidade: '',
+    nome: '',
+    cpf: '',
+    saram: '',
+    om: 'AFA',
+    data_inicio: '2026-08-03',
+    hora_inicio: '04:00',
+    data_fim: '2026-08-07',
+    hora_fim: '16:00',
+    dias: 5,
+    passagem: 'NÃO'
+  };
+  listaMilitaresGratModal.push(item);
+  renderMilitaresGratModal();
 }
 
-function calcDiasGrat() {
-  const iniStr = document.getElementById('fg-ini').value;
-  const fimStr = document.getElementById('fg-fim').value;
-  if (!iniStr || !fimStr) {
-    document.getElementById('calc-grat-dias').textContent = 'Período computado: — dias';
-    return 1;
+function removerMilitarGratItem(idx) {
+  if (listaMilitaresGratModal.length <= 1) {
+    toast('É necessário pelo menos um militar na missão', true);
+    return;
   }
-  const dIni = new Date(iniStr);
-  const dFim = new Date(fimStr);
-  const diffHours = (dFim - dIni) / (1000 * 60 * 60);
-  const dias = Math.max(1, Math.ceil(diffHours / 24));
-  document.getElementById('calc-grat-dias').textContent = `Período computado: ${dias} dia(s) (${diffHours.toFixed(1)}h)`;
-  return dias;
+  listaMilitaresGratModal.splice(idx, 1);
+  renderMilitaresGratModal();
+}
+
+function selecionarMilitarGratItem(itemIdx, efetivoIdx) {
+  if (efetivoIdx === '' || !listaEfetivo[efetivoIdx]) return;
+  const m = listaEfetivo[efetivoIdx];
+  const item = listaMilitaresGratModal[itemIdx];
+  if (!item) return;
+  item.posto_grad = m.posto || '';
+  item.especialidade = m.esp || '';
+  item.nome = m.nome || '';
+  renderMilitaresGratModal();
+}
+
+function atualizarCampoMilitarItem(itemIdx, field, val) {
+  const item = listaMilitaresGratModal[itemIdx];
+  if (!item) return;
+  item[field] = val;
+  if (field === 'data_inicio' || field === 'data_fim' || field === 'hora_inicio' || field === 'hora_fim') {
+    const dIni = new Date((item.data_inicio || '2026-08-03') + 'T' + (item.hora_inicio || '04:00'));
+    const dFim = new Date((item.data_fim || '2026-08-07') + 'T' + (item.hora_fim || '16:00'));
+    const diffHours = (dFim - dIni) / (1000 * 60 * 60);
+    item.dias = Math.max(1, Math.ceil(diffHours / 24));
+    document.getElementById(`m-dias-${itemIdx}`).value = item.dias;
+  }
+}
+
+function renderMilitaresGratModal() {
+  const container = document.getElementById('lista-militares-container');
+  if (!container) return;
+
+  if (listaMilitaresGratModal.length === 0) {
+    adicionarMilitarGratItem();
+    return;
+  }
+
+  container.innerHTML = listaMilitaresGratModal.map((m, idx) => `
+    <div class="militar-item-card">
+      <div class="militar-item-head">
+        <span>Militar #${idx + 1}</span>
+        ${listaMilitaresGratModal.length > 1 ? `<button class="icon-btn del" onclick="removerMilitarGratItem(${idx})" title="Remover militar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>` : ''}
+      </div>
+
+      <div class="field" style="margin-bottom:.5rem">
+        <label>Selecionar do Efetivo</label>
+        <select onchange="selecionarMilitarGratItem(${idx}, this.value)">
+          <option value="">-- Selecione para preencher --</option>
+          ${listaEfetivo.map((ef, eIdx) => `<option value="${eIdx}" ${ef.nome === m.nome ? 'selected' : ''}>${esc(ef.posto)} ${esc(ef.esp)} ${esc(ef.nome)}</option>`).join('')}
+        </select>
+      </div>
+
+      <div class="grid2">
+        <div class="field" style="margin-bottom:.5rem">
+          <label>Posto/Grad/Esp *</label>
+          <input type="text" value="${esc(m.posto_grad || ((m.posto||'')+' '+(m.especialidade||'')))}" oninput="atualizarCampoMilitarItem(${idx}, 'posto_grad', this.value)" placeholder="Ex.: 1T PED" />
+        </div>
+        <div class="field" style="margin-bottom:.5rem">
+          <label>Nome Completo *</label>
+          <input type="text" value="${esc(m.nome)}" oninput="atualizarCampoMilitarItem(${idx}, 'nome', this.value)" placeholder="Nome completo" />
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="field" style="margin-bottom:.5rem">
+          <label>CPF *</label>
+          <input type="text" value="${esc(m.cpf)}" oninput="atualizarCampoMilitarItem(${idx}, 'cpf', this.value)" placeholder="372.553.678-36" />
+        </div>
+        <div class="field" style="margin-bottom:.5rem">
+          <label>SARAM *</label>
+          <input type="text" value="${esc(m.saram)}" oninput="atualizarCampoMilitarItem(${idx}, 'saram', this.value)" placeholder="7430540" />
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="field" style="margin-bottom:.5rem">
+          <label>Início (Data/Hora)</label>
+          <div style="display:flex;gap:.3rem">
+            <input type="date" value="${m.data_inicio || '2026-08-03'}" onchange="atualizarCampoMilitarItem(${idx}, 'data_inicio', this.value)" />
+            <input type="time" value="${m.hora_inicio || '04:00'}" onchange="atualizarCampoMilitarItem(${idx}, 'hora_inicio', this.value)" style="width:90px" />
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:.5rem">
+          <label>Término (Data/Hora)</label>
+          <div style="display:flex;gap:.3rem">
+            <input type="date" value="${m.data_fim || '2026-08-07'}" onchange="atualizarCampoMilitarItem(${idx}, 'data_fim', this.value)" />
+            <input type="time" value="${m.hora_fim || '16:00'}" onchange="atualizarCampoMilitarItem(${idx}, 'hora_fim', this.value)" style="width:90px" />
+          </div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="field" style="margin-bottom:0">
+          <label>Dias Computados</label>
+          <input id="m-dias-${idx}" type="number" value="${m.dias || 5}" oninput="atualizarCampoMilitarItem(${idx}, 'dias', parseFloat(this.value)||1)" />
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Passagem Aérea/Rodoviária</label>
+          <select onchange="atualizarCampoMilitarItem(${idx}, 'passagem', this.value)">
+            <option value="NÃO" ${m.passagem === 'NÃO' ? 'selected' : ''}>NÃO</option>
+            <option value="SIM" ${m.passagem === 'SIM' ? 'selected' : ''}>SIM</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  `).join('');
 }
 
 function abrirModalGratificacao(id) {
   limparErrosGrat();
   preencherSelectEfetivo();
+  
   if (id) {
     const g = dadosGratificacao.find(x => String(x.id) === String(id));
     if (!g) return;
     document.getElementById('modal-grat-title').textContent = 'Editar Gratificação de Representação';
     document.getElementById('fg-id').value = g.id;
     document.getElementById('fg-num').value = g.num_os || '';
-    document.getElementById('fg-posto').value = g.posto_grad || '';
-    document.getElementById('fg-nome').value = g.nome || '';
-    document.getElementById('fg-cpf').value = g.cpf || '';
-    document.getElementById('fg-saram').value = g.saram || '';
     document.getElementById('fg-servico').value = g.servico_local || '';
-    document.getElementById('fg-ini').value = g.data_inicio ? (g.data_inicio + 'T' + (g.hora_inicio || '08:00')) : '';
-    document.getElementById('fg-fim').value = g.data_fim ? (g.data_fim + 'T' + (g.hora_fim || '18:00')) : '';
-    document.getElementById('fg-passagem').value = g.passagem || 'NÃO';
-    document.getElementById('fg-antecipado').value = g.pagamento_antecipado ? 'true' : 'false';
     document.getElementById('fg-enquadramento').value = g.enquadramento_legal || 'Art 5°, Inc II (Viagem de Instrução)';
-    document.getElementById('fg-apoio').value = g.apoio_recebido || 'Apoio de Hospedagem, Transporte e Rancho foram fornecidos pela UNIFA.';
-    document.getElementById('fg-just-prazo').value = g.justificativa_prazo || '';
-    document.getElementById('fg-just-retorno').value = g.justificativa_alteracao_retorno || '';
+    document.getElementById('fg-apoio').value = g.apoio_recebido || 'Apoio de hospedagem e rancho serão prestados pelo (NOME DA UNIDADE), e o apoio de transporte será prestado pela AFA.';
+
+    // Toggles
+    const chkPrazo = document.getElementById('fg-toggle-prazo');
+    chkPrazo.checked = !!g.fora_prazo;
+    alternarAccordion('fg-toggle-prazo', 'acc-prazo');
+    if (g.justificativa_prazo) document.getElementById('fg-just-prazo').value = g.justificativa_prazo;
+
+    const chkAntecipado = document.getElementById('fg-toggle-antecipado');
+    chkAntecipado.checked = !!g.pagamento_antecipado;
+    alternarAccordion('fg-toggle-antecipado', 'acc-antecipado');
+    if (g.justificativa_antecipacao) document.getElementById('fg-just-antecipado').value = g.justificativa_antecipacao;
+
+    const chkRetorno = document.getElementById('fg-toggle-retorno');
+    chkRetorno.checked = !!g.teve_alteracao_retorno;
+    alternarAccordion('fg-toggle-retorno', 'acc-retorno');
+    if (g.justificativa_alteracao_retorno) document.getElementById('fg-just-retorno').value = g.justificativa_alteracao_retorno;
+
+    // Militares
+    if (Array.isArray(g.militares) && g.militares.length > 0) {
+      listaMilitaresGratModal = JSON.parse(JSON.stringify(g.militares));
+    } else {
+      listaMilitaresGratModal = [{
+        posto_grad: g.posto_grad || '',
+        especialidade: g.especialidade || '',
+        nome: g.nome || '',
+        cpf: g.cpf || '',
+        saram: g.saram || '',
+        om: g.om || 'AFA',
+        data_inicio: g.data_inicio || '2026-08-03',
+        hora_inicio: g.hora_inicio || '04:00',
+        data_fim: g.data_fim || '2026-08-07',
+        hora_fim: g.hora_fim || '16:00',
+        dias: g.dias || 5,
+        passagem: g.passagem || 'NÃO'
+      }];
+    }
   } else {
     document.getElementById('modal-grat-title').textContent = 'Nova Gratificação de Representação';
-    ['fg-id','fg-num','fg-posto','fg-nome','fg-cpf','fg-saram','fg-servico','fg-ini','fg-fim'].forEach(i => document.getElementById(i).value = '');
-    document.getElementById('fg-num').value = '23/DE/' + new Date().getFullYear();
-    document.getElementById('fg-passagem').value = 'NÃO';
-    document.getElementById('fg-antecipado').value = 'false';
+    document.getElementById('fg-id').value = '';
+    document.getElementById('fg-num').value = '24/DE/' + new Date().getFullYear();
+    document.getElementById('fg-servico').value = '';
+
+    // Toggles reset to false
+    ['fg-toggle-prazo', 'fg-toggle-antecipado', 'fg-toggle-retorno'].forEach(t => {
+      const chk = document.getElementById(t);
+      if (chk) chk.checked = false;
+    });
+    alternarAccordion('fg-toggle-prazo', 'acc-prazo');
+    alternarAccordion('fg-toggle-antecipado', 'acc-antecipado');
+    alternarAccordion('fg-toggle-retorno', 'acc-retorno');
+
+    document.getElementById('fg-just-prazo').value = 'Devido à natureza da missão a solicitação foi feita fora do prazo';
+    document.getElementById('fg-just-antecipado').value = 'Necessidade de custeio inicial da missão.';
+    document.getElementById('fg-just-retorno').value = 'Por motivos de trânsito, o militar retornou no horário informado.';
+
+    listaMilitaresGratModal = [{
+      posto_grad: '',
+      especialidade: '',
+      nome: '',
+      cpf: '',
+      saram: '',
+      om: 'AFA',
+      data_inicio: '2026-08-03',
+      hora_inicio: '04:00',
+      data_fim: '2026-08-07',
+      hora_fim: '16:00',
+      dias: 5,
+      passagem: 'NÃO'
+    }];
   }
-  calcDiasGrat();
+
+  renderMilitaresGratModal();
   document.getElementById('backdrop-grat').classList.add('open');
 }
 
@@ -1367,7 +1541,7 @@ function fecharModalGrat() {
 }
 
 function limparErrosGrat() {
-  ['eg-num','eg-posto','eg-nome','eg-cpf','eg-saram','eg-servico','eg-ini','eg-fim'].forEach(i => {
+  ['eg-num','eg-servico','eg-militares'].forEach(i => {
     const el = document.getElementById(i);
     if (el) el.classList.remove('show');
   });
@@ -1377,42 +1551,49 @@ async function salvarGratificacao() {
   limparErrosGrat();
   const id = document.getElementById('fg-id').value;
   const num_os = document.getElementById('fg-num').value.trim();
-  const posto_grad = document.getElementById('fg-posto').value.trim();
-  const nome = document.getElementById('fg-nome').value.trim();
-  const cpf = document.getElementById('fg-cpf').value.trim();
-  const saram = document.getElementById('fg-saram').value.trim();
   const servico_local = document.getElementById('fg-servico').value.trim();
-  const iniVal = document.getElementById('fg-ini').value;
-  const fimVal = document.getElementById('fg-fim').value;
 
   let erro = false;
   const marcar = k => { document.getElementById(k).classList.add('show'); erro = true; };
   if (!num_os) marcar('eg-num');
-  if (!posto_grad) marcar('eg-posto');
-  if (!nome) marcar('eg-nome');
-  if (!cpf) marcar('eg-cpf');
-  if (!saram) marcar('eg-saram');
   if (!servico_local) marcar('eg-servico');
-  if (!iniVal) marcar('eg-ini');
-  if (!fimVal || fimVal < iniVal) marcar('eg-fim');
+  if (!listaMilitaresGratModal || listaMilitaresGratModal.length === 0 || !listaMilitaresGratModal[0].nome) {
+    marcar('eg-militares');
+  }
   if (erro) return;
 
-  const data_inicio = iniVal.split('T')[0];
-  const hora_inicio = iniVal.split('T')[1] || '08:00';
-  const data_fim = fimVal.split('T')[0];
-  const hora_fim = fimVal.split('T')[1] || '18:00';
+  const prim = listaMilitaresGratModal[0] || {};
+  const data_inicio = prim.data_inicio || '2026-08-03';
+  const hora_inicio = prim.hora_inicio || '04:00';
+  const data_fim = prim.data_fim || '2026-08-07';
+  const hora_fim = prim.hora_fim || '16:00';
   const ano = parseInt(data_inicio.split('-')[0]) || new Date().getFullYear();
-  const dias = calcDiasGrat();
+  const dias = prim.dias || 5;
+
+  const fora_prazo = document.getElementById('fg-toggle-prazo').checked;
+  const pagamento_antecipado = document.getElementById('fg-toggle-antecipado').checked;
+  const teve_alteracao_retorno = document.getElementById('fg-toggle-retorno').checked;
 
   const reg = {
-    ano, num_os, posto_grad, nome, cpf, saram,
-    servico_local, data_inicio, hora_inicio, data_fim, hora_fim, dias,
-    passagem: document.getElementById('fg-passagem').value,
-    pagamento_antecipado: document.getElementById('fg-antecipado').value === 'true',
+    ano,
+    num_os,
+    posto_grad: prim.posto_grad || '',
+    nome: prim.nome || '',
+    cpf: prim.cpf || '',
+    saram: prim.saram || '',
+    om: prim.om || 'AFA',
+    servico_local,
+    data_inicio, hora_inicio, data_fim, hora_fim, dias,
+    passagem: prim.passagem || 'NÃO',
+    fora_prazo,
+    justificativa_prazo: fora_prazo ? document.getElementById('fg-just-prazo').value.trim() : 'Não se aplica.',
+    pagamento_antecipado,
+    justificativa_antecipacao: pagamento_antecipado ? document.getElementById('fg-just-antecipado').value.trim() : 'Não se Aplica',
+    teve_alteracao_retorno,
+    justificativa_alteracao_retorno: teve_alteracao_retorno ? document.getElementById('fg-just-retorno').value.trim() : 'Não se aplica.',
     enquadramento_legal: document.getElementById('fg-enquadramento').value.trim(),
     apoio_recebido: document.getElementById('fg-apoio').value.trim(),
-    justificativa_prazo: document.getElementById('fg-just-prazo').value.trim(),
-    justificativa_alteracao_retorno: document.getElementById('fg-just-retorno').value.trim(),
+    militares: listaMilitaresGratModal,
     updated_at: new Date().toISOString()
   };
 
@@ -1453,7 +1634,7 @@ async function salvarGratificacao() {
 async function excluirGratificacao(id) {
   const g = dadosGratificacao.find(x => String(x.id) === String(id));
   if (!g) return;
-  if (!confirm(`Excluir a Gratificação OS ${g.num_os} (${g.nome})?`)) return;
+  if (!confirm(`Excluir a Gratificação OS ${g.num_os}?`)) return;
 
   const backup = [...dadosGratificacao];
   dadosGratificacao = dadosGratificacao.filter(x => String(x.id) !== String(id));
@@ -1482,18 +1663,30 @@ function renderGratificacao() {
 
   let lista = dadosGratificacao.filter(g => (g.ano || 2026) === anoSel);
   if (termo) {
-    lista = lista.filter(g =>
-      [g.num_os, g.nome, g.posto_grad, g.cpf, g.saram, g.servico_local].some(c => (c || '').toLowerCase().includes(termo))
-    );
+    lista = lista.filter(g => {
+      const mils = Array.isArray(g.militares) ? g.militares : [{ nome: g.nome, cpf: g.cpf, saram: g.saram }];
+      return [g.num_os, g.servico_local, ...mils.map(m => m.nome + ' ' + m.cpf + ' ' + m.saram)].some(c => (c || '').toLowerCase().includes(termo));
+    });
   }
 
   // Métricas
-  const totalDias = lista.reduce((s, g) => s + (Number(g.dias) || 0), 0);
-  const militaresUnicos = new Set(lista.map(g => g.nome)).size;
+  const totalDias = lista.reduce((s, g) => {
+    const mils = Array.isArray(g.militares) && g.militares.length > 0 ? g.militares : [{ dias: g.dias }];
+    return s + mils.reduce((ms, m) => ms + (Number(m.dias || g.dias) || 0), 0);
+  }, 0);
+
+  const nomesUnicos = new Set();
+  lista.forEach(g => {
+    if (Array.isArray(g.militares) && g.militares.length > 0) {
+      g.militares.forEach(m => m.nome && nomesUnicos.add(m.nome));
+    } else if (g.nome) {
+      nomesUnicos.add(g.nome);
+    }
+  });
 
   document.getElementById('sg-qtd').textContent = lista.length;
   document.getElementById('sg-dias').textContent = totalDias;
-  document.getElementById('sg-militares').textContent = militaresUnicos;
+  document.getElementById('sg-militares').textContent = nomesUnicos.size;
 
   const alvo = document.getElementById('lista-gratificacao');
   if (!lista.length) {
@@ -1507,8 +1700,15 @@ function renderGratificacao() {
   }
 
   alvo.innerHTML = lista.map(g => {
-    const dataIniFmt = fmtData(g.data_inicio);
-    const dataFimFmt = fmtData(g.data_fim);
+    const mils = (Array.isArray(g.militares) && g.militares.length > 0)
+      ? g.militares
+      : [{ posto_grad: g.posto_grad, nome: g.nome, saram: g.saram, data_inicio: g.data_inicio, hora_inicio: g.hora_inicio, data_fim: g.data_fim, hora_fim: g.hora_fim, dias: g.dias }];
+
+    const primMilitar = mils[0] || {};
+    const textoMilitares = mils.length === 1 
+      ? `<b>${esc(primMilitar.posto_grad)} ${esc(primMilitar.nome)}</b>`
+      : `<b>${mils.length} Militares</b> (${esc(mils.map(m => m.nome.split(' ')[0]).join(', '))})`;
+
     const jsonStr = JSON.stringify(g).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
 
     return `
@@ -1523,18 +1723,17 @@ function renderGratificacao() {
       </div>
       <div class="os-head">
         <div class="os-num">OS ${esc(g.num_os)}<span>Gratificação de Representação</span></div>
-        <span class="os-badge badge-futura">${g.dias} ${g.dias === 1 ? 'dia' : 'dias'}</span>
+        <span class="os-badge badge-futura">${mils.length} ${mils.length === 1 ? 'militar' : 'militares'} · ${primMilitar.dias || g.dias} dias</span>
       </div>
       <p class="os-desc">${esc(g.servico_local)}</p>
       <div class="os-meta">
         <div class="os-row">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          <b>${esc(g.posto_grad)} ${esc(g.nome)}</b>
+          ${textoMilitares}
         </div>
         <div class="os-row">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-          ${dataIniFmt} (${g.hora_inicio || '08:00'}) → ${dataFimFmt} (${g.hora_fim || '18:00'})
-          <u>SARAM ${esc(g.saram || '—')}</u>
+          ${fmtData(primMilitar.data_inicio || g.data_inicio)} (${primMilitar.hora_inicio || g.hora_inicio || '04:00'}) → ${fmtData(primMilitar.data_fim || g.data_fim)} (${primMilitar.hora_fim || g.hora_fim || '16:00'})
         </div>
       </div>
       <div class="grat-actions">

@@ -355,12 +355,80 @@ const CompiladorDoc = (function() {
     `;
   }
 
+  function fmtDataIso(iso) {
+    if (!iso) return '—';
+    const [a, m, d] = iso.split('-');
+    return `${d}/${m}/${a}`;
+  }
+
+  function extrairMilitares(d) {
+    if (Array.isArray(d.militares) && d.militares.length > 0) {
+      return d.militares.map(m => ({
+        posto_grad: m.posto_grad || '',
+        especialidade: m.especialidade || '',
+        nome: m.nome || '',
+        cpf: m.cpf || '',
+        saram: m.saram || '',
+        om: m.om || 'AFA',
+        data_inicio_fmt: m.data_inicio_fmt || fmtDataIso(m.data_inicio || d.data_inicio),
+        hora_inicio: m.hora_inicio || d.hora_inicio || '08:00',
+        data_fim_fmt: m.data_fim_fmt || fmtDataIso(m.data_fim || d.data_fim),
+        hora_fim: m.hora_fim || d.hora_fim || '18:00',
+        dias: m.dias || d.dias || 1,
+        passagem: m.passagem || d.passagem || 'NÃO',
+        retorno_inicio_fmt: m.retorno_inicio_fmt || m.data_inicio_fmt || fmtDataIso(m.data_inicio || d.data_inicio),
+        retorno_hora_inicio: m.retorno_hora_inicio || m.hora_inicio || d.hora_inicio || '08:00',
+        retorno_fim_fmt: m.retorno_fim_fmt || m.data_fim_fmt || fmtDataIso(m.data_fim || d.data_fim),
+        retorno_hora_fim: m.retorno_hora_fim || m.hora_fim || d.hora_fim || '18:00',
+        dias_retorno: m.dias_retorno || m.dias || d.dias || 1
+      }));
+    }
+    return [{
+      posto_grad: d.posto_grad || '',
+      especialidade: d.especialidade || '',
+      nome: d.nome || '',
+      cpf: d.cpf || '',
+      saram: d.saram || '',
+      om: d.om || 'AFA',
+      data_inicio_fmt: d.data_inicio_fmt || fmtDataIso(d.data_inicio),
+      hora_inicio: d.hora_inicio || '08:00',
+      data_fim_fmt: d.data_fim_fmt || fmtDataIso(d.data_fim),
+      hora_fim: d.hora_fim || '18:00',
+      dias: d.dias || 1,
+      passagem: d.passagem || 'NÃO',
+      retorno_inicio_fmt: d.retorno_inicio_fmt || d.data_inicio_fmt || fmtDataIso(d.data_inicio),
+      retorno_hora_inicio: d.retorno_hora_inicio || d.hora_inicio || '08:00',
+      retorno_fim_fmt: d.retorno_fim_fmt || d.data_fim_fmt || fmtDataIso(d.data_fim),
+      retorno_hora_fim: d.retorno_hora_fim || d.hora_fim || '18:00',
+      dias_retorno: d.dias_retorno || d.dias || 1
+    }];
+  }
+
   // 1. OS de Designação Específica
   function gerarOSGratificacaoHtml(d) {
     const ano = d.ano || new Date().getFullYear();
-    const numOs = d.num_os || '23/DE/' + ano;
+    const numOs = d.num_os || '24/DE/' + ano;
     const antecipado = !!d.pagamento_antecipado;
+    const foraPrazo = !!d.fora_prazo;
     const art5 = d.enquadramento_legal || 'Art 5°, Inc II (Viagem de Instrução)';
+    const militares = extrairMilitares(d);
+
+    const linhasTabela = militares.map((m, idx) => `
+      <tr>
+        <td>${idx + 1}</td>
+        <td>${m.posto_grad || ''} ${m.especialidade || ''}</td>
+        <td><strong>${m.nome || ''}</strong> / ${m.cpf || '—'}</td>
+        <td>${m.saram || '—'}</td>
+        <td>${m.om || 'AFA'}</td>
+        <td>${m.data_inicio_fmt || ''}<br>${m.hora_inicio || '08:00'} a ${m.data_fim_fmt || ''}<br>${m.hora_fim || '18:00'}</td>
+        <td><strong>${m.dias || 1}</strong></td>
+        <td>${m.passagem || 'NÃO'}</td>
+      </tr>
+    `).join('');
+
+    const justPrazoTxt = foraPrazo 
+      ? (d.justificativa_prazo || 'Devido à natureza da missão a solicitação foi feita fora do prazo')
+      : 'Não se aplica.';
 
     return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
     <title>OS_${numOs.replace(/\//g, '_')}</title>
@@ -390,16 +458,7 @@ const CompiladorDoc = (function() {
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td>1</td>
-          <td>${d.posto_grad || ''} ${d.especialidade || ''}</td>
-          <td><strong>${d.nome || ''}</strong> / ${d.cpf || '—'}</td>
-          <td>${d.saram || '—'}</td>
-          <td>${d.om || 'AFA'}</td>
-          <td>${d.data_inicio_fmt || ''}<br>${d.hora_inicio || '08:00'} a ${d.data_fim_fmt || ''}<br>${d.hora_fim || '18:00'}</td>
-          <td><strong>${d.dias || 1}</strong></td>
-          <td>${d.passagem || 'NÃO'}</td>
-        </tr>
+        ${linhasTabela}
       </tbody>
     </table>
 
@@ -410,7 +469,7 @@ const CompiladorDoc = (function() {
 
     <div class="box-info">
       <strong>APOIO RECEBIDO:</strong><br>
-      ${d.apoio_recebido || 'Apoio de Hospedagem, Transporte e Rancho fornecidos conforme disponibilidade.'}
+      ${d.apoio_recebido || 'Apoio de hospedagem e rancho serão prestados pelo (NOME DA UNIDADE), e o apoio de transporte será prestado pela AFA.'}
     </div>
 
     <div class="box-info">
@@ -431,7 +490,7 @@ const CompiladorDoc = (function() {
 
     <div class="sec-title">I.4 JUSTIFICATIVA PARA O NÃO CUMPRIMENTO DO PRAZO PREVISTO NO §1º DO ART. 10º DA PORTARIA GABAER / GC4 Nº1636, DE 20 DE MAIO DE 2026.</div>
     <div class="box-info">
-      <strong>JUSTIFICATIVA:</strong> ${d.justificativa_prazo || 'Justifica-se a apresentação da presente Ordem de Serviço fora do prazo previsto no parágrafo 1° do Art. 10 da Portaria GABAER/GC4 n° 1636/2026 devido à recente entrada em vigor da referida Portaria e adequações dos procedimentos internos para atendimento aos novos procedimentos.'}
+      <strong>JUSTIFICATIVA:</strong> ${justPrazoTxt}
     </div>
 
     <div class="ass-block">
@@ -445,7 +504,7 @@ const CompiladorDoc = (function() {
   // 2. Autorização para Pagamento
   function gerarAutorizacaoGratificacaoHtml(d) {
     const ano = d.ano || new Date().getFullYear();
-    const numOs = d.num_os || '23/DE/' + ano;
+    const numOs = d.num_os || '24/DE/' + ano;
     const antecipado = !!d.pagamento_antecipado;
     const pct = d.percentual || '2%';
 
@@ -482,8 +541,27 @@ const CompiladorDoc = (function() {
   // 3. Ficha de Apresentação por Retorno de Missão
   function gerarFichaApresentacaoGratificacaoHtml(d) {
     const ano = d.ano || new Date().getFullYear();
-    const numOs = d.num_os || '23/DE/' + ano;
-    const teveAlteracao = d.teve_alteracao_retorno !== false;
+    const numOs = d.num_os || '24/DE/' + ano;
+    const teveAlteracao = !!d.teve_alteracao_retorno;
+    const militares = extrairMilitares(d);
+    const primMilitar = militares[0] || {};
+
+    const linhasRetorno = militares.map((m, idx) => `
+      <tr>
+        <td>${idx + 1}</td>
+        <td>${m.posto_grad || ''} ${m.especialidade || ''}</td>
+        <td><strong>${m.nome || ''}</strong> / ${m.cpf || '—'}</td>
+        <td>${m.saram || '—'}</td>
+        <td>${m.om || 'AFA'}</td>
+        <td>${m.retorno_inicio_fmt || m.data_inicio_fmt || ''}<br>${m.retorno_hora_inicio || m.hora_inicio || '08:00'}<br>a ${m.retorno_fim_fmt || m.data_fim_fmt || ''}<br>${m.retorno_hora_fim || m.hora_fim || '18:00'}</td>
+        <td><strong>${m.dias_retorno || m.dias || 1}</strong></td>
+        <td>${m.passagem || 'NÃO'}</td>
+      </tr>
+    `).join('');
+
+    const justRetornoTxt = teveAlteracao
+      ? (d.justificativa_alteracao_retorno || 'Por motivos de trânsito, o militar retornou no horário informado na tabela abaixo.')
+      : 'Não se aplica.';
 
     return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
     <title>FICHA_APRESENTACAO_${numOs.replace(/\//g, '_')}</title>
@@ -504,7 +582,7 @@ const CompiladorDoc = (function() {
     </div>
 
     <div class="box-info">
-      <strong>JUSTIFICATIVA:</strong> ${d.justificativa_alteracao_retorno || 'Por motivos de trânsito, o militar retornou no horário informado na tabela abaixo.'}
+      <strong>JUSTIFICATIVA:</strong> ${justRetornoTxt}
     </div>
 
     <table class="grid-doc">
@@ -521,24 +599,15 @@ const CompiladorDoc = (function() {
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td>1</td>
-          <td>${d.posto_grad || ''} ${d.especialidade || ''}</td>
-          <td><strong>${d.nome || ''}</strong> / ${d.cpf || '—'}</td>
-          <td>${d.saram || '—'}</td>
-          <td>${d.om || 'AFA'}</td>
-          <td>${d.retorno_inicio_fmt || d.data_inicio_fmt || ''}<br>${d.retorno_hora_inicio || d.hora_inicio || '10:00'}<br>a ${d.retorno_fim_fmt || d.data_fim_fmt || ''}<br>${d.retorno_hora_fim || d.hora_fim || '01:00'}</td>
-          <td><strong>${d.dias_retorno || d.dias || 1}</strong></td>
-          <td>${d.passagem || 'NÃO'}</td>
-        </tr>
+        ${linhasRetorno}
       </tbody>
     </table>
 
     <div class="ass-block" style="margin-top:12mm">
-      Pirassununga-SP, ${d.data_retorno_fmt || d.data_fim_fmt || new Date().toLocaleDateString('pt-BR')}<br>
+      Pirassununga-SP, ${d.data_retorno_fmt || primMilitar.retorno_fim_fmt || primMilitar.data_fim_fmt || new Date().toLocaleDateString('pt-BR')}<br>
       <div style="margin-top:3mm;font-weight:600">Responsável pelo serviço:</div>
       <div class="ass-digital">assinado digitalmente</div>
-      <div class="ass-nome">${d.nome || ''} ${d.posto_grad || ''}</div>
+      <div class="ass-nome">${primMilitar.nome || d.nome || ''} ${primMilitar.posto_grad || d.posto_grad || ''}</div>
     </div>
     </body></html>`;
   }
