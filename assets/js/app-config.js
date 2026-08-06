@@ -13,17 +13,22 @@
 
   let _cachedConfig = null;
 
+  let _sbInstance = null;
+
   // Tenta obter o cliente Supabase disponível globalmente
   function getSbClient() {
     if (window.sbCli) return window.sbCli;
     if (window.sb) return window.sb;
     if (window.supabaseClient) return window.supabaseClient;
+    if (_sbInstance) return _sbInstance;
+
     if (window.supabase && typeof window.supabase.createClient === 'function') {
       const url = window.SUPABASE_URL || window.SB?.url || 'https://rsaaryrgdrolcsvigckz.supabase.co';
       const anon = window.SUPABASE_ANON || window.SB?.key || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzYWFyeXJnZHJvbGNzdmlnY2t6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMzcyNjEsImV4cCI6MjA4MjcxMzI2MX0.UKACT_OKIMRaLB3FJPtFPGqhVbR83pUiiPfLkcf_Ec0';
       if (url && anon && !url.startsWith('COLE_')) {
         try {
-          return window.supabase.createClient(url, anon);
+          _sbInstance = window.supabase.createClient(url, anon, { auth: { persistSession: false } });
+          return _sbInstance;
         } catch(e) {}
       }
     }
@@ -53,39 +58,40 @@
         if (typeof localGmail.gmail_enabled === 'boolean') gmailEnabled = localGmail.gmail_enabled;
       } catch(e) {}
 
-      // Tenta buscar no Supabase
+      // Tenta buscar o PIN na tabela oficial at_config (existente no Supabase)
       if (sb) {
         try {
-          const { data, error } = await sb.from('app_config').select('*').eq('id', 'default').maybeSingle();
-          if (data && !error) {
-            this.isRemoteDbReady = true;
-            if (data.pin) pin = String(data.pin).trim();
-            if (data.gmail_user) gmailUser = data.gmail_user;
-            if (data.gmail_app_password) gmailAppPassword = data.gmail_app_password;
-            if (data.gmail_sender_name) gmailSenderName = data.gmail_sender_name;
-            if (typeof data.gmail_enabled === 'boolean') gmailEnabled = data.gmail_enabled;
-
-            // Atualiza o local storage
+          const { data: atData } = await sb.from('at_config').select('pin').eq('id', 'default').maybeSingle();
+          if (atData && atData.pin) {
+            pin = String(atData.pin).trim();
             localStorage.setItem(STORAGE_KEY_PIN, pin);
-            localStorage.setItem(STORAGE_KEY_GMAIL, JSON.stringify({
-              gmail_user: gmailUser,
-              gmail_app_password: gmailAppPassword,
-              gmail_sender_name: gmailSenderName,
-              gmail_enabled: gmailEnabled
-            }));
-          } else if (error) {
-            // Tabela app_config ainda não criada no Supabase — Tenta fallback para at_config ou cur_config
-            this.isRemoteDbReady = false;
-            try {
-              const { data: atData } = await sb.from('at_config').select('pin').eq('id', 'default').maybeSingle();
-              if (atData && atData.pin) {
-                pin = String(atData.pin).trim();
-                localStorage.setItem(STORAGE_KEY_PIN, pin);
-              }
-            } catch(e2) {}
           }
-        } catch(e) {
-          this.isRemoteDbReady = false;
+        } catch(e) {}
+
+        // Tenta buscar as configurações expandidas de e-mail se app_config já tiver sido criada
+        if (this.isRemoteDbReady) {
+          try {
+            const { data, error } = await sb.from('app_config').select('*').eq('id', 'default').maybeSingle();
+            if (data && !error) {
+              if (data.pin) pin = String(data.pin).trim();
+              if (data.gmail_user) gmailUser = data.gmail_user;
+              if (data.gmail_app_password) gmailAppPassword = data.gmail_app_password;
+              if (data.gmail_sender_name) gmailSenderName = data.gmail_sender_name;
+              if (typeof data.gmail_enabled === 'boolean') gmailEnabled = data.gmail_enabled;
+
+              localStorage.setItem(STORAGE_KEY_PIN, pin);
+              localStorage.setItem(STORAGE_KEY_GMAIL, JSON.stringify({
+                gmail_user: gmailUser,
+                gmail_app_password: gmailAppPassword,
+                gmail_sender_name: gmailSenderName,
+                gmail_enabled: gmailEnabled
+              }));
+            } else if (error && error.code === 'PGRST204') {
+              this.isRemoteDbReady = false;
+            }
+          } catch(e) {
+            this.isRemoteDbReady = false;
+          }
         }
       }
 
@@ -280,11 +286,12 @@
     }
   };
 
-  // Carrega configurações iniciais ao carregar script
+  // Inicializa a configuração do LocalStorage e agenda a sincronização remota
+  AppConfig.getPin(); // aquece o cache local
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => AppConfig.loadConfig());
+    document.addEventListener('DOMContentLoaded', () => setTimeout(() => AppConfig.loadConfig(), 100));
   } else {
-    AppConfig.loadConfig();
+    setTimeout(() => AppConfig.loadConfig(), 100);
   }
 
   window.AppConfig = AppConfig;
