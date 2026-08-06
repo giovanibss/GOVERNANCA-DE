@@ -696,6 +696,7 @@ footer {
             <button class="acao mini" onclick="adicionarDataAplicacao()">+ Adicionar Data</button>
             <button class="acao fantasma mini" onclick="gerarDatasSegQuaSexPadrao()">⚡ Gerar Dias</button>
             <button class="acao fantasma mini" onclick="executarAutofillEscala()">⚡ Gerar Escala</button>
+            <button class="acao rubi mini" onclick="excluirEscalaGerada()">🗑️ Excluir Escala</button>
           </div>
           <div id="listaBadgeDatas" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:0.75rem;"></div>
         </div>
@@ -870,7 +871,8 @@ async function carregarEfetivoPlanilha() {
           
           if (!nomeGuerra && !saram) return null;
 
-          const isR1 = (esp.toUpperCase().includes('R1') || posto.toUpperCase().includes('R1'));
+          const rowText = c.map(col => (col?.v || '').toString()).join(' ').toUpperCase();
+          const isR1 = /R\s*1|RESERVA|\bR1\b/i.test(esp) || /R\s*1|RESERVA|\bR1\b/i.test(posto) || /\bR1\b|RESERVA/i.test(rowText);
 
           return {
             antiguidade: index + 1,
@@ -1270,15 +1272,30 @@ async function adicionarDataAplicacao() {
   document.getElementById('inputNovaData').value = '';
   renderizarBadgesDatas();
   renderizarFormularioMilitar();
+  renderizarEscalaHorizontal();
 }
 
 function removerDataAplicacao(dStr) {
+  if (temporadaAtual?.status === 'escala_gerada') {
+    return Swal.fire({
+      title: 'Ação Bloqueada',
+      html: 'A escala desta temporada já foi gerada.<br/><br/>Para excluir ou alterar datas de aplicação, você deve primeiro clicar no botão <b>"🗑️ Excluir Escala"</b>.',
+      icon: 'warning'
+    });
+  }
+
   temporadaAtual.datas_aplicacao = (temporadaAtual.datas_aplicacao || []).filter(x => x !== dStr);
+  temporadaAtual.datas_aplicacao.sort();
   renderizarBadgesDatas();
   renderizarFormularioMilitar();
+  renderizarEscalaHorizontal();
 }
 
 function gerarDatasSegQuaSexPadrao() {
+  if (temporadaAtual?.status === 'escala_gerada') {
+    return Swal.fire('Ação Bloqueada', 'Primeiro exclua a escala gerada antes de regerar as datas.', 'warning');
+  }
+
   const hoje = new Date();
   const datas = [];
   const maxDias = 60;
@@ -1298,6 +1315,65 @@ function gerarDatasSegQuaSexPadrao() {
   temporadaAtual.datas_aplicacao = datas;
   renderizarBadgesDatas();
   renderizarFormularioMilitar();
+  renderizarEscalaHorizontal();
+}
+
+async function excluirEscalaGerada() {
+  if (!temporadaAtual) return;
+
+  const temEscala = Object.values(solicitacoesMap).some(s => s.dia_escalado);
+  if (!temEscala && temporadaAtual.status !== 'escala_gerada') {
+    return Swal.fire('Informação', 'Não há nenhuma escala gerada para ser excluída no momento.', 'info');
+  }
+
+  const confirm = await Swal.fire({
+    title: 'Excluir Escala Gerada?',
+    text: 'Esta ação irá remover a alocação de datas de todos os militares e liberará a exclusão e edição das datas de aplicação.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sim, Excluir Escala',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#ef4444'
+  });
+
+  if (!confirm.isConfirmed) return;
+
+  // Resetar alocações no objeto local
+  Object.values(solicitacoesMap).forEach(s => {
+    s.dia_escalado = null;
+    s.metodo_alocacao = null;
+    if (s.status_solicitacao === 'escalado') {
+      s.status_solicitacao = 'pendente';
+    }
+  });
+
+  temporadaAtual.status = 'agendamento_fechado';
+
+  try {
+    const toUpsert = Object.values(solicitacoesMap);
+    if (toUpsert.length > 0) {
+      const { error: errSol } = await sb
+        .from('tacf_solicitacoes')
+        .upsert(toUpsert, { onConflict: 'temporada_id,saram' });
+      if (errSol) throw errSol;
+    }
+
+    const { error: errTemp } = await sb
+      .from('tacf_temporadas')
+      .update({ status: 'agendamento_fechado' })
+      .eq('id', temporadaAtual.id);
+
+    if (errTemp) throw errTemp;
+
+    renderizarPainelSecretaria();
+    renderizarFormularioMilitar();
+    renderizarEscalaHorizontal();
+    atualizarKpisEContadores();
+
+    Swal.fire('Escala Excluída!', 'A escala foi removida com sucesso. Agora você pode modificar as datas da temporada.', 'success');
+  } catch (e) {
+    Swal.fire('Erro', 'Falha ao excluir a escala: ' + e.message, 'error');
+  }
 }
 
 async function salvarConfigTemporada() {
@@ -1425,12 +1501,22 @@ async function definirDeferimentoIndisponibilidade(saram, itemIdx, novoStatus) {
    ALGORITMO DE AUTOFILL DA ESCALA (RESPEITANDO INDISPONIBILIDADES DEFERIDAS)
    ══════════════════════════════════════════════════════════════ */
 async function executarAutofillEscala() {
+  if (!listaEfetivo || !listaEfetivo.length) {
+    await carregarEfetivoPlanilha();
+  }
+  if (!listaEfetivo || !listaEfetivo.length) {
+    return Swal.fire('Erro', 'Não foi possível carregar o efetivo da planilha. Verifique a conexão.', 'error');
+  }
+
   const datas = temporadaAtual?.datas_aplicacao || [];
   if (!datas.length) return Swal.fire('Aviso', 'Cadastre ao menos uma data de aplicação.', 'warning');
 
+  // Garante datas ordenadas cronologicamente YYYY-MM-DD
+  datas.sort();
+
   const confirm = await Swal.fire({
     title: 'Gerar Escala Automática?',
-    text: 'O sistema alocará os militares por antiguidade, respeitando escolhas de prioridades e bloqueando datas de indisponibilidade DEFERIDAS pela Secretaria.',
+    text: 'O sistema alocará os militares por antiguidade, respeitando escolhas de prioridades registradas e preenchendo as vagas disponíveis por antiguidade para quem não preencheu.',
     icon: 'question',
     showCancelButton: true,
     confirmButtonText: 'Sim, Gerar Escala',
@@ -1445,24 +1531,28 @@ async function executarAutofillEscala() {
   const militaresOrdenados = [...listaEfetivo].sort((a, b) => a.antiguidade - b.antiguidade);
   const naoAlocados = [];
 
+  // FASE 1: Atendimento das prioridades voluntárias
   militaresOrdenados.forEach(m => {
     if (m.isR1) return;
 
-    const sol = solicitacoesMap[m.saram] || {
-      temporada_id: temporadaAtual.id,
-      saram: m.saram,
-      posto_grad: m.posto,
-      especialidade: m.esp,
-      nome_guerra: m.nomeGuerra,
-      nome_completo: m.nomeCompleto,
-      antiguidade_index: m.antiguidade,
-      status_solicitacao: 'pendente',
-      status_elegibilidade: 'elegivel'
-    };
+    let sol = solicitacoesMap[m.saram];
+    if (!sol) {
+      sol = {
+        temporada_id: temporadaAtual.id,
+        saram: m.saram,
+        posto_grad: m.posto,
+        especialidade: m.esp,
+        nome_guerra: m.nomeGuerra,
+        nome_completo: m.nomeCompleto,
+        antiguidade_index: m.antiguidade,
+        status_solicitacao: 'pendente',
+        status_elegibilidade: 'elegivel'
+      };
+      solicitacoesMap[m.saram] = sol;
+    }
 
     if (sol.status_elegibilidade === 'baixa' || sol.status_elegibilidade === 'dispensa' || sol.status_solicitacao === 'nao_realizou') return;
 
-    // Obter datas de indisponibilidade bloqueadas (Deferidas ou Pendentes)
     const datasBloqueadas = Array.isArray(sol.indisponibilidades)
       ? sol.indisponibilidades.filter(i => i.status_deferimento !== 'indeferido').map(i => i.data)
       : [];
@@ -1473,12 +1563,11 @@ async function executarAutofillEscala() {
 
     for (let i = 0; i < prios.length; i++) {
       const d = prios[i];
-      if (!datasBloqueadas.includes(d) && ocupacaoPorData[d] && ocupacaoPorData[d].length < vagasMax) {
+      if (datas.includes(d) && !datasBloqueadas.includes(d) && ocupacaoPorData[d] && ocupacaoPorData[d].length < vagasMax) {
         sol.dia_escalado = d;
         sol.metodo_alocacao = metodos[i];
         sol.status_solicitacao = 'escalado';
         ocupacaoPorData[d].push(m);
-        solicitacoesMap[m.saram] = sol;
         alocado = true;
         break;
       }
@@ -1489,65 +1578,54 @@ async function executarAutofillEscala() {
     }
   });
 
-  const datasDistantes = [...datas].reverse();
-  let ptrMaisAntigo = 0;
-  let ptrMaisModerno = naoAlocados.length - 1;
-
-  while (ptrMaisAntigo <= ptrMaisModerno) {
-    const itemAntigo = naoAlocados[ptrMaisAntigo];
-    let alocado = false;
-
-    for (const d of datasDistantes) {
-      if (!itemAntigo.datasBloqueadas.includes(d) && ocupacaoPorData[d].length < vagasMax) {
-        itemAntigo.sol.dia_escalado = d;
-        itemAntigo.sol.metodo_alocacao = 'regra_secundaria_velhos';
-        itemAntigo.sol.status_solicitacao = 'escalado';
-        ocupacaoPorData[d].push(itemAntigo.militar);
-        solicitacoesMap[itemAntigo.militar.saram] = itemAntigo.sol;
-        alocado = true;
-        break;
-      }
-    }
-
-    if (alocado) {
-      ptrMaisAntigo++;
-    } else {
-      break;
-    }
-  }
-
-  while (ptrMaisModerno >= ptrMaisAntigo) {
-    const itemModerno = naoAlocados[ptrMaisModerno];
+  // FASE 2: Preenchimento automático sequencial por Antiguidade (da 1ª data em diante)
+  naoAlocados.forEach(item => {
     let alocado = false;
 
     for (const d of datas) {
-      if (!itemModerno.datasBloqueadas.includes(d) && ocupacaoPorData[d].length < vagasMax) {
-        itemModerno.sol.dia_escalado = d;
-        itemModerno.sol.metodo_alocacao = 'regra_secundaria_novos';
-        itemModerno.sol.status_solicitacao = 'escalado';
-        ocupacaoPorData[d].push(itemModerno.militar);
-        solicitacoesMap[itemModerno.militar.saram] = itemModerno.sol;
+      if (!item.datasBloqueadas.includes(d) && ocupacaoPorData[d].length < vagasMax) {
+        item.sol.dia_escalado = d;
+        item.sol.metodo_alocacao = 'antiguidade';
+        item.sol.status_solicitacao = 'escalado';
+        ocupacaoPorData[d].push(item.militar);
         alocado = true;
         break;
       }
     }
-    ptrMaisModerno--;
-  }
+
+    // Se todas as datas estiverem lotadas com limite regular (vagasMax), aloca na data com menor ocupação
+    if (!alocado) {
+      let dataComMenosOcupantes = datas[0];
+      let minOcupantes = ocupacaoPorData[datas[0]].length;
+      datas.forEach(d => {
+        if (!item.datasBloqueadas.includes(d) && ocupacaoPorData[d].length < minOcupantes) {
+          minOcupantes = ocupacaoPorData[d].length;
+          dataComMenosOcupantes = d;
+        }
+      });
+      item.sol.dia_escalado = dataComMenosOcupantes;
+      item.sol.metodo_alocacao = 'excedente';
+      item.sol.status_solicitacao = 'escalado';
+      ocupacaoPorData[dataComMenosOcupantes].push(item.militar);
+    }
+  });
 
   try {
     const toUpsert = Object.values(solicitacoesMap);
-    const { error } = await sb
-      .from('tacf_solicitacoes')
-      .upsert(toUpsert, { onConflict: 'temporada_id,saram' });
+    if (toUpsert.length > 0) {
+      const { error } = await sb
+        .from('tacf_solicitacoes')
+        .upsert(toUpsert, { onConflict: 'temporada_id,saram' });
 
-    if (error) throw error;
+      if (error) throw error;
+    }
 
     temporadaAtual.status = 'escala_gerada';
-    await sb.from('tacf_temporadas').update({ status: 'escala_gerada' }).eq('id', temporadaAtual.id);
+    await sb.from('tacf_temporadas').update({ status: 'escala_gerada', datas_aplicacao: temporadaAtual.datas_aplicacao }).eq('id', temporadaAtual.id);
 
     renderizarPainelSecretaria();
     atualizarKpisEContadores();
-    Swal.fire('Escala Gerada!', `Escala concluída com sucesso respeitando os limites e indisponibilidades.`, 'success');
+    Swal.fire('Escala Gerada!', `Escala concluída com sucesso para os militares elegíveis por antiguidade.`, 'success');
   } catch (e) {
     Swal.fire('Erro', 'Falha ao salvar a escala no banco: ' + e.message, 'error');
   }
@@ -1968,14 +2046,16 @@ function renderizarTabelaSecretaria() {
     if (!matchBusca) return false;
 
     const sol = solicitacoesMap[m.saram];
-    const statusEleg = sol ? sol.status_elegibilidade : (m.isR1 ? 'r1_reserva' : 'elegivel');
+    const statusEleg = (m.isR1 || sol?.status_elegibilidade === 'r1_reserva') ? 'r1_reserva' : (sol ? sol.status_elegibilidade : 'elegivel');
     const statusSol = sol ? sol.status_solicitacao : 'pendente';
 
     if (filtroEleg) {
-      if (filtroEleg === 'solicitado' && statusSol !== 'pendente') return false;
-      if (filtroEleg === 'escalado' && statusSol !== 'escalado') return false;
+      if (filtroEleg === 'elegivel' && (m.isR1 || statusEleg !== 'elegivel')) return false;
+      if (filtroEleg === 'r1_reserva' && !m.isR1 && statusEleg !== 'r1_reserva') return false;
+      if (filtroEleg === 'solicitado' && (m.isR1 || statusSol !== 'pendente' || !sol?.prio1_data)) return false;
+      if (filtroEleg === 'escalado' && (m.isR1 || statusSol !== 'escalado')) return false;
       if (filtroEleg === 'realizou' && statusSol !== 'realizou') return false;
-      if (['elegivel', 'r1_reserva', 'baixa', 'dispensa', 'nao_realizou'].includes(filtroEleg) && (statusEleg !== filtroEleg && statusSol !== filtroEleg)) return false;
+      if (['baixa', 'dispensa', 'nao_realizou'].includes(filtroEleg) && (statusEleg !== filtroEleg && statusSol !== filtroEleg)) return false;
     }
     return true;
   });
