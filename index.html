@@ -1340,6 +1340,11 @@ body.cortina .cue{animation-play-state:paused}
             </div>
           </div>
 
+          <div class="cfg-group" style="margin-top:0.8rem;">
+            <label class="cfg-label" for="cfg-gmail-relay">URL Web App / Google Apps Script (Opcional · Recomendado para rede militar/proxy)</label>
+            <input type="text" id="cfg-gmail-relay" class="cfg-input" placeholder="https://script.google.com/macros/s/..." />
+          </div>
+
           <div class="cfg-group" style="display:flex; align-items:center; gap:.75rem; margin-top:.5rem;">
             <input type="checkbox" id="cfg-gmail-enable" style="width:18px; height:18px; accent-color:var(--gold);" checked />
             <label for="cfg-gmail-enable" style="font-size:.88rem; color:#fff; cursor:pointer;">Ativar disparos automáticos de e-mail no aplicativo</label>
@@ -1359,7 +1364,7 @@ body.cortina .cue{animation-play-state:paused}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://smtpjs.com/v3/smtp.js"></script>
+<script src="assets/js/smtp.js"></script>
 <script src="assets/js/app-config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
@@ -2809,6 +2814,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const elUser = document.getElementById('cfg-gmail-user');
     const elName = document.getElementById('cfg-gmail-name');
     const elPass = document.getElementById('cfg-gmail-pass');
+    const elRelay = document.getElementById('cfg-gmail-relay');
     const elEnable = document.getElementById('cfg-gmail-enable');
     const gBadge = document.getElementById('cfg-gmail-status-badge');
     const pinBadge = document.getElementById('cfg-pin-status-badge');
@@ -2816,6 +2822,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (elUser) elUser.value = g.user;
     if (elName) elName.value = g.senderName;
     if (elPass) elPass.value = g.appPassword;
+    if (elRelay) elRelay.value = localStorage.getItem('gmail_relay_url') || '';
     if (elEnable) elEnable.checked = g.enabled;
 
     if (pinBadge) {
@@ -2829,7 +2836,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (gBadge) {
-      if (g.user && g.appPassword) {
+      if ((g.user && g.appPassword) || localStorage.getItem('gmail_relay_url')) {
         gBadge.className = 'cfg-badge-status ok';
         gBadge.innerHTML = '<span>● Gmail Conectado: Conexão Configurada</span>';
       } else {
@@ -2936,11 +2943,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const user = document.getElementById('cfg-gmail-user')?.value || '';
     const name = document.getElementById('cfg-gmail-name')?.value || '';
     const pass = document.getElementById('cfg-gmail-pass')?.value || '';
+    const relay = document.getElementById('cfg-gmail-relay')?.value || '';
     const enabled = document.getElementById('cfg-gmail-enable')?.checked;
 
     if (!window.AppConfig) return alert('Motor AppConfig indisponível.');
 
     try {
+      if (relay) {
+        localStorage.setItem('gmail_relay_url', relay.trim());
+      } else {
+        localStorage.removeItem('gmail_relay_url');
+      }
       await window.AppConfig.setGmailConfig({ user, appPassword: pass, senderName: name, enabled });
       alert('✅ Configurações da API do Gmail salvas com sucesso!');
       preencherDadosConfig();

@@ -292,13 +292,24 @@
       // Envio via SmtpJS usando smtp.gmail.com e Senha de Aplicativo (16 dígitos)
       try {
         if (!window.Email || typeof window.Email.send !== 'function') {
-          await new Promise((resolve, reject) => {
+          await new Promise((resolve) => {
             const s = document.createElement('script');
-            s.src = 'https://smtpjs.com/v3/smtp.js';
+            s.src = 'assets/js/smtp.js';
             s.onload = resolve;
-            s.onerror = () => reject(new Error('Não foi possível carregar o script do SmtpJS.'));
+            s.onerror = () => {
+              // Se falhar o script local, tenta fallback CDN
+              const sCdn = document.createElement('script');
+              sCdn.src = 'https://smtpjs.com/v3/smtp.js';
+              sCdn.onload = resolve;
+              sCdn.onerror = resolve;
+              document.head.appendChild(sCdn);
+            };
             document.head.appendChild(s);
           });
+        }
+
+        if (!window.Email || typeof window.Email.send !== 'function') {
+          throw new Error('Falha no carregamento dos módulos de transporte de e-mail.');
         }
 
         const resText = await window.Email.send({
@@ -313,11 +324,13 @@
 
         if (resText === 'OK' || String(resText).toLowerCase().includes('ok')) {
           return { success: true, message: 'E-mail enviado com sucesso via Gmail SMTP!' };
+        } else if (String(resText).includes('ERR_CONNECTION_RESET')) {
+          throw new Error('Conexão bloqueada pelo proxy/firewall de rede. Utilize a URL do Web App do Google Apps Script para liberar envios diretos pelo Gmail.');
         } else {
           throw new Error(resText || 'Não foi possível autenticar ou disparar a mensagem via Gmail.');
         }
       } catch(err) {
-        throw new Error('Falha ao enviar e-mail via Gmail: ' + err.message);
+        throw new Error(err.message);
       }
     }
   };
