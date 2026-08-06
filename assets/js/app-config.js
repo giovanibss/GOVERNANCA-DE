@@ -36,7 +36,7 @@
   }
 
   const AppConfig = {
-    isRemoteDbReady: true,
+    isRemoteDbReady: localStorage.getItem('app_config_ready') === '1',
 
     /**
      * Carrega a configuração centralizada do Supabase e/ou LocalStorage
@@ -68,7 +68,7 @@
           }
         } catch(e) {}
 
-        // Tenta buscar as configurações expandidas de e-mail se app_config já tiver sido criada
+        // Tenta buscar as configurações expandidas de e-mail APENAS se app_config foi confirmada/criada
         if (this.isRemoteDbReady) {
           try {
             const { data, error } = await sb.from('app_config').select('*').eq('id', 'default').maybeSingle();
@@ -86,11 +86,13 @@
                 gmail_sender_name: gmailSenderName,
                 gmail_enabled: gmailEnabled
               }));
-            } else if (error && error.code === 'PGRST204') {
+            } else if (error) {
               this.isRemoteDbReady = false;
+              localStorage.removeItem('app_config_ready');
             }
           } catch(e) {
             this.isRemoteDbReady = false;
+            localStorage.removeItem('app_config_ready');
           }
         }
       }
@@ -134,8 +136,12 @@
       const sb = getSbClient();
       if (sb) {
         try {
-          await sb.from('app_config').upsert({ id: 'default', pin: pinLimpo, updated_at: new Date().toISOString() });
-        } catch(e) { console.warn('[AppConfig] Error upsert app_config:', e); }
+          const { error } = await sb.from('app_config').upsert({ id: 'default', pin: pinLimpo, updated_at: new Date().toISOString() });
+          if (!error) {
+            this.isRemoteDbReady = true;
+            localStorage.setItem('app_config_ready', '1');
+          }
+        } catch(e) {}
 
         try {
           await sb.from('at_config').upsert({ id: 'default', pin: pinLimpo });
@@ -201,7 +207,7 @@
       const sb = getSbClient();
       if (sb) {
         try {
-          await sb.from('app_config').upsert({
+          const { error } = await sb.from('app_config').upsert({
             id: 'default',
             gmail_user: u,
             gmail_app_password: p,
@@ -209,9 +215,11 @@
             gmail_enabled: e,
             updated_at: new Date().toISOString()
           });
-        } catch(err) {
-          console.warn('[AppConfig] Erro ao salvar gmail config no Supabase:', err);
-        }
+          if (!error) {
+            this.isRemoteDbReady = true;
+            localStorage.setItem('app_config_ready', '1');
+          }
+        } catch(err) {}
       }
 
       return localData;
