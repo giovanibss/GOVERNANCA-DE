@@ -127,7 +127,7 @@ button.acao.vermelho{background:linear-gradient(135deg,#ef7a7a,var(--rubi));box-
 .filtros{display:flex;gap:.7rem;flex-wrap:wrap;align-items:flex-end;margin-bottom:1.1rem}
 .gradeCursos{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:.9rem}
 
-/* Estilo novo para o acordeão dos cursos */
+/* Estilo para o acordeão dos cursos */
 details.cursoCard {
   border:1px solid var(--linha);border-radius:13px;background:var(--navy-1);
   display:flex;flex-direction:column;position:relative;overflow:hidden;
@@ -263,7 +263,7 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
 <header class="topo">
   <a class="volta" href="index.html">← Hub</a>
   <h1>Indicação para <span>Cursos</span></h1>
-  <p class="sub">Oferta de cursos por grande comando, prazos da TCA, manifestação de interesse e remessa pronta para o SIGADAER.</p>
+  <p class="sub">Oferta de cursos, manifestação de interesse e remessa pronta para o SIGADAER.</p>
 </header>
 
 <main>
@@ -309,7 +309,7 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
         <div class="campo">
           <label for="fPrazo">Prazo</label>
           <select id="fPrazo">
-            <option value="abertos">Somente com prazo aberto</option>
+            <option value="abertos">Somente com inscrição aberta</option>
             <option value="todos">Todos (inclui encerrados)</option>
             <option value="urgentes">Encerrando em 15 dias</option>
           </select>
@@ -456,7 +456,7 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
         </div>
         <div class="tabScroll" id="boxCursosSec" style="display:none">
           <table class="sec">
-            <thead><tr><th>Sigla</th><th>Curso</th><th>Comando</th><th>Limite</th><th style="text-align:right">Ações</th></tr></thead>
+            <thead><tr><th>Sigla</th><th>Curso</th><th>Comando</th><th>Limite da Inscrição</th><th style="text-align:right">Ações</th></tr></thead>
             <tbody id="corpoCursosSec"></tbody>
           </table>
         </div>
@@ -544,14 +544,14 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
 <div id="modalCurso" class="modalFundo" style="display:none" role="dialog" aria-modal="true">
   <div class="modalCaixa">
     <h3 id="cursoTitulo">Novo curso</h3>
-    <p class="legenda" id="cursoLegenda">Preencha os dados que aparecerão para os militares e no cabeçalho da planilha.</p>
+    <p class="legenda" id="cursoLegenda">Preencha os dados que aparecerão para os militares.</p>
     <div class="gradeForm">
       <div class="campo"><label for="cComando">Grande comando</label><input type="text" id="cComando" placeholder="COMGEP" /></div>
       <div class="campo"><label for="cSigla">Sigla</label><input type="text" id="cSigla" placeholder="CIAD" /></div>
       <div class="campo largo"><label for="cNome">Nome do curso</label><input type="text" id="cNome" /></div>
-      <div class="campo"><label for="cLimite">Data limite de matrícula</label><input type="date" id="cLimite" /></div>
-      <div class="campo"><label for="cInicio">Início</label><input type="date" id="cInicio" /></div>
-      <div class="campo"><label for="cTermino">Término</label><input type="date" id="cTermino" /></div>
+      <div class="campo"><label for="cLimite">Data limite de inscrição</label><input type="date" id="cLimite" /></div>
+      <div class="campo"><label for="cInicio">Início (realização)</label><input type="date" id="cInicio" /></div>
+      <div class="campo"><label for="cTermino">Término (realização)</label><input type="date" id="cTermino" /></div>
       <div class="campo"><label for="cModal">Modalidade</label><input type="text" id="cModal" placeholder="EAD, Presencial, Híbrido" /></div>
       <div class="campo"><label for="cLocal">Local da fase presencial</label><input type="text" id="cLocal" placeholder="Apenas EAD" /></div>
       <div class="campo"><label for="cVagas">Vagas</label><input type="text" id="cVagas" /></div>
@@ -789,7 +789,7 @@ async function carregarCursos(){
   try {
     const res = await sbGet('cur_cursos?select=*&order=data_limite');
     cursos = res.map(b => ({
-      id: b.id, chave: b.id,
+      id: b.id,
       comando: b.comando, sigla: b.sigla, nome: b.nome,
       limite: isoParaData(b.data_limite), inicio: isoParaData(b.data_inicio), termino: isoParaData(b.data_termino),
       modalidade: b.modalidade, local: b.local_presencial, vagas: b.vagas,
@@ -813,11 +813,11 @@ async function carregarCursos(){
 function situacao(c){
   const d = diasAte(c.limite);
   if (d == null) return { classe:'', chip:'<span class="chip cinza">Prazo não informado</span>', txt:'', dias:null };
-  if (d < 0)   return { classe:'encerrado', chip:'<span class="chip cinza">Prazo encerrado</span>', txt:'Encerrou em ' + dataBR(c.limite), dias:d };
-  if (d === 0) return { classe:'urgente', chip:'<span class="chip rubi">Encerra hoje</span>', txt:'Último dia: ' + dataBR(c.limite), dias:d };
-  if (d <= 15) return { classe:'urgente', chip:'<span class="chip rubi">Faltam ' + d + ' dia(s)</span>', txt:'Limite: ' + dataBR(c.limite), dias:d };
-  if (d <= 40) return { classe:'atencao', chip:'<span class="chip ambar">Faltam ' + d + ' dias</span>', txt:'Limite: ' + dataBR(c.limite), dias:d };
-  return { classe:'aberto', chip:'<span class="chip jade">Inscrições abertas</span>', txt:'Limite: ' + dataBR(c.limite), dias:d };
+  if (d < 0)   return { classe:'encerrado', chip:'<span class="chip cinza">Prazo de indicação encerrado</span>', txt:'Inscrições encerradas em ' + dataBR(c.limite), dias:d };
+  if (d === 0) return { classe:'urgente', chip:'<span class="chip rubi">Inscrição encerra hoje!</span>', txt:'Último dia para indicar: ' + dataBR(c.limite), dias:d };
+  if (d <= 15) return { classe:'urgente', chip:'<span class="chip rubi">Faltam ' + d + ' dias p/ inscrição</span>', txt:'Indicações até: ' + dataBR(c.limite), dias:d };
+  if (d <= 40) return { classe:'atencao', chip:'<span class="chip ambar">Faltam ' + d + ' dias p/ inscrição</span>', txt:'Indicações até: ' + dataBR(c.limite), dias:d };
+  return { classe:'aberto', chip:'<span class="chip jade">Inscrições abertas</span>', txt:'Indicações até: ' + dataBR(c.limite), dias:d };
 }
 
 function pintarCursos(){
@@ -838,11 +838,11 @@ function pintarCursos(){
   });
 
   const cont = {};
-  manifs.forEach(m => { cont[m.curso_chave] = (cont[m.curso_chave] || 0) + 1; });
+  manifs.forEach(m => { cont[String(m.curso_chave)] = (cont[String(m.curso_chave)] || 0) + 1; });
 
   $('gradeCursos').innerHTML = lista.length ? lista.map(c => {
     const s = situacao(c);
-    const n = cont[c.id] || 0;
+    const n = cont[String(c.id)] || 0;
     const periodo = [c.inicio ? dataBR(c.inicio) : '', c.termino ? dataBR(c.termino) : ''].filter(Boolean).join(' a ');
     return '<details class="cursoCard ' + s.classe + '">' +
       '<summary>' +
@@ -855,13 +855,13 @@ function pintarCursos(){
       '<div class="cursoDetalhes">' +
         '<div class="meta">' +
           (c.modalidade ? '<span><b>Modalidade:</b> ' + esc(c.modalidade) + '</span>' : '') +
-          (periodo ? '<span><b>Período:</b> ' + esc(periodo) + '</span>' : '') +
+          (periodo ? '<span><b>Realização do Curso:</b> ' + esc(periodo) + '</span>' : '') +
           (c.vagas ? '<span><b>Vagas:</b> ' + esc(c.vagas) + '</span>' : '') +
         '</div>' +
         (c.prereq ? '<div style="font-size:.72rem;color:var(--texto-3);line-height:1.45"><b style="color:var(--texto-2)">Pré-requisitos:</b> ' + esc(c.prereq) + '</div>' : '') +
         (n ? '<div style="font-size:.72rem;color:var(--texto-3)">👥 ' + n + ' manifestação(ões) na secretaria</div>' : '') +
         '<div class="rodapeCard">' +
-          '<button class="acao mini" data-manif="' + c.id + '"' + (s.dias != null && s.dias < 0 ? ' disabled title="Prazo encerrado"' : '') + '>Manifestar interesse</button>' +
+          '<button class="acao mini" data-manif="' + c.id + '"' + (s.dias != null && s.dias < 0 ? ' disabled title="Prazo de indicações encerrado"' : '') + '>Manifestar interesse</button>' +
           '<button class="acao fantasma mini" data-detalhe="' + c.id + '">Detalhes</button>' +
         '</div>' +
       '</div></details>';
@@ -872,7 +872,7 @@ function pintarCursos(){
   $('gradeCursos').querySelectorAll('[data-detalhe]').forEach(b => b.addEventListener('click', () => verDetalhe(b.dataset.detalhe)));
 }
 
-function acharCurso(id){ return cursos.find(c => c.id === id) || null; }
+function acharCurso(id){ return cursos.find(c => String(c.id) === String(id)) || null; }
 
 function verDetalhe(id){
   const c = acharCurso(id); if (!c) return;
@@ -880,8 +880,8 @@ function verDetalhe(id){
   const add = (k, v) => { if (v) linhas.push('<b style="color:var(--ouro-2)">' + esc(k) + ':</b> ' + esc(v)); };
   add('Grande comando', c.comando); add('Sigla', c.sigla); add('Curso', c.nome);
   add('Modalidade', c.modalidade); add('Local da fase presencial', c.local);
-  add('Início', dataBR(c.inicio)); add('Término', dataBR(c.termino));
-  add('Data limite de matrícula', dataBR(c.limite)); add('Vagas', c.vagas);
+  add('Início do curso', dataBR(c.inicio)); add('Término do curso', dataBR(c.termino));
+  add('Data limite para indicação', dataBR(c.limite)); add('Vagas', c.vagas);
   add('Público-alvo', c.publico); add('Pré-requisitos', c.prereq);
   add('TCA de referência', c.tca); add('Observações', c.obs);
   (c.extras || []).forEach(x => { if (!linhas.some(l => l.includes(esc(x.v)))) add(x.k, x.v); });
@@ -1048,11 +1048,11 @@ async function verificarPin(){
 
 function preencherSelectCursoSec(){
   const cont = {};
-  manifs.forEach(m => { if (m.status !== 'cancelada') cont[m.curso_chave] = (cont[m.curso_chave] || 0) + 1; });
-  const comPedido = cursos.filter(c => cont[c.id]);
-  const sem = cursos.filter(c => !cont[c.id]);
+  manifs.forEach(m => { if (m.status !== 'cancelada') cont[String(m.curso_chave)] = (cont[String(m.curso_chave)] || 0) + 1; });
+  const comPedido = cursos.filter(c => cont[String(c.id)]);
+  const sem = cursos.filter(c => !cont[String(c.id)]);
   const opc = c => '<option value="' + esc(c.id) + '">' + esc((c.sigla || '') + ' — ' + (c.nome || '')) +
-                   (cont[c.id] ? ' (' + cont[c.id] + ')' : '') + '</option>';
+                   (cont[String(c.id)] ? ' (' + cont[String(c.id)] + ')' : '') + '</option>';
   const atual = $('secCurso').value;
   $('secCurso').innerHTML = '<option value="">— selecione o curso —</option>' +
     (comPedido.length ? '<optgroup label="Com manifestações">' + comPedido.map(opc).join('') + '</optgroup>' : '') +
@@ -1062,13 +1062,13 @@ function preencherSelectCursoSec(){
 
 function manifsDoCurso(){
   const id = $('secCurso').value;
-  return manifs.filter(m => m.curso_chave === id && m.status !== 'cancelada')
+  return manifs.filter(m => String(m.curso_chave) === String(id) && m.status !== 'cancelada')
     .sort((a,b) => (a.prioridade || 999) - (b.prioridade || 999) || new Date(a.criada_em) - new Date(b.criada_em));
 }
 
 /* ── radar de prazos: a visão que a secretaria abre primeiro ── */
 function resumoDoCurso(c){
-  const meus = manifs.filter(m => m.curso_chave === c.id && m.status !== 'cancelada');
+  const meus = manifs.filter(m => String(m.curso_chave) === String(c.id) && m.status !== 'cancelada');
   return {
     total: meus.length,
     semAval: meus.filter(m => !m.aval_chefia).length,
@@ -1117,7 +1117,7 @@ function pintarPrazos(){
     partes.length ? (tipoResumo === 'erro' ? '🚨 ' : '⚠️ ') + partes.join(' · ') + '.'
                   : '✔ Nenhum prazo crítico e nenhuma pendência de remessa no momento.');
 
-  const selecionado = $('secCurso').value;
+  const selecionado = String($('secCurso').value);
   $('radar').innerHTML = lista.length ? lista.map(({ c, d, r }) => {
     const cor = corPrazo(d);
     const pulsa = (d != null && d >= 0 && d <= 7 && r.aRemeter >= 0) ? ' pulsa' : '';
@@ -1133,7 +1133,7 @@ function pintarPrazos(){
       r.remetidos ? '<span class="chip ouro">' + r.remetidos + ' remetido(s)</span>' : '',
       r.matriculados ? '<span class="chip jade">' + r.matriculados + ' matriculado(s)</span>' : ''
     ].filter(Boolean).join(' ');
-    return '<div class="prazoLinha' + (c.id === selecionado ? ' sel' : '') + '" data-pz="' + c.id + '">' +
+    return '<div class="prazoLinha' + (String(c.id) === selecionado ? ' sel' : '') + '" data-pz="' + c.id + '">' +
       '<div class="prazoDias ' + cor + pulsa + '"><b>' + numero + '</b><small>' + legenda + '</small></div>' +
       '<div class="prazoCorpo">' +
         '<div class="titulo">' + esc(c.sigla || '—') + ' <em>' + esc(c.nome || '') + '</em></div>' +
