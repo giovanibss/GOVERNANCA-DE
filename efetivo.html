@@ -717,6 +717,7 @@
   <img src="assets/cocar-fab.png" class="cocar-icon" alt="" />
 </footer>
 
+<script src="assets/js/app-config.js"></script>
 <script>
 /* ══════════════════════════════════════════════════════════════
    CONFIG
@@ -1404,6 +1405,7 @@ async function sbPatch(caminho, corpo){
 }
 
 async function lerPinServidor(){
+  if (window.AppConfig) return window.AppConfig.getPin();
   try {
     const r = await sbGet('at_config?select=pin&id=eq.default');
     if (r && r[0] && r[0].pin) return String(r[0].pin).trim();

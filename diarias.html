@@ -703,6 +703,7 @@ footer img{width:16px;vertical-align:middle;margin:0 .5rem;opacity:.5}
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/app-config.js"></script>
 <script>
 /* ══════════════════════════════════════════════════════════════
    1 · SUPABASE
@@ -1916,6 +1917,7 @@ function renderGratificacao() {
 
 /* ── AUTENTICAÇÃO E PIN DO OPERADOR ── */
 async function lerPinServidor(){
+  if (window.AppConfig) return window.AppConfig.getPin();
   try {
     const { data } = await sb.from('at_config').select('pin').eq('id', 'default').maybeSingle();
     if (data && data.pin) return String(data.pin).trim();

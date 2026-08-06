@@ -625,6 +625,293 @@ body.cortina .cue{animation-play-state:paused}
   #gl{display:none}
   .bg-art{transform:none}
 }
+
+/* ═══ BOTÃO DE ENGRENAGEM (CONFIGURAÇÕES DO SITE) ═══ */
+.top-gear-btn {
+  background: rgba(6,16,33,0.55);
+  border: 1px solid rgba(212,168,75,0.35);
+  color: var(--gold-lt);
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all .25s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.top-gear-btn svg {
+  width: 20px;
+  height: 20px;
+  transition: transform .5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.top-gear-btn:hover {
+  background: rgba(212,168,75,0.2);
+  border-color: var(--gold);
+  color: #fff;
+  transform: scale(1.05);
+  box-shadow: 0 0 16px rgba(212,168,75,0.4);
+}
+.top-gear-btn:hover svg {
+  transform: rotate(90deg);
+}
+
+/* ═══ MODAL DE CONFIGURAÇÕES DO SITE ═══ */
+.cfg-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(6, 16, 33, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .3s ease, visibility .3s ease;
+}
+.cfg-backdrop.active {
+  opacity: 1;
+  visibility: visible;
+}
+.cfg-modal {
+  background: linear-gradient(145deg, rgba(13, 27, 49, 0.95), rgba(6, 16, 33, 0.98));
+  border: 1px solid rgba(212, 168, 75, 0.35);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 680px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 30px rgba(212, 168, 75, 0.15);
+  overflow: hidden;
+  transform: translateY(20px) scale(0.96);
+  transition: transform .3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+}
+.cfg-backdrop.active .cfg-modal {
+  transform: translateY(0) scale(1);
+}
+.cfg-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--hair);
+  background: rgba(255, 255, 255, 0.02);
+}
+.cfg-title {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  font-family: var(--f-display);
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #fff;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.cfg-title svg {
+  width: 22px;
+  height: 22px;
+  color: var(--gold);
+}
+.cfg-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--contrail-dim);
+  font-size: 1.5rem;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s ease;
+}
+.cfg-close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* ABAS */
+.cfg-nav {
+  display: flex;
+  background: rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid var(--hair);
+  padding: 0 1.5rem;
+  gap: .5rem;
+}
+.cfg-tab-btn {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--contrail-dim);
+  font-family: var(--f-body);
+  font-size: .85rem;
+  font-weight: 500;
+  padding: .9rem 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  transition: all .2s ease;
+}
+.cfg-tab-btn:hover {
+  color: var(--contrail);
+}
+.cfg-tab-btn.active {
+  color: var(--gold-lt);
+  border-bottom-color: var(--gold);
+  background: rgba(212, 168, 75, 0.05);
+}
+
+.cfg-body {
+  padding: 1.5rem;
+  max-height: 75vh;
+  overflow-y: auto;
+}
+.cfg-panel {
+  display: none;
+}
+.cfg-panel.active {
+  display: block;
+}
+
+/* FORM ELEMENTOS */
+.cfg-group {
+  margin-bottom: 1.25rem;
+}
+.cfg-label {
+  display: block;
+  font-size: .78rem;
+  font-family: var(--f-data);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--contrail-dim);
+  margin-bottom: .4rem;
+}
+.cfg-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.cfg-input {
+  width: 100%;
+  background: rgba(6, 16, 33, 0.7);
+  border: 1px solid rgba(207, 228, 255, 0.2);
+  border-radius: 8px;
+  padding: .65rem .9rem;
+  color: #fff;
+  font-family: var(--f-body);
+  font-size: .9rem;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+.cfg-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 10px rgba(212, 168, 75, 0.25);
+}
+.cfg-toggle-pwd {
+  position: absolute;
+  right: .75rem;
+  background: transparent;
+  border: none;
+  color: var(--contrail-dim);
+  cursor: pointer;
+  font-size: .8rem;
+  padding: .2rem .4rem;
+}
+.cfg-toggle-pwd:hover {
+  color: var(--gold-lt);
+}
+
+.cfg-card-info {
+  background: rgba(212, 168, 75, 0.06);
+  border: 1px solid rgba(212, 168, 75, 0.2);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+  font-size: .82rem;
+  line-height: 1.5;
+  color: var(--contrail);
+}
+.cfg-card-info b {
+  color: var(--gold-lt);
+}
+
+.cfg-badge-status {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .25rem .65rem;
+  border-radius: 20px;
+  font-size: .72rem;
+  font-family: var(--f-data);
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+.cfg-badge-status.ok {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--jade);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+.cfg-badge-status.warn {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--amber);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.cfg-btn {
+  background: linear-gradient(135deg, var(--gold), #b88d35);
+  color: #061021;
+  border: none;
+  border-radius: 8px;
+  padding: .65rem 1.25rem;
+  font-weight: 600;
+  font-size: .88rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  transition: all .2s ease;
+  box-shadow: 0 4px 14px rgba(212, 168, 75, 0.3);
+}
+.cfg-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(212, 168, 75, 0.45);
+  filter: brightness(1.08);
+}
+.cfg-btn.sec {
+  background: transparent;
+  border: 1px solid rgba(207, 228, 255, 0.25);
+  color: var(--contrail);
+  box-shadow: none;
+}
+.cfg-btn.sec:hover {
+  border-color: var(--gold-lt);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.cfg-log-box {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  padding: .85rem;
+  font-family: var(--f-data);
+  font-size: .78rem;
+  color: var(--contrail);
+  margin-top: 1rem;
+  max-height: 140px;
+  overflow-y: auto;
+  display: none;
+}
 </style>
 </head>
 <body>
@@ -654,6 +941,12 @@ body.cortina .cue{animation-play-state:paused}
     <span class="lbl" id="clock-day">—</span>
     <span id="clock-time">—</span>
   </div>
+  <button class="top-gear-btn" id="btn-config-site" title="Configurações do Site (PIN e Integrações)" aria-label="Configurações do Site">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"></circle>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+    </svg>
+  </button>
 </header>
 
 <div class="shell">
@@ -948,8 +1241,125 @@ body.cortina .cue{animation-play-state:paused}
 
 </div>
 
+<!-- MODAL DE CONFIGURAÇÕES DO SITE (PIN & GMAIL API) -->
+<div class="cfg-backdrop" id="modalConfigSite" role="dialog" aria-modal="true" aria-labelledby="cfg-title">
+  <div class="cfg-modal">
+    <div class="cfg-header">
+      <div class="cfg-title" id="cfg-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        Configurações da Governança DE
+      </div>
+      <button class="cfg-close-btn" id="btn-cfg-close" title="Fechar">&times;</button>
+    </div>
+
+    <!-- ABAS DO MODAL -->
+    <nav class="cfg-nav" role="tablist">
+      <button class="cfg-tab-btn active" data-tab="tab-pin" role="tab">
+        🔐 Gerenciamento do PIN
+      </button>
+      <button class="cfg-tab-btn" data-tab="tab-gmail" role="tab">
+        📧 Integrações (Gmail API)
+      </button>
+    </nav>
+
+    <div class="cfg-body">
+      <!-- ABA 1: GERENCIAMENTO DO PIN -->
+      <div class="cfg-panel active" id="tab-pin" role="tabpanel">
+        <div class="cfg-badge-status ok" id="cfg-pin-status-badge">
+          <span>● PIN Master Ativo: Sincronizado no Supabase</span>
+        </div>
+
+        <div class="cfg-card-info">
+          <b>Centralização de Segurança:</b> O PIN definido aqui é compartilhado por todos os módulos do aplicativo (Diárias, Efetivo, Cursos, TACF e Transporte). A alteração é refletida em tempo real em todos os sistemas.
+        </div>
+
+        <form id="cfg-form-pin" onsubmit="return false;">
+          <div class="cfg-group">
+            <label class="cfg-label" for="cfg-pin-atual">PIN Atual da Secretaria</label>
+            <div class="cfg-input-wrap">
+              <input type="password" id="cfg-pin-atual" class="cfg-input" placeholder="Digite o PIN atual..." autocomplete="off" />
+              <button type="button" class="cfg-toggle-pwd" data-for="cfg-pin-atual">👁️ Ver</button>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:1rem;" class="cfg-group-row">
+            <div class="cfg-group" style="flex:1;">
+              <label class="cfg-label" for="cfg-pin-novo">Novo PIN (mínimo 4 caracteres)</label>
+              <div class="cfg-input-wrap">
+                <input type="password" id="cfg-pin-novo" class="cfg-input" placeholder="Novo PIN..." autocomplete="off" />
+                <button type="button" class="cfg-toggle-pwd" data-for="cfg-pin-novo">👁️ Ver</button>
+              </div>
+            </div>
+            <div class="cfg-group" style="flex:1;">
+              <label class="cfg-label" for="cfg-pin-conf">Confirmar Novo PIN</label>
+              <div class="cfg-input-wrap">
+                <input type="password" id="cfg-pin-conf" class="cfg-input" placeholder="Repita o novo PIN..." autocomplete="off" />
+                <button type="button" class="cfg-toggle-pwd" data-for="cfg-pin-conf">👁️ Ver</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:1.5rem; display:flex; justify-content:flex-end; gap:.75rem;">
+            <button type="button" class="cfg-btn sec" id="btn-sync-pin">🔄 Resincronizar PIN</button>
+            <button type="button" class="cfg-btn" id="btn-save-pin">💾 Salvar Novo PIN</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- ABA 2: INTEGRAÇÕES GMAIL API -->
+      <div class="cfg-panel" id="tab-gmail" role="tabpanel">
+        <div class="cfg-badge-status warn" id="cfg-gmail-status-badge">
+          <span>● Envio Automático de E-mails: Pronto para Configuração</span>
+        </div>
+
+        <div class="cfg-card-info">
+          <b>Envio via Senha de Aplicativo do Gmail:</b> Conecte a conta oficial para envio automático de escalas de TACF, relatórios e notificações da Secretaria.
+          <br><br>
+          <small>💡 <b>Como criar a Senha de App:</b> Acesse sua Conta Google &rarr; <i>Segurança</i> &rarr; <i>Verificação em 2 Etapas</i> &rarr; <i>Senhas de app</i>. Crie um nome (ex: "Governança DE") e copie a senha de 16 caracteres gerada.</small>
+        </div>
+
+        <form id="cfg-form-gmail" onsubmit="return false;">
+          <div class="cfg-group">
+            <label class="cfg-label" for="cfg-gmail-user">E-mail Remetente do Gmail</label>
+            <input type="email" id="cfg-gmail-user" class="cfg-input" placeholder="ex: secde.afa@gmail.com" />
+          </div>
+
+          <div class="cfg-group">
+            <label class="cfg-label" for="cfg-gmail-name">Nome de Exibição do Remetente</label>
+            <input type="text" id="cfg-gmail-name" class="cfg-input" placeholder="ex: Secretaria DE · Academia da Força Aérea" />
+          </div>
+
+          <div class="cfg-group">
+            <label class="cfg-label" for="cfg-gmail-pass">Senha de Aplicativo (16 caracteres)</label>
+            <div class="cfg-input-wrap">
+              <input type="password" id="cfg-gmail-pass" class="cfg-input" placeholder="xxxx xxxx xxxx xxxx" autocomplete="off" />
+              <button type="button" class="cfg-toggle-pwd" data-for="cfg-gmail-pass">👁️ Ver</button>
+            </div>
+          </div>
+
+          <div class="cfg-group" style="display:flex; align-items:center; gap:.75rem; margin-top:.5rem;">
+            <input type="checkbox" id="cfg-gmail-enable" style="width:18px; height:18px; accent-color:var(--gold);" checked />
+            <label for="cfg-gmail-enable" style="font-size:.88rem; color:#fff; cursor:pointer;">Ativar disparos automáticos de e-mail no aplicativo</label>
+          </div>
+
+          <div id="cfg-test-log" class="cfg-log-box"></div>
+
+          <div style="margin-top:1.5rem; display:flex; justify-content:space-between; align-items:center;">
+            <button type="button" class="cfg-btn sec" id="btn-test-gmail">🧪 Enviar E-mail de Teste</button>
+            <button type="button" class="cfg-btn" id="btn-save-gmail">💾 Salvar Integração Gmail</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/app-config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 /* ═══════════════════════════════════════════════════════════════════
@@ -2381,6 +2791,182 @@ setInterval(atualizar, 60000);
 
 // reflete no ato as mudanças feitas em diarias.html (outra aba, mesmo navegador)
 addEventListener('storage', e=>{ if (e.key === CACHE_KEY) carregarDiarias(); });
+
+/* ═══ LÓGICA DO MODAL DE CONFIGURAÇÕES (GERENCIAMENTO DO PIN & GMAIL API) ═══ */
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('modalConfigSite');
+  const btnOpen = document.getElementById('btn-config-site');
+  const btnClose = document.getElementById('btn-cfg-close');
+  const tabs = document.querySelectorAll('.cfg-tab-btn');
+  const panels = document.querySelectorAll('.cfg-panel');
+
+  function preencherDadosConfig() {
+    if (!window.AppConfig) return;
+    const g = window.AppConfig.getGmailConfig();
+
+    const elUser = document.getElementById('cfg-gmail-user');
+    const elName = document.getElementById('cfg-gmail-name');
+    const elPass = document.getElementById('cfg-gmail-pass');
+    const elEnable = document.getElementById('cfg-gmail-enable');
+    const gBadge = document.getElementById('cfg-gmail-status-badge');
+
+    if (elUser) elUser.value = g.user;
+    if (elName) elName.value = g.senderName;
+    if (elPass) elPass.value = g.appPassword;
+    if (elEnable) elEnable.checked = g.enabled;
+
+    if (gBadge) {
+      if (g.user && g.appPassword) {
+        gBadge.className = 'cfg-badge-status ok';
+        gBadge.innerHTML = '<span>● Gmail Conectado: Ready para Envio Automático</span>';
+      } else {
+        gBadge.className = 'cfg-badge-status warn';
+        gBadge.innerHTML = '<span>● Envio Automático de E-mails: Pendente de Configuração</span>';
+      }
+    }
+  }
+
+  if (btnOpen && modal) {
+    btnOpen.addEventListener('click', async () => {
+      modal.classList.add('active');
+      if (window.AppConfig) {
+        await window.AppConfig.loadConfig();
+        preencherDadosConfig();
+      }
+    });
+  }
+
+  if (btnClose && modal) {
+    btnClose.addEventListener('click', () => modal.classList.remove('active'));
+  }
+
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) modal.classList.remove('active');
+  });
+
+  // Alternância de Abas
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      const targetPanel = document.getElementById(tab.dataset.tab);
+      if (targetPanel) targetPanel.classList.add('active');
+    });
+  });
+
+  // Mostrar/Ocultar senhas
+  document.querySelectorAll('.cfg-toggle-pwd').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.dataset.for;
+      const inp = document.getElementById(targetId);
+      if (inp) {
+        if (inp.type === 'password') {
+          inp.type = 'text';
+          btn.textContent = '🙈 Ocultar';
+        } else {
+          inp.type = 'password';
+          btn.textContent = '👁️ Ver';
+        }
+      }
+    });
+  });
+
+  // Ação de Resincronizar PIN
+  document.getElementById('btn-sync-pin')?.addEventListener('click', async () => {
+    if (!window.AppConfig) return;
+    try {
+      await window.AppConfig.loadConfig();
+      alert('✅ PIN resincronizado com o banco de dados Supabase com sucesso!');
+    } catch(e) {
+      alert('Erro ao resincronizar PIN: ' + e.message);
+    }
+  });
+
+  // Ação de Salvar PIN
+  document.getElementById('btn-save-pin')?.addEventListener('click', async () => {
+    const pAtual = document.getElementById('cfg-pin-atual')?.value || '';
+    const pNovo = document.getElementById('cfg-pin-novo')?.value || '';
+    const pConf = document.getElementById('cfg-pin-conf')?.value || '';
+
+    if (!window.AppConfig) return alert('Motor AppConfig indisponível.');
+
+    const pinValido = await window.AppConfig.verifyPin(pAtual);
+    if (!pinValido) {
+      alert('⚠️ O PIN Atual informado está incorreto.');
+      return;
+    }
+
+    if (!pNovo || pNovo.length < 4) {
+      alert('⚠️ O Novo PIN precisa ter pelo menos 4 caracteres.');
+      return;
+    }
+
+    if (pNovo !== pConf) {
+      alert('⚠️ O Novo PIN e a Confirmação não coincidem.');
+      return;
+    }
+
+    try {
+      await window.AppConfig.setPin(pNovo);
+      alert('✅ PIN master atualizado com sucesso em todo o aplicativo!');
+      document.getElementById('cfg-pin-atual').value = '';
+      document.getElementById('cfg-pin-novo').value = '';
+      document.getElementById('cfg-pin-conf').value = '';
+    } catch(err) {
+      alert('Erro ao alterar PIN: ' + err.message);
+    }
+  });
+
+  // Ação de Salvar Gmail Config
+  document.getElementById('btn-save-gmail')?.addEventListener('click', async () => {
+    const user = document.getElementById('cfg-gmail-user')?.value || '';
+    const name = document.getElementById('cfg-gmail-name')?.value || '';
+    const pass = document.getElementById('cfg-gmail-pass')?.value || '';
+    const enabled = document.getElementById('cfg-gmail-enable')?.checked;
+
+    if (!window.AppConfig) return alert('Motor AppConfig indisponível.');
+
+    try {
+      await window.AppConfig.setGmailConfig({ user, appPassword: pass, senderName: name, enabled });
+      alert('✅ Configurações da API do Gmail salvas com sucesso!');
+      preencherDadosConfig();
+    } catch(err) {
+      alert('Erro ao salvar configurações do Gmail: ' + err.message);
+    }
+  });
+
+  // Testar Envio de E-mail
+  document.getElementById('btn-test-gmail')?.addEventListener('click', async () => {
+    const dest = prompt('Informe o e-mail de destino para o teste:', 'exemplo@fab.mil.br');
+    if (!dest) return;
+
+    const logBox = document.getElementById('cfg-test-log');
+    if (logBox) {
+      logBox.style.display = 'block';
+      logBox.innerHTML = '⏳ Iniciando teste de envio de e-mail via API Gmail...';
+    }
+
+    try {
+      const res = await window.AppConfig.sendEmail({
+        to: dest,
+        subject: '🧪 Teste de Conexão - Governança DE (Gmail API)',
+        html: `<h3>Governança DE - Academia da Força Aérea</h3><p>Este é um e-mail de teste disparado via <b>API do Gmail (Senha de App)</b>.</p><p>Data/Hora: ${new Date().toLocaleString('pt-BR')}</p>`,
+        text: 'Teste de conexão da Governança DE via API do Gmail.'
+      });
+
+      if (logBox) {
+        logBox.innerHTML = `<span style="color:var(--jade);">✅ ${res.message}</span><br><small>Destinatário: ${dest}</small>`;
+      }
+      alert('✅ Teste concluído com sucesso! Verifique a mensagem de confirmação.');
+    } catch(err) {
+      if (logBox) {
+        logBox.innerHTML = `<span style="color:#ef4444;">❌ Falha no teste: ${err.message}</span>`;
+      }
+      alert('❌ Erro no envio de e-mail de teste: ' + err.message);
+    }
+  });
+});
 </script>
 </body>
 </html>

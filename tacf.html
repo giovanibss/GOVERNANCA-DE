@@ -817,6 +817,7 @@ footer {
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="assets/js/app-config.js"></script>
 <script>
 /* ══════════════════════════════════════════════════════════════
    CONFIGURAÇÃO SUPABASE & PLANILHA CENTRAL
@@ -1238,19 +1239,27 @@ function verificarPinSessao() {
   }
 }
 
-function validarPinSecretaria() {
+async function validarPinSecretaria() {
   const inputPin = (document.getElementById('pinCampo').value || '').trim();
-  const pinSalvo = localStorage.getItem('secretaria_pin') || localStorage.getItem('efetivo_pin') || 'Secretaria';
   const msg = document.getElementById('pinMsg');
 
-  if (inputPin.toLowerCase() === pinSalvo.toLowerCase() || inputPin.toLowerCase() === 'secretaria' || inputPin === '123456') {
+  let ok = false;
+  if (window.AppConfig) {
+    ok = await window.AppConfig.verifyPin(inputPin);
+  }
+  if (!ok) {
+    const pinSalvo = localStorage.getItem('secretaria_pin') || localStorage.getItem('efetivo_pin') || '123456';
+    ok = (inputPin === pinSalvo || inputPin.toLowerCase() === 'secretaria' || inputPin === '123456');
+  }
+
+  if (ok) {
     sessionStorage.setItem('secretaria_pin_ok', '1');
     document.getElementById('pinGate').style.display = 'none';
     document.getElementById('secArea').style.display = 'block';
     msg.style.display = 'none';
   } else {
     msg.style.display = 'block';
-    msg.textContent = '❌ PIN incorreto. Use o PIN padrão da Secretaria.';
+    msg.textContent = '❌ PIN incorreto. Use o PIN master da Secretaria.';
   }
 }
 
@@ -1625,7 +1634,10 @@ async function executarAutofillEscala() {
         nome_completo: m.nomeCompleto,
         antiguidade_index: m.antiguidade,
         status_solicitacao: 'pendente',
-        status_elegiblet saramMilitarSelecionadoMover = null;
+        status_elegibilidade: 'elegivel'
+      };
+      solicitacoesMap[m.saram] = sol;
+    }
 
 function cancelarSelecaoRemanejamento() {
   saramMilitarSelecionadoMover = null;
@@ -1807,7 +1819,7 @@ function renderizarEscalaHorizontal() {
              onclick="event.stopPropagation(); selecionarOuMoverMilitarVisual('${s.saram}')"
              style="${styleCard}">
           <div style="display:flex; flex-direction:column; gap:0.15rem; text-align:left;">
-            <span>${s.posto_grad} ${s.nome_guerra} (${s.saram})</span>
+            <span>${s.posto_grad} ${s.nome_guerra}</span>
             <div style="display:flex; gap:0.3rem; align-items:center; margin-top:0.25rem;">
               <span class="badgeMetodo">${isSelected ? '🎯 SELECIONADO' : (isRealizou ? '✓ REALIZOU' : rotuloMetodo)}</span>
               ${isAusenteVermelho ? '<span style="font-size:0.62rem; background:#dc2626; color:#fff; padding:1px 4px; border-radius:3px;">⚠️ Não compareceu</span>' : ''}

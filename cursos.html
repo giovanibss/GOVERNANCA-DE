@@ -581,6 +581,7 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
 <footer>Governança DE · Academia da Força Aérea — módulo Indicação para Cursos · <b>v1.0</b></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="assets/js/app-config.js"></script>
 <script>
 console.log('%cIndicação para Cursos · v1.0', 'color:#d4a84b;font-weight:bold');
 
@@ -1031,6 +1032,7 @@ async function carregarTcas(){
 function secLiberada(){ return sessionStorage.getItem('cur_sec_ok') === '1'; }
 
 async function lerPinServidor(){
+  if (window.AppConfig) return window.AppConfig.getPin();
   const r = await sbGet('cur_config?select=pin&id=eq.default');
   return (r[0] && String(r[0].pin)) || null;
 }

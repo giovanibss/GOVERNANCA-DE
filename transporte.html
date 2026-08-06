@@ -418,6 +418,7 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
 <footer>Governança DE · Academia da Força Aérea — módulo Auxílio Transporte · <b>v3.1</b> (correção da leitura 400)</footer>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="compiladordoc.js"></script>
+<script src="assets/js/app-config.js"></script>
 <script>
 console.log('%cAuxílio Transporte · v3.1 (correção da leitura 400)', 'color:#d4a84b;font-weight:bold');
 /* ══════════════════════════════════════════════════════════════
@@ -632,6 +633,7 @@ function trocarAba(id){
   }
 }
 async function lerPinServidor(){
+  if (window.AppConfig) return window.AppConfig.getPin();
   const r = await sbGet('at_config?select=pin&id=eq.default');
   return (r[0] && String(r[0].pin)) || '123456';
 }
