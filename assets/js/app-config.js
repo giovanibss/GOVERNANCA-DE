@@ -264,46 +264,61 @@
         throw new Error('Endereço de e-mail do destinatário não informado.');
       }
 
-      // Tenta enviar usando o serviço de API HTTP / Relay de E-mail
-      // (Suporta Endpoint Google Apps Script Web App, Supabase Edge Function ou EmailJS Direct REST API)
-      const RELAY_ENDPOINT = localStorage.getItem('gmail_relay_url') || 'https://api.emailjs.com/api/v1.0/email/send';
-
-      // Fallback para simulação/processamento com log formatado quando testado em ambiente sem backend ativo
-      try {
-        const res = await fetch(RELAY_ENDPOINT, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            service_id: 'gmail',
-            template_id: 'template_de',
-            user_id: cfg.user,
-            template_params: {
-              to_email: payload.to,
-              from_name: payload.senderName,
+      // Tenta enviar utilizando SmtpJS (smtp.gmail.com com Senha de App) ou Web Relay configurado
+      const relayUrl = localStorage.getItem('gmail_relay_url');
+      if (relayUrl && relayUrl.startsWith('http')) {
+        try {
+          const res = await fetch(relayUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              to: payload.to,
               subject: payload.subject,
-              message_html: payload.html || payload.text,
-              message_text: payload.text || payload.html
-            }
-          })
-        });
-
-        if (res.ok) {
-          return { success: true, message: 'E-mail enviado com sucesso via API Gmail!' };
+              html: payload.html || payload.text,
+              text: payload.text || payload.html,
+              user: payload.user,
+              appPassword: payload.appPassword,
+              senderName: payload.senderName
+            })
+          });
+          if (res.ok) {
+            return { success: true, message: 'E-mail enviado com sucesso via Web Relay!' };
+          }
+        } catch(e) {
+          console.warn('[AppConfig] Relay HTTP falhou, tentando transporte SmtpJS...', e.message);
         }
-      } catch(e) {
-        console.warn('[AppConfig] Envio HTTP Relay direto falhou, simulando transporte com credenciais configuradas:', e.message);
       }
 
-      // Fallback de confirmação estruturada do disparo por aplicativo
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({
-            success: true,
-            simulated: true,
-            message: `E-mail processado para <${payload.to}> via remetente ${cfg.senderName} (${cfg.user}).`
+      // Envio via SmtpJS usando smtp.gmail.com e Senha de Aplicativo (16 dígitos)
+      try {
+        if (!window.Email || typeof window.Email.send !== 'function') {
+          await new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = 'https://smtpjs.com/v3/smtp.js';
+            s.onload = resolve;
+            s.onerror = () => reject(new Error('Não foi possível carregar o script do SmtpJS.'));
+            document.head.appendChild(s);
           });
-        }, 800);
-      });
+        }
+
+        const resText = await window.Email.send({
+          Host: 'smtp.gmail.com',
+          Username: payload.user,
+          Password: payload.appPassword,
+          To: payload.to,
+          From: payload.senderName ? `${payload.senderName} <${payload.user}>` : payload.user,
+          Subject: payload.subject,
+          Body: payload.html || payload.text
+        });
+
+        if (resText === 'OK' || String(resText).toLowerCase().includes('ok')) {
+          return { success: true, message: 'E-mail enviado com sucesso via Gmail SMTP!' };
+        } else {
+          throw new Error(resText || 'Não foi possível autenticar ou disparar a mensagem via Gmail.');
+        }
+      } catch(err) {
+        throw new Error('Falha ao enviar e-mail via Gmail: ' + err.message);
+      }
     }
   };
 
