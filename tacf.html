@@ -373,6 +373,35 @@ button.acao.mini { padding: 0.35rem 0.75rem; font-size: 0.8rem; }
   font-family: var(--f-body);
 }
 
+.cartaoMilitarEscalado.selecionadoParaMover, .cartaoMilitarExcedente.selecionadoParaMover {
+  border: 2px solid #facc15 !important;
+  box-shadow: 0 0 14px rgba(250, 204, 21, 0.75) !important;
+  background: rgba(250, 204, 21, 0.22) !important;
+  color: #fff !important;
+  animation: pulseMove 1.4s infinite alternate;
+}
+@keyframes pulseMove {
+  0% { box-shadow: 0 0 6px rgba(250, 204, 21, 0.4); }
+  100% { box-shadow: 0 0 16px rgba(250, 204, 21, 0.95); }
+}
+
+.cartaoMilitarExcedente {
+  background: rgba(239, 68, 68, 0.18);
+  border: 1px solid #ef4444;
+  border-left: 4px solid #dc2626;
+  color: #fca5a5;
+  border-radius: 6px;
+  padding: 0.55rem 0.75rem;
+  font-family: var(--f-data);
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+  transition: all 0.2s ease;
+}
+
 /* 3 Vagas Livres (Situações atípicas) */
 .blocoVagasLivres {
   background: rgba(168, 85, 247, 0.08);
@@ -695,6 +724,7 @@ footer {
             </div>
             <button class="acao mini" onclick="adicionarDataAplicacao()">+ Adicionar Data</button>
             <button class="acao fantasma mini" onclick="gerarDatasSegQuaSexPadrao()">⚡ Gerar Dias</button>
+            <button class="acao rubi mini" onclick="limparTodasAsDatasAplicacao()">🗑️ Limpar Dias</button>
             <button class="acao fantasma mini" onclick="executarAutofillEscala()">⚡ Gerar Escala</button>
             <button class="acao rubi mini" onclick="excluirEscalaGerada()">🗑️ Excluir Escala</button>
           </div>
@@ -704,7 +734,7 @@ footer {
         <!-- Botões de Ação da Escala -->
         <div style="border-top:1px solid var(--hair); padding-top:1.25rem; margin-top:1.25rem; display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center;">
           <button class="acao fantasma" onclick="abrirModalAnaliseIndisponividades()">
-            📋 Análise de Indisponividades (<span id="cntIndispPend">0</span>)
+            📋 Análise de Indisponibilidades (<span id="cntIndispPend">0</span>)
           </button>
           <button class="acao fantasma" onclick="gerarTemplateEmailSemanal()">✉️ Templates de E-mail Diários</button>
 
@@ -742,6 +772,7 @@ footer {
             <select id="filtroStatusEleg" onchange="renderizarTabelaSecretaria()">
               <option value="">— Todos os Status —</option>
               <option value="elegivel">Elegíveis</option>
+              <option value="missao">Missão fora da sede</option>
               <option value="r1_reserva">Reserva (R1)</option>
               <option value="baixa">Em processo de baixa</option>
               <option value="dispensa">Dispensa médica / Parecer</option>
@@ -1291,18 +1322,66 @@ function removerDataAplicacao(dStr) {
   renderizarEscalaHorizontal();
 }
 
+async function limparTodasAsDatasAplicacao() {
+  if (temporadaAtual?.status === 'escala_gerada') {
+    return Swal.fire('Ação Bloqueada', 'Para limpar ou alterar datas, você deve primeiro clicar no botão "🗑️ Excluir Escala".', 'warning');
+  }
+
+  if (!temporadaAtual?.datas_aplicacao || !temporadaAtual.datas_aplicacao.length) {
+    return Swal.fire('Aviso', 'Não há datas de aplicação cadastradas para serem excluídas.', 'info');
+  }
+
+  const confirm = await Swal.fire({
+    title: 'Excluir Todas as Datas?',
+    text: 'Esta ação irá remover todas as datas de aplicação cadastradas para esta temporada. Tem certeza?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sim, Limpar Todas',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#ef4444'
+  });
+
+  if (!confirm.isConfirmed) return;
+
+  temporadaAtual.datas_aplicacao = [];
+  try {
+    const { error } = await sb
+      .from('tacf_temporadas')
+      .update({ datas_aplicacao: [] })
+      .eq('id', temporadaAtual.id);
+
+    if (error) throw error;
+
+    renderizarBadgesDatas();
+    renderizarFormularioMilitar();
+    renderizarEscalaHorizontal();
+    Swal.fire('Datas Excluídas!', 'Todas as datas de aplicação foram removidas.', 'success');
+  } catch (e) {
+    Swal.fire('Erro', 'Falha ao excluir datas: ' + e.message, 'error');
+  }
+}
+
 function gerarDatasSegQuaSexPadrao() {
   if (temporadaAtual?.status === 'escala_gerada') {
     return Swal.fire('Ação Bloqueada', 'Primeiro exclua a escala gerada antes de regerar as datas.', 'warning');
   }
 
-  const hoje = new Date();
+  const inputVal = document.getElementById('inputNovaData').value;
+  let dataInicio = new Date();
+
+  if (inputVal) {
+    const parts = inputVal.split('-');
+    dataInicio = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+  } else {
+    dataInicio.setDate(dataInicio.getDate() + 1);
+  }
+
   const datas = [];
-  const maxDias = 60;
+  const maxDias = 60; // 2 meses de temporada a partir da data inicial
 
   for (let i = 0; i < maxDias; i++) {
-    const d = new Date(hoje);
-    d.setDate(hoje.getDate() + i);
+    const d = new Date(dataInicio);
+    d.setDate(dataInicio.getDate() + i);
     const dayOfWeek = d.getDay();
     if (dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 5) {
       const yyyy = d.getFullYear();
@@ -1546,123 +1625,57 @@ async function executarAutofillEscala() {
         nome_completo: m.nomeCompleto,
         antiguidade_index: m.antiguidade,
         status_solicitacao: 'pendente',
-        status_elegibilidade: 'elegivel'
-      };
-      solicitacoesMap[m.saram] = sol;
+        status_elegiblet saramMilitarSelecionadoMover = null;
+
+function cancelarSelecaoRemanejamento() {
+  saramMilitarSelecionadoMover = null;
+  renderizarEscalaHorizontal();
+}
+
+async function selecionarOuMoverMilitarVisual(saram, novaDataStr) {
+  if (!saramMilitarSelecionadoMover) {
+    if (saram) {
+      saramMilitarSelecionadoMover = saram;
+      renderizarEscalaHorizontal();
     }
+    return;
+  }
 
-    if (sol.status_elegibilidade === 'baixa' || sol.status_elegibilidade === 'dispensa' || sol.status_solicitacao === 'nao_realizou') return;
+  // Se já houver um militar selecionado para mover:
+  if (saram === saramMilitarSelecionadoMover && !novaDataStr) {
+    // Clique novamente no mesmo militar cancela a seleção
+    saramMilitarSelecionadoMover = null;
+    renderizarEscalaHorizontal();
+    return;
+  }
 
-    const datasBloqueadas = Array.isArray(sol.indisponibilidades)
-      ? sol.indisponibilidades.filter(i => i.status_deferimento !== 'indeferido').map(i => i.data)
-      : [];
+  if (novaDataStr) {
+    // Mover para a data clicada
+    await remanejarMilitarVisualParaDia(saramMilitarSelecionadoMover, novaDataStr);
+    saramMilitarSelecionadoMover = null;
+    return;
+  }
 
-    let alocado = false;
-    const prios = [sol.prio1_data, sol.prio2_data, sol.prio3_data].filter(Boolean);
-    const metodos = ['prio1', 'prio2', 'prio3'];
-
-    for (let i = 0; i < prios.length; i++) {
-      const d = prios[i];
-      if (datas.includes(d) && !datasBloqueadas.includes(d) && ocupacaoPorData[d] && ocupacaoPorData[d].length < vagasMax) {
-        sol.dia_escalado = d;
-        sol.metodo_alocacao = metodos[i];
-        sol.status_solicitacao = 'escalado';
-        ocupacaoPorData[d].push(m);
-        alocado = true;
-        break;
-      }
+  if (saram) {
+    const targetSol = solicitacoesMap[saram];
+    if (targetSol && targetSol.dia_escalado) {
+      await remanejarMilitarVisualParaDia(saramMilitarSelecionadoMover, targetSol.dia_escalado);
+      saramMilitarSelecionadoMover = null;
+    } else {
+      saramMilitarSelecionadoMover = saram;
+      renderizarEscalaHorizontal();
     }
-
-    if (!alocado) {
-      naoAlocados.push({ militar: m, sol: sol, datasBloqueadas: datasBloqueadas });
-    }
-  });
-
-  // FASE 2: Preenchimento automático sequencial por Antiguidade (da 1ª data em diante)
-  naoAlocados.forEach(item => {
-    let alocado = false;
-
-    for (const d of datas) {
-      if (!item.datasBloqueadas.includes(d) && ocupacaoPorData[d].length < vagasMax) {
-        item.sol.dia_escalado = d;
-        item.sol.metodo_alocacao = 'antiguidade';
-        item.sol.status_solicitacao = 'escalado';
-        ocupacaoPorData[d].push(item.militar);
-        alocado = true;
-        break;
-      }
-    }
-
-    // Se todas as datas estiverem lotadas com limite regular (vagasMax), aloca na data com menor ocupação
-    if (!alocado) {
-      let dataComMenosOcupantes = datas[0];
-      let minOcupantes = ocupacaoPorData[datas[0]].length;
-      datas.forEach(d => {
-        if (!item.datasBloqueadas.includes(d) && ocupacaoPorData[d].length < minOcupantes) {
-          minOcupantes = ocupacaoPorData[d].length;
-          dataComMenosOcupantes = d;
-        }
-      });
-      item.sol.dia_escalado = dataComMenosOcupantes;
-      item.sol.metodo_alocacao = 'excedente';
-      item.sol.status_solicitacao = 'escalado';
-      ocupacaoPorData[dataComMenosOcupantes].push(item.militar);
-    }
-  });
-
-  try {
-    const toUpsert = Object.values(solicitacoesMap);
-    if (toUpsert.length > 0) {
-      const { error } = await sb
-        .from('tacf_solicitacoes')
-        .upsert(toUpsert, { onConflict: 'temporada_id,saram' });
-
-      if (error) throw error;
-    }
-
-    temporadaAtual.status = 'escala_gerada';
-    await sb.from('tacf_temporadas').update({ status: 'escala_gerada', datas_aplicacao: temporadaAtual.datas_aplicacao }).eq('id', temporadaAtual.id);
-
-    renderizarPainelSecretaria();
-    atualizarKpisEContadores();
-    Swal.fire('Escala Gerada!', `Escala concluída com sucesso para os militares elegíveis por antiguidade.`, 'success');
-  } catch (e) {
-    Swal.fire('Erro', 'Falha ao salvar a escala no banco: ' + e.message, 'error');
   }
 }
 
-/* ══════════════════════════════════════════════════════════════
-   REMANEJAMENTO MANUAL COM AVISO DE CONFLITO DE INDISPONIBILIDADE
-   ══════════════════════════════════════════════════════════════ */
-async function remanejarMilitarManual(saram) {
+async function remanejarMilitarVisualParaDia(saram, novaData) {
   const sol = solicitacoesMap[saram];
   const m = listaEfetivo.find(x => x.saram === saram);
   if (!sol || !m) return;
 
-  const datas = temporadaAtual?.datas_aplicacao || [];
-  if (!datas.length) return Swal.fire('Aviso', 'Nenhuma data de aplicação cadastrada.', 'warning');
-
-  let optionsHtml = '<option value="">— Selecione o Novo Dia —</option>';
-  datas.forEach(d => {
-    const sel = (sol.dia_escalado === d) ? 'selected' : '';
-    optionsHtml += `<option value="${d}" ${sel}>${formatarDataBR(d)}</option>`;
-  });
-
-  const { value: novaData } = await Swal.fire({
-    title: `Remanejar Escala: ${m.posto} ${m.nomeGuerra}`,
-    html: `
-      <p style="font-size:0.85rem; color:#555; margin-bottom:1rem;">Selecione o novo dia de aplicação para este militar:</p>
-      <select id="swalSelNovaData" class="swal2-input">${optionsHtml}</select>
-    `,
-    showCancelButton: true,
-    confirmButtonText: 'Confirmar Novo Dia',
-    cancelButtonText: 'Cancelar',
-    preConfirm: () => {
-      return document.getElementById('swalSelNovaData').value;
-    }
-  });
-
-  if (!novaData) return;
+  if (sol.dia_escalado === novaData) {
+    return; // Mesma data, ignora
+  }
 
   // VERIFICA SE HÁ CONFLITO COM INDISPONIBILIDADE INFORMADA
   const indispConflito = Array.isArray(sol.indisponibilidades)
@@ -1675,23 +1688,17 @@ async function remanejarMilitarManual(saram) {
       html: `
         <div style="text-align:left; font-size:0.9rem; line-height:1.5;">
           O militar <b>${m.posto} ${m.nomeGuerra}</b> informou <b>INDISPONIBILIDADE</b> para o dia <b>${formatarDataBR(novaData)}</b>!<br/><br/>
-          📝 <b>Justificativa declarada:</b> "${indispConflito.justificativa}"<br/>
-          📌 <b>Status de Deferimento:</b> ${(indispConflito.status_deferimento || 'PENDENTE').toUpperCase()}<br/><br/>
-          Deseja confirmar o remanejamento manual para este dia assim mesmo?
-        </div>
-      `,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Sim, Confirmar Remanejamento',
-      cancelButtonText: 'Cancelar'
-    });
+          📝 <b>Justificativaasync function alternarPresencaMilitar(saram, dataStr) {
+  const sol = solicitacoesMap[saram];
+  if (!sol) return;
 
-    if (!confirmConflito.isConfirmed) return;
+  if (sol.status_solicitacao === 'realizou') {
+    sol.status_solicitacao = 'escalado';
+    sol.data_realizacao = null;
+  } else {
+    sol.status_solicitacao = 'realizou';
+    sol.data_realizacao = dataStr || sol.dia_escalado;
   }
-
-  sol.dia_escalado = novaData;
-  sol.metodo_alocacao = 'manual';
-  sol.status_solicitacao = 'escalado';
 
   try {
     const { data, error } = await sb
@@ -1704,11 +1711,227 @@ async function remanejarMilitarManual(saram) {
       solicitacoesMap[saram] = data[0];
       renderizarEscalaHorizontal();
       renderizarTabelaSecretaria();
-      Swal.fire('Remanejado!', `O militar foi remanejado para o dia ${formatarDataBR(novaData)}.`, 'success');
+      atualizarKpisEContadores();
+
+      const isReal = (sol.status_solicitacao === 'realizou');
+      const toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true
+      });
+      toast.fire({
+        icon: isReal ? 'success' : 'info',
+        title: isReal ? 'Presença confirmada! TACF marcado como realizado.' : 'Presença desmarcada.'
+      });
     }
   } catch (e) {
-    Swal.fire('Erro', 'Falha ao salvar remanejamento: ' + e.message, 'error');
+    Swal.fire('Erro', 'Falha ao atualizar presença: ' + e.message, 'error');
   }
+}
+
+function renderizarEscalaHorizontal() {
+  const container = document.getElementById('escalaHorizontal');
+  container.innerHTML = '';
+  const datas = temporadaAtual?.datas_aplicacao || [];
+  const vagasMax = temporadaAtual?.vagas_por_dia || 4;
+
+  if (!datas.length) {
+    container.innerHTML = '<div style="color:var(--texto-3); padding:1rem;">Nenhuma data cadastrada para exibir a escala.</div>';
+    return;
+  }
+
+  if (saramMilitarSelecionadoMover) {
+    const solSel = solicitacoesMap[saramMilitarSelecionadoMover];
+    const mSel = listaEfetivo.find(x => x.saram === saramMilitarSelecionadoMover);
+    const nomeSel = mSel ? `${mSel.posto} ${mSel.nomeGuerra}` : (solSel ? `${solSel.posto_grad} ${solSel.nome_guerra}` : saramMilitarSelecionadoMover);
+    
+    const banner = document.createElement('div');
+    banner.style.cssText = 'background:rgba(250,204,21,0.15); border:1.5px solid #facc15; border-radius:8px; padding:0.75rem 1rem; margin-bottom:1rem; color:#fef08a; display:flex; justify-content:space-between; align-items:center; font-size:0.9rem; width:100%;';
+    banner.innerHTML = `
+      <div>
+        🎯 <b>MODO DE REMANEJAMENTO ATIVO:</b> Mover militar <b>${nomeSel} (SARAM ${saramMilitarSelecionadoMover})</b>.<br/>
+        <small style="color:var(--texto-2);">Clique no cabeçalho ou área de qualquer dia para onde deseja movê-lo.</small>
+      </div>
+      <button class="acao mini rubi" onclick="cancelarSelecaoRemanejamento()">Cancelar Remanejamento</button>
+    `;
+    container.appendChild(banner);
+  }
+
+  const hojeStr = new Date().toISOString().split('T')[0];
+
+  datas.forEach(dStr => {
+    const isDiaPassado = (dStr < hojeStr);
+
+    const escaladosNoDia = Object.values(solicitacoesMap)
+      .filter(s => s.dia_escalado === dStr && (s.status_solicitacao === 'escalado' || s.status_solicitacao === 'realizou'))
+      .sort((a, b) => a.antiguidade_index - b.antiguidade_index);
+
+    const col = document.createElement('div');
+    col.className = 'colunaDia';
+
+    const count = escaladosNoDia.length;
+    const pct = Math.round((count / vagasMax) * 100);
+
+    const regulares = escaladosNoDia.slice(0, vagasMax);
+    const vagasLivresAtipicas = escaladosNoDia.slice(vagasMax, vagasMax + 3);
+    const excedentesCriticos = escaladosNoDia.slice(vagasMax + 3);
+
+    let htmlMilitares = '';
+    regulares.forEach(s => {
+      const isSelected = (saramMilitarSelecionadoMover === s.saram);
+      const isRealizou = (s.status_solicitacao === 'realizou');
+      const isAusenteVermelho = (isDiaPassado && !isRealizou);
+
+      const rotuloMetodo = {
+        'prio1': '1ª Opção',
+        'prio2': '2ª Opção',
+        'prio3': '3ª Opção',
+        'regra_secundaria_velhos': 'Antiguidade',
+        'regra_secundaria_novos': 'Modernidade',
+        'antiguidade': 'Antiguidade',
+        'manual': 'Manual'
+      }[s.metodo_alocacao] || 'Auto';
+
+      let styleCard = 'cursor:pointer;';
+      if (isAusenteVermelho) {
+        styleCard += 'background:rgba(239, 68, 68, 0.2); border:1.5px solid #ef4444; color:#fca5a5;';
+      } else if (isRealizou) {
+        styleCard += 'background:rgba(16, 185, 129, 0.18); border:1.5px solid #10b981; color:#a7f3d0;';
+      }
+
+      htmlMilitares += `
+        <div class="cartaoMilitarEscalado ${isSelected ? 'selecionadoParaMover' : ''}"
+             title="${isSelected ? 'Clique para cancelar seleção' : 'Clique para selecionar e mover'}"
+             onclick="event.stopPropagation(); selecionarOuMoverMilitarVisual('${s.saram}')"
+             style="${styleCard}">
+          <div style="display:flex; flex-direction:column; gap:0.15rem; text-align:left;">
+            <span>${s.posto_grad} ${s.nome_guerra} (${s.saram})</span>
+            <div style="display:flex; gap:0.3rem; align-items:center; margin-top:0.25rem;">
+              <span class="badgeMetodo">${isSelected ? '🎯 SELECIONADO' : (isRealizou ? '✓ REALIZOU' : rotuloMetodo)}</span>
+              ${isAusenteVermelho ? '<span style="font-size:0.62rem; background:#dc2626; color:#fff; padding:1px 4px; border-radius:3px;">⚠️ Não compareceu</span>' : ''}
+            </div>
+          </div>
+          <button class="btnPresenca ${isRealizou ? 'realizou' : ''}"
+                  onclick="event.stopPropagation(); alternarPresencaMilitar('${s.saram}', '${dStr}')"
+                  style="font-size:0.7rem; padding:0.25rem 0.5rem; border-radius:4px; border:1px solid ${isRealizou ? '#10b981' : 'rgba(207,228,255,0.3)'}; background:${isRealizou ? '#10b981' : 'rgba(6,16,33,0.9)'}; color:#fff; cursor:pointer; white-space:nowrap;">
+            ${isRealizou ? '✓ Realizou' : '⚪ Presença'}
+          </button>
+        </div>
+      `;
+    });
+
+    if (!regulares.length) {
+      htmlMilitares = '<div style="font-size:0.8rem; color:var(--texto-3); text-align:center; padding:1.5rem 0;">Vagas disponíveis</div>';
+    }
+
+    let htmlVagasLivres = '';
+    for (let i = 0; i < 3; i++) {
+      const s = vagasLivresAtipicas[i];
+      if (s) {
+        const isSelected = (saramMilitarSelecionadoMover === s.saram);
+        const isRealizou = (s.status_solicitacao === 'realizou');
+        const isAusenteVermelho = (isDiaPassado && !isRealizou);
+
+        let styleVagaLivre = 'cursor:pointer; background:rgba(250, 204, 21, 0.15); border:1.5px solid #facc15; color:#fef08a; padding:0.45rem 0.65rem; border-radius:5px; margin-bottom:0.35rem; display:flex; justify-content:space-between; align-items:center; font-size:0.8rem;';
+        if (isAusenteVermelho) {
+          styleVagaLivre = 'cursor:pointer; background:rgba(239, 68, 68, 0.22); border:1.5px solid #ef4444; color:#fca5a5; padding:0.45rem 0.65rem; border-radius:5px; margin-bottom:0.35rem; display:flex; justify-content:space-between; align-items:center; font-size:0.8rem;';
+        } else if (isRealizou) {
+          styleVagaLivre = 'cursor:pointer; background:rgba(16, 185, 129, 0.18); border:1.5px solid #10b981; color:#a7f3d0; padding:0.45rem 0.65rem; border-radius:5px; margin-bottom:0.35rem; display:flex; justify-content:space-between; align-items:center; font-size:0.8rem;';
+        }
+
+        htmlVagasLivres += `
+          <div class="${isSelected ? 'selecionadoParaMover' : ''}"
+               onclick="event.stopPropagation(); selecionarOuMoverMilitarVisual('${s.saram}')"
+               style="${styleVagaLivre}">
+            <div style="display:flex; flex-direction:column; text-align:left;">
+              <span><b>🟡 Vaga Livre #${i+1}:</b> ${s.posto_grad} ${s.nome_guerra}</span>
+              ${isAusenteVermelho ? '<span style="font-size:0.62rem; color:#fca5a5;">⚠️ Não compareceu</span>' : ''}
+            </div>
+            <button class="btnPresenca ${isRealizou ? 'realizou' : ''}"
+                    onclick="event.stopPropagation(); alternarPresencaMilitar('${s.saram}', '${dStr}')"
+                    style="font-size:0.68rem; padding:0.2rem 0.45rem; border-radius:4px; border:1px solid ${isRealizou ? '#10b981' : '#facc15'}; background:${isRealizou ? '#10b981' : 'rgba(6,16,33,0.9)'}; color:#fff; cursor:pointer;">
+              ${isRealizou ? '✓ Realizou' : '⚪ Presença'}
+            </button>
+          </div>
+        `;
+      } else {
+        htmlVagasLivres += `<div class="vagaLivreItem">Vaga Reservada #${i+1}</div>`;
+      }
+    }
+
+    let htmlExcedentes = '';
+    if (excedentesCriticos.length > 0) {
+      htmlExcedentes = `
+        <div style="margin-top:0.5rem; border-top:1.5px dashed #ef4444; padding-top:0.5rem;">
+          <div style="font-size:0.72rem; font-weight:bold; color:#fca5a5; margin-bottom:0.35rem; display:flex; align-items:center; justify-content:space-between;">
+            <span>🔴 EXCEDENTES CRÍTICOS (${excedentesCriticos.length})</span>
+            <span style="font-size:0.63rem; color:#ef4444;">Além das 3 Vagas Livres</span>
+          </div>
+          ${excedentesCriticos.map((s, idx) => {
+            const isSelected = (saramMilitarSelecionadoMover === s.saram);
+            const isRealizou = (s.status_solicitacao === 'realizou');
+            const isAusenteVermelho = (isDiaPassado && !isRealizou);
+            return `
+              <div class="cartaoMilitarExcedente ${isSelected ? 'selecionadoParaMover' : ''}"
+                   onclick="event.stopPropagation(); selecionarOuMoverMilitarVisual('${s.saram}')"
+                   style="cursor:pointer; background:rgba(239,68,68,0.22); border:1.5px solid #ef4444; border-left:4px solid #dc2626; color:#fca5a5; padding:0.45rem 0.65rem; border-radius:5px; margin-bottom:0.35rem; display:flex; justify-content:space-between; align-items:center; font-size:0.8rem;">
+                <div style="display:flex; flex-direction:column; text-align:left;">
+                  <span><b>🔴 Excedente #${idx+1}:</b> ${s.posto_grad} ${s.nome_guerra}</span>
+                  ${isAusenteVermelho ? '<span style="font-size:0.62rem; color:#fca5a5;">⚠️ Não compareceu</span>' : ''}
+                </div>
+                <button class="btnPresenca ${isRealizou ? 'realizou' : ''}"
+                        onclick="event.stopPropagation(); alternarPresencaMilitar('${s.saram}', '${dStr}')"
+                        style="font-size:0.68rem; padding:0.2rem 0.45rem; border-radius:4px; border:1px solid ${isRealizou ? '#10b981' : '#ef4444'}; background:${isRealizou ? '#10b981' : 'rgba(6,16,33,0.9)'}; color:#fff; cursor:pointer;">
+                  ${isRealizou ? '✓ Realizou' : '⚪ Presença'}
+                </button>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    col.onclick = () => {
+      if (saramMilitarSelecionadoMover) {
+        selecionarOuMoverMilitarVisual(null, dStr);
+      }
+    };
+
+    col.innerHTML = `
+      <div class="colunaDiaCab" onclick="event.stopPropagation(); selecionarOuMoverMilitarVisual(null, '${dStr}')" style="cursor:pointer;">
+        <h4>📅 ${formatarDataBR(dStr)} <span>${count}/${vagasMax}</span></h4>
+        <div class="subInfo">
+          <span>Ocupação: ${pct}%</span>
+          <span>${count < vagasMax ? 'Disponível' : (count === vagasMax ? 'Lotado' : (count <= vagasMax + 3 ? '🟡 Vagas Livres' : '🔴 Excedente'))}</span>
+        </div>
+      </div>
+      <div class="colunaDiaCorpo">
+        ${htmlMilitares}
+        
+        <!-- 3 VAGAS LIVRES (CASOS ATÍPICOS - AMARELO) -->
+        <div class="blocoVagasLivres">
+          <div class="tituloVagasLivres">
+            <span>🛡️ 3 Vagas Livres (Casos Atípicos)</span>
+          </div>
+          ${htmlVagasLivres}
+        </div>
+
+        ${htmlExcedentes}
+      </div>
+      <div class="colunaDiaRodape">
+        <button class="acao fantasma mini" style="width:100%; justify-content:center;" onclick="event.stopPropagation(); copiarColunaDia('${dStr}')">
+          📋 Copiar Coluna (Cole na Planilha)
+        </button>
+        <button class="acao fantasma mini" style="width:100%; justify-content:center; border-color:rgba(212,168,75,0.4);" onclick="event.stopPropagation(); exibirModalEmailDia('${dStr}')">
+          ✉️ E-mail Formatado do Dia
+        </button>
+      </div>
+    `;
+
+    container.appendChild(col);
+  });
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -2042,6 +2265,9 @@ function renderizarTabelaSecretaria() {
   const filtroEleg = document.getElementById('filtroStatusEleg')?.value || '';
 
   const filtrados = listaEfetivo.filter(m => {
+    // Por padrão, esconde militares R1 de qualquer filtro, a menos que o filtro seja especificamente 'r1_reserva'
+    if (m.isR1 && filtroEleg !== 'r1_reserva') return false;
+
     const matchBusca = m.nomeGuerra.toLowerCase().includes(termoBusca) || m.posto.toLowerCase().includes(termoBusca) || m.saram.includes(termoBusca);
     if (!matchBusca) return false;
 
@@ -2073,6 +2299,7 @@ function renderizarTabelaSecretaria() {
     if (m.isR1 || (sol && sol.status_elegibilidade === 'r1_reserva')) badgeEleg = '<span class="badge r1">Reserva (R1)</span>';
     if (sol && sol.status_elegibilidade === 'baixa') badgeEleg = '<span class="badge baixa">Processo de Baixa</span>';
     if (sol && sol.status_elegibilidade === 'dispensa') badgeEleg = '<span class="badge dispensa">Dispensa Médica</span>';
+    if (sol && sol.status_elegibilidade === 'missao') badgeEleg = '<span class="badge" style="background:rgba(59,130,246,0.2); border:1px solid #3b82f6; color:#93c5fd; padding:0.2rem 0.5rem; border-radius:4px;">Missão Fora da Sede</span>';
     if (sol && sol.status_solicitacao === 'nao_realizou') badgeEleg = '<span class="badge rubi">Não Realizou</span>';
     if (sol && sol.status_solicitacao === 'realizou') badgeEleg = '<span class="badge realizou">Concluído</span>';
 
@@ -2098,16 +2325,14 @@ function renderizarTabelaSecretaria() {
       <td style="font-family:var(--f-data);">${m.saram}</td>
       <td style="font-size:0.78rem;">${opcStr}</td>
       <td style="font-size:0.75rem;">${indispStr}</td>
-      <td>
-        ${diaEscStr}<br/>
-        <button class="acao fantasma mini" style="margin-top:0.25rem; font-size:0.7rem; padding:0.15rem 0.4rem;" onclick="remanejarMilitarManual('${m.saram}')">✏️ Remanejar</button>
-      </td>
+      <td>${diaEscStr}</td>
       <td>
         <input type="text" id="txtJustif_${m.saram}" value="${valJustif.replace(/"/g, '&quot;')}" placeholder="Justificativa ex: Em missão..." style="font-size:0.78rem; padding:0.3rem 0.5rem; width:100%; min-width:160px;" onchange="salvarJustificativaMilitar('${m.saram}', this.value)" />
       </td>
       <td>
         <select onchange="alterarElegibilidadeMilitar('${m.saram}', this.value)" style="font-size:0.75rem; padding:0.25rem 0.4rem;">
           <option value="elegivel" ${(sol?.status_elegibilidade === 'elegivel' || !sol) && !m.isR1 ? 'selected' : ''}>Elegível / Normal</option>
+          <option value="missao" ${sol?.status_elegibilidade === 'missao' ? 'selected' : ''}>Missão Fora da Sede</option>
           <option value="nao_realizou" ${sol?.status_solicitacao === 'nao_realizou' ? 'selected' : ''}>Não Realizou / Remover</option>
           <option value="baixa" ${sol?.status_elegibilidade === 'baixa' ? 'selected' : ''}>Em Processo de Baixa</option>
           <option value="dispensa" ${sol?.status_elegibilidade === 'dispensa' ? 'selected' : ''}>Dispensa Médica</option>
