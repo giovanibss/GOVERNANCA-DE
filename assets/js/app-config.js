@@ -132,17 +132,9 @@
       localStorage.setItem('efetivo_pin', pinLimpo);
       if (_cachedConfig) _cachedConfig.pin = pinLimpo;
 
-      // 2. Atualiza no Supabase app_config e tabelas legadas (at_config, cur_config)
+      // 2. Atualiza no Supabase na tabela oficial at_config (existente no projeto)
       const sb = getSbClient();
       if (sb) {
-        try {
-          const { error } = await sb.from('app_config').upsert({ id: 'default', pin: pinLimpo, updated_at: new Date().toISOString() });
-          if (!error) {
-            this.isRemoteDbReady = true;
-            localStorage.setItem('app_config_ready', '1');
-          }
-        } catch(e) {}
-
         try {
           await sb.from('at_config').upsert({ id: 'default', pin: pinLimpo });
         } catch(e) {}
@@ -150,6 +142,22 @@
         try {
           await sb.from('cur_config').upsert({ id: 'default', pin: pinLimpo });
         } catch(e) {}
+
+        // Tenta salvar na app_config APENAS se a tabela já estiver habilitada
+        if (this.isRemoteDbReady) {
+          try {
+            const { error } = await sb.from('app_config').upsert({ id: 'default', pin: pinLimpo, updated_at: new Date().toISOString() });
+            if (error) {
+              this.isRemoteDbReady = false;
+              localStorage.removeItem('app_config_ready');
+            } else {
+              localStorage.setItem('app_config_ready', '1');
+            }
+          } catch(e) {
+            this.isRemoteDbReady = false;
+            localStorage.removeItem('app_config_ready');
+          }
+        }
       }
 
       return pinLimpo;
@@ -187,7 +195,7 @@
       const s = String(senderName || 'Secretaria DE · AFA').trim();
       const e = enabled !== false;
 
-      // Grava no LocalStorage
+      // Grava no LocalStorage (garantido e instantâneo)
       const localData = {
         gmail_user: u,
         gmail_app_password: p,
@@ -203,9 +211,9 @@
         _cachedConfig.gmailEnabled = e;
       }
 
-      // Grava no Supabase
+      // Grava no Supabase se a tabela app_config existir
       const sb = getSbClient();
-      if (sb) {
+      if (sb && this.isRemoteDbReady) {
         try {
           const { error } = await sb.from('app_config').upsert({
             id: 'default',
@@ -215,11 +223,16 @@
             gmail_enabled: e,
             updated_at: new Date().toISOString()
           });
-          if (!error) {
-            this.isRemoteDbReady = true;
+          if (error) {
+            this.isRemoteDbReady = false;
+            localStorage.removeItem('app_config_ready');
+          } else {
             localStorage.setItem('app_config_ready', '1');
           }
-        } catch(err) {}
+        } catch(err) {
+          this.isRemoteDbReady = false;
+          localStorage.removeItem('app_config_ready');
+        }
       }
 
       return localData;
