@@ -2809,16 +2809,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const elPass = document.getElementById('cfg-gmail-pass');
     const elEnable = document.getElementById('cfg-gmail-enable');
     const gBadge = document.getElementById('cfg-gmail-status-badge');
+    const pinBadge = document.getElementById('cfg-pin-status-badge');
 
     if (elUser) elUser.value = g.user;
     if (elName) elName.value = g.senderName;
     if (elPass) elPass.value = g.appPassword;
     if (elEnable) elEnable.checked = g.enabled;
 
+    if (pinBadge) {
+      if (window.AppConfig.isRemoteDbReady) {
+        pinBadge.className = 'cfg-badge-status ok';
+        pinBadge.innerHTML = '<span>● PIN Master Ativo: Sincronizado no Supabase</span>';
+      } else {
+        pinBadge.className = 'cfg-badge-status warn';
+        pinBadge.innerHTML = '<span>● PIN Ativo no Dispositivo (💡 Execute <code>supabase-app-config-setup.sql</code> no Supabase)</span>';
+      }
+    }
+
     if (gBadge) {
       if (g.user && g.appPassword) {
         gBadge.className = 'cfg-badge-status ok';
-        gBadge.innerHTML = '<span>● Gmail Conectado: Ready para Envio Automático</span>';
+        gBadge.innerHTML = '<span>● Gmail Conectado: Conexão Configurada</span>';
       } else {
         gBadge.className = 'cfg-badge-status warn';
         gBadge.innerHTML = '<span>● Envio Automático de E-mails: Pendente de Configuração</span>';

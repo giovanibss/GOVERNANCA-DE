@@ -1639,6 +1639,75 @@ async function executarAutofillEscala() {
       solicitacoesMap[m.saram] = sol;
     }
 
+    if (sol.status_elegibilidade !== 'elegivel') return;
+
+    const indispDeferidas = (Array.isArray(sol.indisponibilidades) ? sol.indisponibilidades : [])
+      .filter(i => i.status_deferimento === 'deferido')
+      .map(i => i.data);
+
+    let alocado = false;
+    const prios = [sol.prio1_data, sol.prio2_data, sol.prio3_data].filter(Boolean);
+
+    for (let i = 0; i < prios.length; i++) {
+      const p = prios[i];
+      if (datas.includes(p) && !indispDeferidas.includes(p) && ocupacaoPorData[p].length < vagasMax) {
+        ocupacaoPorData[p].push(m.saram);
+        sol.dia_escalado = p;
+        sol.metodo_alocacao = `prio${i+1}`;
+        sol.status_solicitacao = 'escalado';
+        alocado = true;
+        break;
+      }
+    }
+    if (!alocado) naoAlocados.push(m);
+  });
+
+  // FASE 2: Preenchimento compulsório por antiguidade
+  naoAlocados.forEach(m => {
+    const sol = solicitacoesMap[m.saram];
+    if (!sol || sol.status_elegibilidade !== 'elegivel') return;
+
+    const indispDeferidas = (Array.isArray(sol.indisponibilidades) ? sol.indisponibilidades : [])
+      .filter(i => i.status_deferimento === 'deferido')
+      .map(i => i.data);
+
+    for (const d of datas) {
+      if (!indispDeferidas.includes(d) && ocupacaoPorData[d].length < vagasMax) {
+        ocupacaoPorData[d].push(m.saram);
+        sol.dia_escalado = d;
+        sol.metodo_alocacao = 'antiguidade';
+        sol.status_solicitacao = 'escalado';
+        break;
+      }
+    }
+  });
+
+  // SALVAR TODAS AS SOLICITAÇÕES NO SUPABASE
+  const listaParaSalvar = Object.values(solicitacoesMap);
+  try {
+    const { data, error } = await sb
+      .from('tacf_solicitacoes')
+      .upsert(listaParaSalvar, { onConflict: 'temporada_id,saram' })
+      .select();
+
+    if (error) throw error;
+    if (data) {
+      data.forEach(s => solicitacoesMap[s.saram] = s);
+      await sb.from('tacf_temporadas').update({ status: 'escala_gerada' }).eq('id', temporadaAtual.id);
+      temporadaAtual.status = 'escala_gerada';
+
+      renderizarPainelSecretaria();
+      renderizarEscalaHorizontal();
+      renderizarTabelaSecretaria();
+      atualizarKpisEContadores();
+
+      Swal.fire('Escala Gerada!', 'A escala do TACF foi alocada com sucesso.', 'success');
+    }
+  } catch (e) {
+    Swal.fire('Erro', 'Falha ao salvar a escala automática: ' + e.message, 'error');
+  }
+}
+
 function cancelarSelecaoRemanejamento() {
   saramMilitarSelecionadoMover = null;
   renderizarEscalaHorizontal();
@@ -1700,7 +1769,43 @@ async function remanejarMilitarVisualParaDia(saram, novaData) {
       html: `
         <div style="text-align:left; font-size:0.9rem; line-height:1.5;">
           O militar <b>${m.posto} ${m.nomeGuerra}</b> informou <b>INDISPONIBILIDADE</b> para o dia <b>${formatarDataBR(novaData)}</b>!<br/><br/>
-          📝 <b>Justificativaasync function alternarPresencaMilitar(saram, dataStr) {
+          📝 <b>Justificativa:</b> ${indispConflito.justificativa || 'Não informada'}<br/><br/>
+          Deseja alocar este militar neste dia mesmo assim?
+        </div>
+      `,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#f59e0b',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Sim, alocar mesmo assim',
+      cancelButtonText: 'Cancelar'
+    });
+    if (!confirmConflito.isConfirmed) return;
+  }
+
+  sol.dia_escalado = novaData;
+  sol.status_solicitacao = 'escalado';
+  sol.metodo_alocacao = 'manual';
+
+  try {
+    const { data, error } = await sb
+      .from('tacf_solicitacoes')
+      .upsert([sol], { onConflict: 'temporada_id,saram' })
+      .select();
+
+    if (error) throw error;
+    if (data) {
+      solicitacoesMap[saram] = data[0];
+      renderizarEscalaHorizontal();
+      renderizarTabelaSecretaria();
+      atualizarKpisEContadores();
+    }
+  } catch (e) {
+    Swal.fire('Erro', 'Falha ao remanejar militar: ' + e.message, 'error');
+  }
+}
+
+async function alternarPresencaMilitar(saram, dataStr) {
   const sol = solicitacoesMap[saram];
   if (!sol) return;
 
@@ -1757,17 +1862,16 @@ function renderizarEscalaHorizontal() {
   if (saramMilitarSelecionadoMover) {
     const solSel = solicitacoesMap[saramMilitarSelecionadoMover];
     const mSel = listaEfetivo.find(x => x.saram === saramMilitarSelecionadoMover);
-    const nomeSel = mSel ? `${mSel.posto} ${mSel.nomeGuerra}` : (solSel ? `${solSel.posto_grad} ${solSel.nome_guerra}` : saramMilitarSelecionadoMover);
+    const nomeSel = mSel ? (mSel.posto + ' ' + mSel.nomeGuerra) : (solSel ? (solSel.posto_grad + ' ' + solSel.nome_guerra) : saramMilitarSelecionadoMover);
     
     const banner = document.createElement('div');
     banner.style.cssText = 'background:rgba(250,204,21,0.15); border:1.5px solid #facc15; border-radius:8px; padding:0.75rem 1rem; margin-bottom:1rem; color:#fef08a; display:flex; justify-content:space-between; align-items:center; font-size:0.9rem; width:100%;';
-    banner.innerHTML = `
-      <div>
-        🎯 <b>MODO DE REMANEJAMENTO ATIVO:</b> Mover militar <b>${nomeSel} (SARAM ${saramMilitarSelecionadoMover})</b>.<br/>
-        <small style="color:var(--texto-2);">Clique no cabeçalho ou área de qualquer dia para onde deseja movê-lo.</small>
-      </div>
-      <button class="acao mini rubi" onclick="cancelarSelecaoRemanejamento()">Cancelar Remanejamento</button>
-    `;
+    banner.innerHTML =
+      '<div>' +
+        '🎯 <b>MODO DE REMANEJAMENTO ATIVO:</b> Mover militar <b>' + nomeSel + ' (SARAM ' + saramMilitarSelecionadoMover + ')</b>.<br/>' +
+        '<small style="color:var(--texto-2);">Clique no cabeçalho ou área de qualquer dia para onde deseja movê-lo.</small>' +
+      '</div>' +
+      '<button class="acao mini rubi" onclick="cancelarSelecaoRemanejamento()">Cancelar Remanejamento</button>';
     container.appendChild(banner);
   }
 

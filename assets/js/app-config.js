@@ -31,6 +31,8 @@
   }
 
   const AppConfig = {
+    isRemoteDbReady: true,
+
     /**
      * Carrega a configuração centralizada do Supabase e/ou LocalStorage
      */
@@ -56,6 +58,7 @@
         try {
           const { data, error } = await sb.from('app_config').select('*').eq('id', 'default').maybeSingle();
           if (data && !error) {
+            this.isRemoteDbReady = true;
             if (data.pin) pin = String(data.pin).trim();
             if (data.gmail_user) gmailUser = data.gmail_user;
             if (data.gmail_app_password) gmailAppPassword = data.gmail_app_password;
@@ -70,9 +73,19 @@
               gmail_sender_name: gmailSenderName,
               gmail_enabled: gmailEnabled
             }));
+          } else if (error) {
+            // Tabela app_config ainda não criada no Supabase — Tenta fallback para at_config ou cur_config
+            this.isRemoteDbReady = false;
+            try {
+              const { data: atData } = await sb.from('at_config').select('pin').eq('id', 'default').maybeSingle();
+              if (atData && atData.pin) {
+                pin = String(atData.pin).trim();
+                localStorage.setItem(STORAGE_KEY_PIN, pin);
+              }
+            } catch(e2) {}
           }
         } catch(e) {
-          console.warn('[AppConfig] Supabase fetch app_config:', e.message);
+          this.isRemoteDbReady = false;
         }
       }
 
