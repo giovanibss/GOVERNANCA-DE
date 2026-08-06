@@ -694,29 +694,23 @@ footer {
               <input type="date" id="inputNovaData" />
             </div>
             <button class="acao mini" onclick="adicionarDataAplicacao()">+ Adicionar Data</button>
-            <button class="acao fantasma mini" onclick="gerarDatasSegQuaSexPadrao()">⚡ Gerar 2 Meses (Seg/Qua/Sex)</button>
+            <button class="acao fantasma mini" onclick="gerarDatasSegQuaSexPadrao()">⚡ Gerar Dias</button>
+            <button class="acao fantasma mini" onclick="executarAutofillEscala()">⚡ Gerar Escala</button>
           </div>
           <div id="listaBadgeDatas" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:0.75rem;"></div>
         </div>
 
         <!-- Botões de Ação da Escala -->
-        <div style="border-top:1px solid var(--hair); padding-top:1.25rem; margin-top:1.25rem; display:flex; flex-wrap:wrap; gap:1rem; justify-content:space-between; align-items:center;">
-          <div>
-            <button class="acao jade" onclick="executarAutofillEscala()">
-              ⚡ GERAR / AUTO-PREENCHER ESCALA
-            </button>
-          </div>
-          <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
-            <button class="acao fantasma" onclick="abrirModalAnaliseIndisponividades()">
-              📋 Análise de Indisponibilidades (<span id="cntIndispPend">0</span>)
-            </button>
-            <button class="acao fantasma" onclick="gerarTemplateEmailSemanal()">✉️ Templates de E-mail Diários</button>
+        <div style="border-top:1px solid var(--hair); padding-top:1.25rem; margin-top:1.25rem; display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center;">
+          <button class="acao fantasma" onclick="abrirModalAnaliseIndisponividades()">
+            📋 Análise de Indisponividades (<span id="cntIndispPend">0</span>)
+          </button>
+          <button class="acao fantasma" onclick="gerarTemplateEmailSemanal()">✉️ Templates de E-mail Diários</button>
 
-            <!-- Documento SIGADAER de Fechamento -->
-            <button class="acao fantasma" onclick="abrirDocumentoSigadaerFechamento()">
-              📑 Documento SIGADAER (Ausentes / Justificativas)
-            </button>
-          </div>
+          <!-- Documento SIGADAER de Fechamento -->
+          <button class="acao fantasma" onclick="abrirDocumentoSigadaerFechamento()">
+            📑 Documento SIGADAER (Ausentes / Justificativas)
+          </button>
         </div>
       </div>
 
