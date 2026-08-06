@@ -542,21 +542,25 @@ footer {
 
   <!-- ═══ ABAS ═══ -->
   <nav class="abas" role="tablist">
-    <button class="aba ativa" id="abaMil" role="tab" aria-selected="true">Minha Solicitação (Militar)</button>
-    <button class="aba" id="abaSec" role="tab" aria-selected="false">Painel do Gestor (Secretaria)</button>
+    <button class="aba ativa" id="abaMil" role="tab" aria-selected="true">Solicitar Agendamento</button>
+    <button class="aba" id="abaSec" role="tab" aria-selected="false">Secretaria</button>
   </nav>
 
-  <!-- ═══ ABA MILITAR (SOLICITAÇÃO DE DATAS - ACESSO LIVRE) ═══ -->
+  <!-- ═══ ABA 1: SOLICITAR AGENDAMENTO (ACESSO LIVRE) ═══ -->
   <section id="telaMil">
     <div class="painel">
       <h3>Solicitação de Agendamento do TACF</h3>
-      <p style="font-size:0.88rem; color:var(--texto-2); margin-bottom:1.25rem;">
-        Selecione seu nome para resgatar os dados do Efetivo e defina até 3 opções de datas em ordem de preferência.
-      </p>
-
-      <div id="msgStatusTemporada" class="faixaMsg alerta" style="display:none; margin-bottom:1.25rem;"></div>
+      
+      <!-- Banner de Solicitação Fechada (OFF por Padrão) -->
+      <div id="msgStatusTemporada" class="faixaMsg alerta" style="display:none; margin-bottom:1.25rem;">
+        🔒 As solicitações de agendamento para o TACF estão FECHADAS no momento. Aguarde a abertura do período pela Secretaria.
+      </div>
 
       <form id="formSolicitacao" onsubmit="event.preventDefault(); salvarSolicitacaoMilitar();">
+        <p style="font-size:0.88rem; color:var(--texto-2); margin-bottom:1.25rem;">
+          Selecione seu nome para resgatar os dados do Efetivo e defina até 3 opções de datas em ordem de preferência.
+        </p>
+
         <div class="linhaCtl">
           <div class="campo" style="flex:2; min-width:250px;">
             <label for="selMilitar">Militar (Pesquisa do Efetivo)</label>
@@ -589,7 +593,31 @@ footer {
           </div>
         </div>
 
-        <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:1rem;">
+        <!-- SEÇÃO DE INDISPONIBILIDADES + JUSTIFICATIVA OBRIGATÓRIA -->
+        <div style="border-top:1px solid var(--hair); padding-top:1.25rem; margin-top:1rem;">
+          <h4 style="font-family:var(--f-heading); color:var(--gold); font-size:1rem; margin-bottom:0.75rem;">
+            🚫 Informar Dias Indisponíveis (Opcional - Requer Justificativa)
+          </h4>
+          <p style="font-size:0.8rem; color:var(--texto-2); margin-bottom:1rem;">
+            Informe caso haja algum dia de aplicação em que você NÃO poderá realizar o TACF (ex: serviço de escala, viagem, licença).
+          </p>
+
+          <div class="linhaCtl">
+            <div class="campo" style="max-width:200px;">
+              <label for="selDataIndisp">Data Indisponível</label>
+              <select id="selDataIndisp"><option value="">— selecione a data —</option></select>
+            </div>
+            <div class="campo" style="flex:2; min-width:250px;">
+              <label for="txtJustifIndisp">Justificativa da Indisponibilidade (Obrigatória)</label>
+              <input type="text" id="txtJustifIndisp" placeholder="Ex: Serviço de Escala 24h na data..." />
+            </div>
+            <button type="button" class="acao fantasma mini" onclick="adicionarIndisponibilidadeForm()">+ Adicionar Data</button>
+          </div>
+
+          <div id="listaIndisponibilidadesAdd" style="display:flex; flex-direction:column; gap:0.5rem; margin-top:0.75rem;"></div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:1.5rem;">
           <button type="submit" class="acao jade" id="btnEnviarSolicitacao">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
             Confirmar Solicitação
@@ -607,7 +635,7 @@ footer {
     </div>
   </section>
 
-  <!-- ═══ ABA SECRETARIA (GESTOR - PROTEGIDO POR PIN) ═══ -->
+  <!-- ═══ ABA 2: SECRETARIA (PROTEGIDO POR PIN "Secretaria") ═══ -->
   <section id="telaSec" style="display:none">
 
     <!-- PORTÃO DE ACESSO VIA PIN -->
@@ -635,11 +663,11 @@ footer {
         <div class="linhaCtl">
           <div class="campo">
             <label for="txtTituloTemp">Título da Temporada</label>
-            <input type="text" id="txtTituloTemp" value="1º/2026" />
+            <input type="text" id="txtTituloTemp" placeholder="1º/2026" />
           </div>
           <div class="campo" style="max-width:130px;">
             <label for="numVagasDia">Vagas / Dia</label>
-            <input type="number" id="numVagasDia" value="15" min="1" max="100" />
+            <input type="number" id="numVagasDia" value="4" min="1" max="100" />
           </div>
           <div class="campo" style="max-width:160px;">
             <label for="numVagasRes">Vagas Livres (Res.)</label>
@@ -648,8 +676,8 @@ footer {
           <div class="campo" style="max-width:180px;">
             <label for="selStatusTemp">Status do Agendamento</label>
             <select id="selStatusTemp">
+              <option value="agendamento_fechado">🔴 Agendamento Fechado (OFF)</option>
               <option value="agendamento_aberto">🟢 Agendamento Aberto</option>
-              <option value="agendamento_fechado">🔴 Agendamento Fechado</option>
               <option value="escala_gerada">⚡ Escala Gerada</option>
             </select>
           </div>
@@ -679,6 +707,9 @@ footer {
             </button>
           </div>
           <div style="display:flex; gap:0.75rem; flex-wrap:wrap;">
+            <button class="acao fantasma" onclick="abrirModalAnaliseIndisponividades()">
+              📋 Análise de Indisponibilidades (<span id="cntIndispPend">0</span>)
+            </button>
             <button class="acao fantasma" onclick="gerarTemplateEmailSemanal()">✉️ Templates de E-mail Diários</button>
 
             <!-- Documento SIGADAER de Fechamento -->
@@ -701,11 +732,11 @@ footer {
         </div>
       </div>
 
-      <!-- LISTA DE STATUS DOS MILITARES (ESTILO AUX. TRANSPORTE + JUSTIFICATIVAS DINÂMICAS) -->
+      <!-- LISTA DE STATUS DOS MILITARES (ESTILO AUX. TRANSPORTE + CONSULTA E JUSTIFICATIVAS) -->
       <div class="painel">
-        <h3>Quadro Geral de Elegibilidade, Status e Justificativas dos Militares</h3>
+        <h3>Quadro Geral de Elegibilidade, Solicitações e Indisponibilidades</h3>
         <p style="font-size:0.82rem; color:var(--texto-2); margin-bottom:1rem;">
-          Você pode alterar dinamicamente a elegibilidade ou remover um militar escalado inserindo a justificativa (ex: missão no exterior, dispensa médica, baixa), que será automaticamente formatada no Documento SIGADAER ao final.
+          Consulte as 3 escolhas de prioridades, indisponibilidades justificadas e faça o remanejamento manual quando necessário.
         </p>
 
         <div class="linhaCtl">
@@ -735,14 +766,15 @@ footer {
                 <th>Posto / Grad</th>
                 <th>Nome de Guerra</th>
                 <th>SARAM</th>
-                <th>Opções / Dia Escalado</th>
-                <th>Status / Elegibilidade</th>
+                <th>Prioridades Solicitadas</th>
+                <th>Indisponibilidades Informadas</th>
+                <th>Dia Escalado</th>
                 <th>Justificativa (SIGADAER)</th>
                 <th>Ações</th>
               </tr>
             </thead>
             <tbody id="corpoTabelaSec">
-              <tr><td colspan="8" style="color:var(--texto-3);">Carregando dados do efetivo…</td></tr>
+              <tr><td colspan="9" style="color:var(--texto-3);">Carregando dados do efetivo…</td></tr>
             </tbody>
           </table>
         </div>
@@ -773,9 +805,10 @@ const EFETIVO_URL = `https://docs.google.com/spreadsheets/d/${EFETIVO_SHEET_ID}/
 /* ══════════════════════════════════════════════════════════════
    ESTADO GLOBAL
    ══════════════════════════════════════════════════════════════ */
-let listaEfetivo = [];       // Array de militares vindos da planilha Efetivo
-let temporadaAtual = null;   // Objeto da temporada ativa
-let solicitacoesMap = {};    // Mapa de solicitações por SARAM { saram: {...solicitacao} }
+let listaEfetivo = [];               // Array de militares vindos da planilha Efetivo
+let temporadaAtual = null;           // Objeto da temporada ativa
+let solicitacoesMap = {};            // Mapa de solicitações por SARAM { saram: {...solicitacao} }
+let indisponibilidadesAdicionadasForm = []; // Array temporário do formulário do militar
 
 /* ══════════════════════════════════════════════════════════════
    INICIALIZAÇÃO DA PÁGINA
@@ -814,7 +847,7 @@ function configurarAbas() {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   CARGA DOS DADOS DA PLANILHA EFETIVO
+   CARGA DOS DADOS DA PLANILHA EFETIVO (INIBINDO R1)
    ══════════════════════════════════════════════════════════════ */
 function formatarSARAM(raw) {
   if (!raw) return '';
@@ -863,13 +896,21 @@ async function carregarEfetivoPlanilha() {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   PERSISTÊNCIA SUPABASE
+   PERSISTÊNCIA SUPABASE (TÍTULO PRÉ-PREENCHIDO E VAGAS DEFAULT 4)
    ══════════════════════════════════════════════════════════════ */
+function obterTituloTemporadaPadrao() {
+  const agora = new Date();
+  const ano = agora.getFullYear();
+  const semestre = agora.getMonth() < 6 ? 1 : 2;
+  return `${semestre}º/${ano}`;
+}
+
 async function carregarOuCriarTemporada() {
   if (!sb) return;
   try {
     const anoAtual = new Date().getFullYear();
     const semestreAtual = new Date().getMonth() < 6 ? 1 : 2;
+    const tituloPadrao = obterTituloTemporadaPadrao();
 
     const { data, error } = await sb
       .from('tacf_temporadas')
@@ -885,10 +926,10 @@ async function carregarOuCriarTemporada() {
       const novaTemp = {
         ano: anoAtual,
         semestre: semestreAtual,
-        titulo: `${semestreAtual}º/${anoAtual}`,
-        status: 'agendamento_aberto',
+        titulo: tituloPadrao,
+        status: 'agendamento_fechado', // Default OFF
         datas_aplicacao: [],
-        vagas_por_dia: 15,
+        vagas_por_dia: 4,               // Padronizado em 4 vagas por dia
         vagas_livres_reserva: 3
       };
       const { data: created, error: errCreate } = await sb
@@ -947,37 +988,36 @@ function atualizarKpisEContadores() {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   ABA 1: MILITAR (SOLICITAÇÃO DE DATAS - ACESSO LIVRE)
+   ABA 1: SOLICITAR AGENDAMENTO (INIBINDO R1 & VERIFICANDO STATUS OFF)
    ══════════════════════════════════════════════════════════════ */
 function renderizarFormularioMilitar() {
   const selMilitar = document.getElementById('selMilitar');
   selMilitar.innerHTML = '<option value="">— selecione seu nome —</option>';
 
-  listaEfetivo.forEach(m => {
+  // FILTRA E INIBE R1 TOTALMENTE
+  listaEfetivo.filter(m => !m.isR1).forEach(m => {
     const opt = document.createElement('option');
     opt.value = m.saram;
-    opt.textContent = `${m.posto} ${m.nomeGuerra} (SARAM ${m.saram})${m.isR1 ? ' [R1]' : ''}`;
+    opt.textContent = `${m.posto} ${m.nomeGuerra} (SARAM ${m.saram})`;
     selMilitar.appendChild(opt);
   });
 
   const datas = temporadaAtual?.datas_aplicacao || [];
-  const statusTemp = temporadaAtual?.status || 'agendamento_aberto';
+  const statusTemp = temporadaAtual?.status || 'agendamento_fechado';
 
   const msgStatus = document.getElementById('msgStatusTemporada');
-  const btnEnviar = document.getElementById('btnEnviarSolicitacao');
+  const formSol = document.getElementById('formSolicitacao');
 
-  if (statusTemp !== 'agendamento_aberto') {
+  // VERIFICA SE ESTÁ OFF
+  if (statusTemp === 'agendamento_fechado') {
     msgStatus.style.display = 'flex';
-    msgStatus.textContent = '🔒 O agendamento para esta temporada encontra-se FECHADO pela secretaria.';
-    btnEnviar.disabled = true;
-    btnEnviar.style.opacity = '0.5';
+    formSol.style.display = 'none';
   } else {
     msgStatus.style.display = 'none';
-    btnEnviar.disabled = false;
-    btnEnviar.style.opacity = '1';
+    formSol.style.display = 'block';
   }
 
-  ['selPrio1', 'selPrio2', 'selPrio3'].forEach(idSelect => {
+  ['selPrio1', 'selPrio2', 'selPrio3', 'selDataIndisp'].forEach(idSelect => {
     const sel = document.getElementById(idSelect);
     sel.innerHTML = '<option value="">— selecione a data —</option>';
     datas.forEach(dStr => {
@@ -997,6 +1037,8 @@ function aoSelecionarMilitar(saram) {
     document.getElementById('txtSaram').value = '';
     document.getElementById('txtPosto').value = '';
     document.getElementById('cardComprovante').style.display = 'none';
+    indisponibilidadesAdicionadasForm = [];
+    renderizarListaIndisponibilidadesForm();
     return;
   }
   document.getElementById('txtSaram').value = m.saram;
@@ -1007,13 +1049,69 @@ function aoSelecionarMilitar(saram) {
     document.getElementById('selPrio1').value = sol.prio1_data || '';
     document.getElementById('selPrio2').value = sol.prio2_data || '';
     document.getElementById('selPrio3').value = sol.prio3_data || '';
+    indisponibilidadesAdicionadasForm = Array.isArray(sol.indisponibilidades) ? [...sol.indisponibilidades] : [];
+    renderizarListaIndisponibilidadesForm();
     exibirComprovanteMilitar(sol, m);
   } else {
     document.getElementById('selPrio1').value = '';
     document.getElementById('selPrio2').value = '';
     document.getElementById('selPrio3').value = '';
+    indisponibilidadesAdicionadasForm = [];
+    renderizarListaIndisponibilidadesForm();
     document.getElementById('cardComprovante').style.display = 'none';
   }
+}
+
+function adicionarIndisponibilidadeForm() {
+  const dVal = document.getElementById('selDataIndisp').value;
+  const justVal = (document.getElementById('txtJustifIndisp').value || '').trim();
+
+  if (!dVal) return Swal.fire('Atenção', 'Selecione a data indisponível.', 'warning');
+  if (!justVal) return Swal.fire('Atenção', 'Informe a justificativa obrigatória para a indisponibilidade nesta data.', 'warning');
+
+  if (indisponibilidadesAdicionadasForm.some(x => x.data === dVal)) {
+    return Swal.fire('Aviso', 'Esta data já foi adicionada às suas indisponibilidades.', 'warning');
+  }
+
+  indisponibilidadesAdicionadasForm.push({
+    data: dVal,
+    justificativa: justVal,
+    status_deferimento: 'pendente'
+  });
+
+  document.getElementById('selDataIndisp').value = '';
+  document.getElementById('txtJustifIndisp').value = '';
+  renderizarListaIndisponibilidadesForm();
+}
+
+function removerIndisponibilidadeForm(index) {
+  indisponibilidadesAdicionadasForm.splice(index, 1);
+  renderizarListaIndisponibilidadesForm();
+}
+
+function renderizarListaIndisponibilidadesForm() {
+  const container = document.getElementById('listaIndisponibilidadesAdd');
+  container.innerHTML = '';
+
+  indisponibilidadesAdicionadasForm.forEach((item, idx) => {
+    const div = document.createElement('div');
+    div.style.background = 'rgba(239, 68, 68, 0.12)';
+    div.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+    div.style.borderRadius = '6px';
+    div.style.padding = '0.5rem 0.75rem';
+    div.style.fontSize = '0.85rem';
+    div.style.display = 'flex';
+    div.style.justifyContent = 'space-between';
+    div.style.alignItems = 'center';
+
+    div.innerHTML = `
+      <div>
+        <b>📅 Indisponível em ${formatarDataBR(item.data)}:</b> ${item.justificativa}
+      </div>
+      <button type="button" onclick="removerIndisponibilidadeForm(${idx})" style="background:none; border:none; color:#fca5a5; cursor:pointer; font-weight:bold;">&times;</button>
+    `;
+    container.appendChild(div);
+  });
 }
 
 function formatarDataBR(dStr) {
@@ -1040,12 +1138,18 @@ function exibirComprovanteMilitar(sol, m) {
   if (sol.status_solicitacao === 'realizou') statusBadge = '<span class="badge realizou">TACF Concluído</span>';
   if (sol.status_solicitacao === 'nao_realizou') statusBadge = '<span class="badge dispensa">Não Realizará (Justificado)</span>';
 
+  let indispStr = 'Nenhuma';
+  if (Array.isArray(sol.indisponibilidades) && sol.indisponibilidades.length) {
+    indispStr = sol.indisponibilidades.map(i => `${formatarDataBR(i.data)} (${i.justificativa})`).join('; ');
+  }
+
   det.innerHTML = `
     <b>Militar:</b> ${m.posto} ${m.nomeGuerra} (SARAM ${m.saram})<br/>
     <b>Status:</b> ${statusBadge}<br/>
     <b>1ª Escolha:</b> ${formatarDataBR(sol.prio1_data)} | 
     <b>2ª Escolha:</b> ${formatarDataBR(sol.prio2_data)} | 
-    <b>3ª Escolha:</b> ${formatarDataBR(sol.prio3_data)}
+    <b>3ª Escolha:</b> ${formatarDataBR(sol.prio3_data)}<br/>
+    <b>Indisponibilidades:</b> ${indispStr}
   `;
 }
 
@@ -1057,7 +1161,7 @@ async function salvarSolicitacaoMilitar() {
 
   if (!saram) return Swal.fire('Atenção', 'Selecione um militar.', 'warning');
   if (!p1 || !p2 || !p3) return Swal.fire('Atenção', 'Selecione as 3 opções de datas distintas.', 'warning');
-  if (p1 === p2 || p1 === p3 || p2 === p3) return Swal.fire('Atenção', 'As 3 datas devem ser diferentes entre si.', 'warning');
+  if (p1 === p2 || p1 === p3 || p2 === p3) return Swal.fire('Atenção', 'As 3 datas de prioridade devem ser diferentes entre si.', 'warning');
 
   const m = listaEfetivo.find(x => x.saram === saram);
   if (!m) return;
@@ -1073,6 +1177,7 @@ async function salvarSolicitacaoMilitar() {
     prio1_data: p1,
     prio2_data: p2,
     prio3_data: p3,
+    indisponibilidades: indisponibilidadesAdicionadasForm,
     status_solicitacao: 'pendente'
   };
 
@@ -1088,7 +1193,7 @@ async function salvarSolicitacaoMilitar() {
       solicitacoesMap[saram] = data[0];
       exibirComprovanteMilitar(data[0], m);
       atualizarKpisEContadores();
-      Swal.fire('Sucesso', 'Sua solicitação de datas para o TACF foi salva!', 'success');
+      Swal.fire('Sucesso', 'Sua solicitação de agendamento foi salva!', 'success');
     }
   } catch (e) {
     Swal.fire('Erro', 'Falha ao salvar a solicitação: ' + e.message, 'error');
@@ -1096,7 +1201,7 @@ async function salvarSolicitacaoMilitar() {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   ABA 2: PAINEL DO GESTOR (SECRETARIA) & PIN "Secretaria"
+   ABA 2: SECRETARIA & PIN "Secretaria"
    ══════════════════════════════════════════════════════════════ */
 function verificarPinSessao() {
   const pinOk = sessionStorage.getItem('secretaria_pin_ok') === '1' || sessionStorage.getItem('efetivo_pin_ok') === '1';
@@ -1124,13 +1229,14 @@ function validarPinSecretaria() {
 
 function renderizarPainelSecretaria() {
   if (!temporadaAtual) return;
-  document.getElementById('txtTituloTemp').value = temporadaAtual.titulo || '';
-  document.getElementById('numVagasDia').value = temporadaAtual.vagas_por_dia || 15;
-  document.getElementById('selStatusTemp').value = temporadaAtual.status || 'agendamento_aberto';
+  document.getElementById('txtTituloTemp').value = temporadaAtual.titulo || obterTituloTemporadaPadrao();
+  document.getElementById('numVagasDia').value = temporadaAtual.vagas_por_dia || 4;
+  document.getElementById('selStatusTemp').value = temporadaAtual.status || 'agendamento_fechado';
 
   renderizarBadgesDatas();
   renderizarEscalaHorizontal();
   renderizarTabelaSecretaria();
+  atualizarContadorIndisponibilidades();
 }
 
 function renderizarBadgesDatas() {
@@ -1203,7 +1309,7 @@ function gerarDatasSegQuaSexPadrao() {
 async function salvarConfigTemporada() {
   if (!sb || !temporadaAtual) return;
   temporadaAtual.titulo = document.getElementById('txtTituloTemp').value;
-  temporadaAtual.vagas_por_dia = parseInt(document.getElementById('numVagasDia').value) || 15;
+  temporadaAtual.vagas_por_dia = parseInt(document.getElementById('numVagasDia').value) || 4;
   temporadaAtual.status = document.getElementById('selStatusTemp').value;
 
   try {
@@ -1218,14 +1324,111 @@ async function salvarConfigTemporada() {
       .eq('id', temporadaAtual.id);
 
     if (error) throw error;
-    Swal.fire('Sucesso', 'Configurações salvas.', 'success');
+    renderizarFormularioMilitar();
+    Swal.fire('Sucesso', 'Configurações da Secretaria salvas.', 'success');
   } catch (e) {
     Swal.fire('Erro', 'Falha ao salvar: ' + e.message, 'error');
   }
 }
 
 /* ══════════════════════════════════════════════════════════════
-   ALGORITMO DE AUTOFILL DA ESCALA
+   DEFERIMENTO / INDEFERIMENTO DE INDISPONIBILIDADES PELA SECRETARIA
+   ══════════════════════════════════════════════════════════════ */
+function atualizarContadorIndisponibilidades() {
+  let cnt = 0;
+  Object.values(solicitacoesMap).forEach(s => {
+    if (Array.isArray(s.indisponibilidades)) {
+      cnt += s.indisponibilidades.filter(i => i.status_deferimento === 'pendente' || !i.status_deferimento).length;
+    }
+  });
+  const el = document.getElementById('cntIndispPend');
+  if (el) el.textContent = cnt;
+}
+
+function abrirModalAnaliseIndisponividades() {
+  const listaIndisp = [];
+
+  Object.values(solicitacoesMap).forEach(s => {
+    if (Array.isArray(s.indisponibilidades) && s.indisponibilidades.length) {
+      s.indisponibilidades.forEach((item, idx) => {
+        listaIndisp.push({
+          saram: s.saram,
+          militarStr: `${s.posto_grad} ${s.nome_guerra}`,
+          data: item.data,
+          justificativa: item.justificativa,
+          status_deferimento: item.status_deferimento || 'pendente',
+          itemIndex: idx
+        });
+      });
+    }
+  });
+
+  if (!listaIndisp.length) {
+    return Swal.fire('Indisponibilidades', 'Nenhum militar informou dias indisponíveis até o momento.', 'info');
+  }
+
+  let htmlRows = '<div style="max-height:400px; overflow-y:auto; text-align:left;">';
+  listaIndisp.forEach((item, i) => {
+    let badgeDef = '<span style="color:#fde047; font-weight:bold;">PENDENTE</span>';
+    if (item.status_deferimento === 'deferido') badgeDef = '<span style="color:#6ee7b7; font-weight:bold;">DEFERIDO</span>';
+    if (item.status_deferimento === 'indeferido') badgeDef = '<span style="color:#fca5a5; font-weight:bold;">INDEFERIDO</span>';
+
+    htmlRows += `
+      <div style="background:rgba(6,16,33,0.8); border:1px solid rgba(207,228,255,0.15); border-radius:8px; padding:0.75rem; margin-bottom:0.75rem;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">
+          <b>${item.militarStr} (SARAM ${item.saram})</b>
+          <span>${badgeDef}</span>
+        </div>
+        <div style="font-size:0.85rem; color:#cfe4ff;">
+          📅 <b>Data:</b> ${formatarDataBR(item.data)}<br/>
+          📝 <b>Justificativa:</b> ${item.justificativa}
+        </div>
+        <div style="display:flex; gap:0.5rem; margin-top:0.6rem; justify-content:flex-end;">
+          <button class="acao mini jade" onclick="definirDeferimentoIndisponibilidade('${item.saram}', ${item.itemIndex}, 'deferido')">🟢 Deferir</button>
+          <button class="acao mini rubi" onclick="definirDeferimentoIndisponibilidade('${item.saram}', ${item.itemIndex}, 'indeferido')">🔴 Indeferir</button>
+        </div>
+      </div>
+    `;
+  });
+  htmlRows += '</div>';
+
+  Swal.fire({
+    title: '📋 Análise de Indisponibilidades',
+    html: htmlRows,
+    width: '650px',
+    showConfirmButton: false,
+    showCancelButton: true,
+    cancelButtonText: 'Fechar'
+  });
+}
+
+async function definirDeferimentoIndisponibilidade(saram, itemIdx, novoStatus) {
+  const sol = solicitacoesMap[saram];
+  if (!sol || !Array.isArray(sol.indisponibilidades)) return;
+
+  sol.indisponibilidades[itemIdx].status_deferimento = novoStatus;
+
+  try {
+    const { data, error } = await sb
+      .from('tacf_solicitacoes')
+      .upsert([sol], { onConflict: 'temporada_id,saram' })
+      .select();
+
+    if (error) throw error;
+    if (data) {
+      solicitacoesMap[saram] = data[0];
+      atualizarContadorIndisponibilidades();
+      renderizarTabelaSecretaria();
+      Swal.close();
+      abrirModalAnaliseIndisponividades();
+    }
+  } catch (e) {
+    Swal.fire('Erro', 'Falha ao atualizar deferimento: ' + e.message, 'error');
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ALGORITMO DE AUTOFILL DA ESCALA (RESPEITANDO INDISPONIBILIDADES DEFERIDAS)
    ══════════════════════════════════════════════════════════════ */
 async function executarAutofillEscala() {
   const datas = temporadaAtual?.datas_aplicacao || [];
@@ -1233,7 +1436,7 @@ async function executarAutofillEscala() {
 
   const confirm = await Swal.fire({
     title: 'Gerar Escala Automática?',
-    text: 'O sistema irá alocar os militares seguindo a ordem de antiguidade, prioridades registradas e alocação estendida de trás para a frente para os excedentes.',
+    text: 'O sistema alocará os militares por antiguidade, respeitando escolhas de prioridades e bloqueando datas de indisponibilidade DEFERIDAS pela Secretaria.',
     icon: 'question',
     showCancelButton: true,
     confirmButtonText: 'Sim, Gerar Escala',
@@ -1241,7 +1444,7 @@ async function executarAutofillEscala() {
   });
   if (!confirm.isConfirmed) return;
 
-  const vagasMax = temporadaAtual.vagas_por_dia || 15;
+  const vagasMax = temporadaAtual.vagas_por_dia || 4;
   const ocupacaoPorData = {};
   datas.forEach(d => ocupacaoPorData[d] = []);
 
@@ -1265,13 +1468,18 @@ async function executarAutofillEscala() {
 
     if (sol.status_elegibilidade === 'baixa' || sol.status_elegibilidade === 'dispensa' || sol.status_solicitacao === 'nao_realizou') return;
 
+    // Obter datas de indisponibilidade bloqueadas (Deferidas ou Pendentes)
+    const datasBloqueadas = Array.isArray(sol.indisponibilidades)
+      ? sol.indisponibilidades.filter(i => i.status_deferimento !== 'indeferido').map(i => i.data)
+      : [];
+
     let alocado = false;
     const prios = [sol.prio1_data, sol.prio2_data, sol.prio3_data].filter(Boolean);
     const metodos = ['prio1', 'prio2', 'prio3'];
 
     for (let i = 0; i < prios.length; i++) {
       const d = prios[i];
-      if (ocupacaoPorData[d] && ocupacaoPorData[d].length < vagasMax) {
+      if (!datasBloqueadas.includes(d) && ocupacaoPorData[d] && ocupacaoPorData[d].length < vagasMax) {
         sol.dia_escalado = d;
         sol.metodo_alocacao = metodos[i];
         sol.status_solicitacao = 'escalado';
@@ -1283,7 +1491,7 @@ async function executarAutofillEscala() {
     }
 
     if (!alocado) {
-      naoAlocados.push({ militar: m, sol: sol });
+      naoAlocados.push({ militar: m, sol: sol, datasBloqueadas: datasBloqueadas });
     }
   });
 
@@ -1296,7 +1504,7 @@ async function executarAutofillEscala() {
     let alocado = false;
 
     for (const d of datasDistantes) {
-      if (ocupacaoPorData[d].length < vagasMax) {
+      if (!itemAntigo.datasBloqueadas.includes(d) && ocupacaoPorData[d].length < vagasMax) {
         itemAntigo.sol.dia_escalado = d;
         itemAntigo.sol.metodo_alocacao = 'regra_secundaria_velhos';
         itemAntigo.sol.status_solicitacao = 'escalado';
@@ -1319,7 +1527,7 @@ async function executarAutofillEscala() {
     let alocado = false;
 
     for (const d of datas) {
-      if (ocupacaoPorData[d].length < vagasMax) {
+      if (!itemModerno.datasBloqueadas.includes(d) && ocupacaoPorData[d].length < vagasMax) {
         itemModerno.sol.dia_escalado = d;
         itemModerno.sol.metodo_alocacao = 'regra_secundaria_novos';
         itemModerno.sol.status_solicitacao = 'escalado';
@@ -1345,9 +1553,89 @@ async function executarAutofillEscala() {
 
     renderizarPainelSecretaria();
     atualizarKpisEContadores();
-    Swal.fire('Escala Gerada!', `Escala concluída com sucesso para os militares elegíveis.`, 'success');
+    Swal.fire('Escala Gerada!', `Escala concluída com sucesso respeitando os limites e indisponibilidades.`, 'success');
   } catch (e) {
     Swal.fire('Erro', 'Falha ao salvar a escala no banco: ' + e.message, 'error');
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   REMANEJAMENTO MANUAL COM AVISO DE CONFLITO DE INDISPONIBILIDADE
+   ══════════════════════════════════════════════════════════════ */
+async function remanejarMilitarManual(saram) {
+  const sol = solicitacoesMap[saram];
+  const m = listaEfetivo.find(x => x.saram === saram);
+  if (!sol || !m) return;
+
+  const datas = temporadaAtual?.datas_aplicacao || [];
+  if (!datas.length) return Swal.fire('Aviso', 'Nenhuma data de aplicação cadastrada.', 'warning');
+
+  let optionsHtml = '<option value="">— Selecione o Novo Dia —</option>';
+  datas.forEach(d => {
+    const sel = (sol.dia_escalado === d) ? 'selected' : '';
+    optionsHtml += `<option value="${d}" ${sel}>${formatarDataBR(d)}</option>`;
+  });
+
+  const { value: novaData } = await Swal.fire({
+    title: `Remanejar Escala: ${m.posto} ${m.nomeGuerra}`,
+    html: `
+      <p style="font-size:0.85rem; color:#555; margin-bottom:1rem;">Selecione o novo dia de aplicação para este militar:</p>
+      <select id="swalSelNovaData" class="swal2-input">${optionsHtml}</select>
+    `,
+    showCancelButton: true,
+    confirmButtonText: 'Confirmar Novo Dia',
+    cancelButtonText: 'Cancelar',
+    preConfirm: () => {
+      return document.getElementById('swalSelNovaData').value;
+    }
+  });
+
+  if (!novaData) return;
+
+  // VERIFICA SE HÁ CONFLITO COM INDISPONIBILIDADE INFORMADA
+  const indispConflito = Array.isArray(sol.indisponibilidades)
+    ? sol.indisponibilidades.find(i => i.data === novaData)
+    : null;
+
+  if (indispConflito) {
+    const confirmConflito = await Swal.fire({
+      title: '⚠️ AVISO DE CONFLITO DE INDISPONIBILIDADE',
+      html: `
+        <div style="text-align:left; font-size:0.9rem; line-height:1.5;">
+          O militar <b>${m.posto} ${m.nomeGuerra}</b> informou <b>INDISPONIBILIDADE</b> para o dia <b>${formatarDataBR(novaData)}</b>!<br/><br/>
+          📝 <b>Justificativa declarada:</b> "${indispConflito.justificativa}"<br/>
+          📌 <b>Status de Deferimento:</b> ${(indispConflito.status_deferimento || 'PENDENTE').toUpperCase()}<br/><br/>
+          Deseja confirmar o remanejamento manual para este dia assim mesmo?
+        </div>
+      `,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Sim, Confirmar Remanejamento',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (!confirmConflito.isConfirmed) return;
+  }
+
+  sol.dia_escalado = novaData;
+  sol.metodo_alocacao = 'manual';
+  sol.status_solicitacao = 'escalado';
+
+  try {
+    const { data, error } = await sb
+      .from('tacf_solicitacoes')
+      .upsert([sol], { onConflict: 'temporada_id,saram' })
+      .select();
+
+    if (error) throw error;
+    if (data) {
+      solicitacoesMap[saram] = data[0];
+      renderizarEscalaHorizontal();
+      renderizarTabelaSecretaria();
+      Swal.fire('Remanejado!', `O militar foi remanejado para o dia ${formatarDataBR(novaData)}.`, 'success');
+    }
+  } catch (e) {
+    Swal.fire('Erro', 'Falha ao salvar remanejamento: ' + e.message, 'error');
   }
 }
 
@@ -1358,7 +1646,7 @@ function renderizarEscalaHorizontal() {
   const container = document.getElementById('escalaHorizontal');
   container.innerHTML = '';
   const datas = temporadaAtual?.datas_aplicacao || [];
-  const vagasMax = temporadaAtual?.vagas_por_dia || 15;
+  const vagasMax = temporadaAtual?.vagas_por_dia || 4;
 
   if (!datas.length) {
     container.innerHTML = '<div style="color:var(--texto-3); padding:1rem;">Nenhuma data cadastrada para exibir a escala.</div>';
@@ -1388,7 +1676,7 @@ function renderizarEscalaHorizontal() {
       }[s.metodo_alocacao] || 'Auto';
 
       htmlMilitares += `
-        <div class="cartaoMilitarEscalado">
+        <div class="cartaoMilitarEscalado" title="Clique para remanejar este militar" onclick="remanejarMilitarManual('${s.saram}')" style="cursor:pointer;">
           <span>${s.posto_grad} ${s.nome_guerra} (${s.saram})</span>
           <span class="badgeMetodo">${rotuloMetodo}</span>
         </div>
@@ -1456,7 +1744,7 @@ function copiarColunaDia(dStr) {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   GERADOR DE TEMPLATES DE E-MAIL DIÁRIOS (EXATAMENTE COMO IMAGEM 1)
+   GERADOR DE TEMPLATES DE E-MAIL DIÁRIOS
    ══════════════════════════════════════════════════════════════ */
 function gerarTemplateEmailSemanal() {
   const datas = temporadaAtual?.datas_aplicacao || [];
@@ -1575,7 +1863,7 @@ function copiarHtmlETextoParaTransferencia(htmlStr, plainStr) {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   DOCUMENTO SIGADAER DE JUSTIFICATIVAS DOS AUSENTES (IMAGEM 2)
+   DOCUMENTO SIGADAER DE JUSTIFICATIVAS DOS AUSENTES
    ══════════════════════════════════════════════════════════════ */
 function numeroParaExtenso(n) {
   const ext = ['zero', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove', 'dez', 'onze', 'doze', 'treze', 'quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito', 'dezenove', 'vinte'];
@@ -1593,7 +1881,6 @@ function abrirDocumentoSigadaerFechamento() {
     const statusSol = sol?.status_solicitacao || 'pendente';
     const justif = sol?.justificativa || '';
 
-    // Considera os que não realizaram ou foram marcados com Baixa/Dispensa/Sem Justificativa
     if (statusEleg === 'baixa' || statusEleg === 'dispensa' || statusSol === 'nao_realizou' || justif) {
       let motDef = justif;
       if (!motDef) {
@@ -1616,7 +1903,7 @@ function abrirDocumentoSigadaerFechamento() {
   const numAusentes = ausentes.length;
   const numStr = String(numAusentes).padStart(2, '0');
   const numExtenso = numeroParaExtenso(numAusentes);
-  const tituloTemp = temporadaAtual?.titulo || '1º/2026';
+  const tituloTemp = temporadaAtual?.titulo || obterTituloTemporadaPadrao();
 
   let itensHtml = '';
   let itensPlain = '';
@@ -1673,7 +1960,7 @@ function abrirDocumentoSigadaerFechamento() {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   TABELA GERAL DA SECRETARIA & EDIÇÃO DINÂMICA DE JUSTIFICATIVAS
+   TABELA GERAL DA SECRETARIA (CONSULTA, REMANEJAMENTO E INDISPONIBILIDADES)
    ══════════════════════════════════════════════════════════════ */
 function renderizarTabelaSecretaria() {
   const corpo = document.getElementById('corpoTabelaSec');
@@ -1700,7 +1987,7 @@ function renderizarTabelaSecretaria() {
   });
 
   if (!filtrados.length) {
-    corpo.innerHTML = '<tr><td colspan="8" style="color:var(--texto-3);">Nenhum militar encontrado com os filtros aplicados.</td></tr>';
+    corpo.innerHTML = '<tr><td colspan="9" style="color:var(--texto-3);">Nenhum militar encontrado com os filtros aplicados.</td></tr>';
     return;
   }
 
@@ -1715,7 +2002,18 @@ function renderizarTabelaSecretaria() {
     if (sol && sol.status_solicitacao === 'nao_realizou') badgeEleg = '<span class="badge rubi">Não Realizou</span>';
     if (sol && sol.status_solicitacao === 'realizou') badgeEleg = '<span class="badge realizou">Concluído</span>';
 
-    const opcStr = sol?.prio1_data ? `1ª: ${formatarDataBR(sol.prio1_data)}<br/>2ª: ${formatarDataBR(sol.prio2_data)}` : '—';
+    const opcStr = sol?.prio1_data
+      ? `1ª: ${formatarDataBR(sol.prio1_data)}<br/>2ª: ${formatarDataBR(sol.prio2_data)}<br/>3ª: ${formatarDataBR(sol.prio3_data)}`
+      : '—';
+
+    let indispStr = '—';
+    if (Array.isArray(sol?.indisponibilidades) && sol.indisponibilidades.length) {
+      indispStr = sol.indisponibilidades.map(i => {
+        const defTag = i.status_deferimento === 'deferido' ? '🟢' : (i.status_deferimento === 'indeferido' ? '🔴' : '🟡');
+        return `${defTag} ${formatarDataBR(i.data)} (${i.justificativa})`;
+      }).join('<br/>');
+    }
+
     const diaEscStr = sol && sol.dia_escalado ? `<b>${formatarDataBR(sol.dia_escalado)}</b>` : '—';
     const valJustif = sol?.justificativa || '';
 
@@ -1724,17 +2022,21 @@ function renderizarTabelaSecretaria() {
       <td>${m.posto} ${m.esp ? '(' + m.esp + ')' : ''}</td>
       <td><b>${m.nomeGuerra}</b></td>
       <td style="font-family:var(--f-data);">${m.saram}</td>
-      <td style="font-size:0.78rem;">${opcStr} <br/>Dia: ${diaEscStr}</td>
-      <td>${badgeEleg}</td>
+      <td style="font-size:0.78rem;">${opcStr}</td>
+      <td style="font-size:0.75rem;">${indispStr}</td>
       <td>
-        <input type="text" id="txtJustif_${m.saram}" value="${valJustif.replace(/"/g, '&quot;')}" placeholder="Justificativa ex: Em missão no exterior..." style="font-size:0.78rem; padding:0.3rem 0.5rem; width:100%; min-width:180px;" onchange="salvarJustificativaMilitar('${m.saram}', this.value)" />
+        ${diaEscStr}<br/>
+        <button class="acao fantasma mini" style="margin-top:0.25rem; font-size:0.7rem; padding:0.15rem 0.4rem;" onclick="remanejarMilitarManual('${m.saram}')">✏️ Remanejar</button>
+      </td>
+      <td>
+        <input type="text" id="txtJustif_${m.saram}" value="${valJustif.replace(/"/g, '&quot;')}" placeholder="Justificativa ex: Em missão..." style="font-size:0.78rem; padding:0.3rem 0.5rem; width:100%; min-width:160px;" onchange="salvarJustificativaMilitar('${m.saram}', this.value)" />
       </td>
       <td>
         <select onchange="alterarElegibilidadeMilitar('${m.saram}', this.value)" style="font-size:0.75rem; padding:0.25rem 0.4rem;">
           <option value="elegivel" ${(sol?.status_elegibilidade === 'elegivel' || !sol) && !m.isR1 ? 'selected' : ''}>Elegível / Normal</option>
-          <option value="nao_realizou" ${sol?.status_solicitacao === 'nao_realizou' ? 'selected' : ''}>Não Realizou / Remover da Escala</option>
+          <option value="nao_realizou" ${sol?.status_solicitacao === 'nao_realizou' ? 'selected' : ''}>Não Realizou / Remover</option>
           <option value="baixa" ${sol?.status_elegibilidade === 'baixa' ? 'selected' : ''}>Em Processo de Baixa</option>
-          <option value="dispensa" ${sol?.status_elegibilidade === 'dispensa' ? 'selected' : ''}>Dispensa Médica / Parecer</option>
+          <option value="dispensa" ${sol?.status_elegibilidade === 'dispensa' ? 'selected' : ''}>Dispensa Médica</option>
           <option value="realizou" ${sol?.status_solicitacao === 'realizou' ? 'selected' : ''}>TACF Concluído</option>
           <option value="r1_reserva" ${sol?.status_elegibilidade === 'r1_reserva' || m.isR1 ? 'selected' : ''}>Reserva (R1)</option>
         </select>
@@ -1794,14 +2096,14 @@ async function alterarElegibilidadeMilitar(saram, novoStatus) {
   if (novoStatus === 'baixa' || novoStatus === 'dispensa' || novoStatus === 'r1_reserva') {
     sol.status_elegibilidade = novoStatus;
     sol.status_solicitacao = 'nao_realizou';
-    sol.dia_escalado = null; // Remove da escala
+    sol.dia_escalado = null;
     if (!sol.justificativa) {
       if (novoStatus === 'baixa') sol.justificativa = 'Em processo de baixa';
       if (novoStatus === 'dispensa') sol.justificativa = 'Em dispensa médica (anexada à ficha de anamnese no próprio Portal do Militar)';
     }
   } else if (novoStatus === 'nao_realizou') {
     sol.status_solicitacao = 'nao_realizou';
-    sol.dia_escalado = null; // Remove da escala
+    sol.dia_escalado = null;
     if (!sol.justificativa) sol.justificativa = 'Sem justificativa regulamentar até a presente data';
   } else if (novoStatus === 'realizou') {
     sol.status_solicitacao = 'realizou';

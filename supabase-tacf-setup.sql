@@ -11,12 +11,12 @@ CREATE TABLE IF NOT EXISTS public.tacf_temporadas (
   
   ano INT NOT NULL DEFAULT EXTRACT(YEAR FROM CURRENT_DATE),
   semestre INT NOT NULL DEFAULT 1,
-  titulo TEXT NOT NULL DEFAULT '1º TACF do Ano',
-  status TEXT NOT NULL DEFAULT 'agendamento_aberto', -- 'agendamento_aberto', 'agendamento_fechado', 'escala_gerada', 'finalizado'
+  titulo TEXT NOT NULL DEFAULT '1º/2026',
+  status TEXT NOT NULL DEFAULT 'agendamento_fechado', -- Default OFF ('agendamento_fechado', 'agendamento_aberto', 'escala_gerada', 'finalizado')
   
   datas_aplicacao JSONB NOT NULL DEFAULT '[]'::jsonb, -- Lista de datas no formato ["YYYY-MM-DD", ...]
-  vagas_por_dia INT NOT NULL DEFAULT 15,
-  vagas_livres_reserva INT NOT NULL DEFAULT 3,
+  vagas_por_dia INT NOT NULL DEFAULT 4, -- Padronizado em 4 vagas por dia
+  vagas_livres_reserva INT NOT NULL DEFAULT 3, -- 3 vagas livres reservadas
   observacoes TEXT
 );
 
@@ -41,6 +41,10 @@ CREATE TABLE IF NOT EXISTS public.tacf_solicitacoes (
   prio1_data DATE,
   prio2_data DATE,
   prio3_data DATE,
+
+  -- Dias Indisponíveis informados pelo militar com justificativa
+  -- Formato: [{"data": "YYYY-MM-DD", "justificativa": "...", "status_deferimento": "deferido"|"indeferido"|"pendente"}]
+  indisponibilidades JSONB NOT NULL DEFAULT '[]'::jsonb,
   
   -- Resultado da Escala / Alocação
   dia_escalado DATE,
@@ -54,6 +58,17 @@ CREATE TABLE IF NOT EXISTS public.tacf_solicitacoes (
 
   CONSTRAINT unique_militar_temporada UNIQUE (temporada_id, saram)
 );
+
+-- Adicionar a coluna indisponibilidades caso a tabela já exista sem ela
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name='tacf_solicitacoes' AND column_name='indisponibilidades'
+  ) THEN
+    ALTER TABLE public.tacf_solicitacoes ADD COLUMN indisponibilidades JSONB NOT NULL DEFAULT '[]'::jsonb;
+  END IF;
+END $$;
 
 -- Ativar Row Level Security (RLS)
 ALTER TABLE public.tacf_temporadas ENABLE ROW LEVEL SECURITY;
@@ -85,7 +100,7 @@ ON public.tacf_solicitacoes FOR UPDATE USING (true);
 CREATE POLICY "Permitir exclusao anonima em tacf_solicitacoes"
 ON public.tacf_solicitacoes FOR DELETE USING (true);
 
--- Habilitar Realtime (com verificação de publicação)
+-- Habilitar Realtime
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
