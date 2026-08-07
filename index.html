@@ -1896,12 +1896,33 @@ function efJsonp(baseUrl){
     const cb = 'cb_' + Math.random().toString(36).slice(2);
     const s = document.createElement('script');
     let done = false;
-    const cleanup = ()=>{ try{ delete window[cb]; }catch(_){ window[cb]=undefined; } s.remove(); };
-    window[cb] = d => { done = true; cleanup(); resolve(d); };
-    s.onerror = ()=>{ if(!done){ cleanup(); reject(new Error('rede')); } };
+    const cleanup = ()=>{
+      window[cb] = () => { try{ delete window[cb]; }catch(_){ window[cb]=undefined; } };
+      if (s.parentNode) s.remove();
+    };
+    window[cb] = d => {
+      if (done) return;
+      done = true;
+      try{ delete window[cb]; }catch(_){ window[cb]=undefined; }
+      if (s.parentNode) s.remove();
+      resolve(d);
+    };
+    s.onerror = ()=>{
+      if(!done){
+        done = true;
+        cleanup();
+        reject(new Error('rede'));
+      }
+    };
     s.src = baseUrl + (baseUrl.includes('?')?'&':'?') + 'callback=' + cb + '&_=' + Date.now();
     document.body.appendChild(s);
-    setTimeout(()=>{ if(!done){ cleanup(); reject(new Error('timeout')); } }, 12000);
+    setTimeout(()=>{
+      if(!done){
+        done = true;
+        cleanup();
+        reject(new Error('timeout'));
+      }
+    }, 15000);
   });
 }
 

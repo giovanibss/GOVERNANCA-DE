@@ -264,28 +264,42 @@
         throw new Error('Endereço de e-mail do destinatário não informado.');
       }
 
-      // Tenta enviar utilizando SmtpJS (smtp.gmail.com com Senha de App) ou Web Relay configurado
+      // Tenta enviar utilizando Web Relay (Google Apps Script Web App) ou SmtpJS
       const relayUrl = localStorage.getItem('gmail_relay_url');
       if (relayUrl && relayUrl.startsWith('http')) {
+        const relayBody = JSON.stringify({
+          to: payload.to,
+          subject: payload.subject,
+          html: payload.html || payload.text,
+          text: payload.text || payload.html,
+          user: payload.user,
+          appPassword: payload.appPassword,
+          senderName: payload.senderName
+        });
+
+        // 1. Tenta envio direto via text/plain (evita preflight OPTIONS no Google Apps Script)
         try {
           const res = await fetch(relayUrl, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              to: payload.to,
-              subject: payload.subject,
-              html: payload.html || payload.text,
-              text: payload.text || payload.html,
-              user: payload.user,
-              appPassword: payload.appPassword,
-              senderName: payload.senderName
-            })
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: relayBody
           });
-          if (res.ok) {
+          if (res.ok || res.type === 'opaque') {
             return { success: true, message: 'E-mail enviado com sucesso via Web Relay!' };
           }
         } catch(e) {
-          console.warn('[AppConfig] Relay HTTP falhou, tentando transporte SmtpJS...', e.message);
+          // 2. Se a política CORS do navegador bloquear o redirect do Google Script, envia via no-cors
+          try {
+            await fetch(relayUrl, {
+              method: 'POST',
+              mode: 'no-cors',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: relayBody
+            });
+            return { success: true, message: 'E-mail enviado com sucesso via Google Web App Relay!' };
+          } catch(e2) {
+            console.warn('[AppConfig] Relay HTTP falhou, tentando transporte SmtpJS...', e2.message);
+          }
         }
       }
 
