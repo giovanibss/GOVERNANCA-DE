@@ -449,19 +449,20 @@ body.cortina .cue{animation-play-state:paused}
 .sub-btn svg{width:13px;height:13px;transition:transform .22s}
 .sub-btn:hover:not(:disabled) svg{transform:translateY(2px)}
 .sub-btn-mini{
-  flex:0 0 auto;width:auto;display:inline-flex;align-items:center;gap:.35rem;
-  padding:.28rem .65rem;border-radius:4px;cursor:pointer;
+  flex:0 0 auto;width:auto;max-width:max-content;display:inline-flex;align-items:center;gap:.35rem;
+  padding:.22rem .55rem;border-radius:4px;cursor:pointer;
   background:rgba(212,168,75,.15);border:1px solid rgba(212,168,75,.42);
   color:var(--gold-lt);
   font-family:var(--f-display);font-weight:600;font-size:.65rem;
-  letter-spacing:.07em;text-transform:uppercase;
+  letter-spacing:.07em;text-transform:uppercase;line-height:1.2;
   transition:background .22s,border-color .22s,transform .22s;
+  box-shadow:none;
 }
 .sub-btn-mini:hover{
   background:var(--gold-500);color:var(--navy-ink);
   border-color:var(--gold-500);transform:translateY(-1px);
 }
-.sub-btn-mini svg{width:12px;height:12px}
+.sub-btn-mini svg{width:12px !important;height:12px !important;display:inline-block !important;filter:none !important;flex:0 0 12px}
 @media(max-width:420px){
   .sub{flex-wrap:wrap}
   .sub-btn{width:100%;justify-content:center;margin-top:.3rem}
@@ -543,7 +544,7 @@ body.cortina .cue{animation-play-state:paused}
   display:grid;grid-template-columns:minmax(0,208px) 1fr;
   gap:1.6rem;align-items:center;
 }
-.instr svg{width:100%;height:auto;display:block;filter:drop-shadow(0 10px 26px rgba(0,0,0,.5))}
+.instr > svg, #gauge-idx{width:100%;height:auto;display:block;filter:drop-shadow(0 10px 26px rgba(0,0,0,.5))}
 .instr-side{min-width:0}
 .readout{
   display:grid;grid-template-columns:repeat(3,1fr);
