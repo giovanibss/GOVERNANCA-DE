@@ -195,6 +195,34 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
 .modalCaixa h3{font-size:1.15rem;text-transform:uppercase;color:var(--texto);margin-bottom:.5rem}
 .modalCaixa p{font-size:.82rem;color:var(--texto-2);margin-bottom:1.3rem}
 
+/* ── modal largo (cadastro de militares) ── */
+.modalFundo.largo{align-items:flex-start;overflow-y:auto;padding:clamp(.6rem,3vh,2.2rem) clamp(.5rem,3vw,1.5rem)}
+.modalFundo.largo .modalCaixa{
+  max-width:920px;text-align:left;padding:1.2rem 1.3rem 1.4rem;
+  max-height:92vh;display:flex;flex-direction:column;
+}
+.modalCab{display:flex;align-items:center;gap:.8rem;margin-bottom:.6rem}
+.modalCab h3{margin-bottom:0;color:var(--ouro-2);flex:1}
+.fecharModal{
+  background:transparent;border:1px solid var(--linha);color:var(--texto-2);
+  width:32px;height:32px;border-radius:99px;cursor:pointer;font-size:.95rem;line-height:1;
+  flex-shrink:0;transition:color .2s,border-color .2s;
+}
+.fecharModal:hover{color:var(--ouro-2);border-color:rgba(212,168,75,.5)}
+.modalCorpo{overflow:auto;flex:1;min-height:0}
+
+/* ── barra dos documentos do processo ── */
+.docsBar{
+  display:flex;gap:.55rem;flex-wrap:wrap;align-items:center;
+  margin:0 0 1.1rem;padding:.75rem .9rem;
+  border:1px dashed rgba(212,168,75,.38);border-radius:12px;background:rgba(212,168,75,.05);
+}
+.docsRot{
+  font-family:'Rajdhani';font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  font-size:.68rem;color:var(--ouro-2);margin-right:.15rem;
+}
+.docsBar small{width:100%;font-size:.68rem;color:var(--texto-3);line-height:1.5}
+
 /* ── impressão: só a tabela oficial, com identidade visual ── */
 #areaImpressao{display:none}
 @media print{
@@ -361,12 +389,27 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
           <label for="selCompSec">Competência</label>
           <input type="month" id="selCompSec" />
         </div>
+        <div class="campo">
+          <label for="numOficio">Nº do Ofício</label>
+          <input type="text" id="numOficio" placeholder="123" autocomplete="off" style="max-width:120px" />
+        </div>
+        <div class="campo">
+          <label for="numSigad">Nº SIGAD</label>
+          <input type="text" id="numSigad" placeholder="550297" autocomplete="off" style="max-width:140px" />
+        </div>
         <button class="acao fantasma" id="btnCsv">Exportar CSV</button>
-        <button class="acao fantasma" id="btnDocProcesso">📁 Documentos do Processo</button>
         <button class="acao fantasma" id="btnSyncPlanilha" onclick="sincronizarMilitaresComPlanilhaCentral()">🔄 Sincronizar Planilha Central</button>
         <button class="acao fantasma" id="btnAtualizarSec">Atualizar</button>
-        <button class="acao fantasma" id="btnVerCad">Cadastro de militares</button>
+        <button class="acao fantasma" id="btnVerCad">Cadastrar militares</button>
         <button class="acao fantasma" id="btnPinNovo">Alterar PIN</button>
+      </div>
+
+      <div class="docsBar">
+        <span class="docsRot">📁 Documentos do processo</span>
+        <button class="acao fantasma" id="btnDocDecl">📎 Declarações compiladas</button>
+        <button class="acao fantasma" id="btnDocSigad">📄 Demonstrativo SIGADAER</button>
+        <button class="acao fantasma" id="btnDocAci">🧾 Demonstrativo ACI</button>
+        <small>Os três documentos saem em <b>PDF A4 retrato</b>, com brasão, fundo institucional e carimbo de geração. O <b>Demonstrativo ACI</b> usa o Nº do Ofício e o Nº SIGAD informados acima.</small>
       </div>
       <dl class="kpis">
         <div class="resCel"><dt>Militares ativos</dt><dd id="kAtivos">—</dd></div>
@@ -386,13 +429,17 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
       </div>
     </div>
 
-    <!-- ═══ CADASTRO (submódulo da secretaria) ═══ -->
-    <div class="painel" id="telaCad" style="display:none">
-      <h3>Cadastro de militares do auxílio</h3>
+    <!-- ═══ CADASTRO (submódulo da secretaria, em janela) ═══ -->
+    <div class="modalFundo largo" id="telaCad" style="display:none" role="dialog" aria-modal="true" aria-labelledby="tituloCad">
+      <div class="modalCaixa">
+      <div class="modalCab">
+        <h3 id="tituloCad">Cadastro de militares do auxílio</h3>
+        <button class="fecharModal" id="btnFecharCad" aria-label="Fechar cadastro" title="Fechar">✕</button>
+      </div>
       <p style="font-size:.78rem;color:var(--texto-2);margin-bottom:1rem">
         O <b>auxílio em vigência</b> é o valor mensal fixo (base legal de 22 dias) e o <b>valor diário</b> é o desconto por dia útil não utilizado — ambos variam pela localidade de residência.
       </p>
-      <div class="tabScroll">
+      <div class="tabScroll modalCorpo">
         <table class="cad">
           <thead><tr><th>Grad.</th><th>Nome</th><th>SARAM</th><th>Auxílio mensal (R$)</th><th>Valor diário (R$)</th><th>Ativo</th><th></th></tr></thead>
           <tbody id="corpoCad"></tbody>
@@ -407,6 +454,7 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
           </tr></tfoot>
         </table>
       </div>
+      </div>
     </div>
     </div><!-- /secArea -->
   </section>
@@ -415,12 +463,12 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
 
 <div id="areaImpressao"></div>
 
-<footer>Governança DE · Academia da Força Aérea — módulo Auxílio Transporte · <b>v3.1</b> (correção da leitura 400)</footer>
+<footer>Governança DE · Academia da Força Aérea — módulo Auxílio Transporte · <b>v4.0</b> (documentos em PDF nativo · cadastro em janela)</footer>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="compiladordoc.js"></script>
 <script src="assets/js/app-config.js"></script>
 <script>
-console.log('%cAuxílio Transporte · v3.1 (correção da leitura 400)', 'color:#d4a84b;font-weight:bold');
+console.log('%cAuxílio Transporte · v4.0 (documentos em PDF nativo · cadastro em janela)', 'color:#d4a84b;font-weight:bold');
 /* ══════════════════════════════════════════════════════════════
    CONFIGURAÇÃO
    Mesma base Supabase dos outros módulos do site.
@@ -672,11 +720,21 @@ $('btnPinNovo').addEventListener('click', async () => {
     alert('PIN alterado. Comunique o novo PIN à equipe por secde.afa@fab.mil.br.');
   } catch (e){ alert('Não consegui alterar o PIN: ' + e.message); }
 });
-$('btnVerCad').addEventListener('click', () => {
-  const aberto = $('telaCad').style.display !== 'none';
-  $('telaCad').style.display = aberto ? 'none' : '';
-  $('btnVerCad').textContent = aberto ? 'Cadastro de militares' : 'Ocultar cadastro';
-  if (!aberto) pintarCadastro();
+function abrirCadastro(){
+  pintarCadastro();
+  $('telaCad').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => $('btnFecharCad').focus(), 30);
+}
+function fecharCadastro(){
+  $('telaCad').style.display = 'none';
+  document.body.style.overflow = '';
+}
+$('btnVerCad').addEventListener('click', abrirCadastro);
+$('btnFecharCad').addEventListener('click', fecharCadastro);
+$('telaCad').addEventListener('click', e => { if (e.target === $('telaCad')) fecharCadastro(); });
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('telaCad').style.display !== 'none') fecharCadastro();
 });
 
 /* ══════════════ VISÃO DO MILITAR ══════════════ */
@@ -1058,7 +1116,7 @@ async function sincronizarMilitaresComPlanilhaCentral() {
 }
 
 $('btnAtualizarSec').addEventListener('click', carregarSecretaria);
-$('selCompSec').addEventListener('change', carregarSecretaria);
+$('selCompSec').addEventListener('change', () => { pintarOficio($('selCompSec').value); carregarSecretaria(); });
 
 function baixarArquivoCsv(comp, textoCsv) {
   const blob = new Blob(['\uFEFF' + textoCsv], { type:'text/csv;charset=utf-8' });
@@ -1130,12 +1188,6 @@ $('btnCsv').addEventListener('click', () => {
   }
 });
 
-/* ══════════════ DOCUMENTOS DO PROCESSO ══════════════ */
-$('btnDocProcesso').addEventListener('click', () => {
-  const comp = $('selCompSec').value; if (!comp) return;
-  CompiladorDoc.compilarTodos(comp, militares, secDecls, secDeclsPrev, urlPdf);
-});
-
 /* ══════════════ CADASTRO ══════════════ */
 function pintarCadastro(){
   $('corpoCad').innerHTML = militares.map(m =>
@@ -1198,8 +1250,9 @@ $('btnAddMil').addEventListener('click', async () => {
   } catch (e){ faixa($('faixaGeral'), 'erro', '⚠️ ' + e.message); }
 });
 
-/* ══════════════ PDF OFICIAL (impressão) ══════════════ */
-$('btnPdf').addEventListener('click', () => {
+/* ══════════════ IMPRESSÃO DO NAVEGADOR (rota de reserva) ══════════════
+   Mantida apenas como alternativa caso a geração vetorial falhe.       */
+function imprimirDeclaracaoNavegador(){
   const mil = milSelecionado(); const comp = $('selComp').value;
   if (!mil || !comp){ faixa($('faixaGeral'), 'alerta', 'Selecione o militar e a competência para gerar o PDF.'); return; }
   const r = calcularDecl(comp, diasAtual, mil, zeradoAnterior);
@@ -1265,7 +1318,689 @@ $('btnPdf').addEventListener('click', () => {
   };
   if (fundo.complete) executarImpressao();
   else { fundo.onload = executarImpressao; fundo.onerror = executarImpressao; }
-});
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MOTOR DE DOCUMENTOS PDF · v4.0
+   Gera PDF real (vetorial) via pdf-lib, com resultado IDÊNTICO
+   no desktop e no celular — não depende da caixa de impressão
+   do navegador, que é o que desconfigurava o PDF no mobile.
+   Documentos:
+     • Declaração individual de frequência (assinatura GOV.BR)
+     • Declarações compiladas (união dos PDFs assinados)
+     • Demonstrativo SIGADAER
+     • Demonstrativo ACI
+   ══════════════════════════════════════════════════════════════ */
+
+const A4 = { L: 595.28, A: 841.89 };   // A4 retrato, em pontos
+const MG = 38;                          // margem
+const LARG = A4.L - MG * 2;             // largura útil
+const SUBCAB = 'DIVISÃO DE ENSINO · SECRETARIA DA DIVISÃO DE ENSINO';
+
+const COR = {
+  navy:  [0.039, 0.090, 0.188],
+  ouro:  [0.831, 0.659, 0.294],
+  ouroE: [0.541, 0.416, 0.118],
+  cinza: [0.373, 0.463, 0.600],
+  linha: [0.680, 0.740, 0.830],
+  zebra: [0.945, 0.961, 0.980],
+  jade:  [0.110, 0.478, 0.333],
+  rubi:  [0.720, 0.200, 0.200],
+  branco:[1, 1, 1]
+};
+
+/* ── carregamento da biblioteca (com CDN reserva) ── */
+let _pdfLibProm = null;
+function carregarPdfLib(){
+  if (window.PDFLib) return Promise.resolve(window.PDFLib);
+  if (_pdfLibProm) return _pdfLibProm;
+  const fontes = [
+    'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js',
+    'https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js'
+  ];
+  _pdfLibProm = new Promise((ok, falha) => {
+    let i = 0;
+    (function tenta(){
+      if (i >= fontes.length){ falha(new Error('Não consegui carregar a biblioteca de PDF. Verifique a conexão e tente de novo.')); return; }
+      const s = document.createElement('script');
+      s.src = fontes[i++];
+      s.onload = () => window.PDFLib ? ok(window.PDFLib) : tenta();
+      s.onerror = tenta;
+      document.head.appendChild(s);
+    })();
+  });
+  return _pdfLibProm;
+}
+
+/* ── imagens da identidade visual (mesma pasta do site → sempre carregam) ── */
+const _assetsCache = {};
+async function bytesAsset(caminho){
+  if (caminho in _assetsCache) return _assetsCache[caminho];
+  try {
+    const r = await fetch(caminho, { cache:'force-cache' });
+    _assetsCache[caminho] = r.ok ? new Uint8Array(await r.arrayBuffer()) : null;
+  } catch(e){ _assetsCache[caminho] = null; }
+  return _assetsCache[caminho];
+}
+async function embutirImg(doc, bytes){
+  if (!bytes || !bytes.length) return null;
+  try { return await doc.embedJpg(bytes); } catch(e){}
+  try { return await doc.embedPng(bytes); } catch(e){}
+  return null;
+}
+
+/* ── texto seguro para as fontes padrão do PDF (Latin-1) ── */
+function txtSeguro(s){
+  return String(s ?? '')
+    .replace(/[\u2018\u2019\u201B]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u2013\u2014\u2212]/g, '-')
+    .replace(/\u2026/g, '...')
+    .replace(/\u00A0/g, ' ')
+    .replace(/[\u2022\u25CF]/g, '\u00B7')
+    .replace(/[\u2713\u2714\u2716\u2718]/g, '')
+    .replace(/[^\u0000-\u00FF]/g, '')
+    .replace(/[\u0000-\u001F\u007F-\u009F]/g, ' ')
+    .trim();
+}
+function cortar(t, fonte, tam, larg){
+  t = txtSeguro(t);
+  if (fonte.widthOfTextAtSize(t, tam) <= larg) return t;
+  while (t.length > 1 && fonte.widthOfTextAtSize(t + '...', tam) > larg) t = t.slice(0, -1);
+  return t + '...';
+}
+function quebrar(t, fonte, tam, larg){
+  const palavras = txtSeguro(t).split(/\s+/);
+  const linhas = []; let atual = '';
+  palavras.forEach(p => {
+    const teste = atual ? atual + ' ' + p : p;
+    if (fonte.widthOfTextAtSize(teste, tam) <= larg) atual = teste;
+    else { if (atual) linhas.push(atual); atual = p; }
+  });
+  if (atual) linhas.push(atual);
+  return linhas.length ? linhas : [''];
+}
+
+/* ── carimbo de geração (dia e hora automáticos) ── */
+function carimboGeracao(){
+  const d = new Date(), p2 = n => String(n).padStart(2, '0');
+  return 'Documento gerado pelo operador da SEC-DE em ' +
+         p2(d.getDate()) + '/' + p2(d.getMonth()+1) + '/' + d.getFullYear() +
+         ' às ' + p2(d.getHours()) + ':' + p2(d.getMinutes());
+}
+
+/* ── contexto base de um documento ── */
+async function docBase(opc){
+  const PL = await carregarPdfLib();
+  const doc = await PL.PDFDocument.create();
+  doc.setTitle(txtSeguro(opc.titulo));
+  doc.setCreator('Governança DE · AFA');
+  doc.setProducer('Governança DE · Auxílio Transporte');
+  const ctx = {
+    PL, doc,
+    rgb: PL.rgb,
+    fR: await doc.embedFont(PL.StandardFonts.Helvetica),
+    fB: await doc.embedFont(PL.StandardFonts.HelveticaBold),
+    fI: await doc.embedFont(PL.StandardFonts.HelveticaOblique),
+    hero:   await embutirImg(doc, await bytesAsset('assets/hero-afa.jpg')),
+    brasao: await embutirImg(doc, await bytesAsset('assets/brasao-afa.jpg')),
+    titulo: opc.titulo,
+    subtitulo: opc.subtitulo || SUBCAB,
+    canto: opc.canto || '',
+    paginas: []
+  };
+  return ctx;
+}
+function c(ctx, nome){ return ctx.rgb(...COR[nome]); }
+
+/* ── HERO como plano de fundo (recorte "cover", igual ao da declaração) ── */
+function pintarFundo(ctx, p){
+  if (!ctx.hero) return;
+  const iw = ctx.hero.width, ih = ctx.hero.height;
+  const esc = Math.max(A4.L / iw, A4.A / ih);
+  const w = iw * esc, h = ih * esc;
+  p.drawImage(ctx.hero, { x:(A4.L - w)/2, y:(A4.A - h)/2 - h*0.04, width:w, height:h, opacity:0.075 });
+}
+
+function novaPagina(ctx){
+  const p = ctx.doc.addPage([A4.L, A4.A]);
+  pintarFundo(ctx, p);
+  ctx.paginas.push(p);
+  return p;
+}
+
+/* ── cabeçalho institucional (brasão + título + subtítulo + filete dourado) ── */
+function cabecalho(ctx, p){
+  const topo = A4.A - MG;
+  const s = 44;
+  if (ctx.brasao) p.drawImage(ctx.brasao, { x:MG, y:topo - s, width:s, height:s });
+
+  const x0 = MG + (ctx.brasao ? s + 12 : 0);
+  const largCanto = ctx.canto ? 92 : 0;
+  const largTit = LARG - (x0 - MG) - largCanto - 8;
+
+  const linhas = quebrar(ctx.titulo, ctx.fB, 12, largTit).slice(0, 2);
+  let y = topo - 11;
+  linhas.forEach(l => { p.drawText(l, { x:x0, y, size:12, font:ctx.fB, color:c(ctx,'navy') }); y -= 14; });
+  p.drawText(cortar(ctx.subtitulo, ctx.fB, 6.6, largTit), { x:x0, y:y - 1, size:6.6, font:ctx.fB, color:c(ctx,'cinza') });
+
+  if (ctx.canto){
+    let yc = topo - 13;
+    String(ctx.canto).split('\n').forEach((l, i) => {
+      const t = txtSeguro(l), tam = i === 0 ? 13 : 10;
+      const w = ctx.fB.widthOfTextAtSize(t, tam);
+      p.drawText(t, { x:A4.L - MG - w, y:yc, size:tam, font:ctx.fB, color:c(ctx,'ouroE') });
+      yc -= tam + 3;
+    });
+  }
+
+  const yFilete = topo - s - 7;
+  p.drawRectangle({ x:MG, y:yFilete, width:LARG, height:1.8, color:c(ctx,'ouro') });
+  return yFilete - 16;
+}
+
+/* ── rodapé: carimbo automático + paginação (aplicado no fim, em todas as páginas) ── */
+function rodape(ctx){
+  const carimbo = txtSeguro(carimboGeracao());
+  const tot = ctx.paginas.length;
+  ctx.paginas.forEach((p, i) => {
+    p.drawRectangle({ x:MG, y:MG + 17, width:LARG, height:0.7, color:c(ctx,'linha') });
+    p.drawText(carimbo, { x:MG, y:MG + 7, size:7, font:ctx.fR, color:c(ctx,'cinza') });
+    const t = 'Pág. ' + (i+1) + ' de ' + tot;
+    const w = ctx.fR.widthOfTextAtSize(txtSeguro(t), 7);
+    p.drawText(txtSeguro(t), { x:A4.L - MG - w, y:MG + 7, size:7, font:ctx.fR, color:c(ctx,'cinza') });
+  });
+}
+
+/* ── blocos de identificação / resumo ── */
+function blocos(ctx, p, y, itens){
+  const gap = 6, h = 27;
+  const peso = itens.reduce((s, i) => s + (i.peso || 1), 0);
+  const disp = LARG - gap * (itens.length - 1);
+  let x = MG;
+  itens.forEach(it => {
+    const w = disp * (it.peso || 1) / peso;
+    p.drawRectangle({ x, y:y - h, width:w, height:h, color:c(ctx,'branco'), opacity:.72,
+                      borderColor:c(ctx,'linha'), borderWidth:.6 });
+    p.drawText(cortar(it.rot, ctx.fB, 5.8, w - 9), { x:x + 5, y:y - 10, size:5.8, font:ctx.fB, color:c(ctx,'cinza') });
+    p.drawText(cortar(it.val, ctx.fB, 9.5, w - 9), { x:x + 5, y:y - 22, size:9.5, font:ctx.fB, color:c(ctx, it.cor || 'navy') });
+    x += w + gap;
+  });
+  return y - h;
+}
+
+/* ── motor de tabela com quebra de página e repetição do cabeçalho ──
+   colunas: [{ rot, larg, al:'e'|'c'|'d' }]
+   linhas : [{ cels:[ 'txt' | ['l1','l2'] ], neg:[i…], fundo:'jade', op:0.12 }]      */
+function tabela(ctx, cfg){
+  const tamCab = cfg.tamCab || 6.8, tamCel = cfg.tamCel || 7.6, padX = 4;
+  let p = cfg.pagina, y = cfg.y;
+
+  const desenhaCab = () => {
+    if (cfg.cabPersonalizado){ y = cfg.cabPersonalizado(ctx, p, y); return; }
+    const h = 15;
+    p.drawRectangle({ x:MG, y:y - h, width:LARG, height:h, color:c(ctx,'navy') });
+    let x = MG;
+    cfg.colunas.forEach(col => {
+      const t = cortar(col.rot, ctx.fB, tamCab, col.larg - padX*2);
+      const w = ctx.fB.widthOfTextAtSize(t, tamCab);
+      let tx = x + padX;
+      if (col.al === 'c') tx = x + (col.larg - w) / 2;
+      if (col.al === 'd') tx = x + col.larg - padX - w;
+      p.drawText(t, { x:tx, y:y - h + 5.2, size:tamCab, font:ctx.fB, color:c(ctx,'branco') });
+      x += col.larg;
+    });
+    y -= h;
+    p.drawRectangle({ x:MG, y:y - 1.4, width:LARG, height:1.4, color:c(ctx,'ouro') });
+    y -= 1.4;
+  };
+
+  desenhaCab();
+
+  cfg.linhas.forEach((ln, idx) => {
+    const nL = Math.max(1, ...ln.cels.map(cl => Array.isArray(cl) ? cl.length : 1));
+    const h = 5.5 + nL * (tamCel + 2.6);
+    if (y - h < MG + 30 + (cfg.reservaFinal || 0)){
+      p = novaPagina(ctx);
+      y = cabecalho(ctx, p);
+      desenhaCab();
+    }
+    if (idx % 2 === 1) p.drawRectangle({ x:MG, y:y - h, width:LARG, height:h, color:c(ctx,'zebra'), opacity:.9 });
+    if (ln.fundo)      p.drawRectangle({ x:MG, y:y - h, width:LARG, height:h, color:c(ctx, ln.fundo), opacity:ln.op ?? .13 });
+
+    let x = MG;
+    ln.cels.forEach((cel, ci) => {
+      const col = cfg.colunas[ci];
+      const lista = Array.isArray(cel) ? cel : [cel];
+      let ty = y - 5.5 - tamCel + 1.6;
+      lista.forEach((tt, li) => {
+        const negrito = li === 0 && ln.neg && ln.neg.indexOf(ci) !== -1;
+        const fonte = negrito ? ctx.fB : ctx.fR;
+        const tam = li === 0 ? tamCel : tamCel - 1.3;
+        const t = cortar(tt, fonte, tam, col.larg - padX*2);
+        const w = fonte.widthOfTextAtSize(t, tam);
+        let tx = x + padX;
+        if (col.al === 'c') tx = x + (col.larg - w) / 2;
+        if (col.al === 'd') tx = x + col.larg - padX - w;
+        p.drawText(t, { x:tx, y:ty, size:tam, font:fonte,
+                        color: li === 0 ? c(ctx, ln.corTexto || 'navy') : c(ctx,'cinza') });
+        ty -= tam + 2.6;
+      });
+      x += col.larg;
+    });
+    y -= h;
+    p.drawRectangle({ x:MG, y, width:LARG, height:.4, color:c(ctx,'linha'), opacity:.65 });
+  });
+
+  return { pagina:p, y };
+}
+
+/* ── download ── */
+async function baixarPdf(doc, nome){
+  const bytes = await doc.save();
+  const blob = new Blob([bytes], { type:'application/pdf' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = nome; a.rel = 'noopener';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 6000);
+}
+
+/* ── avisos ── */
+function aguarde(txt){
+  if (typeof Swal !== 'undefined')
+    Swal.fire({ title:txt, allowOutsideClick:false, allowEscapeKey:false,
+                background:'#101f3e', color:'#cfe4ff', didOpen:() => Swal.showLoading() });
+}
+function fecharAguarde(){ if (typeof Swal !== 'undefined') Swal.close(); }
+function avisoErro(msg){
+  if (typeof Swal !== 'undefined')
+    Swal.fire({ icon:'error', title:'Não consegui gerar o documento', text:msg, background:'#101f3e', color:'#cfe4ff' });
+  else alert(msg);
+}
+function avisoOk(titulo, msg){
+  if (typeof Swal !== 'undefined')
+    Swal.fire({ icon:'success', title:titulo, html:msg, background:'#101f3e', color:'#cfe4ff' });
+  else alert(titulo + '\n' + msg);
+}
+
+/* ══════════════ DADOS CONSOLIDADOS DA COMPETÊNCIA ══════════════ */
+function separarGradEsp(grad){
+  const t = String(grad || '').trim().split(/\s+/).filter(Boolean);
+  if (!t.length) return { pg:'—', esp:'—' };
+  if (t.length === 1) return { pg:t[0], esp:'—' };
+  return { pg:t[0], esp:t.slice(1).join(' ') };
+}
+function dadosDoMes(comp){
+  const prevFlag = Object.fromEntries(secDeclsPrev.map(d => [d.militar_id, d.zera_mes_seguinte]));
+  return militares.filter(m => m.ativo).map(m => {
+    const d = secDecls.find(x => x.militar_id === m.id);
+    const r = calcularDecl(comp, (d && d.dias) || {}, m, !!prevFlag[m.id]);
+    return { m, d, r };
+  }).sort((a, b) => String(a.m.nome).localeCompare(String(b.m.nome), 'pt-BR'));
+}
+function valorDesconto(r){ return r.zerado ? r.vig : r.desconto; }
+
+/* ══════════════ Nº DO OFÍCIO / Nº SIGAD (por competência) ══════════════ */
+async function lerOficio(comp){
+  try {
+    const r = await sbGet('at_oficios?select=*&competencia=eq.' + comp);
+    if (r && r[0]) return { num_oficio:r[0].num_oficio || '', num_sigad:r[0].num_sigad || '' };
+  } catch(e){ /* tabela ainda não criada → cai no armazenamento local */ }
+  try {
+    const ls = localStorage.getItem('at_oficio_' + comp);
+    if (ls) return JSON.parse(ls);
+  } catch(e){}
+  return { num_oficio:'', num_sigad:'' };
+}
+async function salvarOficio(comp){
+  const o = { num_oficio:$('numOficio').value.trim(), num_sigad:$('numSigad').value.trim() };
+  try { localStorage.setItem('at_oficio_' + comp, JSON.stringify(o)); } catch(e){}
+  try { await sbUpsert('at_oficios', Object.assign({ competencia:comp }, o), 'competencia'); } catch(e){}
+  return o;
+}
+async function pintarOficio(comp){
+  const o = await lerOficio(comp);
+  $('numOficio').value = o.num_oficio || '';
+  $('numSigad').value  = o.num_sigad  || '';
+}
+function celulaOficio(o){
+  return [
+    'Ofício nº ' + (o.num_oficio || '______') + '/DE',
+    '(SIGAD ' + (o.num_sigad || '______') + ')'
+  ];
+}
+
+/* ══════════════ BOTÃO 1 · DECLARAÇÕES COMPILADAS ══════════════ */
+async function gerarDeclaracoesCompiladas(){
+  const comp = $('selCompSec').value; if (!comp) return;
+  aguarde('Reunindo as declarações assinadas…');
+  try {
+    await carregarSecretaria();
+    const dados  = dadosDoMes(comp);
+    const comPdf = dados.filter(x => x.d && x.d.pdf_assinado);
+    const semPdf = dados.filter(x => !(x.d && x.d.pdf_assinado));
+    if (!comPdf.length){
+      fecharAguarde();
+      avisoErro('Nenhuma declaração assinada foi anexada em ' + rotuloComp(comp) + '. Peça aos militares para enviar o PDF assinado no GOV.BR.');
+      return;
+    }
+
+    /* capa: índice do processo */
+    const ctx = await docBase({
+      titulo: 'Declarações de Frequência Compiladas',
+      canto: rotuloComp(comp).split('/')[0] + '\n' + rotuloComp(comp).split('/')[1]
+    });
+    let p = novaPagina(ctx);
+    let y = cabecalho(ctx, p);
+    y = blocos(ctx, p, y, [
+      { rot:'Competência',            val:rotuloComp(comp), peso:1.2 },
+      { rot:'Declarações anexadas',   val:String(comPdf.length), cor:'jade' },
+      { rot:'Sem PDF assinado',       val:String(semPdf.length), cor: semPdf.length ? 'rubi' : 'navy' },
+      { rot:'Militares ativos',       val:String(dados.length) }
+    ]) - 12;
+
+    const colunas = [
+      { rot:'Ordem',  larg:44,  al:'c' },
+      { rot:'P/G',    larg:56,  al:'c' },
+      { rot:'ESP',    larg:46,  al:'c' },
+      { rot:'Nome de guerra', larg:170, al:'e' },
+      { rot:'SARAM',  larg:80,  al:'c' },
+      { rot:'Situação', larg:123.28, al:'c' }
+    ];
+    const linhas = dados.map((x, i) => {
+      const ge = separarGradEsp(x.m.grad);
+      const temPdf = !!(x.d && x.d.pdf_assinado);
+      const st = !x.d ? 'Não iniciada'
+               : x.d.status === 'conferida' ? 'Conferida'
+               : x.d.status === 'enviada'   ? 'Enviada'
+               : 'Rascunho';
+      return {
+        cels:[ String(i+1).padStart(2,'0'), ge.pg, x.m.esp || ge.esp, x.m.nome, x.m.saram,
+               temPdf ? st + ' (anexa)' : st + ' (sem PDF)' ],
+        neg:[3],
+        fundo: temPdf ? null : 'rubi', op:.10
+      };
+    });
+    tabela(ctx, { pagina:p, y, colunas, linhas });
+    rodape(ctx);
+
+    /* junta os PDFs assinados após a capa */
+    const { PDFDocument } = ctx.PL;
+    let unidos = 0, falhas = [];
+    for (const x of comPdf){
+      try {
+        const resp = await fetch(urlPdf(x.d.pdf_assinado));
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const origem = await PDFDocument.load(await resp.arrayBuffer(), { ignoreEncryption:true });
+        const pgs = await ctx.doc.copyPages(origem, origem.getPageIndices());
+        pgs.forEach(pg => ctx.doc.addPage(pg));
+        unidos++;
+      } catch(e){
+        falhas.push(x.m.grad + ' ' + x.m.nome);
+        console.warn('Falha ao unir PDF de', x.m.nome, e);
+      }
+    }
+
+    const [ano, mes] = comp.split('-').map(Number);
+    await baixarPdf(ctx.doc, 'DECLARACOES_COMPILADAS_' + MESES[mes-1].substring(0,3) + '_' + ano + '.pdf');
+    fecharAguarde();
+
+    let msg = '<b>' + unidos + '</b> declaração(ões) assinada(s) unida(s) em um único PDF, com capa-índice.';
+    if (semPdf.length) msg += '<br><br><span style="color:#f0cf8f">' + semPdf.length + ' militar(es) ainda sem PDF assinado</span> — aparecem destacados na capa.';
+    if (falhas.length) msg += '<br><br><span style="color:#f2a9a9">Não consegui ler o PDF de: ' + falhas.join(', ') + '</span>';
+    avisoOk('Declarações compiladas', msg);
+  } catch(e){
+    fecharAguarde();
+    avisoErro(e.message || String(e));
+  }
+}
+
+/* ══════════════ BOTÃO 2 · DEMONSTRATIVO SIGADAER ══════════════ */
+async function gerarDemonstrativoSigadaer(){
+  const comp = $('selCompSec').value; if (!comp) return;
+  aguarde('Montando o demonstrativo SIGADAER…');
+  try {
+    await carregarSecretaria();
+    const dados = dadosDoMes(comp);
+    if (!dados.length){ fecharAguarde(); avisoErro('Nenhum militar ativo cadastrado nesta competência.'); return; }
+
+    const [ano, mes] = comp.split('-').map(Number);
+    const ctx = await docBase({
+      titulo: 'Planilha de Controle Auxílio-Transporte – AFA/DE',
+      canto: MESES[mes-1] + '\n' + ano
+    });
+    let p = novaPagina(ctx);
+    let y = cabecalho(ctx, p);
+
+    const totDias = dados.reduce((s, x) => s + (x.r.zerado ? 0 : x.r.diasDescNum), 0);
+    const totVal  = dados.reduce((s, x) => s + valorDesconto(x.r), 0);
+    const zerados = dados.filter(x => x.r.zerado).length;
+
+    y = blocos(ctx, p, y, [
+      { rot:'Competência',        val:rotuloComp(comp), peso:1.15 },
+      { rot:'Militares',          val:String(dados.length) },
+      { rot:'Meses zerados',      val:String(zerados), cor: zerados ? 'rubi' : 'navy' },
+      { rot:'Dias descontados',   val:String(totDias) },
+      { rot:'Total do desconto',  val:fmtBRL(totVal), cor:'ouroE', peso:1.1 }
+    ]) - 12;
+
+    const colunas = [
+      { rot:'P/G',   larg:52,     al:'c' },
+      { rot:'ESP',   larg:46,     al:'c' },
+      { rot:'Nome de guerra', larg:172, al:'e' },
+      { rot:'SARAM', larg:82,     al:'c' },
+      { rot:'Dias descontados', larg:78, al:'c' },
+      { rot:'Valor do desconto', larg:89.28, al:'d' }
+    ];
+    const linhas = dados.map(x => {
+      const ge = separarGradEsp(x.m.grad);
+      return {
+        cels:[ ge.pg, x.m.esp || ge.esp, x.m.nome, x.m.saram,
+               x.r.zerado ? 'MÊS ZERADO' : String(x.r.diasDescNum),
+               fmtBRL(valorDesconto(x.r)) ],
+        neg:[2, 4, 5],
+        fundo: x.r.zerado ? 'rubi' : null, op:.09
+      };
+    });
+    linhas.push({
+      cels:[ '', '', 'TOTAL GERAL (' + dados.length + ' militares)', '', String(totDias), fmtBRL(totVal) ],
+      neg:[2, 4, 5], fundo:'ouro', op:.22
+    });
+
+    tabela(ctx, { pagina:p, y, colunas, linhas });
+    rodape(ctx);
+    await baixarPdf(ctx.doc, 'DEMONSTRATIVO_SIGADAER_' + MESES[mes-1].substring(0,3) + '_' + ano + '.pdf');
+    fecharAguarde();
+  } catch(e){
+    fecharAguarde();
+    avisoErro(e.message || String(e));
+  }
+}
+
+/* ══════════════ BOTÃO 3 · DEMONSTRATIVO ACI ══════════════ */
+async function gerarDemonstrativoAci(){
+  const comp = $('selCompSec').value; if (!comp) return;
+  if (!$('numOficio').value.trim() || !$('numSigad').value.trim()){
+    const seguir = confirm('O Nº do Ofício e/ou o Nº SIGAD estão em branco.\n\nA coluna OFÍCIO sairá com lacunas para preenchimento à mão.\n\nDeseja gerar assim mesmo?');
+    if (!seguir){ $('numOficio').focus(); return; }
+  }
+  aguarde('Montando o demonstrativo ACI…');
+  try {
+    const oficio = await salvarOficio(comp);
+    await carregarSecretaria();
+    const dados = dadosDoMes(comp);
+    if (!dados.length){ fecharAguarde(); avisoErro('Nenhum militar ativo cadastrado nesta competência.'); return; }
+
+    const [ano, mes] = comp.split('-').map(Number);
+    const ctx = await docBase({
+      titulo: 'Desconto Auxílio Transporte referente a ' + MESES[mes-1] + '/' + ano,
+      canto: MESES[mes-1] + '\n' + ano
+    });
+    let p = novaPagina(ctx);
+    let y = cabecalho(ctx, p);
+
+    const totVal = dados.reduce((s, x) => s + valorDesconto(x.r), 0);
+    y = blocos(ctx, p, y, [
+      { rot:'Competência',   val:rotuloComp(comp), peso:1.1 },
+      { rot:'Nº do Ofício',  val:(oficio.num_oficio || '—') + '/DE', cor:'ouroE' },
+      { rot:'Nº SIGAD',      val:oficio.num_sigad || '—', cor:'ouroE' },
+      { rot:'Militares',     val:String(dados.length) },
+      { rot:'Total do desconto', val:fmtBRL(totVal), cor:'ouroE', peso:1.15 }
+    ]) - 12;
+
+    const cel = celulaOficio(oficio);
+    const colunas = [
+      { rot:'SARAM', larg:80,  al:'c' },
+      { rot:'P/G',   larg:60,  al:'c' },
+      { rot:'Nome de guerra', larg:158, al:'e' },
+      { rot:'Ofício', larg:132, al:'e' },
+      { rot:'Valor', larg:89.28, al:'d' }
+    ];
+    const linhas = dados.map(x => ({
+      cels:[ x.m.saram, separarGradEsp(x.m.grad).pg, x.m.nome, cel.slice(), fmtBRL(valorDesconto(x.r)) ],
+      neg:[2, 3, 4],
+      fundo: x.r.zerado ? 'rubi' : null, op:.09
+    }));
+    linhas.push({
+      cels:[ '', '', 'TOTAL GERAL (' + dados.length + ' militares)', '', fmtBRL(totVal) ],
+      neg:[2, 4], fundo:'ouro', op:.22
+    });
+
+    tabela(ctx, { pagina:p, y, colunas, linhas });
+    rodape(ctx);
+    await baixarPdf(ctx.doc, 'DEMONSTRATIVO_ACI_' + MESES[mes-1].substring(0,3) + '_' + ano + '.pdf');
+    fecharAguarde();
+  } catch(e){
+    fecharAguarde();
+    avisoErro(e.message || String(e));
+  }
+}
+
+/* ══════════════ DECLARAÇÃO INDIVIDUAL (desktop = mobile) ══════════════ */
+async function gerarPdfDeclaracao(){
+  const mil = milSelecionado(), comp = $('selComp').value;
+  if (!mil || !comp){ faixa($('faixaGeral'), 'alerta', 'Selecione o militar e a competência para gerar o PDF.'); return; }
+  const r = calcularDecl(comp, diasAtual, mil, zeradoAnterior);
+  const [ano, mes] = comp.split('-').map(Number);
+
+  aguarde('Gerando o PDF da declaração…');
+  try {
+    const ctx = await docBase({
+      titulo: 'Tabela de Frequência – Auxílio Transporte',
+      subtitulo: 'ACADEMIA DA FORÇA AÉREA · ' + SUBCAB,
+      canto: MESES[mes-1] + '\n' + ano
+    });
+    let p = novaPagina(ctx);
+    let y = cabecalho(ctx, p);
+
+    y = blocos(ctx, p, y, [
+      { rot:'Grad. / Nome do militar', val:mil.grad + ' ' + mil.nome, peso:2 },
+      { rot:'SARAM',                   val:String(mil.saram) },
+      { rot:'Auxílio em vigência',     val:fmtBRL(r.vig), cor:'ouroE' },
+      { rot:'Valor diário',            val:fmtBRL(r.vDia), cor:'ouroE' }
+    ]) - 11;
+
+    /* cabeçalho agrupado: Dia | Manhã (Sim/Não) | Tarde (Sim/Não) | Motivo | Observações */
+    const colunas = [
+      { rot:'Dia',  larg:32,  al:'c' },
+      { rot:'Sem.', larg:40,  al:'c' },
+      { rot:'Sim',  larg:32,  al:'c' },
+      { rot:'Não',  larg:32,  al:'c' },
+      { rot:'Sim',  larg:32,  al:'c' },
+      { rot:'Não',  larg:32,  al:'c' },
+      { rot:'Motivo',       larg:152,    al:'e' },
+      { rot:'Observações',  larg:167.28, al:'e' }
+    ];
+    const cabDuplo = (cx, pg, yy) => {
+      const h1 = 12, h2 = 12, H = h1 + h2;
+      pg.drawRectangle({ x:MG, y:yy - H, width:LARG, height:H, color:c(cx,'navy') });
+      const centro = (x, w, t, tam, yb) => {
+        const s = txtSeguro(t), ww = cx.fB.widthOfTextAtSize(s, tam);
+        pg.drawText(s, { x:x + (w - ww)/2, y:yb, size:tam, font:cx.fB, color:c(cx,'branco') });
+      };
+      const lx = [];
+      let acc = MG;
+      colunas.forEach(col => { lx.push(acc); acc += col.larg; });
+
+      centro(lx[0], colunas[0].larg + colunas[1].larg, 'Dia', 6.8, yy - H + 9);
+      centro(lx[2], colunas[2].larg + colunas[3].larg, 'Manhã', 6.8, yy - h1 + 4);
+      centro(lx[4], colunas[4].larg + colunas[5].larg, 'Tarde', 6.8, yy - h1 + 4);
+      centro(lx[2], colunas[2].larg, 'Sim', 6.2, yy - H + 4);
+      centro(lx[3], colunas[3].larg, 'Não', 6.2, yy - H + 4);
+      centro(lx[4], colunas[4].larg, 'Sim', 6.2, yy - H + 4);
+      centro(lx[5], colunas[5].larg, 'Não', 6.2, yy - H + 4);
+      pg.drawText('Motivo', { x:lx[6] + 4, y:yy - H + 9, size:6.8, font:cx.fB, color:c(cx,'branco') });
+      pg.drawText('Observações', { x:lx[7] + 4, y:yy - H + 9, size:6.8, font:cx.fB, color:c(cx,'branco') });
+      /* filetes verticais separando Manhã/Tarde */
+      [lx[2], lx[4], lx[6]].forEach(x =>
+        pg.drawRectangle({ x, y:yy - H, width:.5, height:H, color:c(cx,'ouro'), opacity:.55 }));
+      pg.drawRectangle({ x:MG, y:yy - H - 1.4, width:LARG, height:1.4, color:c(cx,'ouro') });
+      return yy - H - 1.4;
+    };
+
+    const linhas = diasDoMes(comp).map(g => {
+      const reg = diasAtual[g.d], mot = reg && M_IDX[reg.motivo];
+      let mS = '', mN = '', tS = '', tN = '', motTxt = '', obs = (reg && reg.obs) || '';
+      if (!g.util){ mS = mN = tS = tN = motTxt = '-'; obs = ''; }
+      else if (mot){
+        mS = mot.marca.m === 'S' ? 'X' : '';
+        mN = mot.marca.m === 'N' ? 'X' : '';
+        tS = mot.marca.t === 'S' ? 'X' : '';
+        tN = mot.marca.t === 'N' ? 'X' : '';
+        motTxt = mot.rotulo;
+      }
+      return {
+        cels:[ String(g.d).padStart(2,'0'), SEMANA[g.dow], mS, mN, tS, tN, motTxt, obs ],
+        neg:[0, 2, 3, 4, 5],
+        corTexto: g.util ? 'navy' : 'cinza',
+        fundo: g.util ? null : 'navy', op:.06
+      };
+    });
+
+    const fim = tabela(ctx, {
+      pagina:p, y, colunas, linhas,
+      tamCel:7.2, cabPersonalizado:cabDuplo, reservaFinal:112
+    });
+    p = fim.pagina; y = fim.y - 11;
+
+    y = blocos(ctx, p, y, [
+      { rot:'Dias descontados', val: r.zerado ? '— (mês sem pagamento)' : String(r.diasDescNum) },
+      { rot:'Desconto',         val: fmtBRL(r.desconto), cor:'rubi' },
+      { rot:'Valor a receber',  val: fmtBRL(r.final), cor:'jade' }
+    ]) - 16;
+
+    const decl = 'Declaro, sob minha responsabilidade, que as informações acima refletem a efetiva utilização do auxílio transporte na competência indicada.';
+    quebrar(decl, ctx.fR, 8, LARG).forEach(l => {
+      p.drawText(l, { x:MG, y, size:8, font:ctx.fR, color:c(ctx,'navy') });
+      y -= 11;
+    });
+
+    y -= 24;
+    p.drawRectangle({ x:MG, y, width:300, height:.8, color:c(ctx,'navy') });
+    p.drawText(cortar('Assinatura digital GOV.BR - ' + mil.grad + ' ' + mil.nome, ctx.fB, 6.4, 300),
+               { x:MG, y:y - 9, size:6.4, font:ctx.fB, color:c(ctx,'cinza') });
+
+    rodape(ctx);
+
+    const postoNome = (mil.grad + '_' + mil.nome).replace(/\s+/g, '_').toUpperCase();
+    await baixarPdf(ctx.doc, 'Auxilio_Transporte_-_' + postoNome + '_-_' + MESES[mes-1].substring(0,3) + '_-_' + ano + '.pdf');
+    fecharAguarde();
+  } catch(e){
+    fecharAguarde();
+    console.warn('PDF vetorial indisponível, usando a impressão do navegador:', e);
+    if (confirm('Não consegui gerar o PDF pela biblioteca (' + (e.message || e) + ').\n\nDeseja usar a impressão do navegador como alternativa?'))
+      imprimirDeclaracaoNavegador();
+  }
+}
+
+$('btnPdf').addEventListener('click', gerarPdfDeclaracao);
+$('btnDocDecl').addEventListener('click', gerarDeclaracoesCompiladas);
+$('btnDocSigad').addEventListener('click', gerarDemonstrativoSigadaer);
+$('btnDocAci').addEventListener('click', gerarDemonstrativoAci);
+['numOficio','numSigad'].forEach(id =>
+  $(id).addEventListener('change', () => { const cp = $('selCompSec').value; if (cp) salvarOficio(cp); }));
+
 
 /* ══════════════ INICIALIZAÇÃO ══════════════ */
 (async function init(){
@@ -1273,6 +2008,7 @@ $('btnPdf').addEventListener('click', () => {
   const compPadrao = compDoCiclo();
   $('selComp').value = compPadrao;
   $('selCompSec').value = compPadrao;
+  pintarOficio(compPadrao);
   if (!SB.key){
     $('avisoConfig').style.display = 'block';
     return;
