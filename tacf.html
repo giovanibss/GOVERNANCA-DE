@@ -1,0 +1,2550 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TACF · Avaliação do Condicionamento Físico · AFA</title>
+<link rel="icon" href="assets/cocar-fab.png" type="image/png" />
+<meta name="description" content="Módulo de Teste de Avaliação do Condicionamento Físico (TACF) da Academia da Força Aérea." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
+
+<style>
+/* ═══════════════════════════════════════════════════════════
+   DESIGN SYSTEM & TOKENS (GOVERNANÇA DE)
+   ═══════════════════════════════════════════════════════════ */
+:root {
+  --navy-ink: #061021;
+  --navy-panel: #0a1730;
+  --navy-card: rgba(10, 23, 48, 0.65);
+  --gold: #d4a84b;
+  --gold-500: #d4a84b;
+  --gold-lt: #e9c877;
+  --jade: #10b981;
+  --amber: #f59e0b;
+  --rubi: #ef4444;
+  --purple: #a855f7;
+  --contrail: #cfe4ff;
+  --contrail-dim: rgba(207, 228, 255, 0.60);
+  --texto-2: #8da4c4;
+  --texto-3: #5f7699;
+  --hair: rgba(207, 228, 255, 0.15);
+  --glass: rgba(6, 16, 33, 0.46);
+  --glass-hi: rgba(6, 16, 33, 0.75);
+
+  --f-display: 'Oswald', system-ui, sans-serif;
+  --f-body: 'Inter', system-ui, sans-serif;
+  --f-data: 'JetBrains Mono', ui-monospace, monospace;
+  --f-heading: 'Rajdhani', system-ui, sans-serif;
+
+  --gutter: clamp(1rem, 4vw, 3.5rem);
+  --shell: 1440px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--f-body);
+  background: var(--navy-ink);
+  color: var(--contrail);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-image:
+    radial-gradient(ellipse at 50% 0%, rgba(16, 42, 82, 0.45) 0%, transparent 75%),
+    radial-gradient(ellipse at 80% 100%, rgba(212, 168, 75, 0.08) 0%, transparent 60%);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--gold-lt); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ═══ TOPO / HEADER ═══ */
+header.topo {
+  position: relative;
+  z-index: 10;
+  max-width: var(--shell);
+  width: 100%;
+  margin: 0 auto;
+  padding: 1.5rem var(--gutter) 1rem var(--gutter);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.volta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--texto-2);
+  transition: color 0.2s ease;
+}
+.volta:hover { color: var(--gold-lt); text-decoration: none; }
+
+header.topo h1 {
+  font-family: var(--f-display);
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #fff;
+  line-height: 1.1;
+}
+header.topo h1 span { color: var(--gold); }
+header.topo p.sub {
+  font-size: 0.95rem;
+  color: var(--texto-2);
+  max-width: 800px;
+}
+
+/* ═══ CONTEÚDO PRINCIPAL ═══ */
+main {
+  flex: 1;
+  max-width: var(--shell);
+  width: 100%;
+  margin: 0 auto;
+  padding: 1rem var(--gutter) 3rem var(--gutter);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ═══ FAIXAS DE MENSAGEM / AVISO ═══ */
+.faixaMsg {
+  padding: 0.85rem 1.2rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid transparent;
+}
+.faixaMsg.info { background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.3); color: #a7f3d0; }
+.faixaMsg.alerta { background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.3); color: #fde68a; }
+.faixaMsg.erro { background: rgba(239, 68, 68, 0.12); border-color: rgba(239, 68, 68, 0.3); color: #fca5a5; }
+
+/* ═══ PAINÉIS / CARDS ═══ */
+.painel {
+  background: var(--navy-panel);
+  border: 1px solid var(--hair);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px);
+}
+.painel h3 {
+  font-family: var(--f-heading);
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gold);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ═══ KPIS / HERO COUNTERS ═══ */
+dl.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.resCel {
+  background: rgba(6, 16, 33, 0.6);
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+}
+.resCel dt {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--texto-2);
+  margin-bottom: 0.35rem;
+  font-weight: 600;
+}
+.resCel dd {
+  font-family: var(--f-display);
+  font-size: 1.85rem;
+  font-weight: 600;
+  color: #fff;
+  line-height: 1;
+}
+.resCel dd.ouro { color: var(--gold); }
+.resCel dd.jade { color: var(--jade); }
+.resCel dd.amber { color: var(--amber); }
+.resCel dd.rubi { color: var(--rubi); }
+.resCel dd.purple { color: var(--purple); }
+
+/* ═══ NAVEGAÇÃO DE ABAS ═══ */
+nav.abas {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--hair);
+  padding-bottom: 2px;
+}
+button.aba {
+  background: transparent;
+  border: none;
+  color: var(--texto-2);
+  font-family: var(--f-heading);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+button.aba:hover { color: #fff; background: rgba(207, 228, 255, 0.05); }
+button.aba.ativa {
+  color: var(--gold);
+  background: var(--navy-panel);
+  border: 1px solid var(--hair);
+  border-bottom: 2px solid var(--gold);
+}
+
+/* ═══ FORMULÁRIOS & CONTROLES ═══ */
+.linhaCtl {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex: 1;
+  min-width: 180px;
+}
+.campo label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--texto-2);
+}
+input, select, textarea {
+  background: rgba(6, 16, 33, 0.8);
+  border: 1px solid rgba(207, 228, 255, 0.2);
+  border-radius: 6px;
+  color: #fff;
+  padding: 0.65rem 0.85rem;
+  font-family: var(--f-body);
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 2px rgba(212, 168, 75, 0.2);
+}
+select option { background: var(--navy-ink); color: #fff; }
+
+button.acao {
+  background: linear-gradient(135deg, #d4a84b 0%, #b88a32 100%);
+  color: #061021;
+  font-family: var(--f-heading);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: 6px;
+  padding: 0.7rem 1.4rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.2s ease, box-shadow 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 12px rgba(212, 168, 75, 0.25);
+}
+button.acao:hover { filter: brightness(1.1); transform: translateY(-1px); }
+button.acao:active { transform: translateY(0); }
+button.acao.fantasma {
+  background: transparent;
+  color: var(--contrail);
+  border: 1px solid rgba(207, 228, 255, 0.25);
+  box-shadow: none;
+}
+button.acao.fantasma:hover {
+  background: rgba(207, 228, 255, 0.08);
+  border-color: var(--gold);
+  color: var(--gold-lt);
+}
+button.acao.jade {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+}
+button.acao.rubi {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
+}
+button.acao.mini { padding: 0.35rem 0.75rem; font-size: 0.8rem; }
+
+/* ═══ PAINEL HORIZONTAL DA ESCALA (COLUNAS) ═══ */
+.escalaHorizontalContainer {
+  display: flex;
+  gap: 1.25rem;
+  overflow-x: auto;
+  padding: 0.5rem 0 1.25rem 0;
+  scroll-behavior: smooth;
+}
+.escalaHorizontalContainer::-webkit-scrollbar { height: 10px; }
+.escalaHorizontalContainer::-webkit-scrollbar-track { background: rgba(6, 16, 33, 0.6); border-radius: 5px; }
+.escalaHorizontalContainer::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 5px; }
+
+.colunaDia {
+  min-width: 280px;
+  max-width: 320px;
+  flex-shrink: 0;
+  background: rgba(6, 16, 33, 0.75);
+  border: 1px solid rgba(207, 228, 255, 0.15);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.colunaDiaCab {
+  background: linear-gradient(180deg, rgba(212, 168, 75, 0.15) 0%, rgba(10, 23, 48, 0.9) 100%);
+  border-bottom: 2px solid var(--gold);
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+.colunaDiaCab h4 {
+  font-family: var(--f-heading);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.colunaDiaCab .subInfo {
+  font-size: 0.75rem;
+  color: var(--texto-2);
+  display: flex;
+  justify-content: space-between;
+}
+.colunaDiaCorpo {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  max-height: 520px;
+  overflow-y: auto;
+}
+.cartaoMilitarEscalado {
+  background: rgba(10, 23, 48, 0.9);
+  border: 1px solid rgba(207, 228, 255, 0.1);
+  border-left: 3px solid var(--gold);
+  border-radius: 6px;
+  padding: 0.55rem 0.75rem;
+  font-family: var(--f-data);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--contrail);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.cartaoMilitarEscalado .badgeMetodo {
+  font-size: 0.68rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  background: rgba(207, 228, 255, 0.1);
+  color: var(--texto-2);
+  font-family: var(--f-body);
+}
+
+.cartaoMilitarEscalado.selecionadoParaMover, .cartaoMilitarExcedente.selecionadoParaMover {
+  border: 2px solid #facc15 !important;
+  box-shadow: 0 0 14px rgba(250, 204, 21, 0.75) !important;
+  background: rgba(250, 204, 21, 0.22) !important;
+  color: #fff !important;
+  animation: pulseMove 1.4s infinite alternate;
+}
+@keyframes pulseMove {
+  0% { box-shadow: 0 0 6px rgba(250, 204, 21, 0.4); }
+  100% { box-shadow: 0 0 16px rgba(250, 204, 21, 0.95); }
+}
+
+.cartaoMilitarExcedente {
+  background: rgba(239, 68, 68, 0.18);
+  border: 1px solid #ef4444;
+  border-left: 4px solid #dc2626;
+  color: #fca5a5;
+  border-radius: 6px;
+  padding: 0.55rem 0.75rem;
+  font-family: var(--f-data);
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+  transition: all 0.2s ease;
+}
+
+/* 3 Vagas Livres (Situações atípicas) */
+.blocoVagasLivres {
+  background: rgba(168, 85, 247, 0.08);
+  border: 1.5px dashed rgba(168, 85, 247, 0.5);
+  border-radius: 6px;
+  padding: 0.6rem;
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.blocoVagasLivres .tituloVagasLivres {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--purple);
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.vagaLivreItem {
+  background: rgba(168, 85, 247, 0.12);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  border-radius: 4px;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.75rem;
+  color: #e9d5ff;
+  font-family: var(--f-data);
+  text-align: center;
+  font-style: italic;
+}
+
+.colunaDiaRodape {
+  padding: 0.65rem 0.75rem;
+  background: rgba(6, 16, 33, 0.9);
+  border-top: 1px solid rgba(207, 228, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+/* ═══ TABELA ESTILO AUX. TRANSPORTE ═══ */
+.tabScroll { overflow-x: auto; margin-top: 0.5rem; }
+table.sec {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  text-align: left;
+}
+table.sec th {
+  background: rgba(6, 16, 33, 0.85);
+  color: var(--texto-2);
+  font-family: var(--f-heading);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid var(--gold);
+}
+table.sec td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(207, 228, 255, 0.08);
+  color: var(--contrail);
+}
+table.sec tr:hover td { background: rgba(207, 228, 255, 0.03); }
+
+/* Badges de Status */
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.6rem;
+  border-radius: 50px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.badge.elegivel { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
+.badge.solicitado { background: rgba(212, 168, 75, 0.15); color: #fde047; border: 1px solid rgba(212, 168, 75, 0.3); }
+.badge.escalado { background: rgba(59, 130, 246, 0.15); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.3); }
+.badge.realizou { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
+.badge.r1 { background: rgba(107, 114, 128, 0.2); color: #9ca3af; border: 1px solid rgba(107, 114, 128, 0.3); }
+.badge.baixa { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
+.badge.dispensa { background: rgba(245, 158, 11, 0.15); color: #fde68a; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+/* TEMPLATE DE EMAIL ESTILIZADO */
+.emailPreviewBox {
+  background: #ffffff;
+  color: #000000;
+  padding: 1.25rem;
+  border-radius: 8px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  border: 1px solid #ccc;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  text-align: left;
+}
+.emailPreviewBox table {
+  border-collapse: collapse;
+  margin: 12px 0;
+  width: 240px;
+}
+.emailPreviewBox table th {
+  background-color: #fff2cc;
+  border: 1px solid #000;
+  padding: 6px 10px;
+  text-align: center;
+  font-weight: bold;
+}
+.emailPreviewBox table td {
+  border: 1px solid #000;
+  padding: 5px 10px;
+  font-size: 12px;
+  text-align: left;
+}
+
+/* FOOTER */
+footer {
+  text-align: center;
+  padding: 1.5rem var(--gutter);
+  font-size: 0.8rem;
+  color: var(--texto-3);
+  border-top: 1px solid var(--hair);
+  margin-top: auto;
+}
+
+@media (max-width: 768px) {
+  .linhaCtl { flex-direction: column; align-items: stretch; }
+  dl.kpis { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER TOPO ═══ -->
+<header class="topo">
+  <a class="volta" href="index.html">← Voltar ao Hub</a>
+  <h1>TACF · <span>Condicionamento Físico</span></h1>
+  <p class="sub">Agendamento individual, confecção automática da escala semestral e gerenciamento da secretaria.</p>
+</header>
+
+<main>
+
+  <!-- ═══ HERO KPIS ═══ -->
+  <dl class="kpis">
+    <div class="resCel">
+      <dt>Militares Elegíveis</dt>
+      <dd class="ouro" id="kElegiveis">—</dd>
+    </div>
+    <div class="resCel">
+      <dt>Solicitações Efetuadas</dt>
+      <dd class="jade" id="kSolicitados">—</dd>
+    </div>
+    <div class="resCel">
+      <dt>TACF Realizados</dt>
+      <dd class="purple" id="kRealizados">—</dd>
+    </div>
+    <div class="resCel">
+      <dt>Não Efetuaram / Baixa / Disp.</dt>
+      <dd class="amber" id="kPendentes">—</dd>
+    </div>
+  </dl>
+
+  <div id="faixaGeral" class="faixaMsg info" style="display:none"></div>
+
+  <!-- ═══ ABAS ═══ -->
+  <nav class="abas" role="tablist">
+    <button class="aba ativa" id="abaMil" role="tab" aria-selected="true">Solicitar Agendamento</button>
+    <button class="aba" id="abaSec" role="tab" aria-selected="false">Secretaria</button>
+  </nav>
+
+  <!-- ═══ ABA 1: SOLICITAR AGENDAMENTO (ACESSO LIVRE) ═══ -->
+  <section id="telaMil">
+    <div class="painel">
+      <h3>Solicitação de Agendamento do TACF</h3>
+      
+      <!-- Banner de Solicitação Fechada (OFF por Padrão) -->
+      <div id="msgStatusTemporada" class="faixaMsg alerta" style="display:none; margin-bottom:1.25rem;">
+        🔒 As solicitações de agendamento para o TACF estão FECHADAS no momento. Aguarde a abertura do período pela Secretaria.
+      </div>
+
+      <form id="formSolicitacao" onsubmit="event.preventDefault(); salvarSolicitacaoMilitar();">
+        <p style="font-size:0.88rem; color:var(--texto-2); margin-bottom:1.25rem;">
+          Selecione seu nome para resgatar os dados do Efetivo e defina até 3 opções de datas em ordem de preferência.
+        </p>
+
+        <div class="linhaCtl">
+          <div class="campo" style="flex:2; min-width:250px;">
+            <label for="selMilitar">Militar (Pesquisa do Efetivo)</label>
+            <select id="selMilitar" onchange="aoSelecionarMilitar(this.value)" required>
+              <option value="">— Carregando efetivo da planilha... —</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label for="txtSaram">SARAM</label>
+            <input type="text" id="txtSaram" readonly placeholder="0000000" style="font-family:var(--f-data);" />
+          </div>
+          <div class="campo">
+            <label for="txtPosto">Posto / Grad.</label>
+            <input type="text" id="txtPosto" readonly placeholder="ex: 1S / MJ" />
+          </div>
+        </div>
+
+        <div class="linhaCtl">
+          <div class="campo">
+            <label for="selPrio1">1ª Opção de Data (Prioridade 1)</label>
+            <select id="selPrio1" required><option value="">— selecione —</option></select>
+          </div>
+          <div class="campo">
+            <label for="selPrio2">2ª Opção de Data (Prioridade 2)</label>
+            <select id="selPrio2" required><option value="">— selecione —</option></select>
+          </div>
+          <div class="campo">
+            <label for="selPrio3">3ª Opção de Data (Prioridade 3)</label>
+            <select id="selPrio3" required><option value="">— selecione —</option></select>
+          </div>
+        </div>
+
+        <!-- SEÇÃO DE INDISPONIBILIDADES + JUSTIFICATIVA OBRIGATÓRIA -->
+        <div style="border-top:1px solid var(--hair); padding-top:1.25rem; margin-top:1rem;">
+          <h4 style="font-family:var(--f-heading); color:var(--gold); font-size:1rem; margin-bottom:0.75rem;">
+            🚫 Informar Dias Indisponíveis (Opcional - Requer Justificativa)
+          </h4>
+          <p style="font-size:0.8rem; color:var(--texto-2); margin-bottom:1rem;">
+            Informe caso haja algum dia de aplicação em que você NÃO poderá realizar o TACF (ex: serviço de escala, viagem, licença).
+          </p>
+
+          <div class="linhaCtl">
+            <div class="campo" style="max-width:200px;">
+              <label for="selDataIndisp">Data Indisponível</label>
+              <select id="selDataIndisp"><option value="">— selecione a data —</option></select>
+            </div>
+            <div class="campo" style="flex:2; min-width:250px;">
+              <label for="txtJustifIndisp">Justificativa da Indisponibilidade (Obrigatória)</label>
+              <input type="text" id="txtJustifIndisp" placeholder="Ex: Serviço de Escala 24h na data..." />
+            </div>
+            <button type="button" class="acao fantasma mini" onclick="adicionarIndisponibilidadeForm()">+ Adicionar Data</button>
+          </div>
+
+          <div id="listaIndisponibilidadesAdd" style="display:flex; flex-direction:column; gap:0.5rem; margin-top:0.75rem;"></div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:1.5rem;">
+          <button type="submit" class="acao jade" id="btnEnviarSolicitacao">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+            Confirmar Solicitação
+          </button>
+        </div>
+      </form>
+
+      <!-- Cartão de Comprovante / Acompanhamento do Militar -->
+      <div id="cardComprovante" class="painel" style="display:none; margin-top:1.5rem; background:rgba(6,16,33,0.8); border:1px solid var(--gold);">
+        <h4 style="font-family:var(--f-heading); color:var(--gold); font-size:1.1rem; margin-bottom:0.75rem;">
+          📌 Seu Agendamento Atual
+        </h4>
+        <div id="detalhesComprovante" style="font-size:0.9rem; line-height:1.6;"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ ABA 2: SECRETARIA (PROTEGIDO POR PIN "Secretaria") ═══ -->
+  <section id="telaSec" style="display:none">
+
+    <!-- PORTÃO DE ACESSO VIA PIN -->
+    <div class="painel" id="pinGate" style="max-width:460px; margin: 2rem auto;">
+      <h3>🔒 Acesso Restrito à Secretaria</h3>
+      <p style="font-size:0.85rem; color:var(--texto-2); margin-bottom:1rem">
+        Informe o PIN padrão da secretaria para abrir o painel de gestão do TACF e geração da escala.
+      </p>
+      <div class="linhaCtl" style="margin-bottom:0">
+        <div class="campo">
+          <label for="pinCampo">PIN</label>
+          <input type="password" id="pinCampo" placeholder="Secretaria" autocomplete="off" style="letter-spacing:0.15em; font-size:1.05rem; max-width:180px" />
+        </div>
+        <button class="acao" id="btnPin" onclick="validarPinSecretaria()">Entrar</button>
+      </div>
+      <div id="pinMsg" class="faixaMsg erro" style="display:none; margin-top:1rem; margin-bottom:0"></div>
+    </div>
+
+    <!-- ÁREA LIBERADA APÓS O PIN -->
+    <div id="secArea" style="display:none">
+
+      <!-- PAINEL DE CONFIGURAÇÃO DA TEMPORADA -->
+      <div class="painel" style="margin-bottom:1.5rem;">
+        <h3>Controle da Temporada & Datas de Aplicação</h3>
+        <div class="linhaCtl">
+          <div class="campo">
+            <label for="txtTituloTemp">Título da Temporada</label>
+            <input type="text" id="txtTituloTemp" placeholder="1º/2026" />
+          </div>
+          <div class="campo" style="max-width:130px;">
+            <label for="numVagasDia">Vagas / Dia</label>
+            <input type="number" id="numVagasDia" value="4" min="1" max="100" />
+          </div>
+          <div class="campo" style="max-width:160px;">
+            <label for="numVagasRes">Vagas Livres (Res.)</label>
+            <input type="number" id="numVagasRes" value="3" min="0" max="10" readonly title="Vagas livres reservadas para casos atípicos" />
+          </div>
+          <div class="campo" style="max-width:180px;">
+            <label for="selStatusTemp">Status do Agendamento</label>
+            <select id="selStatusTemp">
+              <option value="agendamento_fechado">🔴 Agendamento Fechado (OFF)</option>
+              <option value="agendamento_aberto">🟢 Agendamento Aberto</option>
+              <option value="escala_gerada">⚡ Escala Gerada</option>
+            </select>
+          </div>
+          <button class="acao fantasma" onclick="salvarConfigTemporada()">Salvar Configurações</button>
+        </div>
+
+        <!-- Inserção de Datas -->
+        <div style="border-top:1px solid var(--hair); padding-top:1rem; margin-top:1rem;">
+          <label style="font-size:0.8rem; font-weight:600; text-transform:uppercase; color:var(--texto-2); display:block; margin-bottom:0.5rem;">
+            Datas de Aplicação (Segundas, Quartas e Sextas habitualmente)
+          </label>
+          <div class="linhaCtl">
+            <div class="campo" style="max-width:220px;">
+              <input type="date" id="inputNovaData" />
+            </div>
+            <button class="acao mini" onclick="adicionarDataAplicacao()">+ Adicionar Data</button>
+            <button class="acao fantasma mini" onclick="gerarDatasSegQuaSexPadrao()">⚡ Gerar Dias</button>
+            <button class="acao rubi mini" onclick="limparTodasAsDatasAplicacao()">🗑️ Limpar Dias</button>
+            <button class="acao fantasma mini" onclick="executarAutofillEscala()">⚡ Gerar Escala</button>
+            <button class="acao rubi mini" onclick="excluirEscalaGerada()">🗑️ Excluir Escala</button>
+          </div>
+          <div id="listaBadgeDatas" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:0.75rem;"></div>
+        </div>
+
+        <!-- Botões de Ação da Escala -->
+        <div style="border-top:1px solid var(--hair); padding-top:1.25rem; margin-top:1.25rem; display:flex; flex-wrap:wrap; gap:0.75rem; align-items:center;">
+          <button class="acao fantasma" onclick="abrirModalAnaliseIndisponividades()">
+            📋 Análise de Indisponibilidades (<span id="cntIndispPend">0</span>)
+          </button>
+          <button class="acao fantasma" onclick="gerarTemplateEmailSemanal()">✉️ Templates de E-mail Diários</button>
+
+          <!-- Documento SIGADAER de Fechamento -->
+          <button class="acao fantasma" onclick="abrirDocumentoSigadaerFechamento()">
+            📑 Documento SIGADAER (Ausentes / Justificativas)
+          </button>
+        </div>
+      </div>
+
+      <!-- PAINEL HORIZONTAL DE COLUNAS DA ESCALA -->
+      <div class="painel" style="margin-bottom:1.5rem;">
+        <h3>
+          Visualização Horizontal da Escala
+          <small style="font-size:0.75rem; color:var(--texto-2); font-weight:normal;">Empilhados por antiguidade (Do mais antigo ao mais moderno)</small>
+        </h3>
+
+        <div id="escalaHorizontal" class="escalaHorizontalContainer">
+          <div style="color:var(--texto-3); padding:2rem;">Nenhuma data cadastrada ou escala gerada ainda.</div>
+        </div>
+      </div>
+
+      <!-- LISTA DE STATUS DOS MILITARES (ESTILO AUX. TRANSPORTE + CONSULTA E JUSTIFICATIVAS) -->
+      <div class="painel">
+        <h3>Quadro Geral de Elegibilidade, Solicitações e Indisponibilidades</h3>
+        <p style="font-size:0.82rem; color:var(--texto-2); margin-bottom:1rem;">
+          Consulte as 3 escolhas de prioridades, indisponibilidades justificadas e faça o remanejamento manual quando necessário.
+        </p>
+
+        <div class="linhaCtl">
+          <div class="campo">
+            <input type="text" id="filtroNomeSaram" placeholder="Filtrar por nome, posto ou SARAM..." oninput="renderizarTabelaSecretaria()" />
+          </div>
+          <div class="campo" style="max-width:220px;">
+            <select id="filtroStatusEleg" onchange="renderizarTabelaSecretaria()">
+              <option value="">— Todos os Status —</option>
+              <option value="elegivel">Elegíveis</option>
+              <option value="missao">Missão fora da sede</option>
+              <option value="r1_reserva">Reserva (R1)</option>
+              <option value="baixa">Em processo de baixa</option>
+              <option value="dispensa">Dispensa médica / Parecer</option>
+              <option value="nao_realizou">Não realizou (Com Justificativa)</option>
+              <option value="solicitado">Solicitado</option>
+              <option value="escalado">Escalado</option>
+              <option value="realizou">Realizou TACF</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="tabScroll">
+          <table class="sec">
+            <thead>
+              <tr>
+                <th>Antig.</th>
+                <th>Posto / Grad</th>
+                <th>Nome de Guerra</th>
+                <th>SARAM</th>
+                <th>Prioridades Solicitadas</th>
+                <th>Indisponibilidades Informadas</th>
+                <th>Dia Escalado</th>
+                <th>Justificativa (SIGADAER)</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="corpoTabelaSec">
+              <tr><td colspan="9" style="color:var(--texto-3);">Carregando dados do efetivo…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /secArea -->
+  </section>
+
+</main>
+
+<footer>
+  Governança DE · Academia da Força Aérea — Módulo TACF (Teste de Avaliação do Condicionamento Físico)
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="assets/js/smtp.js"></script>
+<script src="assets/js/app-config.js"></script>
+<script>
+/* ══════════════════════════════════════════════════════════════
+   CONFIGURAÇÃO SUPABASE & PLANILHA CENTRAL
+   ══════════════════════════════════════════════════════════════ */
+const SUPABASE_URL = 'https://rsaaryrgdrolcsvigckz.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzYWFyeXJnZHJvbGNzdmlnY2t6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMzcyNjEsImV4cCI6MjA4MjcxMzI2MX0.UKACT_OKIMRaLB3FJPtFPGqhVbR83pUiiPfLkcf_Ec0';
+const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
+
+const EFETIVO_SHEET_ID = '1UOMh4y-wHL8kHcB9TUUcEmkeF7z6KYAs4vipsoOFgfA';
+const EFETIVO_URL = `https://docs.google.com/spreadsheets/d/${EFETIVO_SHEET_ID}/gviz/tq?tqx=out:json&sheet=efetivo&range=A5:AC250&headers=0`;
+
+/* ══════════════════════════════════════════════════════════════
+   ESTADO GLOBAL
+   ══════════════════════════════════════════════════════════════ */
+let listaEfetivo = [];               // Array de militares vindos da planilha Efetivo
+let temporadaAtual = null;           // Objeto da temporada ativa
+let solicitacoesMap = {};            // Mapa de solicitações por SARAM { saram: {...solicitacao} }
+let indisponibilidadesAdicionadasForm = []; // Array temporário do formulário do militar
+
+/* ══════════════════════════════════════════════════════════════
+   INICIALIZAÇÃO DA PÁGINA
+   ══════════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', async () => {
+  configurarAbas();
+  verificarPinSessao();
+  await carregarEfetivoPlanilha();
+  await carregarOuCriarTemporada();
+  await carregarSolicitacoes();
+  atualizarKpisEContadores();
+  renderizarFormularioMilitar();
+  renderizarPainelSecretaria();
+});
+
+/* ── Controle de Abas ── */
+function configurarAbas() {
+  const btnMil = document.getElementById('abaMil');
+  const btnSec = document.getElementById('abaSec');
+  const telaMil = document.getElementById('telaMil');
+  const telaSec = document.getElementById('telaSec');
+
+  btnMil.addEventListener('click', () => {
+    btnMil.classList.add('ativa');
+    btnSec.classList.remove('ativa');
+    telaMil.style.display = 'block';
+    telaSec.style.display = 'none';
+  });
+
+  btnSec.addEventListener('click', () => {
+    btnSec.classList.add('ativa');
+    btnMil.classList.remove('ativa');
+    telaSec.style.display = 'block';
+    telaMil.style.display = 'none';
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CARGA DOS DADOS DA PLANILHA EFETIVO (INIBINDO R1)
+   ══════════════════════════════════════════════════════════════ */
+function formatarSARAM(raw) {
+  if (!raw) return '';
+  let str = String(raw).replace(/\.0$/, '').replace(/\D/g, '');
+  if (!str) return '';
+  return str.padStart(7, '0');
+}
+
+async function carregarEfetivoPlanilha() {
+  try {
+    const res = await fetch(EFETIVO_URL);
+    const txt = await res.text();
+    const jsonStr = txt.replace(/^\/\*O_o\*\/\s*google\.visualization\.Query\.setResponse\(/, '').replace(/\);?\s*$/, '');
+    const data = JSON.parse(jsonStr);
+
+    if (data.table && data.table.rows) {
+      listaEfetivo = data.table.rows
+        .map((r, index) => {
+          const c = r.c || [];
+          const v = idx => (c[idx]?.v !== undefined && c[idx]?.v !== null) ? c[idx].v.toString().trim() : '';
+          const saram = formatarSARAM(v(19));
+          const posto = v(2);
+          const esp = v(3); // Coluna D (Especialidade / status)
+          const nomeGuerra = v(4);
+          const nomeCompleto = v(13);
+          
+          if (!nomeGuerra && !saram) return null;
+
+          const rowText = c.map(col => (col?.v || '').toString()).join(' ').toUpperCase();
+          const isR1 = /R\s*1|RESERVA|\bR1\b/i.test(esp) || /R\s*1|RESERVA|\bR1\b/i.test(posto) || /\bR1\b|RESERVA/i.test(rowText);
+
+          return {
+            antiguidade: index + 1,
+            posto: posto,
+            esp: esp,
+            nomeGuerra: nomeGuerra,
+            nomeCompleto: nomeCompleto,
+            saram: saram,
+            isR1: isR1
+          };
+        })
+        .filter(Boolean);
+    }
+  } catch (e) {
+    console.error('Erro ao ler planilha de efetivo:', e);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PERSISTÊNCIA SUPABASE (TÍTULO PRÉ-PREENCHIDO E VAGAS DEFAULT 4)
+   ══════════════════════════════════════════════════════════════ */
+function obterTituloTemporadaPadrao() {
+  const agora = new Date();
+  const ano = agora.getFullYear();
+  const semestre = agora.getMonth() < 6 ? 1 : 2;
+  return `${semestre}º/${ano}`;
+}
+
+async function carregarOuCriarTemporada() {
+  if (!sb) return;
+  try {
+    const anoAtual = new Date().getFullYear();
+    const semestreAtual = new Date().getMonth() < 6 ? 1 : 2;
+    const tituloPadrao = obterTituloTemporadaPadrao();
+
+    const { data, error } = await sb
+      .from('tacf_temporadas')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (error) throw error;
+
+    if (data && data.length > 0) {
+      temporadaAtual = data[0];
+    } else {
+      const novaTemp = {
+        ano: anoAtual,
+        semestre: semestreAtual,
+        titulo: tituloPadrao,
+        status: 'agendamento_fechado', // Default OFF
+        datas_aplicacao: [],
+        vagas_por_dia: 4,               // Padronizado em 4 vagas por dia
+        vagas_livres_reserva: 3
+      };
+      const { data: created, error: errCreate } = await sb
+        .from('tacf_temporadas')
+        .insert([novaTemp])
+        .select();
+      if (!errCreate && created) temporadaAtual = created[0];
+    }
+  } catch (e) {
+    console.error('Erro ao carregar/criar temporada Supabase:', e);
+  }
+}
+
+async function carregarSolicitacoes() {
+  if (!sb || !temporadaAtual) return;
+  try {
+    const { data, error } = await sb
+      .from('tacf_solicitacoes')
+      .select('*')
+      .eq('temporada_id', temporadaAtual.id);
+
+    if (error) throw error;
+
+    solicitacoesMap = {};
+    if (data) {
+      data.forEach(s => {
+        solicitacoesMap[s.saram] = s;
+      });
+    }
+  } catch (e) {
+    console.error('Erro ao carregar solicitações do Supabase:', e);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   KPI METRICS
+   ══════════════════════════════════════════════════════════════ */
+function atualizarKpisEContadores() {
+  const elegiveis = listaEfetivo.filter(m => {
+    const sol = solicitacoesMap[m.saram];
+    if (m.isR1) return false;
+    if (sol && (sol.status_elegibilidade === 'baixa' || sol.status_elegibilidade === 'dispensa' || sol.status_elegibilidade === 'r1_reserva' || sol.status_solicitacao === 'nao_realizou')) return false;
+    return true;
+  });
+
+  const solicitadosCount = Object.values(solicitacoesMap).filter(s => s.prio1_data).length;
+  const realizadosCount = Object.values(solicitacoesMap).filter(s => s.status_solicitacao === 'realizou').length;
+  const naoEfetuaramCount = Object.values(solicitacoesMap).filter(s =>
+    s.status_elegibilidade === 'baixa' || s.status_elegibilidade === 'dispensa' || s.status_solicitacao === 'nao_realizou'
+  ).length;
+
+  document.getElementById('kElegiveis').textContent = elegiveis.length;
+  document.getElementById('kSolicitados').textContent = solicitadosCount;
+  document.getElementById('kRealizados').textContent = realizadosCount;
+  document.getElementById('kPendentes').textContent = naoEfetuaramCount;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ABA 1: SOLICITAR AGENDAMENTO (INIBINDO R1 & VERIFICANDO STATUS OFF)
+   ══════════════════════════════════════════════════════════════ */
+function renderizarFormularioMilitar() {
+  const selMilitar = document.getElementById('selMilitar');
+  selMilitar.innerHTML = '<option value="">— selecione seu nome —</option>';
+
+  // FILTRA E INIBE R1 TOTALMENTE
+  listaEfetivo.filter(m => !m.isR1).forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.saram;
+    opt.textContent = `${m.posto} ${m.nomeGuerra} (SARAM ${m.saram})`;
+    selMilitar.appendChild(opt);
+  });
+
+  const datas = temporadaAtual?.datas_aplicacao || [];
+  const statusTemp = temporadaAtual?.status || 'agendamento_fechado';
+
+  const msgStatus = document.getElementById('msgStatusTemporada');
+  const formSol = document.getElementById('formSolicitacao');
+
+  // VERIFICA SE ESTÁ OFF
+  if (statusTemp === 'agendamento_fechado') {
+    msgStatus.style.display = 'flex';
+    formSol.style.display = 'none';
+  } else {
+    msgStatus.style.display = 'none';
+    formSol.style.display = 'block';
+  }
+
+  ['selPrio1', 'selPrio2', 'selPrio3', 'selDataIndisp'].forEach(idSelect => {
+    const sel = document.getElementById(idSelect);
+    sel.innerHTML = '<option value="">— selecione a data —</option>';
+    datas.forEach(dStr => {
+      const parts = dStr.split('-');
+      const dFmt = `${parts[2]}/${parts[1]}/${parts[0]}`;
+      const opt = document.createElement('option');
+      opt.value = dStr;
+      opt.textContent = dFmt;
+      sel.appendChild(opt);
+    });
+  });
+}
+
+function aoSelecionarMilitar(saram) {
+  const m = listaEfetivo.find(x => x.saram === saram);
+  if (!m) {
+    document.getElementById('txtSaram').value = '';
+    document.getElementById('txtPosto').value = '';
+    document.getElementById('cardComprovante').style.display = 'none';
+    indisponibilidadesAdicionadasForm = [];
+    renderizarListaIndisponibilidadesForm();
+    return;
+  }
+  document.getElementById('txtSaram').value = m.saram;
+  document.getElementById('txtPosto').value = `${m.posto} ${m.esp ? '(' + m.esp + ')' : ''}`;
+
+  const sol = solicitacoesMap[saram];
+  if (sol) {
+    document.getElementById('selPrio1').value = sol.prio1_data || '';
+    document.getElementById('selPrio2').value = sol.prio2_data || '';
+    document.getElementById('selPrio3').value = sol.prio3_data || '';
+    indisponibilidadesAdicionadasForm = Array.isArray(sol.indisponibilidades) ? [...sol.indisponibilidades] : [];
+    renderizarListaIndisponibilidadesForm();
+    exibirComprovanteMilitar(sol, m);
+  } else {
+    document.getElementById('selPrio1').value = '';
+    document.getElementById('selPrio2').value = '';
+    document.getElementById('selPrio3').value = '';
+    indisponibilidadesAdicionadasForm = [];
+    renderizarListaIndisponibilidadesForm();
+    document.getElementById('cardComprovante').style.display = 'none';
+  }
+}
+
+function adicionarIndisponibilidadeForm() {
+  const dVal = document.getElementById('selDataIndisp').value;
+  const justVal = (document.getElementById('txtJustifIndisp').value || '').trim();
+
+  if (!dVal) return Swal.fire('Atenção', 'Selecione a data indisponível.', 'warning');
+  if (!justVal) return Swal.fire('Atenção', 'Informe a justificativa obrigatória para a indisponibilidade nesta data.', 'warning');
+
+  if (indisponibilidadesAdicionadasForm.some(x => x.data === dVal)) {
+    return Swal.fire('Aviso', 'Esta data já foi adicionada às suas indisponibilidades.', 'warning');
+  }
+
+  indisponibilidadesAdicionadasForm.push({
+    data: dVal,
+    justificativa: justVal,
+    status_deferimento: 'pendente'
+  });
+
+  document.getElementById('selDataIndisp').value = '';
+  document.getElementById('txtJustifIndisp').value = '';
+  renderizarListaIndisponibilidadesForm();
+}
+
+function removerIndisponibilidadeForm(index) {
+  indisponibilidadesAdicionadasForm.splice(index, 1);
+  renderizarListaIndisponibilidadesForm();
+}
+
+function renderizarListaIndisponibilidadesForm() {
+  const container = document.getElementById('listaIndisponibilidadesAdd');
+  container.innerHTML = '';
+
+  indisponibilidadesAdicionadasForm.forEach((item, idx) => {
+    const div = document.createElement('div');
+    div.style.background = 'rgba(239, 68, 68, 0.12)';
+    div.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+    div.style.borderRadius = '6px';
+    div.style.padding = '0.5rem 0.75rem';
+    div.style.fontSize = '0.85rem';
+    div.style.display = 'flex';
+    div.style.justifyContent = 'space-between';
+    div.style.alignItems = 'center';
+
+    div.innerHTML = `
+      <div>
+        <b>📅 Indisponível em ${formatarDataBR(item.data)}:</b> ${item.justificativa}
+      </div>
+      <button type="button" onclick="removerIndisponibilidadeForm(${idx})" style="background:none; border:none; color:#fca5a5; cursor:pointer; font-weight:bold;">&times;</button>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function formatarDataBR(dStr) {
+  if (!dStr) return '—';
+  const p = dStr.split('-');
+  return `${p[2]}/${p[1]}/${p[0]}`;
+}
+
+function formatarDataSemZero(dStr) {
+  if (!dStr) return '—';
+  const p = dStr.split('-');
+  const diaInt = parseInt(p[2], 10);
+  const mesInt = parseInt(p[1], 10);
+  return `${diaInt}/${mesInt}/${p[0]}`;
+}
+
+function exibirComprovanteMilitar(sol, m) {
+  const card = document.getElementById('cardComprovante');
+  const det = document.getElementById('detalhesComprovante');
+  card.style.display = 'block';
+
+  let statusBadge = '<span class="badge solicitado">Solicitado</span>';
+  if (sol.status_solicitacao === 'escalado') statusBadge = `<span class="badge escalado">Escalado: ${formatarDataBR(sol.dia_escalado)}</span>`;
+  if (sol.status_solicitacao === 'realizou') statusBadge = '<span class="badge realizou">TACF Concluído</span>';
+  if (sol.status_solicitacao === 'nao_realizou') statusBadge = '<span class="badge dispensa">Não Realizará (Justificado)</span>';
+
+  let indispStr = 'Nenhuma';
+  if (Array.isArray(sol.indisponibilidades) && sol.indisponibilidades.length) {
+    indispStr = sol.indisponibilidades.map(i => `${formatarDataBR(i.data)} (${i.justificativa})`).join('; ');
+  }
+
+  det.innerHTML = `
+    <b>Militar:</b> ${m.posto} ${m.nomeGuerra} (SARAM ${m.saram})<br/>
+    <b>Status:</b> ${statusBadge}<br/>
+    <b>1ª Escolha:</b> ${formatarDataBR(sol.prio1_data)} | 
+    <b>2ª Escolha:</b> ${formatarDataBR(sol.prio2_data)} | 
+    <b>3ª Escolha:</b> ${formatarDataBR(sol.prio3_data)}<br/>
+    <b>Indisponibilidades:</b> ${indispStr}
+  `;
+}
+
+async function salvarSolicitacaoMilitar() {
+  const saram = document.getElementById('selMilitar').value;
+  const p1 = document.getElementById('selPrio1').value;
+  const p2 = document.getElementById('selPrio2').value;
+  const p3 = document.getElementById('selPrio3').value;
+
+  if (!saram) return Swal.fire('Atenção', 'Selecione um militar.', 'warning');
+  if (!p1 || !p2 || !p3) return Swal.fire('Atenção', 'Selecione as 3 opções de datas distintas.', 'warning');
+  if (p1 === p2 || p1 === p3 || p2 === p3) return Swal.fire('Atenção', 'As 3 datas de prioridade devem ser diferentes entre si.', 'warning');
+
+  const m = listaEfetivo.find(x => x.saram === saram);
+  if (!m) return;
+
+  const payload = {
+    temporada_id: temporadaAtual.id,
+    saram: m.saram,
+    posto_grad: m.posto,
+    especialidade: m.esp,
+    nome_guerra: m.nomeGuerra,
+    nome_completo: m.nomeCompleto,
+    antiguidade_index: m.antiguidade,
+    prio1_data: p1,
+    prio2_data: p2,
+    prio3_data: p3,
+    indisponibilidades: indisponibilidadesAdicionadasForm,
+    status_solicitacao: 'pendente'
+  };
+
+  try {
+    const { data, error } = await sb
+      .from('tacf_solicitacoes')
+      .upsert([payload], { onConflict: 'temporada_id,saram' })
+      .select();
+
+    if (error) throw error;
+
+    if (data && data[0]) {
+      solicitacoesMap[saram] = data[0];
+      exibirComprovanteMilitar(data[0], m);
+      atualizarKpisEContadores();
+      Swal.fire('Sucesso', 'Sua solicitação de agendamento foi salva!', 'success');
+    }
+  } catch (e) {
+    Swal.fire('Erro', 'Falha ao salvar a solicitação: ' + e.message, 'error');
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ABA 2: SECRETARIA & PIN "Secretaria"
+   ══════════════════════════════════════════════════════════════ */
+function verificarPinSessao() {
+  const pinOk = sessionStorage.getItem('secretaria_pin_ok') === '1' || sessionStorage.getItem('efetivo_pin_ok') === '1';
+  if (pinOk) {
+    document.getElementById('pinGate').style.display = 'none';
+    document.getElementById('secArea').style.display = 'block';
+  }
+}
+
+async function validarPinSecretaria() {
+  const inputPin = (document.getElementById('pinCampo').value || '').trim();
+  const msg = document.getElementById('pinMsg');
+
+  let ok = false;
+  if (window.AppConfig) {
+    ok = await window.AppConfig.verifyPin(inputPin);
+  }
+  if (!ok) {
+    const pinSalvo = localStorage.getItem('secretaria_pin') || localStorage.getItem('efetivo_pin') || '123456';
+    ok = (inputPin === pinSalvo || inputPin.toLowerCase() === 'secretaria' || inputPin === '123456');
+  }
+
+  if (ok) {
+    sessionStorage.setItem('secretaria_pin_ok', '1');
+    document.getElementById('pinGate').style.display = 'none';
+    document.getElementById('secArea').style.display = 'block';
+    msg.style.display = 'none';
+  } else {
+    msg.style.display = 'block';
+    msg.textContent = '❌ PIN incorreto. Use o PIN master da Secretaria.';
+  }
+}
+
+function renderizarPainelSecretaria() {
+  if (!temporadaAtual) return;
+  document.getElementById('txtTituloTemp').value = temporadaAtual.titulo || obterTituloTemporadaPadrao();
+  document.getElementById('numVagasDia').value = temporadaAtual.vagas_por_dia || 4;
+  document.getElementById('selStatusTemp').value = temporadaAtual.status || 'agendamento_fechado';
+
+  renderizarBadgesDatas();
+  renderizarEscalaHorizontal();
+  renderizarTabelaSecretaria();
+  atualizarContadorIndisponibilidades();
+}
+
+function renderizarBadgesDatas() {
+  const container = document.getElementById('listaBadgeDatas');
+  container.innerHTML = '';
+  const datas = temporadaAtual?.datas_aplicacao || [];
+
+  if (!datas.length) {
+    container.innerHTML = '<span style="font-size:0.8rem; color:var(--texto-3);">Nenhuma data cadastrada.</span>';
+    return;
+  }
+
+  datas.forEach(dStr => {
+    const badge = document.createElement('div');
+    badge.className = 'badge elegivel';
+    badge.style.display = 'inline-flex';
+    badge.style.alignItems = 'center';
+    badge.style.gap = '0.4rem';
+    badge.style.padding = '0.35rem 0.65rem';
+    badge.innerHTML = `
+      📅 ${formatarDataBR(dStr)}
+      <span onclick="removerDataAplicacao('${dStr}')" style="cursor:pointer; font-weight:bold; margin-left:0.25rem;">&times;</span>
+    `;
+    container.appendChild(badge);
+  });
+}
+
+async function adicionarDataAplicacao() {
+  const dVal = document.getElementById('inputNovaData').value;
+  if (!dVal) return;
+  const datas = temporadaAtual.datas_aplicacao || [];
+  if (datas.includes(dVal)) return Swal.fire('Aviso', 'Data já adicionada.', 'warning');
+
+  datas.push(dVal);
+  datas.sort();
+  temporadaAtual.datas_aplicacao = datas;
+  document.getElementById('inputNovaData').value = '';
+  renderizarBadgesDatas();
+  renderizarFormularioMilitar();
+  renderizarEscalaHorizontal();
+}
+
+function removerDataAplicacao(dStr) {
+  if (temporadaAtual?.status === 'escala_gerada') {
+    return Swal.fire({
+      title: 'Ação Bloqueada',
+      html: 'A escala desta temporada já foi gerada.<br/><br/>Para excluir ou alterar datas de aplicação, você deve primeiro clicar no botão <b>"🗑️ Excluir Escala"</b>.',
+      icon: 'warning'
+    });
+  }
+
+  temporadaAtual.datas_aplicacao = (temporadaAtual.datas_aplicacao || []).filter(x => x !== dStr);
+  temporadaAtual.datas_aplicacao.sort();
+  renderizarBadgesDatas();
+  renderizarFormularioMilitar();
+  renderizarEscalaHorizontal();
+}
+
+async function limparTodasAsDatasAplicacao() {
+  if (temporadaAtual?.status === 'escala_gerada') {
+    return Swal.fire('Ação Bloqueada', 'Para limpar ou alterar datas, você deve primeiro clicar no botão "🗑️ Excluir Escala".', 'warning');
+  }
+
+  if (!temporadaAtual?.datas_aplicacao || !temporadaAtual.datas_aplicacao.length) {
+    return Swal.fire('Aviso', 'Não há datas de aplicação cadastradas para serem excluídas.', 'info');
+  }
+
+  const confirm = await Swal.fire({
+    title: 'Excluir Todas as Datas?',
+    text: 'Esta ação irá remover todas as datas de aplicação cadastradas para esta temporada. Tem certeza?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sim, Limpar Todas',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#ef4444'
+  });
+
+  if (!confirm.isConfirmed) return;
+
+  temporadaAtual.datas_aplicacao = [];
+  try {
+    const { error } = await sb
+      .from('tacf_temporadas')
+      .update({ datas_aplicacao: [] })
+      .eq('id', temporadaAtual.id);
+
+    if (error) throw error;
+
+    renderizarBadgesDatas();
+    renderizarFormularioMilitar();
+    renderizarEscalaHorizontal();
+    Swal.fire('Datas Excluídas!', 'Todas as datas de aplicação foram removidas.', 'success');
+  } catch (e) {
+    Swal.fire('Erro', 'Falha ao excluir datas: ' + e.message, 'error');
+  }
+}
+
+function gerarDatasSegQuaSexPadrao() {
+  if (temporadaAtual?.status === 'escala_gerada') {
+    return Swal.fire('Ação Bloqueada', 'Primeiro exclua a escala gerada antes de regerar as datas.', 'warning');
+  }
+
+  const inputVal = document.getElementById('inputNovaData').value;
+  let dataInicio = new Date();
+
+  if (inputVal) {
+    const parts = inputVal.split('-');
+    dataInicio = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+  } else {
+    dataInicio.setDate(dataInicio.getDate() + 1);
+  }
+
+  const datas = [];
+  const maxDias = 60; // 2 meses de temporada a partir da data inicial
+
+  for (let i = 0; i < maxDias; i++) {
+    const d = new Date(dataInicio);
+    d.setDate(dataInicio.getDate() + i);
+    const dayOfWeek = d.getDay();
+    if (dayOfWeek === 1 || dayOfWeek === 3 || dayOfWeek === 5) {
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      datas.push(`${yyyy}-${mm}-${dd}`);
+    }
+  }
+
+  temporadaAtual.datas_aplicacao = datas;
+  renderizarBadgesDatas();
+  renderizarFormularioMilitar();
+  renderizarEscalaHorizontal();
+}
+
+async function excluirEscalaGerada() {
+  if (!temporadaAtual) return;
+
+  const temEscala = Object.values(solicitacoesMap).some(s => s.dia_escalado);
+  if (!temEscala && temporadaAtual.status !== 'escala_gerada') {
+    return Swal.fire('Informação', 'Não há nenhuma escala gerada para ser excluída no momento.', 'info');
+  }
+
+  const confirm = await Swal.fire({
+    title: 'Excluir Escala Gerada?',
+    text: 'Esta ação irá remover a alocação de datas de todos os militares e liberará a exclusão e edição das datas de aplicação.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sim, Excluir Escala',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#ef4444'
+  });
+
+  if (!confirm.isConfirmed) return;
+
+  // Resetar alocações no objeto local
+  Object.values(solicitacoesMap).forEach(s => {
+    s.dia_escalado = null;
+    s.metodo_alocacao = null;
+    if (s.status_solicitacao === 'escalado') {
+      s.status_solicitacao = 'pendente';
+    }
+  });
+
+  temporadaAtual.status = 'agendamento_fechado';
+
+  try {
+    const toUpsert = Object.values(solicitacoesMap);
+    if (toUpsert.length > 0) {
+      const { error: errSol } = await sb
+        .from('tacf_solicitacoes')
+        .upsert(toUpsert, { onConflict: 'temporada_id,saram' });
+      if (errSol) throw errSol;
+    }
+
+    const { error: errTemp } = await sb
+      .from('tacf_temporadas')
+      .update({ status: 'agendamento_fechado' })
+      .eq('id', temporadaAtual.id);
+
+    if (errTemp) throw errTemp;
+
+    renderizarPainelSecretaria();
+    renderizarFormularioMilitar();
+    renderizarEscalaHorizontal();
+    atualizarKpisEContadores();
+
+    Swal.fire('Escala Excluída!', 'A escala foi removida com sucesso. Agora você pode modificar as datas da temporada.', 'success');
+  } catch (e) {
+    Swal.fire('Erro', 'Falha ao excluir a escala: ' + e.message, 'error');
+  }
+}
+
+async function salvarConfigTemporada() {
+  if (!sb || !temporadaAtual) return;
+  temporadaAtual.titulo = document.getElementById('txtTituloTemp').value;
+  temporadaAtual.vagas_por_dia = parseInt(document.getElementById('numVagasDia').value) || 4;
+  temporadaAtual.status = document.getElementById('selStatusTemp').value;
+
+  try {
+    const { error } = await sb
+      .from('tacf_temporadas')
+      .update({
+        titulo: temporadaAtual.titulo,
+        vagas_por_dia: temporadaAtual.vagas_por_dia,
+        status: temporadaAtual.status,
+        datas_aplicacao: temporadaAtual.datas_aplicacao
+      })
+      .eq('id', temporadaAtual.id);
+
+    if (error) throw error;
+    renderizarFormularioMilitar();
+    Swal.fire('Sucesso', 'Configurações da Secretaria salvas.', 'success');
+  } catch (e) {
+    Swal.fire('Erro', 'Falha ao salvar: ' + e.message, 'error');
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DEFERIMENTO / INDEFERIMENTO DE INDISPONIBILIDADES PELA SECRETARIA
+   ══════════════════════════════════════════════════════════════ */
+function atualizarContadorIndisponibilidades() {
+  let cnt = 0;
+  Object.values(solicitacoesMap).forEach(s => {
+    if (Array.isArray(s.indisponibilidades)) {
+      cnt += s.indisponibilidades.filter(i => i.status_deferimento === 'pendente' || !i.status_deferimento).length;
+    }
+  });
+  const el = document.getElementById('cntIndispPend');
+  if (el) el.textContent = cnt;
+}
+
+function abrirModalAnaliseIndisponividades() {
+  const listaIndisp = [];
+
+  Object.values(solicitacoesMap).forEach(s => {
+    if (Array.isArray(s.indisponibilidades) && s.indisponibilidades.length) {
+      s.indisponibilidades.forEach((item, idx) => {
+        listaIndisp.push({
+          saram: s.saram,
+          militarStr: `${s.posto_grad} ${s.nome_guerra}`,
+          data: item.data,
+          justificativa: item.justificativa,
+          status_deferimento: item.status_deferimento || 'pendente',
+          itemIndex: idx
+        });
+      });
+    }
+  });
+
+  if (!listaIndisp.length) {
+    return Swal.fire('Indisponibilidades', 'Nenhum militar informou dias indisponíveis até o momento.', 'info');
+  }
+
+  let htmlRows = '<div style="max-height:400px; overflow-y:auto; text-align:left;">';
+  listaIndisp.forEach((item, i) => {
+    let badgeDef = '<span style="color:#fde047; font-weight:bold;">PENDENTE</span>';
+    if (item.status_deferimento === 'deferido') badgeDef = '<span style="color:#6ee7b7; font-weight:bold;">DEFERIDO</span>';
+    if (item.status_deferimento === 'indeferido') badgeDef = '<span style="color:#fca5a5; font-weight:bold;">INDEFERIDO</span>';
+
+    htmlRows += `
+      <div style="background:rgba(6,16,33,0.8); border:1px solid rgba(207,228,255,0.15); border-radius:8px; padding:0.75rem; margin-bottom:0.75rem;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:0.4rem;">
+          <b>${item.militarStr} (SARAM ${item.saram})</b>
+          <span>${badgeDef}</span>
+        </div>
+        <div style="font-size:0.85rem; color:#cfe4ff;">
+          📅 <b>Data:</b> ${formatarDataBR(item.data)}<br/>
+          📝 <b>Justificativa:</b> ${item.justificativa}
+        </div>
+        <div style="display:flex; gap:0.5rem; margin-top:0.6rem; justify-content:flex-end;">
+          <button class="acao mini jade" onclick="definirDeferimentoIndisponibilidade('${item.saram}', ${item.itemIndex}, 'deferido')">🟢 Deferir</button>
+          <button class="acao mini rubi" onclick="definirDeferimentoIndisponibilidade('${item.saram}', ${item.itemIndex}, 'indeferido')">🔴 Indeferir</button>
+        </div>
+      </div>
+    `;
+  });
+  htmlRows += '</div>';
+
+  Swal.fire({
+    title: '📋 Análise de Indisponibilidades',
+    html: htmlRows,
+    width: '650px',
+    showConfirmButton: false,
+    showCancelButton: true,
+    cancelButtonText: 'Fechar'
+  });
+}
+
+async function definirDeferimentoIndisponibilidade(saram, itemIdx, novoStatus) {
+  const sol = solicitacoesMap[saram];
+  if (!sol || !Array.isArray(sol.indisponibilidades)) return;
+
+  sol.indisponibilidades[itemIdx].status_deferimento = novoStatus;
+
+  try {
+    const { data, error } = await sb
+      .from('tacf_solicitacoes')
+      .upsert([sol], { onConflict: 'temporada_id,saram' })
+      .select();
+
+    if (error) throw error;
+    if (data) {
+      solicitacoesMap[saram] = data[0];
+      atualizarContadorIndisponibilidades();
+      renderizarTabelaSecretaria();
+      Swal.close();
+      abrirModalAnaliseIndisponividades();
+    }
+  } catch (e) {
+    Swal.fire('Erro', 'Falha ao atualizar deferimento: ' + e.message, 'error');
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ALGORITMO DE AUTOFILL DA ESCALA (RESPEITANDO INDISPONIBILIDADES DEFERIDAS)
+   ══════════════════════════════════════════════════════════════ */
+async function executarAutofillEscala() {
+  if (!listaEfetivo || !listaEfetivo.length) {
+    await carregarEfetivoPlanilha();
+  }
+  if (!listaEfetivo || !listaEfetivo.length) {
+    return Swal.fire('Erro', 'Não foi possível carregar o efetivo da planilha. Verifique a conexão.', 'error');
+  }
+
+  const datas = temporadaAtual?.datas_aplicacao || [];
+  if (!datas.length) return Swal.fire('Aviso', 'Cadastre ao menos uma data de aplicação.', 'warning');
+
+  // Garante datas ordenadas cronologicamente YYYY-MM-DD
+  datas.sort();
+
+  const confirm = await Swal.fire({
+    title: 'Gerar Escala Automática?',
+    text: 'O sistema alocará os militares por antiguidade, respeitando escolhas de prioridades registradas e preenchendo as vagas disponíveis por antiguidade para quem não preencheu.',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Sim, Gerar Escala',
+    cancelButtonText: 'Cancelar'
+  });
+  if (!confirm.isConfirmed) return;
+
+  const vagasMax = temporadaAtual.vagas_por_dia || 4;
+  const ocupacaoPorData = {};
+  datas.forEach(d => ocupacaoPorData[d] = []);
+
+  const militaresOrdenados = [...listaEfetivo].sort((a, b) => a.antiguidade - b.antiguidade);
+  const naoAlocados = [];
+
+  // FASE 1: Atendimento das prioridades voluntárias
+  militaresOrdenados.forEach(m => {
+    if (m.isR1) return;
+
+    let sol = solicitacoesMap[m.saram];
+    if (!sol) {
+      sol = {
+        temporada_id: temporadaAtual.id,
+        saram: m.saram,
+        posto_grad: m.posto,
+        especialidade: m.esp,
+        nome_guerra: m.nomeGuerra,
+        nome_completo: m.nomeCompleto,
+        antiguidade_index: m.antiguidade,
+        status_solicitacao: 'pendente',
+        status_elegibilidade: 'elegivel'
+      };
+      solicitacoesMap[m.saram] = sol;
+    }
+
+    if (sol.status_elegibilidade !== 'elegivel') return;
+
+    const indispDeferidas = (Array.isArray(sol.indisponibilidades) ? sol.indisponibilidades : [])
+      .filter(i => i.status_deferimento === 'deferido')
+      .map(i => i.data);
+
+    let alocado = false;
+    const prios = [sol.prio1_data, sol.prio2_data, sol.prio3_data].filter(Boolean);
+
+    for (let i = 0; i < prios.length; i++) {
+      const p = prios[i];
+      if (datas.includes(p) && !indispDeferidas.includes(p) && ocupacaoPorData[p].length < vagasMax) {
+        ocupacaoPorData[p].push(m.saram);
+        sol.dia_escalado = p;
+        sol.metodo_alocacao = `prio${i+1}`;
+        sol.status_solicitacao = 'escalado';
+        alocado = true;
+        break;
+      }
+    }
+    if (!alocado) naoAlocados.push(m);
+  });
+
+  // FASE 2: Preenchimento compulsório por antiguidade
+  naoAlocados.forEach(m => {
+    const sol = solicitacoesMap[m.saram];
+    if (!sol || sol.status_elegibilidade !== 'elegivel') return;
+
+    const indispDeferidas = (Array.isArray(sol.indisponibilidades) ? sol.indisponibilidades : [])
+      .filter(i => i.status_deferimento === 'deferido')
+      .map(i => i.data);
+
+    for (const d of datas) {
+      if (!indispDeferidas.includes(d) && ocupacaoPorData[d].length < vagasMax) {
+        ocupacaoPorData[d].push(m.saram);
+        sol.dia_escalado = d;
+        sol.metodo_alocacao = 'antiguidade';
+        sol.status_solicitacao = 'escalado';
+        break;
+      }
+    }
+  });
+
+  // SALVAR TODAS AS SOLICITAÇÕES NO SUPABASE
+  const listaParaSalvar = Object.values(solicitacoesMap);
+  try {
+    const { data, error } = await sb
+      .from('tacf_solicitacoes')
+      .upsert(listaParaSalvar, { onConflict: 'temporada_id,saram' })
+      .select();
+
+    if (error) throw error;
+    if (data) {
+      data.forEach(s => solicitacoesMap[s.saram] = s);
+      await sb.from('tacf_temporadas').update({ status: 'escala_gerada' }).eq('id', temporadaAtual.id);
+      temporadaAtual.status = 'escala_gerada';
+
+      renderizarPainelSecretaria();
+      renderizarEscalaHorizontal();
+      renderizarTabelaSecretaria();
+      atualizarKpisEContadores();
+
+      Swal.fire('Escala Gerada!', 'A escala do TACF foi alocada com sucesso.', 'success');
+    }
+  } catch (e) {
+    Swal.fire('Erro', 'Falha ao salvar a escala automática: ' + e.message, 'error');
+  }
+}
+
+function cancelarSelecaoRemanejamento() {
+  saramMilitarSelecionadoMover = null;
+  renderizarEscalaHorizontal();
+}
+
+async function selecionarOuMoverMilitarVisual(saram, novaDataStr) {
+  if (!saramMilitarSelecionadoMover) {
+    if (saram) {
+      saramMilitarSelecionadoMover = saram;
+      renderizarEscalaHorizontal();
+    }
+    return;
+  }
+
+  // Se já houver um militar selecionado para mover:
+  if (saram === saramMilitarSelecionadoMover && !novaDataStr) {
+    // Clique novamente no mesmo militar cancela a seleção
+    saramMilitarSelecionadoMover = null;
+    renderizarEscalaHorizontal();
+    return;
+  }
+
+  if (novaDataStr) {
+    // Mover para a data clicada
+    await remanejarMilitarVisualParaDia(saramMilitarSelecionadoMover, novaDataStr);
+    saramMilitarSelecionadoMover = null;
+    return;
+  }
+
+  if (saram) {
+    const targetSol = solicitacoesMap[saram];
+    if (targetSol && targetSol.dia_escalado) {
+      await remanejarMilitarVisualParaDia(saramMilitarSelecionadoMover, targetSol.dia_escalado);
+      saramMilitarSelecionadoMover = null;
+    } else {
+      saramMilitarSelecionadoMover = saram;
+      renderizarEscalaHorizontal();
+    }
+  }
+}
+
+async function remanejarMilitarVisualParaDia(saram, novaData) {
+  const sol = solicitacoesMap[saram];
+  const m = listaEfetivo.find(x => x.saram === saram);
+  if (!sol || !m) return;
+
+  if (sol.dia_escalado === novaData) {
+    return; // Mesma data, ignora
+  }
+
+  // VERIFICA SE HÁ CONFLITO COM INDISPONIBILIDADE INFORMADA
+  const indispConflito = Array.isArray(sol.indisponibilidades)
+    ? sol.indisponibilidades.find(i => i.data === novaData)
+    : null;
+
+  if (indispConflito) {
+    const confirmConflito = await Swal.fire({
+      title: '⚠️ AVISO DE CONFLITO DE INDISPONIBILIDADE',
+      html: `
+        <div style="text-align:left; font-size:0.9rem; line-height:1.5;">
+          O militar <b>${m.posto} ${m.nomeGuerra}</b> informou <b>INDISPONIBILIDADE</b> para o dia <b>${formatarDataBR(novaData)}</b>!<br/><br/>
+          📝 <b>Justificativa:</b> ${indispConflito.justificativa || 'Não informada'}<br/><br/>
+          Deseja alocar este militar neste dia mesmo assim?
+        </div>
+      `,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#f59e0b',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Sim, alocar mesmo assim',
+      cancelButtonText: 'Cancelar'
+    });
+    if (!confirmConflito.isConfirmed) return;
+  }
+
+  sol.dia_escalado = novaData;
+  sol.status_solicitacao = 'escalado';
+  sol.metodo_alocacao = 'manual';
+
+  try {
+    const { data, error } = await sb
+      .from('tacf_solicitacoes')
+      .upsert([sol], { onConflict: 'temporada_id,saram' })
+      .select();
+
+    if (error) throw error;
+    if (data) {
+      solicitacoesMap[saram] = data[0];
+      renderizarEscalaHorizontal();
+      renderizarTabelaSecretaria();
+      atualizarKpisEContadores();
+    }
+  } catch (e) {
+    Swal.fire('Erro', 'Falha ao remanejar militar: ' + e.message, 'error');
+  }
+}
+
+async function alternarPresencaMilitar(saram, dataStr) {
+  const sol = solicitacoesMap[saram];
+  if (!sol) return;
+
+  if (sol.status_solicitacao === 'realizou') {
+    sol.status_solicitacao = 'escalado';
+    sol.data_realizacao = null;
+  } else {
+    sol.status_solicitacao = 'realizou';
+    sol.data_realizacao = dataStr || sol.dia_escalado;
+  }
+
+  try {
+    const { data, error } = await sb
+      .from('tacf_solicitacoes')
+      .upsert([sol], { onConflict: 'temporada_id,saram' })
+      .select();
+
+    if (error) throw error;
+    if (data) {
+      solicitacoesMap[saram] = data[0];
+      renderizarEscalaHorizontal();
+      renderizarTabelaSecretaria();
+      atualizarKpisEContadores();
+
+      const isReal = (sol.status_solicitacao === 'realizou');
+      const toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true
+      });
+      toast.fire({
+        icon: isReal ? 'success' : 'info',
+        title: isReal ? 'Presença confirmada! TACF marcado como realizado.' : 'Presença desmarcada.'
+      });
+    }
+  } catch (e) {
+    Swal.fire('Erro', 'Falha ao atualizar presença: ' + e.message, 'error');
+  }
+}
+
+function renderizarEscalaHorizontal() {
+  const container = document.getElementById('escalaHorizontal');
+  container.innerHTML = '';
+  const datas = temporadaAtual?.datas_aplicacao || [];
+  const vagasMax = temporadaAtual?.vagas_por_dia || 4;
+
+  if (!datas.length) {
+    container.innerHTML = '<div style="color:var(--texto-3); padding:1rem;">Nenhuma data cadastrada para exibir a escala.</div>';
+    return;
+  }
+
+  if (saramMilitarSelecionadoMover) {
+    const solSel = solicitacoesMap[saramMilitarSelecionadoMover];
+    const mSel = listaEfetivo.find(x => x.saram === saramMilitarSelecionadoMover);
+    const nomeSel = mSel ? (mSel.posto + ' ' + mSel.nomeGuerra) : (solSel ? (solSel.posto_grad + ' ' + solSel.nome_guerra) : saramMilitarSelecionadoMover);
+    
+    const banner = document.createElement('div');
+    banner.style.cssText = 'background:rgba(250,204,21,0.15); border:1.5px solid #facc15; border-radius:8px; padding:0.75rem 1rem; margin-bottom:1rem; color:#fef08a; display:flex; justify-content:space-between; align-items:center; font-size:0.9rem; width:100%;';
+    banner.innerHTML =
+      '<div>' +
+        '🎯 <b>MODO DE REMANEJAMENTO ATIVO:</b> Mover militar <b>' + nomeSel + ' (SARAM ' + saramMilitarSelecionadoMover + ')</b>.<br/>' +
+        '<small style="color:var(--texto-2);">Clique no cabeçalho ou área de qualquer dia para onde deseja movê-lo.</small>' +
+      '</div>' +
+      '<button class="acao mini rubi" onclick="cancelarSelecaoRemanejamento()">Cancelar Remanejamento</button>';
+    container.appendChild(banner);
+  }
+
+  const hojeStr = new Date().toISOString().split('T')[0];
+
+  datas.forEach(dStr => {
+    const isDiaPassado = (dStr < hojeStr);
+
+    const escaladosNoDia = Object.values(solicitacoesMap)
+      .filter(s => s.dia_escalado === dStr && (s.status_solicitacao === 'escalado' || s.status_solicitacao === 'realizou'))
+      .sort((a, b) => a.antiguidade_index - b.antiguidade_index);
+
+    const col = document.createElement('div');
+    col.className = 'colunaDia';
+
+    const count = escaladosNoDia.length;
+    const pct = Math.round((count / vagasMax) * 100);
+
+    const regulares = escaladosNoDia.slice(0, vagasMax);
+    const vagasLivresAtipicas = escaladosNoDia.slice(vagasMax, vagasMax + 3);
+    const excedentesCriticos = escaladosNoDia.slice(vagasMax + 3);
+
+    let htmlMilitares = '';
+    regulares.forEach(s => {
+      const isSelected = (saramMilitarSelecionadoMover === s.saram);
+      const isRealizou = (s.status_solicitacao === 'realizou');
+      const isAusenteVermelho = (isDiaPassado && !isRealizou);
+
+      const rotuloMetodo = {
+        'prio1': '1ª Opção',
+        'prio2': '2ª Opção',
+        'prio3': '3ª Opção',
+        'regra_secundaria_velhos': 'Antiguidade',
+        'regra_secundaria_novos': 'Modernidade',
+        'antiguidade': 'Antiguidade',
+        'manual': 'Manual'
+      }[s.metodo_alocacao] || 'Auto';
+
+      let styleCard = 'cursor:pointer;';
+      if (isAusenteVermelho) {
+        styleCard += 'background:rgba(239, 68, 68, 0.2); border:1.5px solid #ef4444; color:#fca5a5;';
+      } else if (isRealizou) {
+        styleCard += 'background:rgba(16, 185, 129, 0.18); border:1.5px solid #10b981; color:#a7f3d0;';
+      }
+
+      htmlMilitares += `
+        <div class="cartaoMilitarEscalado ${isSelected ? 'selecionadoParaMover' : ''}"
+             title="${isSelected ? 'Clique para cancelar seleção' : 'Clique para selecionar e mover'}"
+             onclick="event.stopPropagation(); selecionarOuMoverMilitarVisual('${s.saram}')"
+             style="${styleCard}">
+          <div style="display:flex; flex-direction:column; gap:0.15rem; text-align:left;">
+            <span>${s.posto_grad} ${s.nome_guerra}</span>
+            <div style="display:flex; gap:0.3rem; align-items:center; margin-top:0.25rem;">
+              <span class="badgeMetodo">${isSelected ? '🎯 SELECIONADO' : (isRealizou ? '✓ REALIZOU' : rotuloMetodo)}</span>
+              ${isAusenteVermelho ? '<span style="font-size:0.62rem; background:#dc2626; color:#fff; padding:1px 4px; border-radius:3px;">⚠️ Não compareceu</span>' : ''}
+            </div>
+          </div>
+          <button class="btnPresenca ${isRealizou ? 'realizou' : ''}"
+                  onclick="event.stopPropagation(); alternarPresencaMilitar('${s.saram}', '${dStr}')"
+                  style="font-size:0.7rem; padding:0.25rem 0.5rem; border-radius:4px; border:1px solid ${isRealizou ? '#10b981' : 'rgba(207,228,255,0.3)'}; background:${isRealizou ? '#10b981' : 'rgba(6,16,33,0.9)'}; color:#fff; cursor:pointer; white-space:nowrap;">
+            ${isRealizou ? '✓ Realizou' : '⚪ Presença'}
+          </button>
+        </div>
+      `;
+    });
+
+    if (!regulares.length) {
+      htmlMilitares = '<div style="font-size:0.8rem; color:var(--texto-3); text-align:center; padding:1.5rem 0;">Vagas disponíveis</div>';
+    }
+
+    let htmlVagasLivres = '';
+    for (let i = 0; i < 3; i++) {
+      const s = vagasLivresAtipicas[i];
+      if (s) {
+        const isSelected = (saramMilitarSelecionadoMover === s.saram);
+        const isRealizou = (s.status_solicitacao === 'realizou');
+        const isAusenteVermelho = (isDiaPassado && !isRealizou);
+
+        let styleVagaLivre = 'cursor:pointer; background:rgba(250, 204, 21, 0.15); border:1.5px solid #facc15; color:#fef08a; padding:0.45rem 0.65rem; border-radius:5px; margin-bottom:0.35rem; display:flex; justify-content:space-between; align-items:center; font-size:0.8rem;';
+        if (isAusenteVermelho) {
+          styleVagaLivre = 'cursor:pointer; background:rgba(239, 68, 68, 0.22); border:1.5px solid #ef4444; color:#fca5a5; padding:0.45rem 0.65rem; border-radius:5px; margin-bottom:0.35rem; display:flex; justify-content:space-between; align-items:center; font-size:0.8rem;';
+        } else if (isRealizou) {
+          styleVagaLivre = 'cursor:pointer; background:rgba(16, 185, 129, 0.18); border:1.5px solid #10b981; color:#a7f3d0; padding:0.45rem 0.65rem; border-radius:5px; margin-bottom:0.35rem; display:flex; justify-content:space-between; align-items:center; font-size:0.8rem;';
+        }
+
+        htmlVagasLivres += `
+          <div class="${isSelected ? 'selecionadoParaMover' : ''}"
+               onclick="event.stopPropagation(); selecionarOuMoverMilitarVisual('${s.saram}')"
+               style="${styleVagaLivre}">
+            <div style="display:flex; flex-direction:column; text-align:left;">
+              <span><b>🟡 Vaga Livre #${i+1}:</b> ${s.posto_grad} ${s.nome_guerra}</span>
+              ${isAusenteVermelho ? '<span style="font-size:0.62rem; color:#fca5a5;">⚠️ Não compareceu</span>' : ''}
+            </div>
+            <button class="btnPresenca ${isRealizou ? 'realizou' : ''}"
+                    onclick="event.stopPropagation(); alternarPresencaMilitar('${s.saram}', '${dStr}')"
+                    style="font-size:0.68rem; padding:0.2rem 0.45rem; border-radius:4px; border:1px solid ${isRealizou ? '#10b981' : '#facc15'}; background:${isRealizou ? '#10b981' : 'rgba(6,16,33,0.9)'}; color:#fff; cursor:pointer;">
+              ${isRealizou ? '✓ Realizou' : '⚪ Presença'}
+            </button>
+          </div>
+        `;
+      } else {
+        htmlVagasLivres += `<div class="vagaLivreItem">Vaga Reservada #${i+1}</div>`;
+      }
+    }
+
+    let htmlExcedentes = '';
+    if (excedentesCriticos.length > 0) {
+      htmlExcedentes = `
+        <div style="margin-top:0.5rem; border-top:1.5px dashed #ef4444; padding-top:0.5rem;">
+          <div style="font-size:0.72rem; font-weight:bold; color:#fca5a5; margin-bottom:0.35rem; display:flex; align-items:center; justify-content:space-between;">
+            <span>🔴 EXCEDENTES CRÍTICOS (${excedentesCriticos.length})</span>
+            <span style="font-size:0.63rem; color:#ef4444;">Além das 3 Vagas Livres</span>
+          </div>
+          ${excedentesCriticos.map((s, idx) => {
+            const isSelected = (saramMilitarSelecionadoMover === s.saram);
+            const isRealizou = (s.status_solicitacao === 'realizou');
+            const isAusenteVermelho = (isDiaPassado && !isRealizou);
+            return `
+              <div class="cartaoMilitarExcedente ${isSelected ? 'selecionadoParaMover' : ''}"
+                   onclick="event.stopPropagation(); selecionarOuMoverMilitarVisual('${s.saram}')"
+                   style="cursor:pointer; background:rgba(239,68,68,0.22); border:1.5px solid #ef4444; border-left:4px solid #dc2626; color:#fca5a5; padding:0.45rem 0.65rem; border-radius:5px; margin-bottom:0.35rem; display:flex; justify-content:space-between; align-items:center; font-size:0.8rem;">
+                <div style="display:flex; flex-direction:column; text-align:left;">
+                  <span><b>🔴 Excedente #${idx+1}:</b> ${s.posto_grad} ${s.nome_guerra}</span>
+                  ${isAusenteVermelho ? '<span style="font-size:0.62rem; color:#fca5a5;">⚠️ Não compareceu</span>' : ''}
+                </div>
+                <button class="btnPresenca ${isRealizou ? 'realizou' : ''}"
+                        onclick="event.stopPropagation(); alternarPresencaMilitar('${s.saram}', '${dStr}')"
+                        style="font-size:0.68rem; padding:0.2rem 0.45rem; border-radius:4px; border:1px solid ${isRealizou ? '#10b981' : '#ef4444'}; background:${isRealizou ? '#10b981' : 'rgba(6,16,33,0.9)'}; color:#fff; cursor:pointer;">
+                  ${isRealizou ? '✓ Realizou' : '⚪ Presença'}
+                </button>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    col.onclick = () => {
+      if (saramMilitarSelecionadoMover) {
+        selecionarOuMoverMilitarVisual(null, dStr);
+      }
+    };
+
+    col.innerHTML = `
+      <div class="colunaDiaCab" onclick="event.stopPropagation(); selecionarOuMoverMilitarVisual(null, '${dStr}')" style="cursor:pointer;">
+        <h4>📅 ${formatarDataBR(dStr)} <span>${count}/${vagasMax}</span></h4>
+        <div class="subInfo">
+          <span>Ocupação: ${pct}%</span>
+          <span>${count < vagasMax ? 'Disponível' : (count === vagasMax ? 'Lotado' : (count <= vagasMax + 3 ? '🟡 Vagas Livres' : '🔴 Excedente'))}</span>
+        </div>
+      </div>
+      <div class="colunaDiaCorpo">
+        ${htmlMilitares}
+        
+        <!-- 3 VAGAS LIVRES (CASOS ATÍPICOS - AMARELO) -->
+        <div class="blocoVagasLivres">
+          <div class="tituloVagasLivres">
+            <span>🛡️ 3 Vagas Livres (Casos Atípicos)</span>
+          </div>
+          ${htmlVagasLivres}
+        </div>
+
+        ${htmlExcedentes}
+      </div>
+      <div class="colunaDiaRodape">
+        <button class="acao fantasma mini" style="width:100%; justify-content:center;" onclick="event.stopPropagation(); copiarColunaDia('${dStr}')">
+          📋 Copiar Coluna (Cole na Planilha)
+        </button>
+        <button class="acao fantasma mini" style="width:100%; justify-content:center; border-color:rgba(212,168,75,0.4);" onclick="event.stopPropagation(); exibirModalEmailDia('${dStr}')">
+          ✉️ E-mail Formatado do Dia
+        </button>
+      </div>
+    `;
+
+    container.appendChild(col);
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   VISUALIZAÇÃO HORIZONTAL DA ESCALA (COLUNAS)
+   ══════════════════════════════════════════════════════════════ */
+function renderizarEscalaHorizontal() {
+  const container = document.getElementById('escalaHorizontal');
+  container.innerHTML = '';
+  const datas = temporadaAtual?.datas_aplicacao || [];
+  const vagasMax = temporadaAtual?.vagas_por_dia || 4;
+
+  if (!datas.length) {
+    container.innerHTML = '<div style="color:var(--texto-3); padding:1rem;">Nenhuma data cadastrada para exibir a escala.</div>';
+    return;
+  }
+
+  datas.forEach(dStr => {
+    const escaladosNoDia = Object.values(solicitacoesMap)
+      .filter(s => s.dia_escalado === dStr && s.status_solicitacao === 'escalado')
+      .sort((a, b) => a.antiguidade_index - b.antiguidade_index);
+
+    const col = document.createElement('div');
+    col.className = 'colunaDia';
+
+    const count = escaladosNoDia.length;
+    const pct = Math.round((count / vagasMax) * 100);
+
+    let htmlMilitares = '';
+    escaladosNoDia.forEach(s => {
+      const rotuloMetodo = {
+        'prio1': '1ª Opção',
+        'prio2': '2ª Opção',
+        'prio3': '3ª Opção',
+        'regra_secundaria_velhos': 'Antiguidade',
+        'regra_secundaria_novos': 'Modernidade',
+        'manual': 'Manual'
+      }[s.metodo_alocacao] || 'Auto';
+
+      htmlMilitares += `
+        <div class="cartaoMilitarEscalado" title="Clique para remanejar este militar" onclick="remanejarMilitarManual('${s.saram}')" style="cursor:pointer;">
+          <span>${s.posto_grad} ${s.nome_guerra} (${s.saram})</span>
+          <span class="badgeMetodo">${rotuloMetodo}</span>
+        </div>
+      `;
+    });
+
+    if (!escaladosNoDia.length) {
+      htmlMilitares = '<div style="font-size:0.8rem; color:var(--texto-3); text-align:center; padding:1.5rem 0;">Vagas disponíveis</div>';
+    }
+
+    col.innerHTML = `
+      <div class="colunaDiaCab">
+        <h4>📅 ${formatarDataBR(dStr)} <span>${count}/${vagasMax}</span></h4>
+        <div class="subInfo">
+          <span>Ocupação: ${pct}%</span>
+          <span>${count < vagasMax ? 'Disponível' : 'Lotado'}</span>
+        </div>
+      </div>
+      <div class="colunaDiaCorpo">
+        ${htmlMilitares}
+        
+        <!-- 3 VAGAS LIVRES RESERVADAS -->
+        <div class="blocoVagasLivres">
+          <div class="tituloVagasLivres">
+            <span>🛡️ 3 Vagas Livres (Casos Atípicos)</span>
+          </div>
+          <div class="vagaLivreItem">Vaga Reservada #1</div>
+          <div class="vagaLivreItem">Vaga Reservada #2</div>
+          <div class="vagaLivreItem">Vaga Reservada #3</div>
+        </div>
+      </div>
+      <div class="colunaDiaRodape">
+        <button class="acao fantasma mini" style="width:100%; justify-content:center;" onclick="copiarColunaDia('${dStr}')">
+          📋 Copiar Coluna (Cole na Planilha)
+        </button>
+        <button class="acao fantasma mini" style="width:100%; justify-content:center; border-color:rgba(212,168,75,0.4);" onclick="exibirModalEmailDia('${dStr}')">
+          ✉️ E-mail Formatado do Dia
+        </button>
+      </div>
+    `;
+
+    container.appendChild(col);
+  });
+}
+
+function copiarColunaDia(dStr) {
+  const escaladosNoDia = Object.values(solicitacoesMap)
+    .filter(s => s.dia_escalado === dStr && s.status_solicitacao === 'escalado')
+    .sort((a, b) => a.antiguidade_index - b.antiguidade_index);
+
+  if (!escaladosNoDia.length) return Swal.fire('Aviso', 'Nenhum militar escalado nesta data.', 'info');
+
+  const textoParaCopiar = escaladosNoDia
+    .map(s => `${s.posto_grad} ${s.nome_guerra} (${s.saram})`)
+    .join('\n');
+
+  navigator.clipboard.writeText(textoParaCopiar);
+  Swal.fire({
+    title: 'Coluna Copiada!',
+    html: `A lista do dia <b>${formatarDataBR(dStr)}</b> (${escaladosNoDia.length} militares) foi copiada no formato pronto para colar na planilha!`,
+    icon: 'success',
+    timer: 2000,
+    showConfirmButton: false
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GERADOR DE TEMPLATES DE E-MAIL DIÁRIOS
+   ══════════════════════════════════════════════════════════════ */
+function gerarTemplateEmailSemanal() {
+  const datas = temporadaAtual?.datas_aplicacao || [];
+  if (!datas.length) return Swal.fire('Aviso', 'Nenhuma data de aplicação cadastrada.', 'warning');
+
+  let opcoesSelect = '';
+  datas.forEach(d => {
+    opcoesSelect += `<option value="${d}">${formatarDataBR(d)}</option>`;
+  });
+
+  Swal.fire({
+    title: '✉️ Gerador de Template de E-mail Diário',
+    html: `
+      <p style="font-size:0.85rem; color:#666; margin-bottom:1rem;">
+        Selecione a data para gerar o e-mail formatado conforme o padrão oficial com tabela.
+      </p>
+      <select id="swalSelDiaEmail" class="swal2-input">${opcoesSelect}</select>
+    `,
+    showCancelButton: true,
+    confirmButtonText: 'Gerar E-mail Formatado',
+    cancelButtonText: 'Fechar'
+  }).then(res => {
+    if (res.isConfirmed) {
+      const dSel = document.getElementById('swalSelDiaEmail').value;
+      exibirModalEmailDia(dSel);
+    }
+  });
+}
+
+function exibirModalEmailDia(dStr) {
+  const escaladosNoDia = Object.values(solicitacoesMap)
+    .filter(s => s.dia_escalado === dStr && s.status_solicitacao === 'escalado')
+    .sort((a, b) => a.antiguidade_index - b.antiguidade_index);
+
+  const dFmtBR = formatarDataBR(dStr);
+  const dFmtSemZero = formatarDataSemZero(dStr);
+
+  const linhasHtml = escaladosNoDia.map(s => `
+    <tr>
+      <td style="border: 1px solid #000; padding: 4px 8px; font-family: Arial, sans-serif; font-size: 13px;">${s.posto_grad} ${s.nome_guerra} - ${s.saram}</td>
+    </tr>
+  `).join('');
+
+  const htmlTabela = `
+    <table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 230px; border: 1px solid #000; font-family: Arial, sans-serif; font-size: 13px; margin: 12px 0;">
+      <thead>
+        <tr style="background-color: #fff2cc;">
+          <th style="border: 1px solid #000; padding: 4px 8px; font-weight: bold; text-align: center;">${dFmtSemZero}</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${linhasHtml || '<tr><td style="border: 1px solid #000; padding: 4px 8px; text-align: center;">Sem militares</td></tr>'}
+      </tbody>
+    </table>
+  `;
+
+  const htmlEmailCompleto = `
+    <div id="containerEmailHtml" style="font-family: Arial, Helvetica, sans-serif; font-size: 13px; color: #000; line-height: 1.5; text-align: left;">
+      <p style="margin:0 0 12px 0;">Bom dia!</p>
+      <p style="margin:0 0 12px 0;">Venho por meio deste e-mail informar aos senhores que estão escalados para o <b>TACF</b> dia <b>${dFmtBR}</b>.</p>
+      ${htmlTabela}
+      <p style="margin:12px 0 0 0;">Horário de inicio 08:10h no ginásio, atentar para lançar <b>indisponibilidade</b> e levar a <b>ficha de anamnese impressa</b>.</p>
+    </div>
+  `;
+
+  const textEmailPlain = `Bom dia!\n\nVenho por meio deste e-mail informar aos senhores que estão escalados para o TACF dia ${dFmtBR}.\n\n${dFmtSemZero}\n` +
+    escaladosNoDia.map(s => `${s.posto_grad} ${s.nome_guerra} - ${s.saram}`).join('\n') +
+    `\n\nHorário de inicio 08:10h no ginásio, atentar para lançar indisponibilidade e levar a ficha de anamnese impressa.`;
+
+  Swal.fire({
+    title: `Template de E-mail — ${dFmtBR}`,
+    html: `
+      <p style="font-size:0.8rem; color:#555; margin-bottom:0.75rem;">Pré-visualização idêntica ao modelo (clique abaixo para copiar já formatado com a tabela em amarelo):</p>
+      <div class="emailPreviewBox">
+        ${htmlEmailCompleto}
+      </div>
+    `,
+    width: '600px',
+    confirmButtonText: '📋 Copiar E-mail Formatado (Rich Text / Outlook)',
+    showDenyButton: true,
+    denyButtonText: '📄 Copiar em Texto Simples',
+    showCancelButton: true,
+    cancelButtonText: 'Fechar'
+  }).then(r => {
+    if (r.isConfirmed) {
+      copiarHtmlETextoParaTransferencia(htmlEmailCompleto, textEmailPlain);
+    } else if (r.isDenied) {
+      navigator.clipboard.writeText(textEmailPlain);
+      Swal.fire('Copiado!', 'Texto simples copiado.', 'success');
+    }
+  });
+}
+
+function copiarHtmlETextoParaTransferencia(htmlStr, plainStr) {
+  try {
+    const blobHtml = new Blob([htmlStr], { type: 'text/html' });
+    const blobText = new Blob([plainStr], { type: 'text/plain' });
+    const data = [new ClipboardItem({ 'text/html': blobHtml, 'text/plain': blobText })];
+
+    navigator.clipboard.write(data).then(() => {
+      Swal.fire({
+        title: 'Copiado!',
+        text: 'O e-mail com a tabela amarelada foi copiado! Basta colar (Ctrl+V) diretamente no Outlook / Webmail.',
+        icon: 'success',
+        timer: 2500,
+        showConfirmButton: false
+      });
+    }).catch(e => {
+      navigator.clipboard.writeText(plainStr);
+      Swal.fire('Copiado em Texto', 'Copiado como texto plano.', 'info');
+    });
+  } catch (err) {
+    navigator.clipboard.writeText(plainStr);
+    Swal.fire('Copiado em Texto', 'Copiado como texto plano.', 'info');
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DOCUMENTO SIGADAER DE JUSTIFICATIVAS DOS AUSENTES
+   ══════════════════════════════════════════════════════════════ */
+function numeroParaExtenso(n) {
+  const ext = ['zero', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove', 'dez', 'onze', 'doze', 'treze', 'quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito', 'dezenove', 'vinte'];
+  return ext[n] || String(n);
+}
+
+function abrirDocumentoSigadaerFechamento() {
+  const ausentes = [];
+
+  listaEfetivo.forEach(m => {
+    const sol = solicitacoesMap[m.saram];
+    if (m.isR1 || sol?.status_elegibilidade === 'r1_reserva') return;
+
+    const statusEleg = sol?.status_elegibilidade || 'elegivel';
+    const statusSol = sol?.status_solicitacao || 'pendente';
+    const justif = sol?.justificativa || '';
+
+    if (statusEleg === 'baixa' || statusEleg === 'dispensa' || statusSol === 'nao_realizou' || justif) {
+      let motDef = justif;
+      if (!motDef) {
+        if (statusEleg === 'baixa') motDef = 'Em processo de baixa';
+        else if (statusEleg === 'dispensa') motDef = 'Em dispensa médica (anexada à ficha de anamnese no próprio Portal do Militar)';
+        else motDef = 'Sem justificativa regulamentar até a presente data';
+      }
+
+      ausentes.push({
+        posto: m.posto,
+        esp: m.esp,
+        nomeGuerra: m.nomeGuerra,
+        nomeCompleto: m.nomeCompleto,
+        saram: m.saram,
+        justificativa: motDef
+      });
+    }
+  });
+
+  const numAusentes = ausentes.length;
+  const numStr = String(numAusentes).padStart(2, '0');
+  const numExtenso = numeroParaExtenso(numAusentes);
+  const tituloTemp = temporadaAtual?.titulo || obterTituloTemporadaPadrao();
+
+  let itensHtml = '';
+  let itensPlain = '';
+
+  ausentes.forEach(a => {
+    const nomeCompletoOuGuerra = a.nomeCompleto ? `${a.posto} ${a.esp ? a.esp + ' ' : ''}${a.nomeGuerra}` : `${a.posto} ${a.nomeGuerra}`;
+    itensHtml += `<p style="margin: 6px 0 6px 18px; text-indent: -18px;">• <b>${nomeCompletoOuGuerra}</b>: ${a.justificativa};</p>`;
+    itensPlain += `• ${nomeCompletoOuGuerra}: ${a.justificativa};\n`;
+  });
+
+  if (!ausentes.length) {
+    itensHtml = '<p style="margin: 6px 0 6px 18px; font-style: italic;">• Nenhum militar ausente ou dispensado nesta temporada.</p>';
+    itensPlain = '• Nenhum militar ausente ou dispensado nesta temporada.\n';
+  }
+
+  const docHtml = `
+    <div id="docSigadaerBox" style="font-family: Arial, 'Times New Roman', serif; font-size: 13px; color: #000; line-height: 1.5; text-align: justify; padding: 10px;">
+      <p style="margin-bottom: 12px;">1. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Ao cumprimentar respeitosamente o Senhor, passo a tratar de justificativas relativas à não realização do Teste de Avaliação do Condicionamento Físico (TACF ${tituloTemp}) por parte de militares pertencentes ao efetivo desta Divisão de Ensino.</p>
+      
+      <p style="margin-bottom: 12px;">2. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Em conformidade com o deliberado em reunião prévia junto às Secretarias da GUARNAE-YS, informo que ${numStr} (${numExtenso}) militares não compareceram ao referido certame. Ressalto que as ausências encontram-se devidamente justificadas por motivos regulamentares, cujos comprovantes seguem anexos a este documento ou registrados em ficha de anamnese, conforme detalhado abaixo:</p>
+      
+      <div style="margin: 12px 0 16px 0;">
+        ${itensHtml}
+      </div>
+
+      <p style="margin-bottom: 12px;">3. &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Por fim, coloco à disposição do Senhor o Cap Av Bassanesi, Chefe da Secretaria da Divisão de Ensino, para eventuais esclarecimentos adicionais por meio dos ramais 6885 ou endereço eletrônico bassanesigdb@fab.mil.br.</p>
+    </div>
+  `;
+
+  const docPlain = `1.        Ao cumprimentar respeitosamente o Senhor, passo a tratar de justificativas relativas à não realização do Teste de Avaliação do Condicionamento Físico (TACF ${tituloTemp}) por parte de militares pertencentes ao efetivo desta Divisão de Ensino.\n\n2.        Em conformidade com o deliberado em reunião prévia junto às Secretarias da GUARNAE-YS, informo que ${numStr} (${numExtenso}) militares não compareceram ao referido certame. Ressalto que as ausências encontram-se devidamente justificadas por motivos regulamentares, cujos comprovantes seguem anexos a este documento ou registrados em ficha de anamnese, conforme detalhado abaixo:\n\n${itensPlain}\n3.        Por fim, coloco à disposição do Senhor o Cap Av Bassanesi, Chefe da Secretaria da Divisão de Ensino, para eventuais esclarecimentos adicionais por meio dos ramais 6885 ou endereço eletrônico bassanesigdb@fab.mil.br.`;
+
+  Swal.fire({
+    title: '📑 Documento SIGADAER (Ofício de Ausentes)',
+    html: `
+      <p style="font-size:0.8rem; color:#555; margin-bottom:0.75rem;">Texto oficial gerado automaticamente com os ausentes e suas respectivas justificativas:</p>
+      <div class="emailPreviewBox" style="max-height:350px; overflow-y:auto;">
+        ${docHtml}
+      </div>
+    `,
+    width: '720px',
+    confirmButtonText: '📋 Copiar Texto Formatado SIGADAER',
+    showDenyButton: true,
+    denyButtonText: '📄 Copiar Texto Simples',
+    showCancelButton: true,
+    cancelButtonText: 'Fechar'
+  }).then(r => {
+    if (r.isConfirmed) {
+      copiarHtmlETextoParaTransferencia(docHtml, docPlain);
+    } else if (r.isDenied) {
+      navigator.clipboard.writeText(docPlain);
+      Swal.fire('Copiado!', 'Texto simples copiado.', 'success');
+    }
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TABELA GERAL DA SECRETARIA (CONSULTA, REMANEJAMENTO E INDISPONIBILIDADES)
+   ══════════════════════════════════════════════════════════════ */
+function renderizarTabelaSecretaria() {
+  const corpo = document.getElementById('corpoTabelaSec');
+  corpo.innerHTML = '';
+
+  const termoBusca = (document.getElementById('filtroNomeSaram')?.value || '').toLowerCase();
+  const filtroEleg = document.getElementById('filtroStatusEleg')?.value || '';
+
+  const filtrados = listaEfetivo.filter(m => {
+    // Por padrão, esconde militares R1 de qualquer filtro, a menos que o filtro seja especificamente 'r1_reserva'
+    if (m.isR1 && filtroEleg !== 'r1_reserva') return false;
+
+    const matchBusca = m.nomeGuerra.toLowerCase().includes(termoBusca) || m.posto.toLowerCase().includes(termoBusca) || m.saram.includes(termoBusca);
+    if (!matchBusca) return false;
+
+    const sol = solicitacoesMap[m.saram];
+    const statusEleg = (m.isR1 || sol?.status_elegibilidade === 'r1_reserva') ? 'r1_reserva' : (sol ? sol.status_elegibilidade : 'elegivel');
+    const statusSol = sol ? sol.status_solicitacao : 'pendente';
+
+    if (filtroEleg) {
+      if (filtroEleg === 'elegivel' && (m.isR1 || statusEleg !== 'elegivel')) return false;
+      if (filtroEleg === 'r1_reserva' && !m.isR1 && statusEleg !== 'r1_reserva') return false;
+      if (filtroEleg === 'solicitado' && (m.isR1 || statusSol !== 'pendente' || !sol?.prio1_data)) return false;
+      if (filtroEleg === 'escalado' && (m.isR1 || statusSol !== 'escalado')) return false;
+      if (filtroEleg === 'realizou' && statusSol !== 'realizou') return false;
+      if (['baixa', 'dispensa', 'nao_realizou'].includes(filtroEleg) && (statusEleg !== filtroEleg && statusSol !== filtroEleg)) return false;
+    }
+    return true;
+  });
+
+  if (!filtrados.length) {
+    corpo.innerHTML = '<tr><td colspan="9" style="color:var(--texto-3);">Nenhum militar encontrado com os filtros aplicados.</td></tr>';
+    return;
+  }
+
+  filtrados.forEach(m => {
+    const tr = document.createElement('tr');
+    const sol = solicitacoesMap[m.saram];
+
+    let badgeEleg = '<span class="badge elegivel">Elegível</span>';
+    if (m.isR1 || (sol && sol.status_elegibilidade === 'r1_reserva')) badgeEleg = '<span class="badge r1">Reserva (R1)</span>';
+    if (sol && sol.status_elegibilidade === 'baixa') badgeEleg = '<span class="badge baixa">Processo de Baixa</span>';
+    if (sol && sol.status_elegibilidade === 'dispensa') badgeEleg = '<span class="badge dispensa">Dispensa Médica</span>';
+    if (sol && sol.status_elegibilidade === 'missao') badgeEleg = '<span class="badge" style="background:rgba(59,130,246,0.2); border:1px solid #3b82f6; color:#93c5fd; padding:0.2rem 0.5rem; border-radius:4px;">Missão Fora da Sede</span>';
+    if (sol && sol.status_solicitacao === 'nao_realizou') badgeEleg = '<span class="badge rubi">Não Realizou</span>';
+    if (sol && sol.status_solicitacao === 'realizou') badgeEleg = '<span class="badge realizou">Concluído</span>';
+
+    const opcStr = sol?.prio1_data
+      ? `1ª: ${formatarDataBR(sol.prio1_data)}<br/>2ª: ${formatarDataBR(sol.prio2_data)}<br/>3ª: ${formatarDataBR(sol.prio3_data)}`
+      : '—';
+
+    let indispStr = '—';
+    if (Array.isArray(sol?.indisponibilidades) && sol.indisponibilidades.length) {
+      indispStr = sol.indisponibilidades.map(i => {
+        const defTag = i.status_deferimento === 'deferido' ? '🟢' : (i.status_deferimento === 'indeferido' ? '🔴' : '🟡');
+        return `${defTag} ${formatarDataBR(i.data)} (${i.justificativa})`;
+      }).join('<br/>');
+    }
+
+    const diaEscStr = sol && sol.dia_escalado ? `<b>${formatarDataBR(sol.dia_escalado)}</b>` : '—';
+    const valJustif = sol?.justificativa || '';
+
+    tr.innerHTML = `
+      <td style="font-family:var(--f-data);">${m.antiguidade}º</td>
+      <td>${m.posto} ${m.esp ? '(' + m.esp + ')' : ''}</td>
+      <td><b>${m.nomeGuerra}</b></td>
+      <td style="font-family:var(--f-data);">${m.saram}</td>
+      <td style="font-size:0.78rem;">${opcStr}</td>
+      <td style="font-size:0.75rem;">${indispStr}</td>
+      <td>${diaEscStr}</td>
+      <td>
+        <input type="text" id="txtJustif_${m.saram}" value="${valJustif.replace(/"/g, '&quot;')}" placeholder="Justificativa ex: Em missão..." style="font-size:0.78rem; padding:0.3rem 0.5rem; width:100%; min-width:160px;" onchange="salvarJustificativaMilitar('${m.saram}', this.value)" />
+      </td>
+      <td>
+        <select onchange="alterarElegibilidadeMilitar('${m.saram}', this.value)" style="font-size:0.75rem; padding:0.25rem 0.4rem;">
+          <option value="elegivel" ${(sol?.status_elegibilidade === 'elegivel' || !sol) && !m.isR1 ? 'selected' : ''}>Elegível / Normal</option>
+          <option value="missao" ${sol?.status_elegibilidade === 'missao' ? 'selected' : ''}>Missão Fora da Sede</option>
+          <option value="nao_realizou" ${sol?.status_solicitacao === 'nao_realizou' ? 'selected' : ''}>Não Realizou / Remover</option>
+          <option value="baixa" ${sol?.status_elegibilidade === 'baixa' ? 'selected' : ''}>Em Processo de Baixa</option>
+          <option value="dispensa" ${sol?.status_elegibilidade === 'dispensa' ? 'selected' : ''}>Dispensa Médica</option>
+          <option value="realizou" ${sol?.status_solicitacao === 'realizou' ? 'selected' : ''}>TACF Concluído</option>
+          <option value="r1_reserva" ${sol?.status_elegibilidade === 'r1_reserva' || m.isR1 ? 'selected' : ''}>Reserva (R1)</option>
+        </select>
+      </td>
+    `;
+    corpo.appendChild(tr);
+  });
+}
+
+async function salvarJustificativaMilitar(saram, textoJustificativa) {
+  const m = listaEfetivo.find(x => x.saram === saram);
+  if (!m) return;
+
+  const sol = solicitacoesMap[saram] || {
+    temporada_id: temporadaAtual.id,
+    saram: m.saram,
+    posto_grad: m.posto,
+    especialidade: m.esp,
+    nome_guerra: m.nomeGuerra,
+    nome_completo: m.nomeCompleto,
+    antiguidade_index: m.antiguidade,
+    status_solicitacao: 'pendente'
+  };
+
+  sol.justificativa = textoJustificativa;
+
+  try {
+    const { data, error } = await sb
+      .from('tacf_solicitacoes')
+      .upsert([sol], { onConflict: 'temporada_id,saram' })
+      .select();
+
+    if (error) throw error;
+    if (data) {
+      solicitacoesMap[saram] = data[0];
+    }
+  } catch (e) {
+    console.error('Erro ao salvar justificativa:', e);
+  }
+}
+
+async function alterarElegibilidadeMilitar(saram, novoStatus) {
+  const m = listaEfetivo.find(x => x.saram === saram);
+  if (!m) return;
+
+  const sol = solicitacoesMap[saram] || {
+    temporada_id: temporadaAtual.id,
+    saram: m.saram,
+    posto_grad: m.posto,
+    especialidade: m.esp,
+    nome_guerra: m.nomeGuerra,
+    nome_completo: m.nomeCompleto,
+    antiguidade_index: m.antiguidade,
+    status_solicitacao: 'pendente'
+  };
+
+  if (novoStatus === 'baixa' || novoStatus === 'dispensa' || novoStatus === 'r1_reserva') {
+    sol.status_elegibilidade = novoStatus;
+    sol.status_solicitacao = 'nao_realizou';
+    sol.dia_escalado = null;
+    if (!sol.justificativa) {
+      if (novoStatus === 'baixa') sol.justificativa = 'Em processo de baixa';
+      if (novoStatus === 'dispensa') sol.justificativa = 'Em dispensa médica (anexada à ficha de anamnese no próprio Portal do Militar)';
+    }
+  } else if (novoStatus === 'nao_realizou') {
+    sol.status_solicitacao = 'nao_realizou';
+    sol.dia_escalado = null;
+    if (!sol.justificativa) sol.justificativa = 'Sem justificativa regulamentar até a presente data';
+  } else if (novoStatus === 'realizou') {
+    sol.status_solicitacao = 'realizou';
+  } else if (novoStatus === 'elegivel') {
+    sol.status_elegibilidade = 'elegivel';
+    if (sol.status_solicitacao === 'nao_realizou') sol.status_solicitacao = 'pendente';
+  }
+
+  try {
+    const { data, error } = await sb
+      .from('tacf_solicitacoes')
+      .upsert([sol], { onConflict: 'temporada_id,saram' })
+      .select();
+
+    if (error) throw error;
+    if (data) {
+      solicitacoesMap[saram] = data[0];
+      atualizarKpisEContadores();
+      renderizarTabelaSecretaria();
+      renderizarEscalaHorizontal();
+    }
+  } catch (e) {
+    Swal.fire('Erro', 'Falha ao atualizar status: ' + e.message, 'error');
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Indicação para Cursos · Governança DE</title>
+<meta name="description" content="Oferta de cursos, prazos de matrícula, manifestação de interesse e remessa da indicação ao setor de capacitação." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --navy-0:#060d1d; --navy-1:#0a1730; --navy-2:#101f3e;
+  --linha:rgba(207,228,255,.12);
+  --texto:#cfe4ff; --texto-2:#8fa9cf; --texto-3:#5f7699;
+  --ouro:#d4a84b; --ouro-2:#e8c56f;
+  --jade:#3ecf9a; --ambar:#e8b13f; --rubi:#e05a5a; --ceu:#5aa2e0; --lilas:#b06ae0;
+  --card:rgba(16,31,62,.72);
+  --r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:
+    radial-gradient(1100px 520px at 85% -10%, rgba(90,162,224,.10), transparent 60%),
+    radial-gradient(900px 480px at -10% 110%, rgba(212,168,75,.07), transparent 55%),
+    linear-gradient(180deg,var(--navy-0),var(--navy-1) 40%,var(--navy-0));
+  color:var(--texto); min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.disp{font-family:'Rajdhani',sans-serif;letter-spacing:.04em}
+
+/* ── topo ── */
+header.topo{
+  display:flex;align-items:center;gap:1rem;flex-wrap:wrap;
+  padding:1.1rem clamp(1rem,4vw,2.4rem);
+  border-bottom:1px solid var(--linha);
+  background:rgba(6,13,29,.6);backdrop-filter:blur(10px);
+  position:sticky;top:0;z-index:50;
+}
+.volta{
+  display:inline-flex;align-items:center;gap:.45rem;
+  color:var(--texto-2);text-decoration:none;font-size:.82rem;font-weight:600;
+  padding:.45rem .8rem;border:1px solid var(--linha);border-radius:99px;
+  transition:color .2s,border-color .2s;
+}
+.volta:hover{color:var(--ouro-2);border-color:rgba(212,168,75,.5)}
+header.topo h1{font-size:clamp(1.25rem,3vw,1.7rem);font-weight:700;text-transform:uppercase}
+header.topo h1 span{color:var(--ouro)}
+.sub{font-size:.78rem;color:var(--texto-3);width:100%}
+@media(min-width:760px){.sub{width:auto;margin-left:auto;text-align:right;max-width:340px}}
+main{padding:clamp(1rem,3.5vw,2.2rem);max-width:1180px;margin:0 auto}
+
+/* ── faixa do fluxo (assinatura visual) ── */
+.ciclo{border:1px solid var(--linha);border-radius:var(--r);background:var(--card);overflow:hidden;margin-bottom:1.4rem}
+.ciclo-cab{display:flex;align-items:baseline;gap:.8rem;flex-wrap:wrap;padding:1rem 1.2rem .4rem}
+.ciclo-cab h2{font-size:1.05rem;text-transform:uppercase;color:var(--ouro-2)}
+.ciclo-cab small{color:var(--texto-3);font-size:.75rem}
+.pista{display:flex;padding:0 1.2rem 1.1rem;gap:6px}
+.trecho{
+  flex:1;min-height:52px;border-radius:10px;position:relative;
+  border:1px dashed var(--linha);padding:.5rem .7rem;
+  font-size:.7rem;color:var(--texto-3);
+  display:flex;flex-direction:column;justify-content:center;gap:2px;
+}
+.trecho b{font-family:'Rajdhani';font-size:.85rem;letter-spacing:.06em;color:var(--texto-2);text-transform:uppercase}
+.trecho.ativa{border:1px solid rgba(212,168,75,.65);background:rgba(212,168,75,.08)}
+.trecho.ativa b{color:var(--ouro-2)}
+.aviao{position:absolute;top:-11px;left:12px;font-size:.95rem;color:var(--ouro-2);filter:drop-shadow(0 2px 6px rgba(0,0,0,.6))}
+@media(max-width:760px){.pista{flex-direction:column}.trecho{min-height:44px}}
+
+/* ── abas ── */
+.abas{display:flex;gap:.5rem;margin-bottom:1.2rem;flex-wrap:wrap}
+.aba{
+  font-family:'Rajdhani';font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  font-size:.85rem;color:var(--texto-2);background:transparent;
+  border:1px solid var(--linha);border-radius:99px;padding:.55rem 1.15rem;cursor:pointer;transition:all .2s;
+}
+.aba:hover{color:var(--texto)}
+.aba.ativa{color:var(--navy-0);background:linear-gradient(135deg,var(--ouro-2),var(--ouro));border-color:transparent}
+.aba:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--ouro-2);outline-offset:2px}
+
+/* ── cartões / painéis ── */
+.painel{border:1px solid var(--linha);border-radius:var(--r);background:var(--card);padding:1.2rem;margin-bottom:1.3rem}
+.painel h3{font-size:1rem;text-transform:uppercase;color:var(--ouro-2);margin-bottom:.9rem}
+.linhaCtl{display:flex;gap:.8rem;flex-wrap:wrap;align-items:flex-end;margin-bottom:1rem}
+.campo{display:flex;flex-direction:column;gap:.3rem}
+.campo.cresce{flex:1;min-width:200px}
+.campo label{font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--texto-3);font-weight:600}
+select,input[type=text],input[type=number],input[type=date],input[type=month],input[type=search],textarea{
+  background:var(--navy-1);border:1px solid var(--linha);color:var(--texto);
+  border-radius:9px;padding:.55rem .7rem;font-size:.88rem;font-family:inherit;min-width:120px;width:100%;
+}
+textarea{min-height:70px;resize:vertical}
+select{cursor:pointer}
+button.acao{
+  font-family:'Rajdhani';font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+  font-size:.82rem;border:none;border-radius:10px;padding:.62rem 1.1rem;cursor:pointer;
+  color:var(--navy-0);background:linear-gradient(135deg,var(--ouro-2),var(--ouro));
+  box-shadow:0 5px 16px rgba(212,168,75,.25);transition:transform .18s,box-shadow .18s,filter .18s;
+}
+button.acao:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 9px 22px rgba(212,168,75,.38)}
+button.acao:disabled{filter:saturate(.4) brightness(.75);cursor:not-allowed}
+button.acao.fantasma{background:transparent;color:var(--texto-2);border:1px solid var(--linha);box-shadow:none}
+button.acao.fantasma:hover:not(:disabled){color:var(--ouro-2);border-color:rgba(212,168,75,.5)}
+button.acao.verde{background:linear-gradient(135deg,#5fe0b0,var(--jade));box-shadow:0 5px 16px rgba(62,207,154,.25)}
+button.acao.vermelho{background:linear-gradient(135deg,#ef7a7a,var(--rubi));box-shadow:0 5px 16px rgba(224,90,90,.25)}
+.mini{font-size:.72rem;padding:.35rem .7rem}
+
+.faixaMsg{border-radius:10px;padding:.7rem .9rem;font-size:.82rem;margin-bottom:1rem;border:1px solid;line-height:1.5}
+.faixaMsg.info{border-color:rgba(90,162,224,.4);background:rgba(90,162,224,.08);color:#a9cdf2}
+.faixaMsg.ok{border-color:rgba(62,207,154,.4);background:rgba(62,207,154,.08);color:#8fe9c8}
+.faixaMsg.erro{border-color:rgba(224,90,90,.45);background:rgba(224,90,90,.08);color:#f2a9a9}
+.faixaMsg.alerta{border-color:rgba(232,177,63,.45);background:rgba(232,177,63,.08);color:#f0cf8f}
+
+.chip{display:inline-block;font-size:.66rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-radius:99px;padding:.2rem .6rem}
+.chip.cinza{background:rgba(207,228,255,.1);color:var(--texto-2)}
+.chip.azul{background:rgba(90,162,224,.16);color:#a9cdf2}
+.chip.ambar{background:rgba(232,177,63,.16);color:#f0cf8f}
+.chip.jade{background:rgba(62,207,154,.16);color:#8fe9c8}
+.chip.rubi{background:rgba(224,90,90,.16);color:#f2a9a9}
+.chip.lilas{background:rgba(176,106,224,.16);color:#d9b3f2}
+.chip.ouro{background:rgba(212,168,75,.16);color:var(--ouro-2)}
+
+/* ── grade de cursos ── */
+.filtros{display:flex;gap:.7rem;flex-wrap:wrap;align-items:flex-end;margin-bottom:1.1rem}
+.gradeCursos{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:.9rem}
+
+/* Estilo para o acordeão dos cursos */
+details.cursoCard {
+  border:1px solid var(--linha);border-radius:13px;background:var(--navy-1);
+  display:flex;flex-direction:column;position:relative;overflow:hidden;
+  transition:border-color .2s,transform .2s;
+}
+details.cursoCard:hover{border-color:rgba(212,168,75,.45);transform:translateY(-2px)}
+details.cursoCard::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--texto-3)}
+details.cursoCard.aberto::before{background:var(--jade)}
+details.cursoCard.atencao::before{background:var(--ambar)}
+details.cursoCard.urgente::before{background:var(--rubi)}
+details.cursoCard.encerrado{opacity:.55}
+
+details.cursoCard summary {
+  padding:.8rem 1rem; cursor:pointer; list-style:none; position:relative;
+}
+details.cursoCard summary::-webkit-details-marker{display:none}
+details.cursoCard[open] summary{border-bottom:1px solid var(--linha);background:rgba(207,228,255,.02)}
+details.cursoCard summary::after{content:'▼';position:absolute;right:1rem;top:1.1rem;font-size:.7rem;color:var(--texto-3);transition:transform .2s}
+details.cursoCard[open] summary::after{transform:rotate(180deg)}
+
+.cursoCard .topoCard{display:flex;align-items:flex-start;gap:.5rem;flex-wrap:wrap;padding-right:1rem}
+.cursoCard .sigla{font-family:'Rajdhani';font-weight:700;font-size:1.15rem;color:var(--ouro-2);letter-spacing:.05em;line-height:1}
+.cursoCard h4{font-size:.84rem;font-weight:600;color:var(--texto);line-height:1.3;margin-top:.3rem;padding-right:1rem}
+
+.cursoDetalhes{padding:.8rem 1rem;display:flex;flex-direction:column;gap:.55rem}
+.cursoCard .meta{display:flex;flex-wrap:wrap;gap:.35rem .9rem;font-size:.72rem;color:var(--texto-3)}
+.cursoCard .meta b{color:var(--texto-2);font-weight:600}
+.cursoCard .rodapeCard{display:flex;gap:.45rem;margin-top:.3rem;padding-top:.5rem;flex-wrap:wrap;border-top:1px dashed var(--linha)}
+.vazio{color:var(--texto-3);font-size:.84rem;padding:1.4rem;text-align:center;border:1px dashed var(--linha);border-radius:12px}
+
+/* ── tabelas ── */
+.tabScroll{overflow-x:auto}
+table.sec{width:100%;border-collapse:collapse;font-size:.82rem;min-width:820px}
+table.sec th{font-family:'Rajdhani';text-transform:uppercase;letter-spacing:.08em;font-size:.72rem;color:var(--texto-3);text-align:left;padding:.55rem .6rem;border-bottom:1px solid var(--linha)}
+table.sec td{padding:.55rem .6rem;border-bottom:1px solid rgba(207,228,255,.06);vertical-align:top}
+table.sec tr:hover td{background:rgba(207,228,255,.03)}
+table.sec input.ord{max-width:56px;text-align:center;padding:.3rem}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.7rem;margin-bottom:1.1rem}
+.resCel{border:1px solid var(--linha);border-radius:11px;padding:.7rem .8rem;background:rgba(6,13,29,.5)}
+.resCel dt{font-size:.64rem;text-transform:uppercase;letter-spacing:.09em;color:var(--texto-3);font-weight:600}
+.resCel dd{font-family:'Rajdhani';font-weight:700;font-size:1.35rem;margin-top:.15rem}
+.resCel dd.ouro{color:var(--ouro-2)} .resCel dd.jade{color:var(--jade)}
+.resCel dd.ambar{color:var(--ambar)} .resCel dd.rubi{color:var(--rubi)}
+
+/* ── radar de prazos (visão principal da secretaria) ── */
+.painelPrazo{border:1px solid rgba(212,168,75,.35);box-shadow:0 0 0 1px rgba(212,168,75,.06) inset}
+.radar{display:flex;flex-direction:column;gap:.55rem}
+.prazoLinha{
+  display:grid;grid-template-columns:78px 1fr auto;gap:.9rem;align-items:center;
+  border:1px solid var(--linha);border-radius:12px;background:var(--navy-1);
+  padding:.7rem .9rem;cursor:pointer;transition:border-color .2s,transform .2s;
+}
+.prazoLinha:hover{border-color:rgba(212,168,75,.5);transform:translateX(2px)}
+.prazoLinha.sel{border-color:rgba(212,168,75,.75);background:rgba(212,168,75,.07)}
+.prazoDias{text-align:center;border-radius:10px;padding:.4rem .2rem;border:1px solid}
+.prazoDias b{display:block;font-family:'Rajdhani';font-size:1.55rem;font-weight:700;line-height:1}
+.prazoDias small{font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;display:block;margin-top:.1rem}
+.pz-verde{border-color:rgba(62,207,154,.45);background:rgba(62,207,154,.08);color:var(--jade)}
+.pz-ambar{border-color:rgba(232,177,63,.45);background:rgba(232,177,63,.08);color:var(--ambar)}
+.pz-rubi{border-color:rgba(224,90,90,.5);background:rgba(224,90,90,.10);color:var(--rubi)}
+.pz-cinza{border-color:var(--linha);background:rgba(207,228,255,.04);color:var(--texto-3)}
+.pz-rubi.pulsa{animation:pulsa 1.9s ease-in-out infinite}
+@keyframes pulsa{0%,100%{box-shadow:0 0 0 0 rgba(224,90,90,.4)}50%{box-shadow:0 0 0 8px rgba(224,90,90,0)}}
+.prazoCorpo .titulo{font-family:'Rajdhani';font-weight:700;font-size:1rem;letter-spacing:.04em;color:var(--ouro-2)}
+.prazoCorpo .titulo em{font-style:normal;color:var(--texto);font-family:'Inter';font-size:.82rem;font-weight:500}
+.prazoCorpo .sub{font-size:.71rem;color:var(--texto-3);display:flex;gap:.3rem .8rem;flex-wrap:wrap;margin-top:.15rem}
+.barra{height:5px;border-radius:99px;background:rgba(207,228,255,.09);overflow:hidden;margin-top:.5rem}
+.barra i{display:block;height:100%;border-radius:99px;transition:width .4s}
+.prazoAcoes{text-align:right;white-space:nowrap;display:flex;flex-direction:column;gap:.3rem;align-items:flex-end}
+@media(max-width:640px){
+  .prazoLinha{grid-template-columns:64px 1fr}
+  .prazoAcoes{grid-column:1/-1;flex-direction:row;align-items:center;justify-content:flex-start}
+}
+
+.gradeForm{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.8rem;margin-bottom:1rem}
+.gradeForm .largo{grid-column:1/-1}
+
+.listaTca{display:flex;flex-direction:column;gap:.5rem}
+.itemTca{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;border:1px solid var(--linha);border-radius:11px;padding:.6rem .8rem;background:rgba(6,13,29,.4)}
+.itemTca a{color:var(--ouro-2);text-decoration:none;font-weight:600;font-size:.84rem}
+.itemTca a:hover{text-decoration:underline}
+.itemTca small{color:var(--texto-3);font-size:.72rem}
+
+footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
+
+/* ── modais ── */
+.modalFundo{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:rgba(6,13,29,.75);backdrop-filter:blur(6px);padding:1.2rem;overflow-y:auto}
+.modalCaixa{background:var(--navy-2);border:1px solid rgba(212,168,75,.5);border-radius:16px;padding:1.6rem 1.8rem;max-width:760px;width:100%;box-shadow:0 24px 70px rgba(0,0,0,.55);max-height:92vh;overflow-y:auto}
+.modalCaixa.estreito{max-width:420px;text-align:center;padding:2rem 2.2rem}
+.modalCaixa .icone{width:58px;height:58px;border-radius:99px;margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;font-size:1.7rem;background:rgba(62,207,154,.14);color:var(--jade);border:1px solid rgba(62,207,154,.4)}
+.modalCaixa h3{font-size:1.15rem;text-transform:uppercase;color:var(--ouro-2);margin-bottom:.5rem}
+.modalCaixa p.legenda{font-size:.8rem;color:var(--texto-2);margin-bottom:1.1rem;line-height:1.5}
+.escolha{display:flex;gap:.5rem;flex-wrap:wrap}
+.escolha label{
+  display:inline-flex;align-items:center;gap:.4rem;font-size:.78rem;color:var(--texto-2);
+  border:1px solid var(--linha);border-radius:99px;padding:.42rem .85rem;cursor:pointer;transition:all .2s;
+}
+.escolha label:has(input:checked){border-color:rgba(212,168,75,.6);color:var(--ouro-2);background:rgba(212,168,75,.08)}
+.escolha input{width:auto;min-width:0;accent-color:var(--ouro)}
+
+/* ── impressão: só a relação oficial, com identidade visual ── */
+#areaImpressao{display:none}
+@media print{
+  @page{size:A4 landscape;margin:8mm}
+  body{background:#fff;color:#0a1730}
+  header.topo,main,footer,.modalFundo{display:none!important}
+  #areaImpressao{display:block;font-family:'Inter',Arial,Helvetica,sans-serif;color:#0a1730;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .impFundo{position:fixed;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 42%;opacity:.09;z-index:-1}
+  .impCab{display:flex;align-items:center;justify-content:space-between;gap:5mm;border-bottom:2pt solid #d4a84b;padding-bottom:2mm;margin-bottom:2.5mm}
+  .impCab h1{font-family:'Rajdhani','Inter',sans-serif;font-size:12.5pt;letter-spacing:.05em;text-transform:uppercase;color:#0a1730;line-height:1.12;margin:0}
+  .impCab h1 small{display:block;font-size:7pt;letter-spacing:.16em;color:#5f7699;font-weight:600}
+  .impCab .selo{font-family:'Rajdhani',sans-serif;font-size:8pt;letter-spacing:.12em;color:#8a6a1e;text-align:right;text-transform:uppercase}
+  .impIdent{display:flex;gap:2.5mm;margin-bottom:2.5mm;flex-wrap:wrap}
+  .impIdent .bloco{flex:1;min-width:38mm;border:.8pt solid #c7d3e6;border-radius:2mm;padding:1.6mm 2.5mm;background:rgba(255,255,255,.82)}
+  .impIdent .bloco b{display:block;font-size:5.8pt;letter-spacing:.13em;text-transform:uppercase;color:#5f7699;margin-bottom:.6mm}
+  .impIdent .bloco span{font-family:'Rajdhani',sans-serif;font-size:9.5pt;font-weight:700;color:#0a1730}
+  .impIdent .bloco.ouro span{color:#8a6a1e}
+  table.imp{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0;font-size:6.6pt;line-height:1.15;border:.8pt solid #aebdd4;border-radius:2mm;overflow:hidden;background:rgba(255,255,255,.85)}
+  table.imp th{background:#0a1730;color:#fff;font-family:'Rajdhani',sans-serif;font-size:6.2pt;letter-spacing:.06em;text-transform:uppercase;padding:1.1mm .8mm;border-bottom:1.2pt solid #d4a84b}
+  table.imp td{padding:.9mm .8mm;text-align:center;border-bottom:.4pt solid #dbe4f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  table.imp tr{page-break-inside:avoid}
+  table.imp tr:nth-child(even) td{background:rgba(10,23,48,.035)}
+  table.imp tr:last-child td{border-bottom:none}
+  table.imp td.esq{text-align:left}
+  .impRodape{margin-top:3.5mm;font-size:7.4pt;color:#0a1730;line-height:1.3}
+  .impRodape .linhaAss{border-top:.7pt solid #0a1730;margin-top:9mm;padding-top:1mm;width:105mm;font-size:6.2pt;letter-spacing:.13em;text-transform:uppercase;color:#5f7699}
+}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header class="topo">
+  <a class="volta" href="index.html">← Hub</a>
+  <h1>Indicação para <span>Cursos</span></h1>
+  <p class="sub">Oferta de cursos, manifestação de interesse e remessa pronta para o SIGADAER.</p>
+</header>
+
+<main>
+
+  <!-- ═══ FAIXA DO FLUXO ═══ -->
+  <section class="ciclo" aria-label="Fluxo da indicação">
+    <div class="ciclo-cab">
+      <h2>Fluxo da indicação</h2>
+      <small id="cicloSub">da oferta ao SGC</small>
+    </div>
+    <div class="pista" id="pista">
+      <div class="trecho ativa"><b>1 · Interesse</b><span>Militar/civil manifesta com aval da chefia</span><span class="aviao">✈</span></div>
+      <div class="trecho"><b>2 · Secretaria</b><span>Consolida e ordena a prioridade</span></div>
+      <div class="trecho"><b>3 · SIGADAER</b><span>Planilha remetida à capacitação</span></div>
+      <div class="trecho"><b>4 · SGC</b><span>Indicado → decisão do órgão superior → matriculado</span></div>
+    </div>
+  </section>
+
+  <div id="avisoConfig" class="faixaMsg alerta" style="display:none"></div>
+  <div id="faixaGeral" class="faixaMsg info" style="display:none"></div>
+
+  <!-- ═══ ABAS ═══ -->
+  <nav class="abas" role="tablist">
+    <button class="aba ativa" id="abaCur" role="tab" aria-selected="true">Cursos ofertados</button>
+    <button class="aba" id="abaMinha" role="tab" aria-selected="false">Minhas manifestações</button>
+    <button class="aba" id="abaDoc" role="tab" aria-selected="false">TCA e documentos</button>
+    <button class="aba" id="abaSec" role="tab" aria-selected="false">Secretaria</button>
+  </nav>
+
+  <!-- ═══ CURSOS ═══ -->
+  <section id="telaCur">
+    <div class="painel">
+      <h3>Cursos ofertados</h3>
+      <div class="filtros">
+        <div class="campo cresce">
+          <label for="busca">Buscar</label>
+          <input type="search" id="busca" placeholder="sigla, nome do curso, palavra-chave…" />
+        </div>
+        <div class="campo">
+          <label for="fComando">Grande comando</label>
+          <select id="fComando"><option value="">Todos</option></select>
+        </div>
+        <div class="campo">
+          <label for="fPrazo">Prazo</label>
+          <select id="fPrazo">
+            <option value="abertos">Somente com inscrição aberta</option>
+            <option value="todos">Todos (inclui encerrados)</option>
+            <option value="urgentes">Encerrando em 15 dias</option>
+          </select>
+        </div>
+        <button class="acao fantasma" id="btnRecarregar">Atualizar</button>
+      </div>
+      <div id="faixaCursos" class="faixaMsg info">⏳ Carregando o banco de cursos…</div>
+      <div class="gradeCursos" id="gradeCursos"></div>
+    </div>
+  </section>
+
+  <!-- ═══ MINHAS MANIFESTAÇÕES ═══ -->
+  <section id="telaMinha" style="display:none">
+    <div class="painel">
+      <h3>Acompanhe suas manifestações</h3>
+      <div class="linhaCtl">
+        <div class="campo">
+          <label for="mTipo">Vínculo</label>
+          <select id="mTipo"><option value="militar">Militar</option><option value="civil">Servidor civil / Professor</option></select>
+        </div>
+        <div class="campo cresce">
+          <label for="mPessoa">Quem é você</label>
+          <select id="mPessoa"><option value="">— selecione —</option></select>
+        </div>
+        <button class="acao fantasma" id="btnVerMinhas">Consultar</button>
+      </div>
+      <div class="tabScroll">
+        <table class="sec">
+          <thead><tr><th>Curso</th><th>Enviada em</th><th>Aval da chefia</th><th>Status</th><th>SIGAD</th><th style="text-align:right">Ações</th></tr></thead>
+          <tbody id="corpoMinhas"><tr><td colspan="6" style="color:var(--texto-3)">Selecione seu nome e clique em Consultar.</td></tr></tbody>
+        </table>
+      </div>
+      <p style="font-size:.72rem;color:var(--texto-3);margin-top:.9rem;line-height:1.6">
+        <b>Legenda dos status:</b> <span class="chip azul">Recebida</span> a secretaria já tem seu pedido ·
+        <span class="chip ouro">Remetida</span> enviada à capacitação pelo SIGADAER ·
+        <span class="chip lilas">Indicado</span> lançado no SGC ·
+        <span class="chip jade">Matriculado</span> você fará o curso ·
+        <span class="chip rubi">Não matriculado</span> decisão do órgão superior.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══ TCA E DOCUMENTOS ═══ -->
+  <section id="telaDoc" style="display:none">
+    <div class="painel">
+      <h3>TCA e documentos balizadores</h3>
+      <p style="font-size:.8rem;color:var(--texto-2);margin-bottom:1rem">
+        Cada grande comando publica sua TCA com os cursos, pré-requisitos e prazos. Baixe o documento do comando que ofertou o curso antes de manifestar interesse.
+      </p>
+      <div class="listaTca" id="listaTca"><span class="vazio">Carregando…</span></div>
+    </div>
+  </section>
+
+  <!-- ═══ SECRETARIA ═══ -->
+  <section id="telaSec" style="display:none">
+    <div class="painel" id="pinGate" style="max-width:460px">
+      <h3>🔒 Acesso restrito à secretaria</h3>
+      <p style="font-size:.8rem;color:var(--texto-2);margin-bottom:1rem">
+        Informe o PIN da secretaria para abrir a consolidação das indicações e gerenciar cursos.
+      </p>
+      <div class="linhaCtl" style="margin-bottom:0">
+        <div class="campo">
+          <label for="pinCampo">PIN</label>
+          <input type="password" id="pinCampo" inputmode="numeric" autocomplete="off" style="letter-spacing:.35em;font-size:1.05rem;max-width:170px" />
+        </div>
+        <button class="acao" id="btnPin">Entrar</button>
+      </div>
+      <div id="pinMsg" class="faixaMsg erro" style="display:none;margin-top:1rem;margin-bottom:0"></div>
+    </div>
+
+    <div id="secArea" style="display:none">
+
+      <!-- ═══ RADAR DE PRAZOS — visão principal ═══ -->
+      <div class="painel painelPrazo">
+        <h3>⏱ Radar de prazos de indicação</h3>
+        <div id="resumoPrazos" class="faixaMsg info">Carregando…</div>
+        <div class="linhaCtl">
+          <div class="campo">
+            <label for="pzFiltro">Exibir</label>
+            <select id="pzFiltro">
+              <option value="abertos">Prazos em aberto</option>
+              <option value="criticos">Somente críticos (≤ 15 dias)</option>
+              <option value="pedidos">Com manifestações</option>
+              <option value="todos">Todos, inclusive encerrados</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label for="pzComando">Grande comando</label>
+            <select id="pzComando"><option value="">Todos</option></select>
+          </div>
+          <span style="font-size:.72rem;color:var(--texto-3);align-self:center">Clique em uma linha para abrir a consolidação daquele curso.</span>
+        </div>
+        <div class="radar" id="radar"></div>
+      </div>
+
+      <div class="painel" id="painelConsolidacao">
+        <h3>Consolidação das indicações</h3>
+        <div class="linhaCtl">
+          <div class="campo cresce">
+            <label for="secCurso">Curso</label>
+            <select id="secCurso"><option value="">— selecione o curso —</option></select>
+          </div>
+          <div class="campo">
+            <label for="secSigad">Nº SIGAD da remessa</label>
+            <input type="text" id="secSigad" placeholder="ex.: 67200.000000/2026-00" />
+          </div>
+          <button class="acao fantasma" id="btnAtualizarSec">Atualizar</button>
+        </div>
+        <dl class="kpis">
+          <div class="resCel"><dt>Cursos com pedidos</dt><dd id="kCursos">—</dd></div>
+          <div class="resCel"><dt>Aguardando aval</dt><dd class="ambar" id="kSemAval">—</dd></div>
+          <div class="resCel"><dt>Neste curso</dt><dd class="ouro" id="kNoCurso">—</dd></div>
+          <div class="resCel"><dt>Indicados (SGC)</dt><dd id="kIndic">—</dd></div>
+          <div class="resCel"><dt>Matriculados</dt><dd class="jade" id="kMatr">—</dd></div>
+        </dl>
+        <div id="alertaSec" class="faixaMsg alerta" style="display:none"></div>
+        <div class="linhaCtl">
+          <button class="acao" id="btnXlsx">📊 Gerar planilha (SIGADAER)</button>
+          <button class="acao fantasma" id="btnPdf">📄 Gerar PDF (Hero)</button>
+          <button class="acao fantasma" id="btnMarcarRemetida">Marcar como remetida</button>
+        </div>
+        <div class="tabScroll">
+          <table class="sec">
+            <thead><tr>
+              <th style="width:60px">Ordem</th><th>Interessado</th><th>Contato</th><th>Chefia / Pré-req.</th><th>Status</th><th style="text-align:right">Ações</th>
+            </tr></thead>
+            <tbody id="corpoSec"><tr><td colspan="6" style="color:var(--texto-3)">Selecione um curso acima.</td></tr></tbody>
+          </table>
+        </div>
+        <p style="font-size:.72rem;color:var(--texto-3);margin-top:.9rem;line-height:1.6">
+          A <b>ordem de prioridade</b> alimenta a primeira coluna da planilha. Altere o número e ele é salvo automaticamente.
+        </p>
+      </div>
+
+      <!-- cadastro de cursos -->
+      <div class="painel">
+        <h3>Cadastro de cursos</h3>
+        <p style="font-size:.78rem;color:var(--texto-2);margin-bottom:1rem">
+          Cadastre os cursos que serão ofertados. Eles aparecerão para o efetivo manifestar interesse na página principal.
+        </p>
+        <div class="linhaCtl">
+          <button class="acao fantasma" id="btnNovoCurso">+ Novo curso</button>
+          <button class="acao fantasma" id="btnListarCursosSec">Ver cursos cadastrados</button>
+        </div>
+        <div class="tabScroll" id="boxCursosSec" style="display:none">
+          <table class="sec">
+            <thead><tr><th>Sigla</th><th>Curso</th><th>Comando</th><th>Limite da Inscrição</th><th style="text-align:right">Ações</th></tr></thead>
+            <tbody id="corpoCursosSec"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- envio de TCA -->
+      <div class="painel">
+        <h3>Enviar TCA</h3>
+        <div class="gradeForm">
+          <div class="campo"><label for="tcaComando">Grande comando</label><input type="text" id="tcaComando" placeholder="COMGEP" /></div>
+          <div class="campo"><label for="tcaTitulo">Título / número</label><input type="text" id="tcaTitulo" placeholder="TCA 37-14" /></div>
+          <div class="campo"><label for="tcaAno">Ano</label><input type="text" id="tcaAno" placeholder="2026" /></div>
+          <div class="campo"><label for="tcaArq">Arquivo (PDF)</label><input type="file" id="tcaArq" accept="application/pdf" style="padding:.4rem" /></div>
+        </div>
+        <div class="linhaCtl" style="margin-bottom:0">
+          <button class="acao" id="btnEnviarTca">Enviar TCA</button>
+          <button class="acao fantasma" id="btnPinNovo">Alterar PIN</button>
+        </div>
+      </div>
+
+      <!-- diagnóstico -->
+      <div class="painel">
+        <h3>Diagnóstico do Módulo</h3>
+        <p style="font-size:.78rem;color:var(--texto-2);margin-bottom:.8rem">Conferência dos cadastros em banco de dados e sincronização.</p>
+        <div id="diagnostico" style="font-size:.76rem;color:var(--texto-2);line-height:1.7"></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ═══ MODAL: MANIFESTAR INTERESSE ═══ -->
+<div id="modalManif" class="modalFundo" style="display:none" role="dialog" aria-modal="true">
+  <div class="modalCaixa">
+    <h3 id="manifTitulo">Manifestar interesse</h3>
+    <p class="legenda" id="manifCurso"></p>
+
+    <div id="manifAviso" class="faixaMsg alerta" style="display:none"></div>
+
+    <div class="gradeForm">
+      <div class="campo"><label for="fTipo">Vínculo</label>
+        <select id="fTipo"><option value="militar">Militar</option><option value="civil">Servidor civil / Professor</option></select>
+      </div>
+      <div class="campo largo"><label for="fPessoa">Selecione seu nome</label>
+        <select id="fPessoa"><option value="">— selecione —</option></select>
+      </div>
+      <div class="campo"><label for="fPosto">Pst/Grd</label><input type="text" id="fPosto" /></div>
+      <div class="campo"><label for="fEsp">Qd/Esp</label><input type="text" id="fEsp" /></div>
+      <div class="campo largo"><label for="fNome">Nome completo</label><input type="text" id="fNome" /></div>
+      <div class="campo"><label for="fGuerra">Nome de guerra</label><input type="text" id="fGuerra" /></div>
+      <div class="campo"><label for="fCpf">CPF</label><input type="text" id="fCpf" placeholder="000.000.000-00" /></div>
+      <div class="campo"><label for="fEmail">E-mail funcional</label><input type="text" id="fEmail" placeholder="nome@fab.mil.br" /></div>
+      <div class="campo"><label for="fFixo">Telefone fixo (c/ DDD)</label><input type="text" id="fFixo" placeholder="(19) 3565-0000" /></div>
+      <div class="campo"><label for="fCel">Celular (c/ DDD)</label><input type="text" id="fCel" placeholder="(19) 99999-9999" /></div>
+      <div class="campo"><label for="fFuncao">Função atual</label><input type="text" id="fFuncao" placeholder="Docente, Chefe SDPL…" /></div>
+      <div class="campo"><label for="fSaram">SARAM</label><input type="text" id="fSaram" /></div>
+    </div>
+
+    <div style="margin-bottom:1rem">
+      <label style="font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--texto-3);font-weight:600;display:block;margin-bottom:.45rem">Aprovação da chefia imediata</label>
+      <div class="escolha">
+        <label><input type="radio" name="aval" value="sim" /> Já obtive o aval</label>
+        <label><input type="radio" name="aval" value="nao" checked /> Ainda vou solicitar</label>
+      </div>
+    </div>
+
+    <div class="gradeForm">
+      <div class="campo"><label for="fChefia">Chefia que autorizou</label><input type="text" id="fChefia" placeholder="Chefe da SDPL, por exemplo" /></div>
+      <div class="campo"><label for="fPre">Atende aos pré-requisitos da TCA?</label>
+        <select id="fPre"><option value="SIM">SIM</option><option value="NÃO">NÃO</option><option value="A VERIFICAR">A verificar</option></select>
+      </div>
+      <div class="campo largo"><label for="fJust">Justificativa</label>
+        <textarea id="fJust">Capacitação e Atualização</textarea>
+      </div>
+    </div>
+
+    <div class="linhaCtl" style="margin-bottom:0;justify-content:flex-end">
+      <button class="acao fantasma" id="btnCancelarManif">Cancelar</button>
+      <button class="acao" id="btnEnviarManif">Enviar manifestação</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: CADASTRO / AJUSTE DE CURSO ═══ -->
+<div id="modalCurso" class="modalFundo" style="display:none" role="dialog" aria-modal="true">
+  <div class="modalCaixa">
+    <h3 id="cursoTitulo">Novo curso</h3>
+    <p class="legenda" id="cursoLegenda">Preencha os dados que aparecerão para os militares.</p>
+    <div class="gradeForm">
+      <div class="campo"><label for="cComando">Grande comando</label><input type="text" id="cComando" placeholder="COMGEP" /></div>
+      <div class="campo"><label for="cSigla">Sigla</label><input type="text" id="cSigla" placeholder="CIAD" /></div>
+      <div class="campo largo"><label for="cNome">Nome do curso</label><input type="text" id="cNome" /></div>
+      <div class="campo"><label for="cLimite">Data limite de inscrição</label><input type="date" id="cLimite" /></div>
+      <div class="campo"><label for="cInicio">Início (realização)</label><input type="date" id="cInicio" /></div>
+      <div class="campo"><label for="cTermino">Término (realização)</label><input type="date" id="cTermino" /></div>
+      <div class="campo"><label for="cModal">Modalidade</label><input type="text" id="cModal" placeholder="EAD, Presencial, Híbrido" /></div>
+      <div class="campo"><label for="cLocal">Local da fase presencial</label><input type="text" id="cLocal" placeholder="Apenas EAD" /></div>
+      <div class="campo"><label for="cVagas">Vagas</label><input type="text" id="cVagas" /></div>
+      <div class="campo"><label for="cTca">TCA de referência</label><input type="text" id="cTca" placeholder="TCA 37-14" /></div>
+      <div class="campo largo"><label for="cPre">Pré-requisitos</label><textarea id="cPre"></textarea></div>
+      <div class="campo largo"><label for="cObs">Observações</label><textarea id="cObs"></textarea></div>
+    </div>
+    <div class="linhaCtl" style="margin-bottom:0;justify-content:flex-end">
+      <button class="acao fantasma" id="btnCancelarCurso">Cancelar</button>
+      <button class="acao" id="btnSalvarCurso">Salvar curso</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL: OK ═══ -->
+<div id="modalOk" class="modalFundo" style="display:none" role="alertdialog" aria-modal="true">
+  <div class="modalCaixa estreito">
+    <div class="icone">✔</div>
+    <h3 id="okTitulo">Manifestação registrada</h3>
+    <p class="legenda" id="okTexto">A secretaria já recebeu seu pedido. Acompanhe o andamento na aba “Minhas manifestações”.</p>
+    <button class="acao" id="btnOk">OK</button>
+  </div>
+</div>
+
+<div id="areaImpressao"></div>
+
+<footer>Governança DE · Academia da Força Aérea — módulo Indicação para Cursos · <b>v1.0</b></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="assets/js/app-config.js"></script>
+<script>
+console.log('%cIndicação para Cursos · v1.0', 'color:#d4a84b;font-weight:bold');
+
+/* ══════════════════════════════════════════════════════════════
+   CONFIGURAÇÃO
+   ══════════════════════════════════════════════════════════════ */
+const SB = {
+  url: 'https://sovrgsbdhdpxsaomspsp.supabase.co',
+  key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg'
+};
+
+const PLAN = {
+  efetivo:  { id:'1UOMh4y-wHL8kHcB9TUUcEmkeF7z6KYAs4vipsoOFgfA', aba:'Efetivo',          faixa:'A4:AZ200' },
+  civis:    { id:'1x3nkmh-XndGlPW3BuPlp-C1kqK1nr2cx6NlQVOPmELw', aba:'BANCO DE CIVIS',   faixa:'A2:Z200'  }
+};
+
+/* imagem de fundo do PDF */
+const HERO_CANDIDATOS = ['assets/hero-afa.jpg','assets/hero.jpg','assets/hero.png','assets/afa.jpg'];
+let HERO_OK = '';
+
+const BUCKET = 'cursos';
+
+/* ══════════════ utilidades ══════════════ */
+const $ = id => document.getElementById(id);
+const norm = s => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/\s+/g,' ').trim();
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hoje0 = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+const dataBR = d => d ? String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear() : '';
+const isoParaData = s => { if(!s) return null; const m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? new Date(+m[1], +m[2]-1, +m[3]) : null; };
+const dataParaIso = d => d ? d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0') : null;
+const diasAte = d => d ? Math.ceil((d - hoje0()) / 86400000) : null;
+
+function faixa(el, tipo, html){ el.className = 'faixaMsg ' + tipo; el.innerHTML = html; el.style.display = 'block'; }
+function esconde(el){ if (el) el.style.display = 'none'; }
+function aviso(tipo, html, ms){
+  faixa($('faixaGeral'), tipo, html);
+  if (ms) setTimeout(() => esconde($('faixaGeral')), ms);
+}
+
+/* ══════════════ Supabase via REST ══════════════ */
+function sbCab(extra){
+  return Object.assign({ apikey: SB.key, Authorization: 'Bearer ' + SB.key, 'Content-Type': 'application/json' }, extra || {});
+}
+async function sbGet(caminho){
+  const r = await fetch(SB.url + '/rest/v1/' + caminho, { headers: sbCab(), cache: 'no-store' });
+  if (!r.ok) throw new Error('Leitura falhou (' + r.status + ')');
+  return r.json();
+}
+async function sbPost(tabela, corpo){
+  const r = await fetch(SB.url + '/rest/v1/' + tabela, {
+    method: 'POST', headers: sbCab({ Prefer: 'return=representation' }), body: JSON.stringify(corpo)
+  });
+  if (!r.ok) throw new Error('Gravação falhou (' + r.status + ')');
+  return r.json();
+}
+async function sbPatch(caminho, corpo){
+  const r = await fetch(SB.url + '/rest/v1/' + caminho, {
+    method: 'PATCH', headers: sbCab({ Prefer: 'return=representation' }), body: JSON.stringify(corpo)
+  });
+  if (!r.ok) throw new Error('Atualização falhou (' + r.status + ')');
+  return r.json();
+}
+async function sbDel(caminho){
+  const r = await fetch(SB.url + '/rest/v1/' + caminho, { method: 'DELETE', headers: sbCab() });
+  if (!r.ok) throw new Error('Exclusão falhou (' + r.status + ')');
+}
+async function sbUpload(caminho, arquivo, mime){
+  const r = await fetch(SB.url + '/storage/v1/object/' + BUCKET + '/' + caminho, {
+    method: 'POST',
+    headers: { apikey: SB.key, Authorization: 'Bearer ' + SB.key, 'Content-Type': mime || 'application/pdf', 'x-upsert': 'true' },
+    body: arquivo
+  });
+  if (!r.ok) throw new Error('Upload falhou (' + r.status + ') — confirme que o bucket "' + BUCKET + '" existe e é público.');
+  return caminho;
+}
+const urlArquivo = c => SB.url + '/storage/v1/object/public/' + BUCKET + '/' + encodeURI(c);
+
+/* ══════════════ leitura das planilhas (gviz) ══════════════ */
+async function lerPlanilha(cfg){
+  const url = 'https://docs.google.com/spreadsheets/d/' + cfg.id +
+              '/gviz/tq?tqx=out:json&headers=0&sheet=' + encodeURIComponent(cfg.aba) +
+              '&range=' + cfg.faixa;
+  const res = await fetch(url);
+  const txt = await res.text();
+  const m = txt.match(/setResponse\(([\s\S]*)\)/);
+  if (!m) throw new Error('Resposta inesperada da planilha "' + cfg.aba + '"');
+  const json = JSON.parse(m[1]);
+  if (json.status === 'error') throw new Error('Planilha "' + cfg.aba + '" indisponível (verifique o compartilhamento e o nome da aba)');
+  return (json.table && json.table.rows) || [];
+}
+function celValor(c){
+  if (!c) return '';
+  if (c.f != null && c.f !== '') return String(c.f).trim();
+  if (c.v == null) return '';
+  if (typeof c.v === 'string' && /^Date\(/.test(c.v)){
+    const p = c.v.match(/\d+/g).map(Number);
+    return dataBR(new Date(p[0], p[1], p[2]));
+  }
+  return String(c.v).trim();
+}
+function linhaTextos(row){ return (row.c || []).map(celValor); }
+
+/* mapeia um cabeçalho por lista de expressões */
+function mapear(cabecalho, regras){
+  const cab = cabecalho.map(norm);
+  const saida = {};
+  for (const [chave, testes] of Object.entries(regras)){
+    for (let i = 0; i < cab.length; i++){
+      if (!cab[i]) continue;
+      if (testes.some(t => t.test(cab[i]))){ saida[chave] = i; break; }
+    }
+  }
+  return saida;
+}
+
+/* ══════════════ ESTADO ══════════════ */
+let militares = [], civis = [], cursos = [];
+let manifs = [], tcas = [];
+let diag = { efetivo:'', civis:'', cursos:'' };
+let cursoAlvo = null;   // curso do modal de manifestação
+let cursoEdit = null;   // curso do modal de cadastro
+
+/* ══════════════ PESSOAS ══════════════ */
+async function carregarPessoas(){
+  /* --- militares (aba Efetivo) --- */
+  try {
+    const rows = await lerPlanilha(PLAN.efetivo);
+    const cab = linhaTextos(rows[0] || { c: [] });
+    const ix = mapear(cab, {
+      posto:   [/^POST(O)?[\/ ]?GRAD/, /^POSTO$/, /^PST/],
+      esp:     [/^ESP$/, /^QD[\/ ]?ESP/],
+      guerra:  [/NOME DE GUERRA/],
+      completo:[/NOME COMPLETO/],
+      funcao:  [/^CARGO$/, /^CARGO \/ FUNCAO/, /^FUNCAO$/],
+      ramal:   [/^RAMAL/],
+      celular: [/TELEFONE PESSOAL/, /^CELULAR/],
+      email:   [/E.?MAIL/, /ZIMBRA/],
+      saram:   [/^SARAM/],
+      cpf:     [/^CPF/]
+    });
+    diag.efetivo = Object.entries(ix).map(([k,v]) => k + '→' + (cab[v] || '?')).join(' · ') || 'nenhuma coluna reconhecida';
+    militares = rows.slice(1).map(r => {
+      const t = linhaTextos(r);
+      const g = i => (i == null ? '' : (t[i] || '').trim());
+      return {
+        tipo:'militar',
+        posto: g(ix.posto), esp: g(ix.esp),
+        guerra: g(ix.guerra), completo: g(ix.completo) || g(ix.guerra),
+        funcao: g(ix.funcao), ramal: g(ix.ramal), celular: g(ix.celular),
+        email: g(ix.email), saram: g(ix.saram), cpf: g(ix.cpf)
+      };
+    }).filter(m => m.guerra || m.completo);
+  } catch (e){
+    diag.efetivo = '⚠️ ' + e.message;
+    console.warn(e);
+  }
+
+  /* --- civis (aba BANCO DE CIVIS) --- */
+  try {
+    const rows = await lerPlanilha(PLAN.civis);
+    const cab = linhaTextos(rows[0] || { c: [] });
+    const ix = mapear(cab, {
+      rotulo:  [/^PROFESSOR/],
+      completo:[/NOME COMPLETO/],
+      guerra:  [/NOME DE GUERRA/],
+      posto:   [/^POSTO/, /^PST/],
+      esp:     [/^ESP$/, /^QD/],
+      saram:   [/^SARAM/],
+      cpf:     [/^CPF/],
+      email:   [/ZIMBRA/, /E.?MAIL/],
+      ramal:   [/^RAMAL/],
+      celular: [/TELEFONE PESSOAL/, /^CELULAR/]
+    });
+    diag.civis = Object.entries(ix).map(([k,v]) => k + '→' + (cab[v] || '?')).join(' · ') || 'nenhuma coluna reconhecida';
+    civis = rows.slice(1).map(r => {
+      const t = linhaTextos(r);
+      const g = i => (i == null ? '' : (t[i] || '').trim());
+      return {
+        tipo:'civil',
+        rotulo: g(ix.rotulo),
+        posto: g(ix.posto), esp: g(ix.esp),
+        guerra: g(ix.guerra), completo: g(ix.completo),
+        funcao: 'Docente', ramal: g(ix.ramal), celular: g(ix.celular),
+        email: g(ix.email), saram: g(ix.saram), cpf: g(ix.cpf)
+      };
+    }).filter(c => c.rotulo || c.guerra || c.completo);
+  } catch (e){
+    diag.civis = '⚠️ ' + e.message;
+    console.warn(e);
+  }
+}
+
+function rotuloPessoa(p){
+  if (p.tipo === 'civil') return p.rotulo || [p.posto, p.esp, p.guerra].filter(Boolean).join(' ');
+  return [p.posto, p.esp, p.guerra].filter(Boolean).join(' ');
+}
+function preencherSelectPessoas(sel, tipo){
+  const base = tipo === 'civil' ? civis : militares;
+  sel.innerHTML = '<option value="">— selecione —</option>' +
+    base.map((p, i) => '<option value="' + i + '">' + esc(rotuloPessoa(p)) + '</option>').join('');
+}
+
+/* ══════════════ CURSOS ══════════════ */
+async function carregarCursos(){
+  cursos = [];
+  try {
+    const res = await sbGet('cur_cursos?select=*&order=data_limite');
+    cursos = res.map(b => ({
+      id: b.id,
+      comando: b.comando, sigla: b.sigla, nome: b.nome,
+      limite: isoParaData(b.data_limite), inicio: isoParaData(b.data_inicio), termino: isoParaData(b.data_termino),
+      modalidade: b.modalidade, local: b.local_presencial, vagas: b.vagas,
+      prereq: b.pre_requisitos, publico: b.publico_alvo, tca: b.tca, obs: b.observacoes,
+      extras: []
+    }));
+  } catch (e){
+    diag.cursos = '⚠️ Erro ao carregar cursos do banco: ' + e.message;
+    console.warn(e);
+  }
+  
+  diag.cursos = 'Cursos carregados com sucesso de forma 100% independente da planilha.';
+
+  /* filtro de comandos */
+  const comandos = [...new Set(cursos.map(c => c.comando).filter(Boolean))].sort();
+  const opcoes = '<option value="">Todos</option>' + comandos.map(c => '<option>' + esc(c) + '</option>').join('');
+  $('fComando').innerHTML = opcoes;
+  $('pzComando').innerHTML = opcoes;
+}
+
+function situacao(c){
+  const d = diasAte(c.limite);
+  if (d == null) return { classe:'', chip:'<span class="chip cinza">Prazo não informado</span>', txt:'', dias:null };
+  if (d < 0)   return { classe:'encerrado', chip:'<span class="chip cinza">Prazo de indicação encerrado</span>', txt:'Inscrições encerradas em ' + dataBR(c.limite), dias:d };
+  if (d === 0) return { classe:'urgente', chip:'<span class="chip rubi">Inscrição encerra hoje!</span>', txt:'Último dia para indicar: ' + dataBR(c.limite), dias:d };
+  if (d <= 15) return { classe:'urgente', chip:'<span class="chip rubi">Faltam ' + d + ' dias p/ inscrição</span>', txt:'Indicações até: ' + dataBR(c.limite), dias:d };
+  if (d <= 40) return { classe:'atencao', chip:'<span class="chip ambar">Faltam ' + d + ' dias p/ inscrição</span>', txt:'Indicações até: ' + dataBR(c.limite), dias:d };
+  return { classe:'aberto', chip:'<span class="chip jade">Inscrições abertas</span>', txt:'Indicações até: ' + dataBR(c.limite), dias:d };
+}
+
+function pintarCursos(){
+  const q = norm($('busca').value);
+  const com = $('fComando').value;
+  const modo = $('fPrazo').value;
+  const lista = cursos.filter(c => {
+    if (com && c.comando !== com) return false;
+    const s = situacao(c);
+    if (modo === 'abertos' && s.dias != null && s.dias < 0) return false;
+    if (modo === 'urgentes' && !(s.dias != null && s.dias >= 0 && s.dias <= 15)) return false;
+    if (!q) return true;
+    const alvo = norm([c.sigla, c.nome, c.comando, c.publico, c.obs, c.modalidade].join(' '));
+    return alvo.includes(q);
+  }).sort((a, b) => {
+    const da = a.limite ? a.limite.getTime() : 9e15, db = b.limite ? b.limite.getTime() : 9e15;
+    return da - db;
+  });
+
+  const cont = {};
+  manifs.forEach(m => { cont[String(m.curso_chave)] = (cont[String(m.curso_chave)] || 0) + 1; });
+
+  $('gradeCursos').innerHTML = lista.length ? lista.map(c => {
+    const s = situacao(c);
+    const n = cont[String(c.id)] || 0;
+    const periodo = [c.inicio ? dataBR(c.inicio) : '', c.termino ? dataBR(c.termino) : ''].filter(Boolean).join(' a ');
+    return '<details class="cursoCard ' + s.classe + '">' +
+      '<summary>' +
+        '<div class="topoCard">' +
+          '<span class="sigla">' + esc(c.sigla || '—') + '</span>' + s.chip +
+        '</div>' +
+        '<h4>' + esc(c.nome || 'Curso sem denominação') + '</h4>' +
+        '<div style="font-size:.72rem;color:var(--texto-3);margin-top:.2rem;padding-right:1rem"><b>' + esc(c.comando || '—') + '</b>' + (s.txt ? ' · 🗓 ' + esc(s.txt) : '') + '</div>' +
+      '</summary>' +
+      '<div class="cursoDetalhes">' +
+        '<div class="meta">' +
+          (c.modalidade ? '<span><b>Modalidade:</b> ' + esc(c.modalidade) + '</span>' : '') +
+          (periodo ? '<span><b>Realização do Curso:</b> ' + esc(periodo) + '</span>' : '') +
+          (c.vagas ? '<span><b>Vagas:</b> ' + esc(c.vagas) + '</span>' : '') +
+        '</div>' +
+        (c.prereq ? '<div style="font-size:.72rem;color:var(--texto-3);line-height:1.45"><b style="color:var(--texto-2)">Pré-requisitos:</b> ' + esc(c.prereq) + '</div>' : '') +
+        (n ? '<div style="font-size:.72rem;color:var(--texto-3)">👥 ' + n + ' manifestação(ões) na secretaria</div>' : '') +
+        '<div class="rodapeCard">' +
+          '<button class="acao mini" data-manif="' + c.id + '"' + (s.dias != null && s.dias < 0 ? ' disabled title="Prazo de indicações encerrado"' : '') + '>Manifestar interesse</button>' +
+          '<button class="acao fantasma mini" data-detalhe="' + c.id + '">Detalhes</button>' +
+        '</div>' +
+      '</div></details>';
+  }).join('') : '<div class="vazio">Nenhum curso encontrado com esses filtros.</div>';
+
+  esconde($('faixaCursos'));
+  $('gradeCursos').querySelectorAll('[data-manif]').forEach(b => b.addEventListener('click', () => abrirManifestacao(b.dataset.manif)));
+  $('gradeCursos').querySelectorAll('[data-detalhe]').forEach(b => b.addEventListener('click', () => verDetalhe(b.dataset.detalhe)));
+}
+
+function acharCurso(id){ return cursos.find(c => String(c.id) === String(id)) || null; }
+
+function verDetalhe(id){
+  const c = acharCurso(id); if (!c) return;
+  const linhas = [];
+  const add = (k, v) => { if (v) linhas.push('<b style="color:var(--ouro-2)">' + esc(k) + ':</b> ' + esc(v)); };
+  add('Grande comando', c.comando); add('Sigla', c.sigla); add('Curso', c.nome);
+  add('Modalidade', c.modalidade); add('Local da fase presencial', c.local);
+  add('Início do curso', dataBR(c.inicio)); add('Término do curso', dataBR(c.termino));
+  add('Data limite para indicação', dataBR(c.limite)); add('Vagas', c.vagas);
+  add('Público-alvo', c.publico); add('Pré-requisitos', c.prereq);
+  add('TCA de referência', c.tca); add('Observações', c.obs);
+  (c.extras || []).forEach(x => { if (!linhas.some(l => l.includes(esc(x.v)))) add(x.k, x.v); });
+  aviso('info', '<b>' + esc(c.sigla || '') + ' — ' + esc(c.nome || '') + '</b><br>' + linhas.join('<br>'));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ══════════════ MANIFESTAÇÃO ══════════════ */
+function abrirManifestacao(id){
+  cursoAlvo = acharCurso(id);
+  if (!cursoAlvo) return;
+  const s = situacao(cursoAlvo);
+  $('manifCurso').innerHTML = '<b style="color:var(--ouro-2)">' + esc(cursoAlvo.sigla || '') + '</b> — ' +
+    esc(cursoAlvo.nome || '') + '<br>' + esc(cursoAlvo.comando || '') + (s.txt ? ' · ' + esc(s.txt) : '');
+  if (cursoAlvo.prereq) faixa($('manifAviso'), 'alerta', '<b>Pré-requisitos da TCA:</b> ' + esc(cursoAlvo.prereq));
+  else esconde($('manifAviso'));
+  $('fTipo').value = 'militar';
+  preencherSelectPessoas($('fPessoa'), 'militar');
+  ['fPosto','fEsp','fNome','fGuerra','fCpf','fEmail','fFixo','fCel','fFuncao','fSaram','fChefia'].forEach(i => $(i).value = '');
+  $('fJust').value = 'Capacitação e Atualização';
+  $('fPre').value = 'SIM';
+  document.querySelector('input[name=aval][value=nao]').checked = true;
+  $('modalManif').style.display = 'flex';
+}
+
+function preencherPessoa(){
+  const base = $('fTipo').value === 'civil' ? civis : militares;
+  const p = base[Number($('fPessoa').value)];
+  if (!p) return;
+  $('fPosto').value = p.posto || '';
+  $('fEsp').value = p.esp || '';
+  $('fNome').value = p.completo || '';
+  $('fGuerra').value = p.guerra || '';
+  $('fCpf').value = p.cpf || '';
+  $('fEmail').value = p.email || '';
+  $('fCel').value = p.celular || '';
+  $('fFixo').value = p.ramal ? '(16) 3565-' + String(p.ramal).replace(/\D/g,'').slice(-4) : '';
+  $('fFuncao').value = p.funcao || '';
+  $('fSaram').value = p.saram || '';
+}
+
+async function enviarManifestacao(){
+  if (!cursoAlvo) return;
+  const obrig = { fNome:'nome completo', fCpf:'CPF', fEmail:'e-mail funcional', fCel:'celular', fFuncao:'função atual' };
+  for (const [id, rot] of Object.entries(obrig)){
+    if (!$(id).value.trim()){ faixa($('manifAviso'), 'erro', 'Preencha o campo <b>' + rot + '</b> — ele é obrigatório na planilha da capacitação.'); $(id).focus(); return; }
+  }
+  const aval = document.querySelector('input[name=aval]:checked').value === 'sim';
+  const corpo = {
+    curso_chave: cursoAlvo.id,
+    curso_snapshot: {
+      comando: cursoAlvo.comando, sigla: cursoAlvo.sigla, nome: cursoAlvo.nome,
+      local: cursoAlvo.local || '', modalidade: cursoAlvo.modalidade || '',
+      inicio: dataBR(cursoAlvo.inicio), termino: dataBR(cursoAlvo.termino),
+      limite: dataBR(cursoAlvo.limite), tca: cursoAlvo.tca || ''
+    },
+    tipo: $('fTipo').value,
+    posto: $('fPosto').value.trim(), esp: $('fEsp').value.trim(),
+    nome_completo: $('fNome').value.trim(), nome_guerra: $('fGuerra').value.trim(),
+    cpf: $('fCpf').value.trim(), saram: $('fSaram').value.trim(),
+    email: $('fEmail').value.trim(), tel_fixo: $('fFixo').value.trim() || '-', tel_celular: $('fCel').value.trim(),
+    funcao_atual: $('fFuncao').value.trim(),
+    aval_chefia: aval, chefia: $('fChefia').value.trim(),
+    atende_prereq: $('fPre').value,
+    justificativa: $('fJust').value.trim() || 'Capacitação e Atualização',
+    status: 'recebida'
+  };
+  try {
+    $('btnEnviarManif').disabled = true;
+    await sbPost('cur_manifestacoes', corpo);
+    $('modalManif').style.display = 'none';
+    $('okTitulo').textContent = 'Manifestação registrada';
+    $('okTexto').innerHTML = aval
+      ? 'A secretaria já recebeu seu pedido com o aval da chefia. Acompanhe o andamento na aba “Minhas manifestações”.'
+      : 'Pedido registrado. <b>Não esqueça de obter o aval da chefia imediata</b> — a secretaria só remete a indicação depois dessa confirmação.';
+    $('modalOk').style.display = 'flex';
+    await carregarManifs();
+    pintarCursos();
+  } catch (e){
+    faixa($('manifAviso'), 'erro', '⚠️ Não consegui gravar: ' + e.message);
+  } finally {
+    $('btnEnviarManif').disabled = false;
+  }
+}
+
+async function carregarManifs(){
+  try { manifs = await sbGet('cur_manifestacoes?select=*&order=criada_em.asc'); }
+  catch (e){ manifs = []; console.warn(e); }
+}
+
+/* ══════════════ MINHAS MANIFESTAÇÕES ══════════════ */
+function chipStatus(s){
+  const mapa = {
+    recebida:['azul','Recebida'], remetida:['ouro','Remetida'], indicado:['lilas','Indicado (SGC)'],
+    matriculado:['jade','Matriculado'], nao_matriculado:['rubi','Não matriculado'], cancelada:['cinza','Cancelada']
+  };
+  const [cor, txt] = mapa[s] || ['cinza', s || '—'];
+  return '<span class="chip ' + cor + '">' + txt + '</span>';
+}
+function verMinhas(){
+  const base = $('mTipo').value === 'civil' ? civis : militares;
+  const p = base[Number($('mPessoa').value)];
+  if (!p){ $('corpoMinhas').innerHTML = '<tr><td colspan="6" style="color:var(--texto-3)">Selecione seu nome.</td></tr>'; return; }
+  const alvoCpf = String(p.cpf || '').replace(/\D/g,'');
+  const alvoNome = norm(p.completo || p.guerra);
+  const meus = manifs.filter(m =>
+    (alvoCpf && String(m.cpf || '').replace(/\D/g,'') === alvoCpf) ||
+    (alvoNome && norm(m.nome_completo) === alvoNome)
+  );
+  $('corpoMinhas').innerHTML = meus.length ? meus.map(m => {
+    const c = m.curso_snapshot || {};
+    return '<tr><td><b>' + esc(c.sigla || '') + '</b><br><small style="color:var(--texto-3)">' + esc(c.nome || '') + '</small></td>' +
+      '<td>' + new Date(m.criada_em).toLocaleDateString('pt-BR') + '</td>' +
+      '<td>' + (m.aval_chefia ? '<span class="chip jade">Com aval</span>' : '<span class="chip ambar">Pendente</span>') + '</td>' +
+      '<td>' + chipStatus(m.status) + '</td>' +
+      '<td>' + esc(m.sigad || '—') + '</td>' +
+      '<td style="text-align:right">' + (m.status === 'recebida'
+        ? '<button class="acao fantasma mini" data-desistir="' + m.id + '">Desistir</button>' : '—') + '</td></tr>';
+  }).join('') : '<tr><td colspan="6" style="color:var(--texto-3)">Nenhuma manifestação encontrada para este nome.</td></tr>';
+
+  $('corpoMinhas').querySelectorAll('[data-desistir]').forEach(b => b.addEventListener('click', async () => {
+    if (!confirm('Confirma a desistência desta manifestação?')) return;
+    await sbPatch('cur_manifestacoes?id=eq.' + b.dataset.desistir, { status:'cancelada', atualizada_em:new Date().toISOString() });
+    await carregarManifs(); verMinhas(); pintarCursos();
+  }));
+}
+
+/* ══════════════ TCA ══════════════ */
+async function carregarTcas(){
+  try { tcas = await sbGet('cur_tcas?select=*&order=enviada_em.desc'); }
+  catch (e){ tcas = []; console.warn(e); }
+  $('listaTca').innerHTML = tcas.length ? tcas.map(t =>
+    '<div class="itemTca"><span class="chip ouro">' + esc(t.comando || '—') + '</span>' +
+    '<a href="' + urlArquivo(t.arquivo) + '" target="_blank" rel="noopener">📄 ' + esc(t.titulo || t.arquivo) + '</a>' +
+    '<small>' + esc(t.ano || '') + ' · enviada em ' + new Date(t.enviada_em).toLocaleDateString('pt-BR') + '</small>' +
+    '<span style="margin-left:auto"></span>' +
+    (secLiberada() ? '<button class="acao fantasma mini" data-deltca="' + t.id + '">Remover</button>' : '') +
+    '</div>').join('') : '<div class="vazio">Nenhuma TCA disponível ainda. A secretaria pode enviar pelo painel restrito.</div>';
+  $('listaTca').querySelectorAll('[data-deltca]').forEach(b => b.addEventListener('click', async () => {
+    if (!confirm('Remover esta TCA da lista?')) return;
+    await sbDel('cur_tcas?id=eq.' + b.dataset.deltca);
+    carregarTcas();
+  }));
+}
+
+/* ══════════════ SECRETARIA ══════════════ */
+function secLiberada(){ return sessionStorage.getItem('cur_sec_ok') === '1'; }
+
+async function lerPinServidor(){
+  if (window.AppConfig) return window.AppConfig.getPin();
+  const r = await sbGet('cur_config?select=pin&id=eq.default');
+  return (r[0] && String(r[0].pin)) || null;
+}
+async function verificarPin(){
+  const digitado = $('pinCampo').value.trim();
+  esconde($('pinMsg'));
+  if (!digitado) return;
+  try {
+    const pin = await lerPinServidor();
+    if (pin === null){ faixa($('pinMsg'), 'erro', 'PIN não configurado — rode o SQL <code>supabase-cursos-setup.sql</code> no projeto.'); return; }
+    if (digitado === pin){ sessionStorage.setItem('cur_sec_ok','1'); $('pinCampo').value=''; trocarAba('abaSec'); }
+    else { faixa($('pinMsg'), 'erro', 'PIN incorreto. Em caso de dúvida, contate secde.afa@fab.mil.br.'); $('pinCampo').select(); }
+  } catch (e){ faixa($('pinMsg'), 'erro', '⚠️ Não consegui validar o PIN: ' + e.message); }
+}
+
+function preencherSelectCursoSec(){
+  const cont = {};
+  manifs.forEach(m => { if (m.status !== 'cancelada') cont[String(m.curso_chave)] = (cont[String(m.curso_chave)] || 0) + 1; });
+  const comPedido = cursos.filter(c => cont[String(c.id)]);
+  const sem = cursos.filter(c => !cont[String(c.id)]);
+  const opc = c => '<option value="' + esc(c.id) + '">' + esc((c.sigla || '') + ' — ' + (c.nome || '')) +
+                   (cont[String(c.id)] ? ' (' + cont[String(c.id)] + ')' : '') + '</option>';
+  const atual = $('secCurso').value;
+  $('secCurso').innerHTML = '<option value="">— selecione o curso —</option>' +
+    (comPedido.length ? '<optgroup label="Com manifestações">' + comPedido.map(opc).join('') + '</optgroup>' : '') +
+    (sem.length ? '<optgroup label="Sem manifestações">' + sem.map(opc).join('') + '</optgroup>' : '');
+  if (atual) $('secCurso').value = atual;
+}
+
+function manifsDoCurso(){
+  const id = $('secCurso').value;
+  return manifs.filter(m => String(m.curso_chave) === String(id) && m.status !== 'cancelada')
+    .sort((a,b) => (a.prioridade || 999) - (b.prioridade || 999) || new Date(a.criada_em) - new Date(b.criada_em));
+}
+
+/* ── radar de prazos: a visão que a secretaria abre primeiro ── */
+function resumoDoCurso(c){
+  const meus = manifs.filter(m => String(m.curso_chave) === String(c.id) && m.status !== 'cancelada');
+  return {
+    total: meus.length,
+    semAval: meus.filter(m => !m.aval_chefia).length,
+    aRemeter: meus.filter(m => m.status === 'recebida').length,
+    remetidos: meus.filter(m => ['remetida','indicado','matriculado','nao_matriculado'].includes(m.status)).length,
+    matriculados: meus.filter(m => m.status === 'matriculado').length
+  };
+}
+function corPrazo(d){
+  if (d == null) return 'pz-cinza';
+  if (d < 0) return 'pz-cinza';
+  if (d <= 15) return 'pz-rubi';
+  if (d <= 40) return 'pz-ambar';
+  return 'pz-verde';
+}
+function pintarPrazos(){
+  const modo = $('pzFiltro').value, com = $('pzComando').value;
+  const dados = cursos.map(c => ({ c, d: diasAte(c.limite), r: resumoDoCurso(c) }));
+
+  const lista = dados.filter(x => {
+    if (com && x.c.comando !== com) return false;
+    if (modo === 'abertos')  return x.d == null || x.d >= 0;
+    if (modo === 'criticos') return x.d != null && x.d >= 0 && x.d <= 15;
+    if (modo === 'pedidos')  return x.r.total > 0;
+    return true;
+  }).sort((a, b) => {
+    const va = a.d == null ? 9e6 : (a.d < 0 ? 8e6 + a.d : a.d);
+    const vb = b.d == null ? 9e6 : (b.d < 0 ? 8e6 + b.d : b.d);
+    return va - vb;
+  });
+
+  /* resumo em uma frase */
+  const criticos = dados.filter(x => x.d != null && x.d >= 0 && x.d <= 15);
+  const criticosComPedido = criticos.filter(x => x.r.aRemeter > 0);
+  const criticosVazios = criticos.filter(x => x.r.total === 0);
+  const semAval = dados.reduce((s, x) => s + x.r.semAval, 0);
+  const aRemeter = dados.reduce((s, x) => s + x.r.aRemeter, 0);
+  const partes = [];
+  if (criticos.length) partes.push('<b>' + criticos.length + ' curso(s)</b> com prazo em 15 dias ou menos');
+  if (criticosComPedido.length) partes.push('<b>' + criticosComPedido.length + '</b> deles com indicação pronta para remeter');
+  if (criticosVazios.length) partes.push('<b>' + criticosVazios.length + '</b> sem nenhum interessado');
+  if (semAval) partes.push('<b>' + semAval + '</b> pedido(s) sem aval da chefia');
+  if (aRemeter) partes.push('<b>' + aRemeter + '</b> aguardando remessa pelo SIGADAER');
+  const tipoResumo = criticosComPedido.length || (criticos.length && aRemeter) ? 'erro' : (criticos.length || semAval ? 'alerta' : 'ok');
+  faixa($('resumoPrazos'), tipoResumo,
+    partes.length ? (tipoResumo === 'erro' ? '🚨 ' : '⚠️ ') + partes.join(' · ') + '.'
+                  : '✔ Nenhum prazo crítico e nenhuma pendência de remessa no momento.');
+
+  const selecionado = String($('secCurso').value);
+  $('radar').innerHTML = lista.length ? lista.map(({ c, d, r }) => {
+    const cor = corPrazo(d);
+    const pulsa = (d != null && d >= 0 && d <= 7 && r.aRemeter >= 0) ? ' pulsa' : '';
+    const numero = d == null ? '—' : (d < 0 ? Math.abs(d) : d);
+    const legenda = d == null ? 'sem prazo' : (d < 0 ? 'dias atrás' : (d === 0 ? 'é hoje' : (d === 1 ? 'dia' : 'dias')));
+    /* barra: quanto da janela de 60 dias já passou */
+    const pct = d == null ? 0 : (d < 0 ? 100 : Math.max(4, Math.min(100, Math.round((60 - Math.min(d, 60)) / 60 * 100))));
+    const corBarra = d == null ? 'var(--texto-3)' : (d < 0 ? 'var(--texto-3)' : (d <= 15 ? 'var(--rubi)' : (d <= 40 ? 'var(--ambar)' : 'var(--jade)')));
+    const marcas = [
+      r.total ? '<span class="chip azul">' + r.total + ' interessado(s)</span>' : '<span class="chip cinza">sem interessados</span>',
+      r.semAval ? '<span class="chip ambar">' + r.semAval + ' sem aval</span>' : '',
+      r.aRemeter ? '<span class="chip rubi">' + r.aRemeter + ' a remeter</span>' : '',
+      r.remetidos ? '<span class="chip ouro">' + r.remetidos + ' remetido(s)</span>' : '',
+      r.matriculados ? '<span class="chip jade">' + r.matriculados + ' matriculado(s)</span>' : ''
+    ].filter(Boolean).join(' ');
+    return '<div class="prazoLinha' + (String(c.id) === selecionado ? ' sel' : '') + '" data-pz="' + c.id + '">' +
+      '<div class="prazoDias ' + cor + pulsa + '"><b>' + numero + '</b><small>' + legenda + '</small></div>' +
+      '<div class="prazoCorpo">' +
+        '<div class="titulo">' + esc(c.sigla || '—') + ' <em>' + esc(c.nome || '') + '</em></div>' +
+        '<div class="sub"><span>' + esc(c.comando || '—') + '</span>' +
+          '<span>🗓 limite ' + esc(dataBR(c.limite) || 'não informado') + '</span>' +
+          (c.inicio ? '<span>início ' + esc(dataBR(c.inicio)) + '</span>' : '') +
+          '</div>' +
+        '<div class="barra"><i style="width:' + pct + '%;background:' + corBarra + '"></i></div>' +
+      '</div>' +
+      '<div class="prazoAcoes">' + marcas + '</div>' +
+    '</div>';
+  }).join('') : '<div class="vazio">Nenhum curso neste filtro.</div>';
+
+  $('radar').querySelectorAll('[data-pz]').forEach(el => el.addEventListener('click', () => {
+    $('secCurso').value = el.dataset.pz;
+    $('secSigad').value = '';
+    pintarSecretaria();
+    $('painelConsolidacao').scrollIntoView({ behavior:'smooth', block:'start' });
+  }));
+}
+
+function pintarSecretaria(){
+  preencherSelectCursoSec();
+  pintarPrazos();
+  const ativos = manifs.filter(m => m.status !== 'cancelada');
+  $('kCursos').textContent = new Set(ativos.map(m => m.curso_chave)).size;
+  $('kSemAval').textContent = ativos.filter(m => !m.aval_chefia && m.status === 'recebida').length;
+  $('kIndic').textContent = ativos.filter(m => m.status === 'indicado').length;
+  $('kMatr').textContent = ativos.filter(m => m.status === 'matriculado').length;
+
+  const lista = manifsDoCurso();
+  $('kNoCurso').textContent = lista.length || '—';
+
+  const c = acharCurso($('secCurso').value);
+  if (c){
+    const s = situacao(c);
+    const semAval = lista.filter(m => !m.aval_chefia).length;
+    if (s.dias != null && s.dias < 0) faixa($('alertaSec'), 'erro', '🚨 Prazo de matrícula deste curso encerrado em ' + dataBR(c.limite) + '.');
+    else if (semAval) faixa($('alertaSec'), 'alerta', '⚠️ ' + semAval + ' interessado(s) ainda sem o aval da chefia imediata.');
+    else if (s.dias != null && s.dias <= 15) faixa($('alertaSec'), 'alerta', '⏳ Faltam ' + s.dias + ' dia(s) para o limite de matrícula (' + dataBR(c.limite) + ').');
+    else faixa($('alertaSec'), 'ok', '✔ Sem pendências neste curso.');
+    const sig = lista.find(m => m.sigad);
+    if (sig && !$('secSigad').value) $('secSigad').value = sig.sigad;
+  } else esconde($('alertaSec'));
+
+  $('corpoSec').innerHTML = lista.length ? lista.map((m, i) => {
+    return '<tr>' +
+      '<td><input class="ord" type="number" min="1" value="' + (m.prioridade || i + 1) + '" data-ord="' + m.id + '" /></td>' +
+      '<td><b>' + esc([m.posto, m.esp, m.nome_guerra].filter(Boolean).join(' ')) + '</b>' +
+        (m.tipo === 'civil' ? ' <span class="chip cinza">civil</span>' : '') +
+        '<br><small style="color:var(--texto-3)">' + esc(m.nome_completo) + '</small>' +
+        '<br><small style="color:var(--texto-3)">CPF ' + esc(m.cpf) + ' · ' + esc(m.funcao_atual || '—') + '</small></td>' +
+      '<td><small>' + esc(m.email) + '<br>' + esc(m.tel_celular) + '</small></td>' +
+      '<td>' + (m.aval_chefia ? '<span class="chip jade">Com aval</span>' : '<span class="chip ambar">Sem aval</span>') +
+        '<br><span class="chip ' + (m.atende_prereq === 'SIM' ? 'azul' : 'ambar') + '">Pré-req.: ' + esc(m.atende_prereq || '—') + '</span>' +
+        (m.chefia ? '<br><small style="color:var(--texto-3)">' + esc(m.chefia) + '</small>' : '') + '</td>' +
+      '<td>' + chipStatus(m.status) + (m.sigad ? '<br><small style="color:var(--texto-3)">' + esc(m.sigad) + '</small>' : '') + '</td>' +
+      '<td style="text-align:right;white-space:nowrap">' +
+        '<select data-status="' + m.id + '" style="min-width:150px;font-size:.75rem;padding:.3rem">' +
+          ['recebida','remetida','indicado','matriculado','nao_matriculado','cancelada'].map(s =>
+            '<option value="' + s + '"' + (m.status === s ? ' selected' : '') + '>' +
+            ({recebida:'Recebida',remetida:'Remetida',indicado:'Indicado (SGC)',matriculado:'Matriculado',nao_matriculado:'Não matriculado',cancelada:'Cancelar'}[s]) +
+            '</option>').join('') +
+        '</select></td></tr>';
+  }).join('') : '<tr><td colspan="6" style="color:var(--texto-3)">Nenhuma manifestação para este curso.</td></tr>';
+
+  $('corpoSec').querySelectorAll('[data-ord]').forEach(inp => inp.addEventListener('change', async () => {
+    await sbPatch('cur_manifestacoes?id=eq.' + inp.dataset.ord, { prioridade: Number(inp.value) || null, atualizada_em:new Date().toISOString() });
+    await carregarManifs(); pintarSecretaria();
+  }));
+  $('corpoSec').querySelectorAll('[data-status]').forEach(sel => sel.addEventListener('change', async () => {
+    await sbPatch('cur_manifestacoes?id=eq.' + sel.dataset.status, { status: sel.value, atualizada_em:new Date().toISOString() });
+    await carregarManifs(); pintarSecretaria(); pintarCursos();
+  }));
+
+  $('diagnostico').innerHTML =
+    '<b style="color:var(--ouro-2)">Efetivo (militares):</b> ' + esc(diag.efetivo) + ' — <b>' + militares.length + '</b> registros<br>' +
+    '<b style="color:var(--ouro-2)">Banco de civis:</b> ' + esc(diag.civis) + ' — <b>' + civis.length + '</b> registros<br>' +
+    '<b style="color:var(--ouro-2)">Banco de cursos (Supabase):</b> ' + esc(diag.cursos) + ' — <b>' + cursos.length + '</b> cursos ativos';
+}
+
+async function marcarRemetida(){
+  const lista = manifsDoCurso().filter(m => m.status === 'recebida');
+  const sigad = $('secSigad').value.trim();
+  if (!lista.length){ aviso('alerta', 'Nenhuma manifestação em “Recebida” neste curso.', 6000); return; }
+  if (!sigad && !confirm('Nenhum número SIGAD informado. Marcar como remetida mesmo assim?')) return;
+  for (const m of lista){
+    await sbPatch('cur_manifestacoes?id=eq.' + m.id, { status:'remetida', sigad: sigad || null, atualizada_em:new Date().toISOString() });
+  }
+  await carregarManifs(); pintarSecretaria(); pintarCursos();
+  aviso('ok', '✔ ' + lista.length + ' indicação(ões) marcada(s) como remetida(s).', 6000);
+}
+
+/* ══════════════ EXPORTAÇÃO: PLANILHA DO SIGADAER ══════════════ */
+function gerarXlsx(){
+  const c = acharCurso($('secCurso').value);
+  const lista = manifsDoCurso();
+  if (!c || !lista.length){ aviso('alerta', 'Selecione um curso que tenha manifestações.', 6000); return; }
+
+  const aoa = [];
+  aoa[0]  = [c.comando || 'COMGEP'];
+  aoa[1]  = ['DADOS DO CURSO:'];
+  aoa[2]  = ['Sigla do Curso:', c.sigla || '', '', 'LOCAL DA FASE PRESENCIAL:', c.local || (/(EAD|DIST)/i.test(c.modalidade || '') ? 'Apenas EAD' : ''), '', '', '', 'INÍCIO:', dataBR(c.inicio)];
+  aoa[3]  = ['Nome do curso:', c.nome || '', '', '', '', '', '', '', 'TÉRMINO:', dataBR(c.termino)];
+  aoa[4]  = ['DADOS DOS MILITARES INDICADOS:'];
+  aoa[5]  = ['Ordem de Prioridade','Pst/Grd','Qd/Esp','Nome Completo','Nome de Guerra','CPF',
+             'E-mail Funcional','Telefone Fixo (com DDD)','Telefone Celular (com DDD)','Função atual',
+             'Atende os Pré-requisitos da ' + (c.tca || 'TCA') + '?','JUSTIFICATIVA'];
+  lista.forEach((m, i) => {
+    aoa.push([
+      m.prioridade || i + 1, m.posto || '', m.esp || '', m.nome_completo || '', m.nome_guerra || '',
+      m.cpf || '', m.email || '', m.tel_fixo || '-', m.tel_celular || '', m.funcao_atual || '',
+      m.atende_prereq || '', m.justificativa || ''
+    ]);
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols'] = [{wch:12},{wch:11},{wch:9},{wch:36},{wch:18},{wch:16},{wch:28},{wch:16},{wch:18},{wch:20},{wch:22},{wch:26}];
+  ws['!merges'] = [
+    { s:{r:0,c:0}, e:{r:0,c:11} },
+    { s:{r:1,c:0}, e:{r:1,c:11} },
+    { s:{r:2,c:1}, e:{r:2,c:2} },
+    { s:{r:2,c:4}, e:{r:2,c:7} },
+    { s:{r:2,c:9}, e:{r:2,c:11} },
+    { s:{r:3,c:1}, e:{r:3,c:7} },
+    { s:{r:3,c:9}, e:{r:3,c:11} },
+    { s:{r:4,c:0}, e:{r:4,c:11} }
+  ];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, (c.sigla || 'CURSO').slice(0, 28));
+  const nome = 'INDICACAO_' + (c.sigla || 'CURSO').replace(/\W+/g,'') + '_' + new Date().getFullYear() + '.xlsx';
+  XLSX.writeFile(wb, nome);
+  aviso('ok', '✔ Planilha <b>' + esc(nome) + '</b> gerada — pronta para anexar no SIGADAER.', 8000);
+}
+
+/* ══════════════ EXPORTAÇÃO: PDF COM O HERO ══════════════ */
+function gerarPdf(){
+  const c = acharCurso($('secCurso').value);
+  const lista = manifsDoCurso();
+  if (!c || !lista.length){ aviso('alerta', 'Selecione um curso que tenha manifestações.', 6000); return; }
+  const sigad = $('secSigad').value.trim();
+
+  const bloco = (r, v) => '<div class="bloco"><b>' + esc(r) + '</b><span>' + esc(v || '—') + '</span></div>';
+  const linhas = lista.map((m, i) =>
+    '<tr><td>' + (m.prioridade || i + 1) + '</td><td>' + esc(m.posto) + '</td><td>' + esc(m.esp) + '</td>' +
+    '<td class="esq">' + esc(m.nome_completo) + '</td><td>' + esc(m.nome_guerra) + '</td><td>' + esc(m.cpf) + '</td>' +
+    '<td class="esq">' + esc(m.email) + '</td><td>' + esc(m.tel_fixo) + '</td><td>' + esc(m.tel_celular) + '</td>' +
+    '<td class="esq">' + esc(m.funcao_atual) + '</td><td>' + esc(m.atende_prereq) + '</td><td class="esq">' + esc(m.justificativa) + '</td></tr>').join('');
+
+  $('areaImpressao').innerHTML =
+    (HERO_OK ? '<img class="impFundo" src="' + HERO_OK + '" alt="" />' : '') +
+    '<div class="impCab"><h1>Indicação para Curso<small>Divisão de Ensino · Academia da Força Aérea</small></h1>' +
+    '<div class="selo">' + esc(c.comando || '') + '<br>' + (sigad ? 'SIGAD ' + esc(sigad) : dataBR(new Date())) + '</div></div>' +
+    '<div class="impIdent">' + bloco('Sigla do curso', c.sigla) + bloco('Curso', c.nome) +
+      bloco('Local da fase presencial', c.local || (/(EAD|DIST)/i.test(c.modalidade || '') ? 'Apenas EAD' : '')) + '</div>' +
+    '<div class="impIdent">' + bloco('Início', dataBR(c.inicio)) + bloco('Término', dataBR(c.termino)) +
+      '<div class="bloco ouro"><b>Limite de matrícula</b><span>' + esc(dataBR(c.limite) || '—') + '</span></div>' +
+      bloco('Indicados', String(lista.length)) + '</div>' +
+    '<table class="imp"><thead><tr>' +
+      ['Ordem','Pst/Grd','Qd/Esp','Nome Completo','Nome de Guerra','CPF','E-mail Funcional','Tel. Fixo','Tel. Celular','Função atual','Pré-req.','Justificativa']
+        .map(h => '<th>' + h + '</th>').join('') +
+    '</tr></thead><tbody>' + linhas + '</tbody></table>' +
+    '<div class="impRodape">Relação de indicados gerada pelo módulo Indicação para Cursos — Governança DE em ' +
+      new Date().toLocaleString('pt-BR') + '.' +
+      '<div class="linhaAss">Chefe da Secretaria da Divisão de Ensino</div></div>';
+
+  window.print();
+}
+
+/* ══════════════ CADASTRO DE CURSOS ══════════════ */
+function abrirModalCurso(id){
+  cursoEdit = id ? acharCurso(id) : null;
+  $('cursoTitulo').textContent = cursoEdit ? 'Ajustar curso' : 'Novo curso';
+  $('cursoLegenda').textContent = 'Preencha os dados que aparecerão para os militares e no cabeçalho da planilha.';
+  const c = cursoEdit || {};
+  $('cComando').value = c.comando || ''; $('cSigla').value = c.sigla || ''; $('cNome').value = c.nome || '';
+  $('cLimite').value = dataParaIso(c.limite) || ''; $('cInicio').value = dataParaIso(c.inicio) || '';
+  $('cTermino').value = dataParaIso(c.termino) || ''; $('cModal').value = c.modalidade || '';
+  $('cLocal').value = c.local || ''; $('cVagas').value = c.vagas || ''; $('cTca').value = c.tca || '';
+  $('cPre').value = c.prereq || ''; $('cObs').value = c.obs || '';
+  $('modalCurso').style.display = 'flex';
+}
+async function salvarCurso(){
+  const corpo = {
+    comando: $('cComando').value.trim() || null, sigla: $('cSigla').value.trim() || null, nome: $('cNome').value.trim() || null,
+    data_limite: $('cLimite').value || null, data_inicio: $('cInicio').value || null, data_termino: $('cTermino').value || null,
+    modalidade: $('cModal').value.trim() || null, local_presencial: $('cLocal').value.trim() || null,
+    vagas: $('cVagas').value.trim() || null, tca: $('cTca').value.trim() || null,
+    pre_requisitos: $('cPre').value.trim() || null, observacoes: $('cObs').value.trim() || null
+  };
+  if (!corpo.sigla && !corpo.nome){ alert('Informe pelo menos a sigla ou o nome do curso.'); return; }
+  try {
+    if (cursoEdit && cursoEdit.id){
+      await sbPatch('cur_cursos?id=eq.' + cursoEdit.id, corpo);
+    } else {
+      await sbPost('cur_cursos', corpo);
+    }
+    $('modalCurso').style.display = 'none';
+    await carregarCursos(); pintarCursos(); pintarSecretaria(); listarCursosSec();
+    aviso('ok', '✔ Curso salvo.', 5000);
+  } catch (e){ alert('Não consegui salvar: ' + e.message); }
+}
+function listarCursosSec(){
+  $('corpoCursosSec').innerHTML = cursos.map(c =>
+    '<tr><td><b>' + esc(c.sigla || '—') + '</b></td><td>' + esc(c.nome || '') + '</td><td>' + esc(c.comando || '') + '</td>' +
+    '<td>' + esc(dataBR(c.limite) || '—') + '</td>' +
+    '<td style="text-align:right;white-space:nowrap">' +
+      '<button class="acao fantasma mini" data-edit="' + c.id + '">Ajustar</button> ' +
+      '<button class="acao fantasma mini" data-excluir="' + c.id + '">Excluir</button>' +
+    '</td></tr>').join('');
+
+  $('corpoCursosSec').querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => abrirModalCurso(b.dataset.edit)));
+  
+  $('corpoCursosSec').querySelectorAll('[data-excluir]').forEach(b => b.addEventListener('click', async () => {
+    if (!confirm('Tem certeza que deseja excluir este curso permanentemente? O curso será removido da base de dados.')) return;
+    try {
+      await sbDel('cur_cursos?id=eq.' + b.dataset.excluir);
+      await carregarCursos(); pintarCursos(); listarCursosSec(); pintarSecretaria();
+    } catch (e) {
+      alert('Não consegui excluir: ' + e.message);
+    }
+  }));
+}
+
+/* ══════════════ ABAS ══════════════ */
+const ABAS = [['abaCur','telaCur'], ['abaMinha','telaMinha'], ['abaDoc','telaDoc'], ['abaSec','telaSec']];
+function trocarAba(id){
+  ABAS.forEach(([a, t]) => {
+    const on = a === id;
+    $(a).classList.toggle('ativa', on);
+    $(a).setAttribute('aria-selected', on);
+    $(t).style.display = on ? '' : 'none';
+  });
+  if (id === 'abaSec'){
+    if (secLiberada()){
+      $('pinGate').style.display = 'none'; $('secArea').style.display = '';
+      carregarManifs().then(pintarSecretaria);
+      carregarTcas();
+    } else {
+      $('pinGate').style.display = ''; $('secArea').style.display = 'none'; $('pinCampo').focus();
+    }
+  }
+  if (id === 'abaMinha') preencherSelectPessoas($('mPessoa'), $('mTipo').value);
+  if (id === 'abaDoc') carregarTcas();
+}
+ABAS.forEach(([a]) => $(a).addEventListener('click', () => trocarAba(a)));
+
+/* ══════════════ LIGAÇÕES ══════════════ */
+$('busca').addEventListener('input', pintarCursos);
+$('fComando').addEventListener('change', pintarCursos);
+$('fPrazo').addEventListener('change', pintarCursos);
+$('btnRecarregar').addEventListener('click', () => iniciar(true));
+
+$('fTipo').addEventListener('change', () => { preencherSelectPessoas($('fPessoa'), $('fTipo').value); });
+$('fPessoa').addEventListener('change', preencherPessoa);
+$('btnCancelarManif').addEventListener('click', () => { $('modalManif').style.display = 'none'; });
+$('btnEnviarManif').addEventListener('click', enviarManifestacao);
+$('modalManif').addEventListener('click', e => { if (e.target === $('modalManif')) $('modalManif').style.display = 'none'; });
+$('btnOk').addEventListener('click', () => { $('modalOk').style.display = 'none'; });
+
+$('mTipo').addEventListener('change', () => preencherSelectPessoas($('mPessoa'), $('mTipo').value));
+$('btnVerMinhas').addEventListener('click', verMinhas);
+$('mPessoa').addEventListener('change', verMinhas);
+
+$('btnPin').addEventListener('click', verificarPin);
+$('pinCampo').addEventListener('keydown', e => { if (e.key === 'Enter') verificarPin(); });
+$('btnPinNovo').addEventListener('click', async () => {
+  const novo = prompt('Novo PIN da secretaria (mínimo 4 caracteres):');
+  if (novo === null) return;
+  if (novo.trim().length < 4){ alert('PIN muito curto — use pelo menos 4 caracteres.'); return; }
+  try { await sbPatch('cur_config?id=eq.default', { pin: novo.trim() }); alert('PIN alterado.'); }
+  catch (e){ alert('Não consegui alterar o PIN: ' + e.message); }
+});
+$('pzFiltro').addEventListener('change', pintarPrazos);
+$('pzComando').addEventListener('change', pintarPrazos);
+$('secCurso').addEventListener('change', () => { $('secSigad').value = ''; pintarSecretaria(); });
+$('btnAtualizarSec').addEventListener('click', async () => { await carregarManifs(); pintarSecretaria(); });
+$('btnXlsx').addEventListener('click', gerarXlsx);
+$('btnPdf').addEventListener('click', gerarPdf);
+$('btnMarcarRemetida').addEventListener('click', marcarRemetida);
+$('btnNovoCurso').addEventListener('click', () => abrirModalCurso(null));
+$('btnCancelarCurso').addEventListener('click', () => { $('modalCurso').style.display = 'none'; });
+$('btnSalvarCurso').addEventListener('click', salvarCurso);
+$('modalCurso').addEventListener('click', e => { if (e.target === $('modalCurso')) $('modalCurso').style.display = 'none'; });
+$('btnListarCursosSec').addEventListener('click', () => {
+  const box = $('boxCursosSec');
+  const aberto = box.style.display !== 'none';
+  box.style.display = aberto ? 'none' : '';
+  if (!aberto) listarCursosSec();
+});
+$('btnEnviarTca').addEventListener('click', async () => {
+  const arq = $('tcaArq').files[0];
+  if (!arq){ alert('Selecione o arquivo PDF da TCA.'); return; }
+  if (arq.size > 25 * 1024 * 1024){ alert('Arquivo acima de 25 MB.'); return; }
+  const comando = $('tcaComando').value.trim() || 'GERAL';
+  const titulo = $('tcaTitulo').value.trim() || arq.name.replace(/\.pdf$/i,'');
+  try {
+    aviso('info', '⏳ Enviando a TCA…');
+    const caminho = 'tca/' + norm(comando).replace(/\W+/g,'-') + '/' + Date.now() + '-' + arq.name.replace(/[^\w.\-]/g,'_');
+    await sbUpload(caminho, arq, 'application/pdf');
+    await sbPost('cur_tcas', { comando, titulo, ano: $('tcaAno').value.trim() || null, arquivo: caminho });
+    $('tcaArq').value = '';
+    aviso('ok', '✔ TCA enviada e já disponível para download na aba “TCA e documentos”.', 7000);
+    carregarTcas();
+  } catch (e){ aviso('erro', '⚠️ ' + e.message); }
+});
+
+/* ══════════════ INÍCIO ══════════════ */
+function acharHero(){
+  return new Promise(resolve => {
+    let i = 0;
+    const tenta = () => {
+      if (i >= HERO_CANDIDATOS.length) return resolve('');
+      const img = new Image();
+      img.onload = () => resolve(HERO_CANDIDATOS[i]);
+      img.onerror = () => { i++; tenta(); };
+      img.src = HERO_CANDIDATOS[i];
+    };
+    tenta();
+  });
+}
+
+async function iniciar(recarga){
+  if (recarga) faixa($('faixaCursos'), 'info', '⏳ Atualizando…');
+  if (!SB.key){ faixa($('avisoConfig'), 'alerta', '⚙️ Falta preencher a chave anônima do Supabase no topo do script.'); }
+  HERO_OK = await acharHero();
+  await carregarPessoas();
+  await carregarManifs();
+  await carregarCursos();
+  pintarCursos();
+  preencherSelectPessoas($('mPessoa'), 'militar');
+  if (secLiberada() && $('telaSec').style.display !== 'none') pintarSecretaria();
+}
+iniciar();
+</script>
+</body>
+</html>

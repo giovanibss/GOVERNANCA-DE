@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AFA · Monitor de Higiene — DE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy-900:#0a1628; --navy-800:#0f2341; --navy-700:#14315a;
+      --navy-600:#1e4377; --navy-500:#2d5a9e; --navy-400:#5b82c4;
+      --navy-300:#94b0d8; --navy-200:#c5d4e8; --navy-100:#e6eef7; --navy-50:#f2f6fb;
+      --gold-500:#d4a84b; --gold-400:#e6be65; --gold-300:#f0d487;
+      --green-500:#10b981; --green-400:#34d399;
+      --yellow-500:#f59e0b; --yellow-400:#fbbf24;
+      --red-500:#ef4444; --red-400:#f87171;
+      --magenta-500:#c026d3; --magenta-400:#d946ef; --magenta-100:#fae8ff;
+      --purple-500:#8b5cf6; --purple-100:#ede9fe;
+      --gray-100:#f1f5f9; --gray-200:#e2e8f0; --gray-300:#cbd5e1;
+      --gray-400:#94a3b8; --gray-500:#64748b; --gray-700:#334155; --gray-900:#0f172a;
+      --white:#ffffff;
+      --font-display:'Oswald', sans-serif;
+      --font-body:'Inter', sans-serif;
+      --font-mono:'JetBrains Mono', monospace;
+    }
+
+    body { font-family: var(--font-body); background: var(--navy-50); color: var(--navy-900); min-height: 100vh; overflow-x: hidden; }
+    body::after {
+      content:''; position:fixed; inset:0;
+      background-image: linear-gradient(rgba(20,49,90,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(20,49,90,.04) 1px, transparent 1px);
+      background-size: 40px 40px; pointer-events: none; z-index: 0;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--navy-900), var(--navy-700)); color: white;
+      padding: 0 2rem; height: 78px;
+      display:flex; align-items:center; justify-content:space-between;
+      position: sticky; top:0; z-index:100;
+      border-bottom: 3px solid var(--gold-500);
+    }
+    header::before {
+      content:''; position:absolute; inset:0;
+      background-image: repeating-linear-gradient(45deg, rgba(212,168,75,.05) 0 1px, transparent 1px 20px);
+      pointer-events:none;
+    }
+    .logo { display:flex; align-items:center; gap:1rem; position:relative; }
+    .crest {
+      width: 58px; height: 58px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: white; border-radius: 6px; padding: 3px;
+      border: 2px solid var(--gold-500); box-shadow: 0 3px 10px rgba(0,0,0,.3);
+    }
+    .crest img { width: 100%; height: 100%; object-fit: contain; }
+    .logo-text { font-family: var(--font-display); font-size:1.15rem; font-weight:600; letter-spacing:.04em; line-height:1; text-transform: uppercase; }
+    .logo-sub { font-size:.7rem; color: var(--navy-300); letter-spacing:.08em; text-transform:uppercase; margin-top:4px; }
+    .header-right { display:flex; align-items:center; gap:1rem; position:relative; }
+    .last-update { font-family: var(--font-mono); font-size:.72rem; color: var(--navy-200); background: rgba(255,255,255,.08); padding:.35rem .85rem; border-radius:4px; border:1px solid rgba(255,255,255,.1); }
+    .live-dot { display:flex; align-items:center; gap:.4rem; font-size:.72rem; color: var(--green-400); font-weight:500; letter-spacing:.05em; text-transform:uppercase; }
+    .pulse { width:8px; height:8px; background:var(--green-400); border-radius:50%; animation: pulse 2s infinite; box-shadow: 0 0 10px var(--green-400); }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
+    .nav-btn, .refresh-btn, .form-btn {
+      display:flex; align-items:center; gap:.45rem;
+      font-size:.72rem; font-weight:500; color:white;
+      background: rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15);
+      border-radius:4px; padding:.4rem .8rem; cursor:pointer; text-transform:uppercase;
+      letter-spacing:.05em; transition: all .2s; font-family: var(--font-body); text-decoration: none;
+    }
+    .nav-btn:hover, .refresh-btn:hover, .form-btn:hover { background: rgba(255,255,255,.15); }
+    .refresh-btn.spinning svg { animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .form-btn { background: var(--gold-500); color: var(--navy-900); border-color: var(--gold-500); font-weight: 600; }
+    .form-btn:hover { background: var(--gold-400); }
+
+    .cocar-icon { width: 18px; height: 18px; flex-shrink: 0; object-fit: contain; filter: drop-shadow(0 1px 2px rgba(0,0,0,.2)); }
+    .cocar-icon.lg { width: 28px; height: 28px; }
+    .cocar-icon.xl { width: 44px; height: 44px; }
+
+    #status-banner { display:none; padding:.6rem 2rem; font-size:.8rem; font-weight:500; align-items:center; gap:.6rem; position:relative; z-index:5; }
+    #status-banner.loading { display:flex; background:#dbeafe; color:#1e3a8a; }
+    #status-banner.error   { display:flex; background:#fef2f2; color:#991b1b; }
+
+    .summary { display:flex; gap:.75rem; padding:1.25rem 2rem; background:white; border-bottom:1px solid var(--navy-100); overflow-x:auto; position:relative; z-index:5; }
+    .summary-card { flex:0 0 auto; display:flex; align-items:center; gap:.75rem; background: var(--navy-50); border:1px solid var(--navy-100); border-left:3px solid; border-radius:4px; padding:.6rem 1.1rem; min-width:130px; }
+    .summary-card.green  { border-left-color: var(--green-500); }
+    .summary-card.yellow { border-left-color: var(--yellow-500); }
+    .summary-card.red    { border-left-color: var(--red-500); }
+    .summary-card.magenta { border-left-color: var(--magenta-500); }
+    .summary-card.gray   { border-left-color: var(--gray-400); }
+    .summary-card.gold   { border-left-color: var(--gold-500); margin-left:auto; }
+    .summary-count { font-family: var(--font-display); font-size:1.5rem; font-weight:600; line-height:1; color: var(--navy-900); }
+    .summary-label { font-size:.65rem; color: var(--gray-500); text-transform:uppercase; letter-spacing:.08em; font-weight:500; margin-top:2px; }
+
+    main { display:grid; grid-template-columns:1fr 360px; gap:1.5rem; padding:1.5rem 2rem; max-width:1500px; margin:0 auto; position:relative; z-index:5; }
+    @media(max-width:960px){ main{grid-template-columns:1fr; padding:1rem; gap:1rem;} }
+    @media(max-width:600px){
+      main { padding: .75rem; gap: .75rem; }
+      header { padding: 0 .75rem; height: 62px; }
+      .logo-text { font-size: .9rem; }
+      .logo-sub { font-size: .6rem; }
+      .crest { width: 42px; height: 42px; }
+      .last-update { display: none; }
+      .live-dot { font-size: .65rem; }
+      .nav-btn, .nav-btn, .refresh-btn, .form-btn { padding: .35rem .6rem; font-size: .65rem; }
+      .nav-btn span, .form-btn span, .refresh-btn span { display: none; }
+      .summary { padding: .75rem; gap: .5rem; }
+      .summary-card { min-width: 100px; padding: .45rem .75rem; }
+      .summary-count { font-size: 1.15rem; }
+      .summary-label { font-size: .6rem; }
+    }
+
+    .section-title { font-family: var(--font-display); font-size:.72rem; font-weight:500; text-transform:uppercase; letter-spacing:.12em; color: var(--navy-600); margin-bottom:1rem; display:flex; align-items:center; gap:.5rem; }
+    .section-title::before { content:''; width:16px; height:2px; background: var(--gold-500); }
+
+    .blocks-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .blocks-wrap > .block-card:nth-child(1) { grid-column: 1; grid-row: 1; }
+    .blocks-wrap > .block-card:nth-child(2) { grid-column: 2; grid-row: 1; }
+    .blocks-wrap > .block-card:nth-child(3) { grid-column: 1 / -1; grid-row: 2; }
+    @media(max-width:760px){
+      .blocks-wrap { grid-template-columns: 1fr; gap: .75rem; }
+      .blocks-wrap > .block-card:nth-child(1),
+      .blocks-wrap > .block-card:nth-child(2),
+      .blocks-wrap > .block-card:nth-child(3) { grid-column: 1; grid-row: auto; }
+    }
+
+    .block-card { background: linear-gradient(180deg, white 0%, var(--navy-50) 100%); border:1px solid var(--navy-100); border-radius:10px; padding:1.25rem; position:relative; overflow:hidden; border-top: 3px solid var(--navy-600); }
+    @media(max-width:600px){ .block-card { padding: .85rem; } }
+    .block-card::before { content: ''; position: absolute; top: 0; right: 0; width: 80px; height: 80px; background-image: repeating-linear-gradient(45deg, rgba(45,90,158,.04) 0 1px, transparent 1px 10px); border-radius: 0 10px 0 100%; pointer-events: none; }
+    .block-header { display: flex; align-items: center; gap: .6rem; margin-bottom: 1rem; position: relative; flex-wrap: wrap; }
+    .block-badge { background: var(--navy-900); color: var(--gold-400); padding: .3rem .6rem; border-radius: 4px; font-family: var(--font-display); font-size: .65rem; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; }
+    .block-title { font-family: var(--font-display); font-size: 1.05rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--navy-900); flex: 1; min-width: 0; }
+    @media(max-width:600px){ .block-title { font-size: .85rem; } }
+    .block-count { font-family: var(--font-mono); font-size: .7rem; color: var(--gray-500); background: var(--navy-50); padding: .2rem .5rem; border-radius: 4px; border: 1px solid var(--navy-100); }
+
+    .block-scene { width: 100%; display: flex; justify-content: center; padding: .5rem 0; overflow-x: auto; }
+    .block-scene svg { width: 100%; max-width: 680px; height: auto; display: block; }
+    /* Em telas pequenas o bloco C (Admin) é muito longo — permite scroll horizontal */
+    @media(max-width:600px){
+      .block-scene { padding: .25rem 0; }
+      .block-scene svg { min-width: 0; }
+    }
+    .block-scene svg .cube { cursor: pointer; transition: transform .3s cubic-bezier(.2,.8,.2,1); animation: float 4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+    .block-scene svg .cube:nth-child(2n) { animation-delay: -1.5s; }
+    .block-scene svg .cube:nth-child(3n) { animation-delay: -2.5s; }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+    .block-scene svg .cube:hover { animation-play-state: paused; transform: translateY(-8px) scale(1.05); }
+    .block-scene svg .cube.selected .cube-top,
+    .block-scene svg .cube.selected .cube-left,
+    .block-scene svg .cube.selected .cube-right { stroke: var(--gold-500) !important; stroke-width: 2.5 !important; }
+
+    .legend { display:flex; gap:1rem; flex-wrap:wrap; justify-content: center; padding: .75rem; background: white; border: 1px solid var(--navy-100); border-radius: 8px; margin-bottom: 1rem; }
+    .legend-item { display:flex; align-items:center; gap:.35rem; font-size:.65rem; color: var(--navy-700); font-weight:500; text-transform:uppercase; letter-spacing:.05em; }
+    .legend-dot { width:9px; height:9px; border-radius:50%; box-shadow: 0 0 6px currentColor; }
+
+    .sidebar { display:flex; flex-direction:column; gap:1rem; }
+    .detail-panel, .bath-list, .team-panel { background:white; border:1px solid var(--navy-100); border-radius:8px; padding:1.25rem; border-top:3px solid var(--navy-600); }
+    .bath-list { border-top-color: var(--gold-500); }
+    .team-panel { border-top-color: var(--green-500); }
+    .detail-empty { text-align:center; padding:2rem 1rem; color:var(--gray-400); font-size:.83rem; }
+
+    /* TEAM PANEL */
+    .team-members { display: flex; flex-direction: column; gap: .5rem; }
+    .team-member {
+      display: flex; align-items: center; gap: .7rem;
+      padding: .5rem .65rem;
+      background: var(--navy-50);
+      border: 1px solid var(--navy-100);
+      border-left: 3px solid var(--green-500);
+      border-radius: 4px;
+      transition: all .2s;
+    }
+    .team-member.absent {
+      border-left-color: var(--gray-300);
+      background: var(--gray-100);
+      opacity: 0.55;
+    }
+    .team-member-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--navy-600), var(--navy-800));
+      color: white;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-display);
+      font-size: .75rem; font-weight: 700;
+      flex-shrink: 0;
+    }
+    .team-member.absent .team-member-avatar {
+      background: linear-gradient(135deg, var(--gray-400), var(--gray-500));
+    }
+    .team-member-info { flex: 1; min-width: 0; }
+    .team-member-name {
+      font-size: .78rem; font-weight: 600;
+      color: var(--navy-900);
+      text-transform: uppercase;
+      letter-spacing: .03em;
+      line-height: 1.1;
+    }
+    .team-member.absent .team-member-name { color: var(--gray-500); text-decoration: line-through; }
+    .team-member-status {
+      font-size: .62rem; color: var(--gray-500);
+      margin-top: 2px;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .team-member.present .team-member-status { color: var(--green-500); font-weight: 600; }
+
+    .detail-header { display:flex; align-items:center; gap:.75rem; margin-bottom:1rem; }
+    .detail-icon-wrap { width:48px; height:48px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; border:2px solid; }
+    .detail-icon-wrap.clean   { background: rgba(16,185,129,.15); border-color: var(--green-500); }
+    .detail-icon-wrap.warning { background: rgba(245,158,11,.15); border-color: var(--yellow-500); }
+    .detail-icon-wrap.overdue { background: rgba(192,38,211,.15); border-color: var(--magenta-500); }
+    .detail-icon-wrap.no-data { background: var(--gray-100); border-color: var(--gray-400); }
+    .detail-name { font-family: var(--font-display); font-size:1rem; font-weight:600; letter-spacing:.03em; text-transform:uppercase; color: var(--navy-900); line-height:1.2; }
+    .detail-loc { font-size:.68rem; color: var(--gray-500); letter-spacing:.04em; text-transform:uppercase; margin-top:3px; }
+    .status-badge { display:inline-flex; align-items:center; gap:.4rem; padding:.3rem .8rem; border-radius:4px; font-size:.7rem; font-weight:600; margin-bottom:1rem; text-transform:uppercase; letter-spacing:.08em; font-family: var(--font-display); }
+    .status-badge.clean   { background:rgba(16,185,129,.12); color:#047857; }
+    .status-badge.warning { background:rgba(245,158,11,.12); color:#92400e; }
+    .status-badge.overdue { background:rgba(192,38,211,.12); color:#86198f; }
+    .status-badge.no-data { background:var(--gray-100); color:var(--gray-500); }
+
+    .info-grid { display:grid; grid-template-columns:1fr 1fr; gap:.55rem; }
+    .info-item { background: var(--navy-50); border:1px solid var(--navy-100); border-radius:4px; padding:.75rem; }
+    .info-item-label { font-size:.6rem; color: var(--navy-500); font-weight:600; text-transform:uppercase; letter-spacing:.08em; margin-bottom:.25rem; }
+    .info-item-value { font-family: var(--font-display); font-size:.9rem; font-weight:600; color: var(--navy-900); }
+    .info-item-sub { font-size:.62rem; color:var(--gray-500); margin-top:1px; }
+
+    .cleaning-type {
+      margin-top: 1rem;
+      background: var(--navy-50);
+      border: 1px solid var(--navy-100);
+      border-left: 3px solid var(--purple-500);
+      border-radius: 6px;
+      padding: .85rem;
+    }
+    .cleaning-type-header { display: flex; align-items: center; gap: .5rem; margin-bottom: .5rem; }
+    .cleaning-type-badge {
+      font-family: var(--font-display);
+      font-size: .65rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .08em;
+      padding: .2rem .55rem; border-radius: 3px;
+      color: white; background: var(--purple-500);
+    }
+    .cleaning-type-badge.full { background: linear-gradient(135deg, var(--purple-500), #6d28d9); }
+    .cleaning-type-title { font-size: .75rem; font-weight: 600; color: var(--navy-900); }
+    .cleaning-type-tasks { font-size: .72rem; color: var(--gray-700); line-height: 1.55; }
+    .cleaning-type-tasks span {
+      display: inline-block; background: white;
+      padding: 2px 7px; margin: 2px 3px 2px 0;
+      border-radius: 3px; border: 1px solid var(--navy-100);
+      font-size: .68rem;
+    }
+
+    .timeline { margin-top:1rem; }
+    .tl-title { font-family: var(--font-display); font-size:.7rem; font-weight:500; text-transform:uppercase; letter-spacing:.12em; color: var(--navy-600); margin-bottom:.75rem; display:flex; align-items:center; gap:.5rem; }
+    .tl-title::before { content:''; width:16px; height:2px; background: var(--gold-500); }
+    .tl-item { display:flex; align-items:flex-start; gap:.7rem; padding-bottom:.75rem; position:relative; }
+    .tl-item::before { content:''; position:absolute; left:7px; top:16px; width:1px; height:100%; background: var(--navy-100); }
+    .tl-item:last-child::before { display:none; }
+    .tl-dot { width:15px; height:15px; border-radius:50%; flex-shrink:0; margin-top:2px; border:2px solid white; }
+    .tl-dot.recent { background: var(--navy-600); box-shadow: 0 0 0 2px var(--navy-600); }
+    .tl-dot.old    { background: var(--gray-300); }
+    .tl-info { flex:1; }
+    .tl-time { font-family: var(--font-mono); font-size:.68rem; color:var(--gray-500); }
+    .tl-who  { font-size:.78rem; font-weight:500; color: var(--navy-800); }
+    .tl-empty { font-size:.78rem; color:var(--gray-400); font-style:italic; }
+
+    /* BATH LIST - Collapsible */
+    .bath-list .section-title {
+      margin-bottom: 0;
+      cursor: pointer;
+      user-select: none;
+      display: flex; align-items: center; gap: .5rem;
+      padding: .1rem 0;
+    }
+    .bath-list .section-title .collapse-chevron {
+      margin-left: auto;
+      transition: transform .25s ease;
+      color: var(--gold-500);
+      width: 18px; height: 18px;
+    }
+    .bath-list.collapsed .section-title .collapse-chevron {
+      transform: rotate(-90deg);
+    }
+    .bath-list-content {
+      overflow: hidden;
+      transition: max-height .3s ease, opacity .2s ease, margin-top .2s ease;
+      max-height: 1500px;
+      opacity: 1;
+      margin-top: 1rem;
+    }
+    .bath-list.collapsed .bath-list-content {
+      max-height: 0;
+      opacity: 0;
+      margin-top: 0;
+    }
+    .bath-list-summary {
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      color: var(--gray-500);
+      margin-left: .5rem;
+    }
+
+    .bath-row { display:flex; align-items:center; gap:.7rem; padding:.6rem .5rem; border-radius:4px; cursor:pointer; transition: all .15s; border-left: 3px solid transparent; }
+    .bath-row:hover  { background: var(--navy-50); }
+    .bath-row.active { background: var(--navy-100); border-left-color: var(--gold-500); padding-left:.4rem; }
+    .bath-row-cocar { width: 22px; height: 22px; flex-shrink: 0; opacity: 0.4; transition: opacity .15s, transform .15s; }
+    .bath-row:hover .bath-row-cocar { opacity: 0.8; }
+    .bath-row.active .bath-row-cocar { opacity: 1; transform: scale(1.1); }
+    .bath-row-dot { width:9px; height:9px; border-radius:50%; flex-shrink:0; box-shadow:0 0 6px currentColor; }
+    .bath-row-name { font-size:.78rem; font-weight:500; flex:1; color: var(--navy-900); }
+    .bath-row-time { font-family: var(--font-mono); font-size:.62rem; color:var(--gray-500); }
+    .bath-sep { height:1px; background: var(--navy-100); margin:.15rem 0; }
+
+    .register-cta { background: linear-gradient(135deg, var(--gold-500), var(--gold-400)); color: var(--navy-900); border-radius: 8px; padding: 1rem 1.25rem; display: flex; align-items: center; gap: .9rem; text-decoration: none; border: 2px solid var(--gold-500); transition: all .2s; box-shadow: 0 4px 12px rgba(212,168,75,.3); }
+    .register-cta:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(212,168,75,.4); }
+    .register-cta-icon { width:44px; height:44px; border-radius:8px; background: var(--navy-900); display:flex; align-items:center; justify-content:center; flex-shrink:0; padding: 6px; }
+    .register-cta-icon img { width:100%; height:100%; object-fit:contain; }
+    .register-cta-text { flex:1; }
+    .register-cta-title { font-family: var(--font-display); font-size: .95rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; line-height: 1.1; }
+    .register-cta-sub { font-size: .68rem; color: var(--navy-800); margin-top: 2px; letter-spacing: .03em; }
+    .register-cta-arrow { width: 20px; height: 20px; flex-shrink: 0; }
+
+    .tooltip { position:fixed; background:var(--navy-900); color:white; font-size:.72rem; padding:.45rem .85rem; border-radius:4px; border:1px solid var(--gold-500); pointer-events:none; opacity:0; transition: opacity .15s; z-index:999; white-space:nowrap; font-family: var(--font-mono); }
+    .tooltip.show { opacity:1; }
+
+    footer { text-align: center; padding: 2rem 1rem; font-size: .7rem; color: var(--gray-500); letter-spacing: .04em; position: relative; z-index: 5; }
+    footer .cocar-icon { display: inline-block; vertical-align: middle; margin: 0 .5rem; opacity: .5; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="crest"><img src="assets/brasao-afa.jpg" alt="Brasão da AFA" /></div>
+    <div>
+      <div class="logo-text">Academia da Força Aérea</div>
+      <div class="logo-sub">Divisão de Ensino · Higiene</div>
+    </div>
+  </div>
+  <div class="header-right">
+
+    <a class="nav-btn" href="index.html">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <span>Página Inicial</span>
+    </a>
+
+    <a class="form-btn" href="https://docs.google.com/forms/d/e/1FAIpQLSdkPhb72gisDR71cnY2WGRUG51L_F5ShUE_MTop46ecYhi9ZA/viewform" target="_blank">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+      Registrar Limpeza
+    </a>
+    <button class="refresh-btn" id="refresh-btn" onclick="fetchAll()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
+        <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+      </svg>
+      Atualizar
+    </button>
+    <span class="last-update" id="last-update">—</span>
+    <span class="live-dot"><span class="pulse"></span> Ao vivo</span>
+  </div>
+</header>
+
+<div id="status-banner"><span id="status-msg">Carregando dados…</span></div>
+
+<div class="summary" id="summary-bar">
+  <div class="summary-card gray"><div><div class="summary-count">—</div><div class="summary-label">Carregando</div></div></div>
+</div>
+
+<main>
+  <div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#10b981;color:#10b981"></div>Operacional</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f59e0b;color:#f59e0b"></div>Atenção (vencido)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#c026d3;color:#c026d3"></div>Vencido &gt; 8h</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#94a3b8;color:#94a3b8"></div>Sem Registro</div>
+    </div>
+
+    <div class="blocks-wrap">
+      <div class="block-card">
+        <div class="block-header">
+          <img src="assets/cocar-fab.png" class="cocar-icon lg" alt="" />
+          <div class="block-badge">Bloco A</div>
+          <div class="block-title">Cantina</div>
+          <div class="block-count" id="count-cantina">— / 2</div>
+        </div>
+        <div class="block-scene" id="scene-cantina"></div>
+      </div>
+
+      <div class="block-card">
+        <div class="block-header">
+          <img src="assets/cocar-fab.png" class="cocar-icon lg" alt="" />
+          <div class="block-badge">Bloco B</div>
+          <div class="block-title">Cinema</div>
+          <div class="block-count" id="count-cinema">— / 2</div>
+        </div>
+        <div class="block-scene" id="scene-cinema"></div>
+      </div>
+
+      <div class="block-card">
+        <div class="block-header">
+          <img src="assets/cocar-fab.png" class="cocar-icon lg" alt="" />
+          <div class="block-badge">Bloco C</div>
+          <div class="block-title">Prédio Administrativo DE</div>
+          <div class="block-count" id="count-admin">— / 8</div>
+        </div>
+        <div class="block-scene" id="scene-admin"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <a class="register-cta" href="https://docs.google.com/forms/d/e/1FAIpQLSdkPhb72gisDR71cnY2WGRUG51L_F5ShUE_MTop46ecYhi9ZA/viewform" target="_blank">
+      <div class="register-cta-icon"><img src="assets/cocar-fab.png" alt="" /></div>
+      <div class="register-cta-text">
+        <div class="register-cta-title">Registrar Limpeza</div>
+        <div class="register-cta-sub">Abrir formulário de registro</div>
+      </div>
+      <svg class="register-cta-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H9M17 7V15"/></svg>
+    </a>
+
+    <!-- EQUIPE DE LIMPEZA -->
+    <div class="team-panel">
+      <div class="section-title">Equipe de Limpeza — Hoje</div>
+      <div class="team-members" id="team-members">
+        <!-- injetado pelo JS -->
+      </div>
+    </div>
+
+    <div class="detail-panel" id="detail-panel">
+      <div class="section-title">Detalhes da Instalação</div>
+      <div class="detail-empty" id="detail-empty">
+        <img src="assets/cocar-fab.png" class="cocar-icon xl" alt="" style="opacity:.3; margin-bottom:.75rem;" />
+        <div>Selecione um banheiro na planta</div>
+      </div>
+      <div id="detail-content" style="display:none"></div>
+    </div>
+    <div class="bath-list collapsed" id="bath-list">
+      <div class="section-title" onclick="toggleBathList()">
+        Todas as Instalações
+        <span class="bath-list-summary" id="bath-list-summary"></span>
+        <svg class="collapse-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </div>
+      <div class="bath-list-content">
+        <div id="bath-list-items"></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <img src="assets/cocar-fab.png" class="cocar-icon" alt="" />
+  Academia da Força Aérea · Divisão de Ensino
+  <img src="assets/cocar-fab.png" class="cocar-icon" alt="" />
+</footer>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   CONFIG
+   ══════════════════════════════════════════════════════════════ */
+const SHEET_ID  = '1wFKX6eVRi1VOtcQH4Bb0xJ32saXAUw2FihIiHdw_-yc';
+const SHEET_URL = name => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(name)}`;
+const REFRESH_MS = 60000;
+
+// Agenda pública da equipe de limpeza
+const CALENDAR_ID = 'afa.siede@gmail.com';
+// Feed JSON público (API v3 sem autenticação funciona se a agenda for pública)
+const CALENDAR_URL = (timeMin, timeMax) =>
+  `https://clients6.google.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events` +
+  `?key=AIzaSyBNlYH01_9Hc5S1J9vuFmu2nUqBZJNAXxs&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`;
+
+/* ══════════════════════════════════════════════════════════════
+   EQUIPE DE LIMPEZA
+   ══════════════════════════════════════════════════════════════ */
+const TEAM = [
+  { name: 'V SANTOS',    initials: 'VS' },
+  { name: 'KAUÃ XAVES',  initials: 'KX' },
+];
+
+/* ══════════════════════════════════════════════════════════════
+   CRONOGRAMA - TIPOS
+   ══════════════════════════════════════════════════════════════ */
+const WEEKDAYS_SHORT = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+const CLEANING_TYPES = {
+  'basica': {
+    label: 'Básica',
+    tasks: ['Retirar lixo', 'Varrer', 'Limpar vasos e pias com água sanitária e desinfetante']
+  },
+  'full': {
+    label: 'Full',
+    tasks: ['Retirar lixo', 'Varrer', 'Lavar chão, pias e vasos com sabão, água sanitária e desinfetante']
+  }
+};
+
+/* ══════════════════════════════════════════════════════════════
+   BANHEIROS
+   ══════════════════════════════════════════════════════════════ */
+const BLOCKS = {
+  cantina: {
+    footprint: { w: 4, h: 6 },
+    bathrooms: [
+      { id:'B01', name:'Cantina Fem',   shortName:'Fem',   icon:'🚺', location:'Cantina', gx:1, gy:1 },
+      { id:'B02', name:'Cantina Masc',  shortName:'Masc',  icon:'🚹', location:'Cantina', gx:1, gy:3 },
+    ]
+  },
+  cinema: {
+    footprint: { w: 6, h: 4 },
+    bathrooms: [
+      { id:'B03', name:'Cinema Fem',    shortName:'Fem',   icon:'🚺', location:'Cinema', gx:1, gy:1 },
+      { id:'B04', name:'Cinema Masc',   shortName:'Masc',  icon:'🚹', location:'Cinema', gx:3, gy:1 },
+    ]
+  },
+  admin: {
+    footprint: { w: 16, h: 7 },
+    bathrooms: [
+      { id:'B05', name:'Hall Central DE Fem',         shortName:'DE Fem',    icon:'🚺', location:'Prédio Adm — Hall Central', gx:2, gy:1 },
+      { id:'B06', name:'Hall Central DE Of Sup Masc', shortName:'Of Sup',    icon:'⭐', location:'Prédio Adm — Hall Central', gx:2, gy:3 },
+      { id:'B07', name:'Hall Central Prof Fem',       shortName:'Prof F',    icon:'🚺', location:'Prédio Adm — Hall Central', gx:4, gy:1 },
+      { id:'B08', name:'Hall Central Prof Masc',      shortName:'Prof M',    icon:'🚹', location:'Prédio Adm — Hall Central', gx:4, gy:3 },
+      { id:'B09', name:'Corredor DE Of Masc',         shortName:'Of M',      icon:'⭐', location:'Prédio Adm — Corredor',     gx:11, gy:1 },
+      { id:'B10', name:'Corredor DE Grad Masc',       shortName:'Grad M',    icon:'🚹', location:'Prédio Adm — Corredor',     gx:11, gy:3 },
+      { id:'B11', name:'Corredor DE Of Fem',          shortName:'Of F',      icon:'🚺', location:'Prédio Adm — Corredor',     gx:13, gy:1 },
+      { id:'B12', name:'Corredor DE Grad Fem',        shortName:'Grad F',    icon:'🚺', location:'Prédio Adm — Corredor',     gx:13, gy:3 },
+    ]
+  },
+};
+
+const BATHROOMS_DEF = [
+  ...BLOCKS.cantina.bathrooms.map(b => ({ ...b, block: 'cantina' })),
+  ...BLOCKS.cinema.bathrooms.map(b  => ({ ...b, block: 'cinema'  })),
+  ...BLOCKS.admin.bathrooms.map(b   => ({ ...b, block: 'admin'   })),
+];
+
+let bathrooms = BATHROOMS_DEF.map(b => ({ ...b, status:'no-data', lastClean:null, cleaner:'—', history:[], nextClean:null, nextType:null }));
+let teamAbsences = new Set(); // nomes ausentes hoje
+let selected = null;
+
+function computeStatus(lastClean, lastType) {
+  if (!lastClean) return 'no-data';
+  const hours = (Date.now() - lastClean.getTime()) / (60 * 60 * 1000);
+
+  // Janela "operacional" (verde) depende do tipo:
+  //   - full:   8 horas
+  //   - básica: 3 horas
+  //   - se tipo desconhecido, assume básica (mais conservador)
+  const greenWindow = lastType === 'full' ? 8 : 3;
+
+  if (hours < greenWindow) return 'clean';       // verde - dentro do prazo
+  if (hours < greenWindow + 8) return 'warning'; // amarelo - venceu (até 8h após)
+  return 'overdue';                              // magenta - vencido há mais de 8h
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SVG DO BLOCO
+   ══════════════════════════════════════════════════════════════ */
+function buildBlockSVG(blockKey, bathroomsData) {
+  const block = BLOCKS[blockKey];
+  const W = block.footprint.w, H = block.footprint.h;
+  // CELL adaptativo: mobile usa cells menores, e o bloco admin (maior) é ainda mais reduzido
+  const isMobile = window.innerWidth <= 600;
+  let CELL = isMobile ? 18 : 26;
+  if (blockKey === 'admin' && isMobile) CELL = 14;
+  const CUBE_W = 1.6, CUBE_H = 1.6, CUBE_Z = isMobile ? 18 : 26;
+  const totalW = (W + H) * 0.866 * CELL;
+  const totalH = (W + H) * 0.5   * CELL + CUBE_Z + 20;
+  const ox = H * 0.866 * CELL + 10;
+  const oy = 10 + CUBE_Z;
+
+  function iso(gx, gy) { return { x: ox + (gx - gy) * 0.866 * CELL, y: oy + (gx + gy) * 0.5 * CELL }; }
+  const g0 = iso(0,0), g1 = iso(W,0), g2 = iso(W,H), g3 = iso(0,H);
+
+  function cubeSVG(gx, gy, status, icon, name, id) {
+    const A=iso(gx,gy), B=iso(gx+CUBE_W,gy), C=iso(gx+CUBE_W,gy+CUBE_H), D=iso(gx,gy+CUBE_H);
+    const At={x:A.x,y:A.y-CUBE_Z}, Bt={x:B.x,y:B.y-CUBE_Z}, Ct={x:C.x,y:C.y-CUBE_Z}, Dt={x:D.x,y:D.y-CUBE_Z};
+    const colors = {
+      clean:   { top:'rgba(16,185,129,.5)',  left:'rgba(16,185,129,.75)',  right:'rgba(16,185,129,.6)',  stroke:'#10b981' },
+      warning: { top:'rgba(245,158,11,.5)',  left:'rgba(245,158,11,.75)',  right:'rgba(245,158,11,.6)',  stroke:'#f59e0b' },
+      overdue: { top:'rgba(192,38,211,.5)',  left:'rgba(192,38,211,.75)',  right:'rgba(192,38,211,.6)',  stroke:'#c026d3' },
+      'no-data': { top:'rgba(148,163,184,.4)', left:'rgba(148,163,184,.65)', right:'rgba(148,163,184,.55)', stroke:'#94a3b8' }
+    }[status];
+    const cx = (At.x + Ct.x) / 2, cy = (At.y + Ct.y) / 2;
+    return `
+      <g class="cube" id="cube-${id}" data-id="${id}">
+        <polygon class="cube-left" points="${D.x},${D.y} ${Dt.x},${Dt.y} ${Ct.x},${Ct.y} ${C.x},${C.y}" fill="${colors.left}" stroke="${colors.stroke}" stroke-width="1.5"/>
+        <polygon class="cube-right" points="${C.x},${C.y} ${Ct.x},${Ct.y} ${Bt.x},${Bt.y} ${B.x},${B.y}" fill="${colors.right}" stroke="${colors.stroke}" stroke-width="1.5"/>
+        <polygon class="cube-top" points="${At.x},${At.y} ${Bt.x},${Bt.y} ${Ct.x},${Ct.y} ${Dt.x},${Dt.y}" fill="${colors.top}" stroke="${colors.stroke}" stroke-width="1.5"/>
+        <circle cx="${At.x + 8}" cy="${At.y - 2}" r="4" fill="${colors.stroke}" opacity="0.95"/>
+        <text x="${cx}" y="${cy + 3}" font-size="14" text-anchor="middle" dominant-baseline="middle">${icon}</text>
+        <text x="${cx}" y="${cy + 17}" font-family="Oswald" font-size="7" font-weight="600" fill="#0a1628" text-anchor="middle">${name.toUpperCase()}</text>
+      </g>
+    `;
+  }
+
+  const sorted = [...bathroomsData].sort((a,b) => (a.gx + a.gy) - (b.gx + b.gy));
+  const cubesHTML = sorted.map(b => cubeSVG(b.gx, b.gy, b.status, b.icon, b.shortName, b.id)).join('');
+
+  return `
+    <svg viewBox="0 0 ${totalW + 20} ${totalH}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="grid-${blockKey}" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="matrix(0.866 0.5 -0.866 0.5 0 0)">
+          <path d="M 18 0 L 0 0 0 18" fill="none" stroke="rgba(45,90,158,.12)" stroke-width="1"/>
+        </pattern>
+      </defs>
+      <polygon points="${g0.x},${g0.y} ${g1.x},${g1.y} ${g2.x},${g2.y} ${g3.x},${g3.y}" fill="#e6eef7" stroke="#94b0d8" stroke-width="1.5"/>
+      <polygon points="${g0.x},${g0.y} ${g1.x},${g1.y} ${g2.x},${g2.y} ${g3.x},${g3.y}" fill="url(#grid-${blockKey})"/>
+      ${cubesHTML}
+    </svg>
+  `;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FETCH SHEET TAB
+   ══════════════════════════════════════════════════════════════ */
+async function fetchSheetTab(sheetNames) {
+  for (const sheetName of sheetNames) {
+    try {
+      const res = await fetch(SHEET_URL(sheetName));
+      const text = await res.text();
+      const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
+      if (!match) continue;
+      const candidate = JSON.parse(match[1]);
+      if (candidate?.status === 'error') continue;
+      return candidate;
+    } catch(e) {}
+  }
+  return null;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PARSE CRONOGRAMA (MATCH ROBUSTO POR NOME)
+   ══════════════════════════════════════════════════════════════ */
+function normalize(s) {
+  return (s || '').toString()
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove acentos
+    .replace(/[^a-z0-9]/g, ''); // só letras e números
+}
+
+function matchBathroomByHeader(header) {
+  if (!header) return null;
+  // Match simples e direto: procura B01..B12 no cabeçalho
+  const m = header.toString().match(/B\d{2}/i);
+  if (!m) return null;
+  return BATHROOMS_DEF.find(b => b.id.toUpperCase() === m[0].toUpperCase()) || null;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CRONOGRAMA FIXO (embutido no código)
+   Tabela: dia da semana (1=SEG..5=SEX) → horário → tipo
+   ══════════════════════════════════════════════════════════════ */
+const CRONOGRAMA_FIXO = {
+  // SEGUNDA (1)
+  'B01': [ {wd:1,t:'08:10',type:'basica'}, {wd:1,t:'09:30',type:'full'}, {wd:1,t:'15:30',type:'basica'},
+           {wd:2,t:'08:10',type:'basica'}, {wd:2,t:'09:30',type:'full'}, {wd:2,t:'15:30',type:'basica'},
+           {wd:3,t:'08:10',type:'basica'}, {wd:3,t:'09:30',type:'full'}, {wd:3,t:'15:30',type:'basica'},
+           {wd:4,t:'08:10',type:'basica'}, {wd:4,t:'09:30',type:'full'}, {wd:4,t:'15:30',type:'basica'},
+           {wd:5,t:'08:10',type:'basica'}, {wd:5,t:'09:30',type:'full'}, {wd:5,t:'11:40',type:'basica'} ],
+  'B02': [ {wd:1,t:'08:10',type:'basica'}, {wd:1,t:'09:30',type:'full'}, {wd:1,t:'15:30',type:'basica'},
+           {wd:2,t:'08:10',type:'basica'}, {wd:2,t:'09:30',type:'full'}, {wd:2,t:'15:30',type:'basica'},
+           {wd:3,t:'08:10',type:'basica'}, {wd:3,t:'09:30',type:'full'}, {wd:3,t:'15:30',type:'basica'},
+           {wd:4,t:'08:10',type:'basica'}, {wd:4,t:'09:30',type:'full'}, {wd:4,t:'15:30',type:'basica'},
+           {wd:5,t:'08:10',type:'basica'}, {wd:5,t:'09:30',type:'full'}, {wd:5,t:'11:40',type:'basica'} ],
+  'B03': [ {wd:1,t:'08:30',type:'basica'},
+           {wd:2,t:'08:30',type:'basica'},
+           {wd:3,t:'08:30',type:'basica'},
+           {wd:4,t:'08:30',type:'basica'},
+           {wd:5,t:'08:30',type:'full'} ],
+  'B04': [ {wd:1,t:'08:30',type:'basica'},
+           {wd:2,t:'08:30',type:'basica'},
+           {wd:3,t:'08:30',type:'basica'},
+           {wd:4,t:'08:30',type:'basica'},
+           {wd:5,t:'08:30',type:'full'} ],
+  'B05': [ {wd:1,t:'10:30',type:'basica'},
+           {wd:2,t:'10:30',type:'full'},
+           {wd:3,t:'10:30',type:'basica'},
+           {wd:4,t:'10:30',type:'full'},
+           {wd:5,t:'09:00',type:'basica'} ],
+  'B06': [ {wd:1,t:'10:30',type:'basica'},
+           {wd:2,t:'10:30',type:'full'},
+           {wd:3,t:'10:30',type:'basica'},
+           {wd:4,t:'10:30',type:'full'},
+           {wd:5,t:'09:00',type:'basica'} ],
+  'B07': [ {wd:1,t:'10:00',type:'basica'},
+           {wd:2,t:'10:00',type:'full'},
+           {wd:3,t:'10:00',type:'basica'},
+           {wd:4,t:'10:00',type:'full'},
+           {wd:5,t:'10:00',type:'basica'} ],
+  'B08': [ {wd:1,t:'10:00',type:'basica'},
+           {wd:2,t:'10:00',type:'full'},
+           {wd:3,t:'10:00',type:'basica'},
+           {wd:4,t:'10:00',type:'full'},
+           {wd:5,t:'10:00',type:'basica'} ],
+  'B09': [ {wd:1,t:'14:00',type:'full'},
+           {wd:2,t:'14:00',type:'basica'},
+           {wd:3,t:'14:00',type:'full'},
+           {wd:4,t:'14:00',type:'basica'},
+           {wd:5,t:'10:30',type:'basica'} ],
+  'B10': [ {wd:1,t:'14:00',type:'full'},
+           {wd:2,t:'14:00',type:'basica'},
+           {wd:3,t:'14:00',type:'full'},
+           {wd:4,t:'14:00',type:'basica'},
+           {wd:5,t:'10:30',type:'basica'} ],
+  'B11': [ {wd:1,t:'14:30',type:'full'},
+           {wd:2,t:'14:30',type:'basica'},
+           {wd:3,t:'14:30',type:'full'},
+           {wd:4,t:'14:30',type:'basica'},
+           {wd:5,t:'11:00',type:'basica'} ],
+  'B12': [ {wd:1,t:'14:30',type:'full'},
+           {wd:2,t:'14:30',type:'basica'},
+           {wd:3,t:'14:30',type:'full'},
+           {wd:4,t:'14:30',type:'basica'},
+           {wd:5,t:'11:00',type:'basica'} ],
+};
+
+/* ══════════════════════════════════════════════════════════════
+   PRÓXIMA LIMPEZA POR BANHEIRO
+   ══════════════════════════════════════════════════════════════ */
+function computeNextCleaning(bathroomId) {
+  const relevant = CRONOGRAMA_FIXO[bathroomId] || [];
+  if (!relevant.length) return null;
+
+  const now = new Date();
+  const todayDay = now.getDay();
+  const currentMin = now.getHours() * 60 + now.getMinutes();
+
+  let best = null, bestDelta = Infinity;
+  relevant.forEach(e => {
+    const [h, m] = e.t.split(':').map(Number);
+    if (isNaN(h) || isNaN(m)) return;
+    const eventMin = h * 60 + m;
+    let daysAhead = (e.wd - todayDay + 7) % 7;
+    if (daysAhead === 0 && eventMin <= currentMin) daysAhead = 7;
+    const delta = daysAhead * 24 * 60 + (eventMin - currentMin);
+    if (delta < bestDelta) { bestDelta = delta; best = e; }
+  });
+
+  if (!best) return null;
+
+  const [h, m] = best.t.split(':').map(Number);
+  const nextDate = new Date(now);
+  let daysAhead = (best.wd - todayDay + 7) % 7;
+  const eventMin = h*60 + m;
+  if (daysAhead === 0 && eventMin <= currentMin) daysAhead = 7;
+  nextDate.setDate(now.getDate() + daysAhead);
+  nextDate.setHours(h, m, 0, 0);
+
+  return { date: nextDate, weekday: best.wd, time: best.t, type: best.type };
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PARSE RESPOSTAS DO FORMS
+   ══════════════════════════════════════════════════════════════ */
+function parseRespostas(json) {
+  const rows = json?.table?.rows || [];
+  const histMap = {};
+  BATHROOMS_DEF.forEach(b => histMap[b.id] = []);
+
+  rows.forEach(row => {
+    const c = row.c || [];
+    // Estrutura nova do Forms:
+    // A: timestamp | B: banheiro | C: tipo de limpeza | D: responsável | E: observações
+    // Suporta também a estrutura antiga (sem coluna C) para compatibilidade
+    const tsRaw = c[0]?.v;
+    const bathField = c[1]?.v?.toString() || '';
+    const colC = c[2]?.v?.toString() || '';
+    const colD = c[3]?.v?.toString() || '';
+    const colE = c[4]?.v?.toString() || '';
+
+    // Detecta se a coluna C é tipo de limpeza ou responsável (compatibilidade)
+    let cleaningType = null;
+    let who = '—';
+    let obs = '';
+    const cLower = colC.toLowerCase().trim();
+    if (cLower === 'básica' || cLower === 'basica' || cLower === 'full') {
+      // Estrutura nova: C=tipo, D=resp, E=obs
+      cleaningType = cLower.startsWith('full') ? 'full' : 'basica';
+      who = colD || '—';
+      obs = colE || '';
+    } else {
+      // Estrutura antiga: C=resp, D=obs
+      who = colC || '—';
+      obs = colD || '';
+    }
+
+    if (!bathField || !tsRaw) return;
+    const idMatch = bathField.match(/^(B\d{2})/i);
+    if (!idMatch) return;
+    const bid = idMatch[1].toUpperCase();
+    let dt;
+    if (typeof tsRaw === 'string') {
+      const m = tsRaw.match(/Date\((\d+),(\d+),(\d+),?(\d+)?,?(\d+)?,?(\d+)?\)/);
+      if (m) dt = new Date(+m[1], +m[2], +m[3], +(m[4]||0), +(m[5]||0), +(m[6]||0));
+      else   dt = new Date(tsRaw);
+    } else if (typeof tsRaw === 'number') {
+      dt = new Date((tsRaw - 25569) * 86400000);
+    }
+    if (!dt || isNaN(dt)) return;
+    if (!histMap[bid]) return;
+
+    const typeLabel = cleaningType === 'full' ? 'Limpeza Full' :
+                      cleaningType === 'basica' ? 'Limpeza Básica' :
+                      (obs || 'Limpeza registrada');
+
+    histMap[bid].push({
+      time: dt,
+      who,
+      label: typeLabel,
+      cleaningType,  // 'full', 'basica' ou null
+      obs,
+    });
+  });
+
+  return histMap;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FETCH AGENDA PÚBLICA (AUSÊNCIAS)
+   ══════════════════════════════════════════════════════════════ */
+async function fetchAbsences() {
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+  const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+
+  const timeMin = encodeURIComponent(todayStart.toISOString());
+  const timeMax = encodeURIComponent(todayEnd.toISOString());
+
+  try {
+    const res = await fetch(CALENDAR_URL(timeMin, timeMax));
+    if (!res.ok) {
+      console.warn('Calendar fetch falhou:', res.status);
+      return new Set();
+    }
+    const data = await res.json();
+    const items = data.items || [];
+    const absent = new Set();
+
+    items.forEach(item => {
+      const summary = (item.summary || '').toUpperCase();
+      // Verificar se o nome de algum soldado aparece no evento
+      TEAM.forEach(member => {
+        if (summary.includes(member.name.toUpperCase())) {
+          absent.add(member.name);
+        }
+      });
+    });
+
+    return absent;
+  } catch(e) {
+    console.warn('Erro ao buscar agenda:', e);
+    return new Set();
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FETCH TUDO
+   ══════════════════════════════════════════════════════════════ */
+async function fetchAll() {
+  setBanner('loading', 'Sincronizando dados…');
+  setRefreshSpinning(true);
+
+  const [respJson, absences] = await Promise.all([
+    fetchSheetTab(['Respostas', 'Respostas do formulário 1', 'Form Responses 1']),
+    fetchAbsences(),
+  ]);
+
+  teamAbsences = absences;
+
+  if (!respJson) {
+    setBanner('error', '⚠️ Não foi possível ler a planilha. Verifique o compartilhamento.');
+    setRefreshSpinning(false);
+    renderTeam();
+    return;
+  }
+
+  try {
+    const histMap = respJson ? parseRespostas(respJson) : {};
+
+    bathrooms = BATHROOMS_DEF.map(def => {
+      const hist = (histMap[def.id] || []).sort((a,b) => b.time - a.time);
+      const last = hist[0] || null;
+      const next = computeNextCleaning(def.id);
+      return {
+        ...def,
+        status:    computeStatus(last?.time || null, last?.cleaningType),
+        lastClean: last?.time || null,
+        lastType:  last?.cleaningType || null,
+        cleaner:   last?.who  || '—',
+        history:   hist.slice(0,5),
+        nextClean: next?.date || null,
+        nextType:  next?.type || null,
+        nextWeekday: next?.weekday,
+        nextTime: next?.time,
+      };
+    });
+    renderAll();
+    setBanner('');
+  } catch(e) {
+    setBanner('error', '⚠️ Erro ao processar os dados: ' + e.message);
+    console.error(e);
+  } finally {
+    setRefreshSpinning(false);
+    updateClock();
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   RENDER
+   ══════════════════════════════════════════════════════════════ */
+function renderAll() {
+  buildSummary();
+  buildAllBlocks();
+  buildList();
+  renderTeam();
+  if (selected) renderDetail(bathrooms.find(b => b.id === selected));
+}
+
+function renderTeam() {
+  document.getElementById('team-members').innerHTML = TEAM.map(m => {
+    const absent = teamAbsences.has(m.name);
+    return `
+      <div class="team-member ${absent ? 'absent' : 'present'}">
+        <div class="team-member-avatar">${m.initials}</div>
+        <div class="team-member-info">
+          <div class="team-member-name">${m.name}</div>
+          <div class="team-member-status">${absent ? 'Ausente' : '✓ Presente'}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function buildSummary() {
+  const c = { clean:0, warning:0, overdue:0, 'no-data':0 };
+  bathrooms.forEach(b => c[b.status]++);
+  document.getElementById('summary-bar').innerHTML = `
+    <div class="summary-card green"><div><div class="summary-count">${c.clean}</div><div class="summary-label">Operacionais</div></div></div>
+    <div class="summary-card yellow"><div><div class="summary-count">${c.warning}</div><div class="summary-label">Atenção</div></div></div>
+    <div class="summary-card magenta"><div><div class="summary-count">${c.overdue}</div><div class="summary-label">Vencidos (&gt;8h)</div></div></div>
+    <div class="summary-card gray"><div><div class="summary-count">${c['no-data']}</div><div class="summary-label">Sem Registro</div></div></div>
+    <div class="summary-card gold"><div><div class="summary-count">${bathrooms.length}</div><div class="summary-label">Total</div></div></div>
+  `;
+}
+
+function buildAllBlocks() {
+  ['cantina', 'cinema', 'admin'].forEach(blockKey => {
+    const baths = bathrooms.filter(b => b.block === blockKey);
+    const ok = baths.filter(b => b.status === 'clean').length;
+    document.getElementById(`count-${blockKey}`).textContent = `${ok} / ${baths.length}`;
+    document.getElementById(`scene-${blockKey}`).innerHTML = buildBlockSVG(blockKey, baths);
+
+    baths.forEach(b => {
+      const el = document.getElementById(`cube-${b.id}`);
+      if (!el) return;
+      if (selected === b.id) el.classList.add('selected');
+      el.addEventListener('click', () => selectBath(b.id));
+      el.addEventListener('mouseenter', e => showTip(e, b));
+      el.addEventListener('mouseleave', hideTip);
+    });
+  });
+}
+
+function buildList() {
+  // Atualizar resumo compacto
+  const total = bathrooms.length;
+  const ok = bathrooms.filter(b => b.status === 'clean').length;
+  document.getElementById('bath-list-summary').textContent = `${ok}/${total}`;
+
+  document.getElementById('bath-list-items').innerHTML =
+    bathrooms.map((b,i) => `
+      ${i ? '<div class="bath-sep"></div>' : ''}
+      <div class="bath-row${selected===b.id?' active':''}" id="row-${b.id}" onclick="selectBath('${b.id}')">
+        <img src="assets/cocar-fab.png" class="bath-row-cocar" alt="" />
+        <span class="bath-row-dot" style="background:${statusColor(b.status)}; color:${statusColor(b.status)}"></span>
+        <span class="bath-row-name">${b.name}</span>
+        <span class="bath-row-time">${b.lastClean ? fmt(b.lastClean) : '—'}</span>
+      </div>
+    `).join('');
+}
+
+function toggleBathList() {
+  document.getElementById('bath-list').classList.toggle('collapsed');
+}
+
+function selectBath(id) {
+  if (selected) {
+    document.getElementById(`cube-${selected}`)?.classList.remove('selected');
+    document.getElementById(`row-${selected}`)?.classList.remove('active');
+  }
+  selected = id;
+  document.getElementById(`cube-${id}`)?.classList.add('selected');
+  document.getElementById(`row-${id}`)?.classList.add('active');
+  renderDetail(bathrooms.find(b => b.id === id));
+}
+
+function renderDetail(b) {
+  document.getElementById('detail-empty').style.display = 'none';
+  const cont = document.getElementById('detail-content');
+  cont.style.display = 'block';
+
+  const histHtml = b.history.length
+    ? b.history.map((h,i) => `
+        <div class="tl-item">
+          <div class="tl-dot ${i===0?'recent':'old'}"></div>
+          <div class="tl-info">
+            <div class="tl-who">${h.who} <span style="font-weight:400;color:var(--gray-500)">· ${h.label}</span></div>
+            <div class="tl-time">${fmt(h.time)} · ${fmtAgo(h.time)}</div>
+          </div>
+        </div>`).join('')
+    : '<div class="tl-empty">Nenhum registro encontrado para esta instalação.</div>';
+
+  let nextBlock = `<div class="info-item-value">—</div><div class="info-item-sub">Sem cronograma</div>`;
+  if (b.nextClean) {
+    nextBlock = `
+      <div class="info-item-value">${WEEKDAYS_SHORT[b.nextWeekday]} · ${b.nextTime}</div>
+      <div class="info-item-sub">${fmtNext(b.nextClean)}</div>
+    `;
+  }
+
+  let cleaningCard = '';
+  if (b.nextType && CLEANING_TYPES[b.nextType]) {
+    const ct = CLEANING_TYPES[b.nextType];
+    cleaningCard = `
+      <div class="cleaning-type">
+        <div class="cleaning-type-header">
+          <span class="cleaning-type-badge ${b.nextType}">${ct.label}</span>
+          <span class="cleaning-type-title">Próxima limpeza</span>
+        </div>
+        <div class="cleaning-type-tasks">
+          ${ct.tasks.map(t => `<span>${t}</span>`).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  cont.innerHTML = `
+    <div class="detail-header">
+      <div class="detail-icon-wrap ${b.status}">${b.icon}</div>
+      <div><div class="detail-name">${b.name}</div><div class="detail-loc">${b.location}</div></div>
+    </div>
+    <span class="status-badge ${b.status}">
+      <span style="width:6px;height:6px;border-radius:50%;background:${statusColor(b.status)};display:inline-block"></span>
+      ${statusLabel(b.status)}
+    </span>
+    <div class="info-grid">
+      <div class="info-item">
+        <div class="info-item-label">Última Limpeza</div>
+        <div class="info-item-value">${b.lastClean ? fmt(b.lastClean) : '—'}</div>
+        <div class="info-item-sub">${b.lastClean ? fmtAgo(b.lastClean) : 'Sem registro'}${b.lastType ? ' · ' + (b.lastType === 'full' ? 'Full' : 'Básica') : ''}</div>
+      </div>
+      <div class="info-item">
+        <div class="info-item-label">Próxima Prev.</div>
+        ${nextBlock}
+      </div>
+      <div class="info-item" style="grid-column:1/-1">
+        <div class="info-item-label">Responsável (última)</div>
+        <div class="info-item-value">${b.cleaner}</div>
+      </div>
+    </div>
+    ${cleaningCard}
+    <div class="timeline">
+      <div class="tl-title">Histórico de Operações</div>
+      ${histHtml}
+    </div>
+  `;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   HELPERS
+   ══════════════════════════════════════════════════════════════ */
+const statusLabel = s => ({ clean:'Operacional', warning:'Atenção', overdue:'Vencido +8h', 'no-data':'Sem Registro' }[s] || '—');
+const statusColor = s => ({ clean:'#10b981', warning:'#f59e0b', overdue:'#c026d3', 'no-data':'#94a3b8' }[s] || '#94a3b8');
+const fmt     = d => d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+const fmtAgo  = d => { const m=Math.round((Date.now()-d)/60000); return m<1?'agora mesmo':m<60?`${m} min atrás`:`${Math.floor(m/60)}h ${m%60}min atrás`; };
+const fmtNext = d => {
+  const diff = d - Date.now();
+  if (diff < 0) return `atrasado`;
+  const mins = Math.round(diff / 60000);
+  if (mins < 60) return `em ${mins} min`;
+  const h = Math.floor(mins/60);
+  if (h < 24) return `em ${h}h ${mins%60}min`;
+  const days = Math.floor(h/24);
+  return days === 1 ? 'amanhã' : `em ${days} dias`;
+};
+
+function setBanner(type, msg='') {
+  const el = document.getElementById('status-banner');
+  el.className = type || '';
+  document.getElementById('status-msg').textContent = msg;
+  if (!type) el.style.display = 'none';
+}
+function setRefreshSpinning(on) { document.getElementById('refresh-btn').classList.toggle('spinning', on); }
+function updateClock() {
+  document.getElementById('last-update').textContent = 'ATUALIZADO ' + new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+const tip = document.getElementById('tooltip');
+function showTip(e,b){ tip.textContent = `${b.name} · ${statusLabel(b.status)}${b.lastClean?' · '+fmtAgo(b.lastClean):''}`; tip.classList.add('show'); }
+function hideTip(){ tip.classList.remove('show'); }
+document.addEventListener('mousemove', e => { tip.style.left = (e.clientX+14)+'px'; tip.style.top = (e.clientY-32)+'px'; });
+
+/* INIT */
+renderTeam(); // render inicial sem dados
+fetchAll();
+setInterval(fetchAll, REFRESH_MS);
+setInterval(updateClock, 1000);
+
+// Rebuild cubes quando a tela for redimensionada (para mobile/desktop)
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => { buildAllBlocks(); }, 200);
+});
+</script>
+</body>
+</html>

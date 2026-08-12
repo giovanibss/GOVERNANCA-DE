@@ -1,0 +1,3020 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Governança DE · Academia da Força Aérea</title>
+<link rel="icon" href="assets/cocar-fab.png" type="image/png" />
+<meta name="description" content="Painel único para os sistemas de controle da Divisão de Ensino da Academia da Força Aérea." />
+<link rel="preload" as="image" href="assets/hero-afa.jpg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200;300;400;500;600&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+/* ═══════════════════════════════════════════════════════════
+   TOKENS
+   ═══════════════════════════════════════════════════════════ */
+:root{
+  --navy-ink:#061021;
+  --gold:#d4a84b;
+  --gold-500:#d4a84b;
+  --gold-lt:#e9c877;
+  --jade:#10b981;
+  --amber:#f59e0b;
+  --magenta:#c026d3;
+  --contrail:#cfe4ff;
+  --contrail-dim:rgba(207,228,255,.60);
+  --hair:rgba(207,228,255,.15);
+  --glass:rgba(6,16,33,.46);
+  --glass-hi:rgba(6,16,33,.66);
+
+  --f-display:'Oswald',system-ui,sans-serif;
+  --f-body:'Inter',system-ui,sans-serif;
+  --f-data:'JetBrains Mono',ui-monospace,monospace;
+
+  --gutter:clamp(1rem,4vw,3.5rem);
+  --shell:1380px;
+
+  /* controlado por JS conforme o scroll */
+  --veil:0;
+  --heroShift:0px;
+}
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--f-body);
+  background:var(--navy-ink);
+  color:var(--contrail);
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ═══ FUNDO ═══ */
+.bg-art{
+  position:fixed; inset:-6% 0 0 0; z-index:0;
+  transform:translate3d(0,var(--heroShift),0) scale(1.06);
+  will-change:transform;
+  background:url('assets/hero-afa.jpg') center 42%/cover no-repeat;
+}
+
+/* ═══ PALCO DA ABERTURA — REVELAÇÃO POR EXPANSÃO DE QUADRO ═══
+   O vídeo nunca é ampliado além da resolução nativa (o JS calcula a
+   largura pelo devicePixelRatio) — nitidez de pixel garantida.
+
+   A saída NÃO troca duas imagens de tamanhos diferentes (era isso que
+   soava amador). O #quadro ocupa a tela inteira e é recortado por
+   clip-path no formato do cartão; dentro dele, o hero já está desde o
+   princípio no enquadramento FINAL, idêntico ao .bg-art de trás.
+   Na saída, o recorte se abre até a tela toda: o hero é revelado por
+   uma íris que cresce, sem nunca escalar nem se mover. Desencontro de
+   escala fica matematicamente impossível.
+
+   Geometria (--cl/--ct/--cw/--ch e os insets) vem do JS.             */
+#palco{
+  position:fixed; inset:0; z-index:3; pointer-events:none;
+  opacity:0; transition:opacity .8s ease;
+}
+#palco.no-ar{opacity:1}
+
+/* ① Fundo: o próprio hero desfocado e escurecido (13 KB) */
+#palco-fundo{
+  position:absolute; inset:0;
+  background:url('assets/hero-blur.jpg') center 42%/cover no-repeat #061021;
+}
+
+/* ② A janela que vai crescer */
+#quadro{
+  position:absolute; inset:0;
+  clip-path:inset(var(--it) var(--ir) var(--ib) var(--il) round var(--rad));
+  will-change:clip-path;
+}
+/* ③ Hero interno: enquadramento final, idêntico ao .bg-art de trás.
+      Nunca se move — só é revelado.                                  */
+#quadro-hero{
+  position:absolute; inset:-6% 0 0 0;
+  transform:translate3d(0,var(--heroShift),0) scale(1.06);
+  background:url('assets/hero-afa.jpg') center 42%/cover no-repeat;
+}
+/* ④ Véu interno igual ao .bg-veil, para o repasse não ter degrau */
+#quadro-veu{
+  position:absolute; inset:0;
+  background:linear-gradient(180deg,
+    rgba(6,16,33,.60) 0%,
+    rgba(6,16,33,.10) 22%,
+    rgba(6,16,33,.10) 55%,
+    rgba(6,16,33,.72) 100%);
+}
+/* ⑤ O vídeo, em resolução nativa, preenchendo o recorte */
+#palco video{
+  position:absolute;
+  left:var(--cl); top:var(--ct); width:var(--cw); height:var(--ch);
+  display:block; object-fit:cover;
+  border-radius:var(--rad);
+}
+/* ⑥ Moldura: filete de luz + sombras. Acompanha a expansão e some
+      antes de chegar às bordas da tela.                              */
+#moldura{
+  position:absolute;
+  left:var(--cl); top:var(--ct); width:var(--cw); height:var(--ch);
+  border-radius:var(--rad);
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.13),
+    0 12px 30px rgba(0,0,0,.45),
+    0 45px 110px -20px rgba(0,0,0,.70);
+}
+
+/* ═══ A SAÍDA — CORTE NA AÇÃO ═══
+   Regra de montagem: a transição começa com os aviões AINDA EM
+   MOVIMENTO PLENO (o JS dispara em 2,05s, faltando 0,58s de vídeo).
+   O movimento atravessa o corte e o olho não registra a emenda. A
+   versão anterior fazia o oposto — desacelerava, congelava e só então
+   transicionava, e era isso que soava arrastado.
+
+   0,00–0,55s  o vídeo se dissolve no hero, em pleno movimento
+   0,05–1,00s  o quadro se abre até a tela inteira
+   0,35s       o conteúdo do hero sobe junto com a abertura
+   0,30–1,00s  o desfoque das bordas se dissolve por último
+   0,50–0,85s  a moldura se apaga antes de tocar as bordas
+   Total: 1,05s (era 2,40s)                                          */
+#palco.saindo #quadro{
+  clip-path:inset(0px 0px 0px 0px round 0px);
+  transition:clip-path .95s cubic-bezier(.32,0,.12,1) .05s;
+}
+#palco.saindo video{
+  opacity:0; transform:scale(1.015);
+  transition:opacity .55s cubic-bezier(.35,0,.2,1),
+             transform 1s cubic-bezier(.25,0,.15,1);
+}
+#palco.saindo #palco-fundo{
+  opacity:0; transition:opacity .7s cubic-bezier(.4,0,.2,1) .3s;
+}
+#palco.saindo #moldura{
+  left:0; top:0; width:100%; height:100%; border-radius:0; opacity:0;
+  transition:left .95s cubic-bezier(.32,0,.12,1) .05s,
+             top .95s cubic-bezier(.32,0,.12,1) .05s,
+             width .95s cubic-bezier(.32,0,.12,1) .05s,
+             height .95s cubic-bezier(.32,0,.12,1) .05s,
+             border-radius .95s cubic-bezier(.32,0,.12,1) .05s,
+             opacity .35s ease .5s;
+}
+/* Saída rápida (usuário rolou): sem cerimônia, só some. */
+#palco.saindo-rapido{opacity:0; transition:opacity .55s ease}
+
+/* Cortina: o conteúdo do hero sobe junto com a abertura do quadro */
+body.cortina .rv.in{opacity:0; transform:translateY(26px)}
+body.cortina .cue{animation-play-state:paused}
+/* Véu que escurece as bordas e preserva o miolo da arte legível */
+.bg-veil{
+  position:fixed; inset:0; z-index:2; pointer-events:none;
+  background:linear-gradient(180deg,
+    rgba(6,16,33,.60) 0%,
+    rgba(6,16,33,.10) 22%,
+    rgba(6,16,33,.10) 55%,
+    rgba(6,16,33,.72) 100%);
+}
+.bg-veil::after{
+  content:'';position:absolute;inset:0;
+  background:rgba(6,16,33,.80);
+  opacity:var(--veil);
+  transition:opacity .18s linear;
+}
+#gl{
+  position:fixed; inset:0; z-index:3; pointer-events:none; display:block;
+  opacity:0; transition:opacity 1.1s ease;      /* entra depois da abertura */
+}
+#gl.no-ar{opacity:1}
+.shell{position:relative; z-index:4}
+
+/* ═══ CABEÇALHO — transparente no topo, vidro depois ═══ */
+.top{
+  position:fixed; top:0; left:0; right:0; z-index:50;
+  display:flex; align-items:center; gap:.85rem;
+  padding:.85rem var(--gutter);
+  background:transparent; border-bottom:1px solid transparent;
+  transition:background .4s, border-color .4s, backdrop-filter .4s, padding .4s;
+}
+.top.stuck{
+  padding:.65rem var(--gutter);
+  background:linear-gradient(180deg,rgba(6,16,33,.90),rgba(6,16,33,.52));
+  backdrop-filter:blur(14px) saturate(150%);
+  -webkit-backdrop-filter:blur(14px) saturate(150%);
+  border-bottom-color:var(--hair);
+}
+.mark{
+  width:36px;height:36px;flex:0 0 auto;
+  background:#fff;border-radius:5px;padding:2px;
+  border:1.5px solid var(--gold);
+  box-shadow:0 2px 14px rgba(0,0,0,.45);
+}
+.mark img{width:100%;height:100%;object-fit:contain;display:block}
+.top-id{line-height:1.1}
+.top-id b{
+  display:block;font-family:var(--f-display);font-weight:500;
+  font-size:.86rem;letter-spacing:.13em;text-transform:uppercase;color:#fff;
+  text-shadow:0 1px 12px rgba(0,0,0,.55);
+}
+.top-id span{
+  display:block;font-size:.6rem;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--contrail-dim);margin-top:2px;
+  text-shadow:0 1px 10px rgba(0,0,0,.5);
+}
+.top-clock{
+  margin-left:auto;display:flex;align-items:center;gap:.6rem;
+  font-family:var(--f-data);font-size:.68rem;color:var(--contrail-dim);
+  text-shadow:0 1px 10px rgba(0,0,0,.5);
+}
+.beacon{
+  width:7px;height:7px;border-radius:50%;background:var(--jade);
+  animation:beacon 2.4s ease-out infinite;
+}
+@keyframes beacon{
+  0%{box-shadow:0 0 0 0 rgba(16,185,129,.5)}
+  70%{box-shadow:0 0 0 9px rgba(16,185,129,0)}
+  100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}
+}
+
+/* ═══ HERO — 100vh, só a arte ═══ */
+.hero{
+  height:100svh; min-height:520px;
+  display:flex; align-items:flex-end; justify-content:center;
+  padding-bottom:clamp(1.75rem,5vh,3rem);
+}
+.cue{
+  display:flex;flex-direction:column;align-items:center;gap:.85rem;
+  opacity:0;animation:cueIn 1.1s 1.15s cubic-bezier(.2,.8,.2,1) forwards;
+}
+.cue-txt{
+  font-family:var(--f-data);font-size:.62rem;letter-spacing:.26em;
+  text-transform:uppercase;color:rgba(207,228,255,.72);
+  text-shadow:0 1px 14px rgba(0,0,0,.7);
+}
+.cue-rail{
+  position:relative;width:1px;height:52px;
+  background:linear-gradient(180deg,rgba(207,228,255,.42),transparent);
+  overflow:hidden;
+}
+.cue-rail::after{
+  content:'';position:absolute;left:-1px;width:3px;height:14px;border-radius:2px;
+  background:var(--gold-lt);box-shadow:0 0 10px var(--gold);
+  animation:cueDrop 2.1s cubic-bezier(.6,0,.4,1) infinite;
+}
+@keyframes cueIn{to{opacity:1}}
+@keyframes cueDrop{
+  0%{top:-16px;opacity:0}
+  22%{opacity:1}
+  78%{opacity:1}
+  100%{top:52px;opacity:0}
+}
+.hero.gone .cue{opacity:0;transition:opacity .45s}
+
+/* ═══ REVEAL NO SCROLL ═══ */
+.rv{
+  opacity:0;transform:translateY(26px);
+  transition:opacity .85s cubic-bezier(.2,.8,.2,1), transform .85s cubic-bezier(.2,.8,.2,1);
+}
+.rv.in{opacity:1;transform:none}
+.rv[data-d="1"]{transition-delay:.09s}
+.rv[data-d="2"]{transition-delay:.18s}
+.rv[data-d="3"]{transition-delay:.27s}
+.rv[data-d="4"]{transition-delay:.36s}
+
+/* ═══ INTRO ═══ */
+.intro{
+  max-width:var(--shell);margin:0 auto;
+  padding:clamp(3rem,12vh,7rem) var(--gutter) clamp(2rem,6vh,3.5rem);
+}
+.intro-in{max-width:min(600px,94%)}
+.eyebrow{
+  display:flex;align-items:center;gap:.65rem;
+  font-family:var(--f-data);font-size:.64rem;letter-spacing:.26em;
+  text-transform:uppercase;color:var(--gold-lt);margin-bottom:1.2rem;
+}
+.eyebrow::after{content:'';height:1px;flex:1;background:linear-gradient(90deg,var(--gold),transparent)}
+.intro h1{
+  font-family:var(--f-display);font-weight:200;
+  font-size:clamp(2.35rem,6.6vw,4.5rem);
+  line-height:.97;color:#fff;text-wrap:balance;
+}
+.intro h1 em{display:block;font-style:normal;font-weight:600;color:var(--gold-lt)}
+.intro p{
+  margin-top:1.4rem;max-width:46ch;
+  font-size:clamp(.92rem,1.6vw,1.03rem);line-height:1.64;
+  color:var(--contrail-dim);
+}
+
+/* ═══ FAIXA DE SITUAÇÃO ═══ */
+.strip{max-width:var(--shell);margin:0 auto;padding:0 var(--gutter)}
+.strip-in{
+  display:grid;grid-template-columns:repeat(5,1fr);
+  gap:1px;background:var(--hair);
+  border:1px solid var(--hair);border-radius:11px;overflow:hidden;
+  backdrop-filter:blur(15px) saturate(150%);
+  -webkit-backdrop-filter:blur(15px) saturate(150%);
+}
+.stat{background:var(--glass);padding:1.05rem 1.15rem;transition:background .25s}
+.stat:hover{background:var(--glass-hi)}
+.stat-k{
+  display:flex;align-items:center;gap:.42rem;margin-bottom:.35rem;
+  font-size:.59rem;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--contrail-dim);font-weight:500;
+}
+.stat-k i{width:7px;height:7px;border-radius:50%;flex:0 0 auto}
+.stat-v{
+  font-family:var(--f-display);font-weight:400;
+  font-size:clamp(1.55rem,3.4vw,2.1rem);line-height:1;color:#fff;
+  font-variant-numeric:tabular-nums;
+}
+.stat-v small{font-size:.44em;color:var(--contrail-dim);margin-left:.16em}
+
+/* ═══ MÓDULOS ═══ */
+.modules{
+  max-width:var(--shell);margin:0 auto;
+  padding:clamp(1.8rem,4.5vh,2.6rem) var(--gutter) clamp(3rem,8vh,5rem);
+  display:grid;gap:1rem;grid-template-columns:repeat(2,1fr);
+}
+.sect-label{
+  grid-column:1/-1;display:flex;align-items:center;gap:.7rem;
+  font-family:var(--f-data);font-size:.62rem;letter-spacing:.24em;
+  text-transform:uppercase;color:var(--contrail-dim);
+}
+.sect-label::after{content:'';height:1px;flex:1;background:var(--hair)}
+
+.card{
+  position:relative;display:block;
+  padding:1.55rem;border-radius:13px;text-decoration:none;color:inherit;
+  background:var(--glass);border:1px solid var(--hair);
+  backdrop-filter:blur(16px) saturate(150%);
+  -webkit-backdrop-filter:blur(16px) saturate(150%);
+  overflow:hidden;
+  transition:transform .34s cubic-bezier(.2,.8,.2,1),
+             border-color .34s, background .34s, box-shadow .34s;
+}
+.card::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(105deg,transparent 38%,rgba(207,228,255,.10) 50%,transparent 62%);
+  transform:translateX(-120%);
+  transition:transform .8s cubic-bezier(.2,.8,.2,1);
+}
+.card:hover,.card:focus-visible{
+  transform:translateY(-6px);background:var(--glass-hi);
+  border-color:rgba(212,168,75,.5);
+  box-shadow:0 24px 52px -18px rgba(0,0,0,.75);
+}
+.card:hover::after,.card:focus-visible::after{transform:translateX(120%)}
+.card:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+
+.card-top{display:flex;align-items:flex-start;gap:.85rem;margin-bottom:1.15rem}
+.card-cocar{width:30px;height:30px;flex:0 0 auto;object-fit:contain;opacity:.9;transition:transform .4s cubic-bezier(.2,.8,.2,1)}
+.card:hover .card-cocar{transform:rotate(72deg)}
+.card-tag{
+  font-family:var(--f-data);font-size:.58rem;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--gold-lt);
+  padding:.2rem .5rem;border:1px solid rgba(212,168,75,.32);border-radius:3px;
+  margin-left:auto;white-space:nowrap;
+}
+.card h2{
+  font-family:var(--f-display);font-weight:500;
+  font-size:clamp(1.15rem,2.4vw,1.5rem);letter-spacing:.03em;
+  text-transform:uppercase;color:#fff;line-height:1.1;
+}
+.card h2+small{
+  display:block;margin-top:.3rem;font-family:var(--f-body);
+  font-size:.75rem;color:var(--contrail-dim);text-transform:none;
+}
+
+/* trio de números dentro do card */
+.trio{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1px;background:var(--hair);
+  border:1px solid var(--hair);border-radius:9px;overflow:hidden;
+  margin-bottom:1.1rem;
+}
+.trio div{background:rgba(6,16,33,.34);padding:.75rem .8rem}
+.trio dt{
+  display:flex;align-items:center;gap:.35rem;margin-bottom:.28rem;
+  font-size:.56rem;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--contrail-dim);font-weight:500;
+}
+.trio dt i{width:6px;height:6px;border-radius:50%;flex:0 0 auto}
+.trio dd{
+  font-family:var(--f-display);font-weight:400;font-size:1.42rem;
+  line-height:1;color:#fff;font-variant-numeric:tabular-nums;
+}
+
+/* ═══ SUBMÓDULO — faixa interna, não navega ═══ */
+.card.host{display:flex;flex-direction:column}
+.card.host .card-main{
+  display:flex;flex-direction:column;flex:1;
+  text-decoration:none;color:inherit;
+}
+.sub{
+  display:flex;align-items:center;gap:.7rem;
+  margin-top:1.05rem;padding-top:.95rem;
+  border-top:1px dashed rgba(207,228,255,.20);
+}
+.sub-cocar{
+  width:24px;height:24px;flex:0 0 auto;object-fit:contain;
+  opacity:.75;transition:transform .45s cubic-bezier(.2,.8,.2,1),opacity .25s;
+}
+.sub:hover .sub-cocar{opacity:1;transform:rotate(72deg)}
+.sub.gerando .sub-cocar{animation:girarCocar 1.1s linear infinite;opacity:1}
+@keyframes girarCocar{to{transform:rotate(360deg)}}
+.sub-txt{flex:1;min-width:0}
+.sub-txt strong{
+  display:block;font-family:var(--f-display);font-weight:500;
+  font-size:.78rem;letter-spacing:.07em;text-transform:uppercase;color:#fff;
+  line-height:1.15;
+}
+.sub-txt span{
+  display:block;margin-top:.2rem;
+  font-family:var(--f-data);font-size:.6rem;
+  color:rgba(207,228,255,.46);line-height:1.35;
+}
+.sub-btn{
+  flex:0 0 auto;display:inline-flex;align-items:center;gap:.42rem;
+  padding:.46rem .8rem;border-radius:5px;cursor:pointer;
+  background:rgba(212,168,75,.13);border:1px solid rgba(212,168,75,.40);
+  color:var(--gold-lt);
+  font-family:var(--f-display);font-weight:600;font-size:.68rem;
+  letter-spacing:.09em;text-transform:uppercase;
+  transition:background .22s,border-color .22s,transform .22s;
+}
+.sub-btn:hover:not(:disabled){
+  background:var(--gold-500);color:var(--navy-900);
+  border-color:var(--gold-500);transform:translateY(-1px);
+}
+.sub-btn:focus-visible{outline:2px solid var(--gold-500);outline-offset:2px}
+.sub-btn:disabled{cursor:progress;opacity:.6}
+.sub-btn svg{width:13px;height:13px;transition:transform .22s}
+.sub-btn:hover:not(:disabled) svg{transform:translateY(2px)}
+.sub-btn-mini{
+  flex:0 0 auto;width:auto;max-width:max-content;display:inline-flex;align-items:center;gap:.35rem;
+  padding:.22rem .55rem;border-radius:4px;cursor:pointer;
+  background:rgba(212,168,75,.15);border:1px solid rgba(212,168,75,.42);
+  color:var(--gold-lt);
+  font-family:var(--f-display);font-weight:600;font-size:.65rem;
+  letter-spacing:.07em;text-transform:uppercase;line-height:1.2;
+  transition:background .22s,border-color .22s,transform .22s;
+  box-shadow:none;
+}
+.sub-btn-mini:hover{
+  background:var(--gold-500);color:var(--navy-ink);
+  border-color:var(--gold-500);transform:translateY(-1px);
+}
+.sub-btn-mini svg{width:12px !important;height:12px !important;display:inline-block !important;filter:none !important;flex:0 0 12px}
+@media(max-width:420px){
+  .sub{flex-wrap:wrap}
+  .sub-btn{width:100%;justify-content:center;margin-top:.3rem}
+}
+
+.bar{display:flex;height:4px;border-radius:99px;overflow:hidden;background:rgba(207,228,255,.10);margin-bottom:1.1rem}
+.bar span{display:block;height:100%;transition:width .9s cubic-bezier(.2,.8,.2,1)}
+
+/* ═══ CARTÃO DE DIÁRIAS — instrumento + leitura ═══ */
+.card.wide{grid-column:1/-1}
+
+/* ═══ AUXÍLIO TRANSPORTE — trio + pista do ciclo ═══ */
+.at-duo{
+  display:grid;grid-template-columns:1fr minmax(0,300px);
+  gap:1.2rem;align-items:center;
+}
+.at-pista{display:flex;flex-direction:column;gap:6px}
+.at-tr{
+  border:1px dashed var(--hair);border-radius:9px;padding:.5rem .7rem;
+  font-family:var(--f-data);font-size:.56rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--contrail-dim);position:relative;
+}
+.at-tr b{display:block;font-size:.62rem;font-weight:600;letter-spacing:.13em;margin-bottom:.12rem}
+.at-tr.feita{border-style:solid;border-color:rgba(62,207,154,.35)}
+.at-tr.feita b{color:var(--jade)}
+.at-tr.ativa{border:1px solid rgba(212,168,75,.55);background:rgba(212,168,75,.07)}
+.at-tr.ativa b{color:var(--gold-lt)}
+.at-tr .at-aviao{
+  position:absolute;top:-9px;right:10px;font-size:.8rem;color:var(--gold-lt);
+  filter:drop-shadow(0 2px 5px rgba(0,0,0,.6));
+}
+
+/* ═══ INDICAÇÃO PARA CURSOS — trio + próximos prazos ═══ */
+.cu-alerta{
+  display:block;margin-bottom:1.05rem;border-radius:8px;padding:.6rem .75rem;
+  font-size:.7rem;line-height:1.55;border:1px solid;
+  border-color:rgba(192,38,211,.42);background:rgba(192,38,211,.09);color:#f0abfc;
+}
+.cu-alerta.aten{border-color:rgba(245,158,11,.42);background:rgba(245,158,11,.08);color:#fcd34d}
+.cu-alerta.ok{border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.07);color:#6ee7b7}
+.cu-alerta b{font-weight:600;color:#fff}
+.cu-pista{display:flex;flex-direction:column;gap:6px}
+.cu-item{
+  display:grid;grid-template-columns:44px 1fr;gap:.6rem;align-items:center;
+  border:1px dashed var(--hair);border-radius:9px;padding:.48rem .62rem;
+}
+.cu-item.crit{border-style:solid;border-color:rgba(192,38,211,.45);background:rgba(192,38,211,.06)}
+.cu-item.aten{border-style:solid;border-color:rgba(245,158,11,.34)}
+.cu-d{text-align:center;font-family:var(--f-display);line-height:1}
+.cu-d b{display:block;font-size:1.08rem;font-weight:500;color:#fff;font-variant-numeric:tabular-nums}
+.cu-d small{display:block;margin-top:.12rem;font-size:.5rem;letter-spacing:.11em;text-transform:uppercase;color:var(--contrail-dim)}
+.cu-item.crit .cu-d b{color:#f0abfc}
+.cu-item.aten .cu-d b{color:var(--amber)}
+.cu-t{min-width:0}
+.cu-t strong{
+  display:block;font-family:var(--f-display);font-weight:500;font-size:.72rem;
+  letter-spacing:.08em;text-transform:uppercase;color:#fff;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.cu-t span{
+  display:block;margin-top:.16rem;font-family:var(--f-data);font-size:.55rem;
+  letter-spacing:.05em;color:rgba(207,228,255,.46);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.cu-vazio{
+  font-family:var(--f-data);font-size:.58rem;letter-spacing:.09em;text-transform:uppercase;
+  color:rgba(207,228,255,.40);border:1px dashed var(--hair);border-radius:9px;
+  padding:.8rem;text-align:center;
+}
+.cu-sino{
+  font-family:var(--f-data);font-size:.55rem;letter-spacing:.13em;text-transform:uppercase;
+  color:#f0abfc;border:1px solid rgba(192,38,211,.45);background:rgba(192,38,211,.10);
+  border-radius:3px;padding:.18rem .45rem;margin-left:.4rem;white-space:nowrap;
+  animation:cuPulsa 1.9s ease-in-out infinite;
+}
+@keyframes cuPulsa{0%,100%{box-shadow:0 0 0 0 rgba(192,38,211,.45)}50%{box-shadow:0 0 0 7px rgba(192,38,211,0)}}
+
+.instr{
+  display:grid;grid-template-columns:minmax(0,208px) 1fr;
+  gap:1.6rem;align-items:center;
+}
+.instr > svg, #gauge-idx{width:100%;height:auto;display:block;filter:drop-shadow(0 10px 26px rgba(0,0,0,.5))}
+.instr-side{min-width:0}
+.readout{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:1px;background:var(--hair);
+  border:1px solid var(--hair);border-radius:9px;overflow:hidden;margin-bottom:1.1rem;
+}
+.readout div{background:rgba(6,16,33,.34);padding:.8rem .85rem}
+.readout dt{
+  font-size:.55rem;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--contrail-dim);font-weight:500;margin-bottom:.3rem;
+}
+.readout dd{
+  font-family:var(--f-data);font-weight:500;font-size:.92rem;
+  color:#fff;font-variant-numeric:tabular-nums;line-height:1.15;
+  overflow-wrap:anywhere;
+}
+.readout dd.spent{color:#fca5a5}
+.readout dd.left{color:#6ee7b7}
+@media(max-width:760px){
+  .instr{grid-template-columns:1fr;gap:1.1rem;justify-items:center}
+  .instr svg{max-width:200px}
+  .instr-side{width:100%}
+}
+
+.note{
+  font-family:var(--f-data);font-size:.64rem;color:rgba(207,228,255,.42);
+  margin-bottom:1.1rem;letter-spacing:.02em;
+}
+.card-go{
+  display:flex;align-items:center;gap:.5rem;
+  font-family:var(--f-display);font-weight:500;font-size:.74rem;
+  letter-spacing:.15em;text-transform:uppercase;color:var(--gold-lt);
+}
+.card-go svg{width:15px;height:15px;transition:transform .34s cubic-bezier(.2,.8,.2,1)}
+.card:hover .card-go svg,.card:focus-visible .card-go svg{transform:translate(4px,-4px)}
+
+/* ═══ RODAPÉ ═══ */
+.foot{
+  max-width:var(--shell);margin:0 auto;
+  padding:1.4rem var(--gutter) 2.8rem;
+  border-top:1px solid var(--hair);
+  display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;
+  font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(207,228,255,.40);
+}
+.foot img{width:16px;height:16px;opacity:.5}
+.foot .motto{
+  margin-left:auto;font-family:var(--f-display);font-weight:200;
+  font-style:italic;letter-spacing:.05em;text-transform:none;
+  color:rgba(207,228,255,.32);
+}
+
+/* ═══ RESPONSIVO ═══ */
+@media(max-width:1180px){
+  .strip-in{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:900px){
+  .modules{grid-template-columns:1fr}
+  .at-duo{grid-template-columns:1fr}
+  .strip-in{grid-template-columns:repeat(2,1fr)}
+  .intro-in{max-width:100%}
+}
+@media(max-width:560px){
+  .top{padding:.6rem 1rem}
+  .top.stuck{padding:.55rem 1rem}
+  .top-id b{font-size:.76rem;letter-spacing:.09em}
+  .top-id span{font-size:.54rem}
+  .top-clock .lbl{display:none}
+  .mark{width:31px;height:31px}
+  .stat{padding:.85rem}
+  .trio dd{font-size:1.2rem}
+  .foot .motto{margin-left:0;width:100%}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  .rv{opacity:1;transform:none}
+  .cue{opacity:1}
+  #gl{display:none}
+  .bg-art{transform:none}
+}
+
+/* ═══ BOTÃO DE ENGRENAGEM (CONFIGURAÇÕES DO SITE) ═══ */
+.top-gear-btn {
+  background: rgba(6,16,33,0.55);
+  border: 1px solid rgba(212,168,75,0.35);
+  color: var(--gold-lt);
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all .25s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+.top-gear-btn svg {
+  width: 20px;
+  height: 20px;
+  transition: transform .5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.top-gear-btn:hover {
+  background: rgba(212,168,75,0.2);
+  border-color: var(--gold);
+  color: #fff;
+  transform: scale(1.05);
+  box-shadow: 0 0 16px rgba(212,168,75,0.4);
+}
+.top-gear-btn:hover svg {
+  transform: rotate(90deg);
+}
+
+/* ═══ MODAL DE CONFIGURAÇÕES DO SITE ═══ */
+.cfg-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(6, 16, 33, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity .3s ease, visibility .3s ease;
+}
+.cfg-backdrop.active {
+  opacity: 1;
+  visibility: visible;
+}
+.cfg-modal {
+  background: linear-gradient(145deg, rgba(13, 27, 49, 0.95), rgba(6, 16, 33, 0.98));
+  border: 1px solid rgba(212, 168, 75, 0.35);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 680px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 30px rgba(212, 168, 75, 0.15);
+  overflow: hidden;
+  transform: translateY(20px) scale(0.96);
+  transition: transform .3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+}
+.cfg-backdrop.active .cfg-modal {
+  transform: translateY(0) scale(1);
+}
+.cfg-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--hair);
+  background: rgba(255, 255, 255, 0.02);
+}
+.cfg-title {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  font-family: var(--f-display);
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #fff;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.cfg-title svg {
+  width: 22px;
+  height: 22px;
+  color: var(--gold);
+}
+.cfg-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--contrail-dim);
+  font-size: 1.5rem;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s ease;
+}
+.cfg-close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+/* ABAS */
+.cfg-nav {
+  display: flex;
+  background: rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid var(--hair);
+  padding: 0 1.5rem;
+  gap: .5rem;
+}
+.cfg-tab-btn {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--contrail-dim);
+  font-family: var(--f-body);
+  font-size: .85rem;
+  font-weight: 500;
+  padding: .9rem 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  transition: all .2s ease;
+}
+.cfg-tab-btn:hover {
+  color: var(--contrail);
+}
+.cfg-tab-btn.active {
+  color: var(--gold-lt);
+  border-bottom-color: var(--gold);
+  background: rgba(212, 168, 75, 0.05);
+}
+
+.cfg-body {
+  padding: 1.5rem;
+  max-height: 75vh;
+  overflow-y: auto;
+}
+.cfg-panel {
+  display: none;
+}
+.cfg-panel.active {
+  display: block;
+}
+
+/* FORM ELEMENTOS */
+.cfg-group {
+  margin-bottom: 1.25rem;
+}
+.cfg-label {
+  display: block;
+  font-size: .78rem;
+  font-family: var(--f-data);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--contrail-dim);
+  margin-bottom: .4rem;
+}
+.cfg-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.cfg-input {
+  width: 100%;
+  background: rgba(6, 16, 33, 0.7);
+  border: 1px solid rgba(207, 228, 255, 0.2);
+  border-radius: 8px;
+  padding: .65rem .9rem;
+  color: #fff;
+  font-family: var(--f-body);
+  font-size: .9rem;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+.cfg-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 10px rgba(212, 168, 75, 0.25);
+}
+.cfg-toggle-pwd {
+  position: absolute;
+  right: .75rem;
+  background: transparent;
+  border: none;
+  color: var(--contrail-dim);
+  cursor: pointer;
+  font-size: .8rem;
+  padding: .2rem .4rem;
+}
+.cfg-toggle-pwd:hover {
+  color: var(--gold-lt);
+}
+
+.cfg-card-info {
+  background: rgba(212, 168, 75, 0.06);
+  border: 1px solid rgba(212, 168, 75, 0.2);
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+  font-size: .82rem;
+  line-height: 1.5;
+  color: var(--contrail);
+}
+.cfg-card-info b {
+  color: var(--gold-lt);
+}
+
+.cfg-badge-status {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .25rem .65rem;
+  border-radius: 20px;
+  font-size: .72rem;
+  font-family: var(--f-data);
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+.cfg-badge-status.ok {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--jade);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+.cfg-badge-status.warn {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--amber);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.cfg-btn {
+  background: linear-gradient(135deg, var(--gold), #b88d35);
+  color: #061021;
+  border: none;
+  border-radius: 8px;
+  padding: .65rem 1.25rem;
+  font-weight: 600;
+  font-size: .88rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  transition: all .2s ease;
+  box-shadow: 0 4px 14px rgba(212, 168, 75, 0.3);
+}
+.cfg-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(212, 168, 75, 0.45);
+  filter: brightness(1.08);
+}
+.cfg-btn.sec {
+  background: transparent;
+  border: 1px solid rgba(207, 228, 255, 0.25);
+  color: var(--contrail);
+  box-shadow: none;
+}
+.cfg-btn.sec:hover {
+  border-color: var(--gold-lt);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.cfg-log-box {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--hair);
+  border-radius: 8px;
+  padding: .85rem;
+  font-family: var(--f-data);
+  font-size: .78rem;
+  color: var(--contrail);
+  margin-top: 1rem;
+  max-height: 140px;
+  overflow-y: auto;
+  display: none;
+}
+</style>
+</head>
+<body>
+
+<div class="bg-art" aria-hidden="true"></div>
+<div class="bg-veil" aria-hidden="true"></div>
+<div id="palco" aria-hidden="true">
+  <div id="palco-fundo"></div>
+  <div id="quadro">
+    <div id="quadro-hero"></div>
+    <div id="quadro-veu"></div>
+  </div>
+  <video id="intro" muted playsinline autoplay
+         preload="auto" poster="assets/intro-poster.jpg"></video>
+  <div id="moldura"></div>
+</div>
+<canvas id="gl" aria-hidden="true"></canvas>
+
+<header class="top" id="top">
+  <div class="mark"><img src="assets/brasao-afa.jpg" alt="Brasão da Academia da Força Aérea" /></div>
+  <div class="top-id">
+    <b>Governança DE</b>
+    <span>Divisão de Ensino</span>
+  </div>
+  <div class="top-clock">
+    <span class="beacon" aria-hidden="true"></span>
+    <span class="lbl" id="clock-day">—</span>
+    <span id="clock-time">—</span>
+  </div>
+  <button class="top-gear-btn" id="btn-config-site" title="Configurações do Site (PIN e Integrações)" aria-label="Configurações do Site">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"></circle>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+    </svg>
+  </button>
+</header>
+
+<div class="shell">
+
+  <!-- HERO: só a arte -->
+  <section class="hero" id="hero">
+    <div class="cue">
+      <span class="cue-txt">Role para os módulos</span>
+      <span class="cue-rail" aria-hidden="true"></span>
+    </div>
+  </section>
+
+  <section class="intro">
+    <div class="intro-in">
+      <p class="eyebrow rv">Academia da Força Aérea</p>
+      <h1 class="rv" data-d="1">Governança da<em>Divisão de Ensino</em></h1>
+      <p class="rv" data-d="2">Ponto único de acesso aos sistemas de controle da DE. Os números abaixo refletem a situação de agora — escolha um módulo para operar.</p>
+    </div>
+  </section>
+
+  <section class="strip rv" aria-label="Situação atual">
+    <div class="strip-in">
+      <div class="stat">
+        <div class="stat-k"><i style="background:var(--jade)"></i> Instalações OK</div>
+        <div class="stat-v"><span id="kpi-ok">—</span><small id="kpi-ok-tot"></small></div>
+      </div>
+      <div class="stat">
+        <div class="stat-k"><i style="background:var(--amber)"></i> Em atenção</div>
+        <div class="stat-v" id="kpi-warn">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-k"><i style="background:var(--magenta)"></i> Vencidas +8h</div>
+        <div class="stat-v" id="kpi-over">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-k"><i style="background:var(--gold)"></i> Efetivo presente</div>
+        <div class="stat-v"><span id="kpi-pres">—</span><small id="kpi-pres-tot"></small></div>
+      </div>
+      <div class="stat">
+        <div class="stat-k"><i style="background:#5aa2e0"></i> Cursos · prazo ≤15d</div>
+        <div class="stat-v"><span id="kpi-cur">—</span><small id="kpi-cur-tot"></small></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="modules">
+    <p class="sect-label rv">Módulos</p>
+
+    <!-- EFETIVO -->
+    <div class="card host rv" data-d="1">
+      <a class="card-main" href="efetivo.html">
+        <div class="card-top">
+          <img class="card-cocar" src="assets/cocar-fab.png" alt="" />
+          <div>
+            <h2>Efetivo</h2>
+            <small>Chamada e controle de faltas</small>
+          </div>
+          <span class="card-tag">Ativo</span>
+        </div>
+        <dl class="trio">
+          <div>
+            <dt>Efetivo total</dt>
+            <dd id="ef-total">—</dd>
+          </div>
+          <div>
+            <dt><i style="background:var(--jade)"></i> Presentes</dt>
+            <dd id="ef-pres">—</dd>
+          </div>
+          <div>
+            <dt><i style="background:var(--amber)"></i> Ausentes</dt>
+            <dd id="ef-aus">—</dd>
+          </div>
+        </dl>
+        <div class="bar" id="ef-bar" role="img" aria-label="Presentes e ausentes">
+          <span style="width:100%;background:rgba(207,228,255,.14)"></span>
+        </div>
+        <p class="note" id="ef-note">Chamada do dia · sincronizada entre dispositivos</p>
+        <span class="card-go">Abrir módulo
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+        </span>
+      </a>
+
+      <!-- submódulo: download da lista -->
+      <div class="sub" id="sub-pdf">
+        <img class="sub-cocar" src="assets/cocar-fab.png" alt="" />
+        <div class="sub-txt">
+          <strong>Lista de efetivo</strong>
+          <span id="pdf-nota">PDF por antiguidade · vertical para celular</span>
+        </div>
+        <button class="sub-btn" id="btn-pdf" onclick="baixarListaEfetivo()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+          </svg>
+          PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- HIGIENIZAÇÃO -->
+    <a class="card rv" data-d="2" href="limpeza.html">
+      <div class="card-top">
+        <img class="card-cocar" src="assets/cocar-fab.png" alt="" />
+        <div>
+          <h2>Higienização</h2>
+          <small>Monitoramento de limpeza dos banheiros</small>
+        </div>
+        <span class="card-tag">Ativo</span>
+      </div>
+      <dl class="trio">
+        <div>
+          <dt><i style="background:var(--jade)"></i> Operacionais</dt>
+          <dd id="lp-ok">—</dd>
+        </div>
+        <div>
+          <dt><i style="background:var(--amber)"></i> Atenção</dt>
+          <dd id="lp-warn">—</dd>
+        </div>
+        <div>
+          <dt><i style="background:var(--magenta)"></i> Vencidas</dt>
+          <dd id="lp-over">—</dd>
+        </div>
+      </dl>
+      <div class="bar" id="lp-bar" role="img" aria-label="Distribuição de status das instalações">
+        <span style="width:100%;background:rgba(207,228,255,.14)"></span>
+      </div>
+      <p class="note" id="lp-note">12 instalações · planta isométrica em tempo real</p>
+      <span class="card-go">Abrir módulo
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+      </span>
+    </a>
+
+    <!-- DIÁRIAS -->
+    <a class="card wide rv" data-d="3" href="diarias.html">
+      <div class="card-top">
+        <img class="card-cocar" src="assets/cocar-fab.png" alt="" />
+        <div>
+          <h2>Missões</h2>
+          <small>Diárias e Gratificação de Representação</small>
+        </div>
+        <span class="card-tag">Ativo</span>
+      </div>
+
+      <div class="instr">
+        <svg id="gauge-idx" viewBox="0 0 260 260" role="img" aria-label="Indicador analógico de saldo de diárias"></svg>
+        <div class="instr-side">
+          <dl class="readout">
+            <div><dt>Dotação inicial</dt><dd id="dg-total">—</dd></div>
+            <div><dt>Empenhado</dt><dd class="spent" id="dg-gasto">—</dd></div>
+            <div><dt>Disponível</dt><dd class="left" id="dg-saldo">—</dd></div>
+          </dl>
+          <div class="bar" id="dg-bar" role="img" aria-label="Proporção empenhada">
+            <span style="width:100%;background:rgba(207,228,255,.14)"></span>
+          </div>
+          <p class="note" id="dg-note">Nenhuma dotação registrada</p>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:.75rem">
+            <span class="card-go" style="margin-top:0">Abrir módulo
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+            </span>
+            <button class="sub-btn-mini" onclick="event.preventDefault(); event.stopPropagation(); window.open('solicitar.html','_blank')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>
+              Solicitar OS
+            </button>
+          </div>
+        </div>
+      </div>
+    </a>
+
+    <!-- AUXÍLIO TRANSPORTE -->
+    <a class="card wide rv" data-d="4" href="transporte.html">
+      <div class="card-top">
+        <img class="card-cocar" src="assets/cocar-fab.png" alt="" />
+        <div>
+          <h2>Auxílio Transporte</h2>
+          <small>Declaração mensal, cálculo automático e conferência</small>
+        </div>
+        <span class="card-tag" id="at-fase">Ciclo</span>
+      </div>
+
+      <div class="at-duo">
+        <div>
+          <dl class="trio">
+            <div>
+              <dt><i style="background:var(--gold)"></i> Enviadas</dt>
+              <dd id="at-env">—</dd>
+            </div>
+            <div>
+              <dt><i style="background:var(--jade)"></i> Conferidas</dt>
+              <dd id="at-conf">—</dd>
+            </div>
+            <div>
+              <dt><i style="background:var(--amber)"></i> Pendências</dt>
+              <dd id="at-pend">—</dd>
+            </div>
+          </dl>
+          <div class="bar" id="at-bar" role="img" aria-label="Progresso das declarações do auxílio transporte">
+            <span style="width:100%;background:rgba(207,228,255,.14)"></span>
+          </div>
+          <p class="note" id="at-note">Declarações do mês · sincronizadas entre dispositivos</p>
+          <span class="card-go">Abrir módulo
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+          </span>
+        </div>
+        <div class="at-pista" aria-label="Fases do ciclo mensal do auxílio">
+          <div class="at-tr" id="at-tr1"><b>Dias 01–05 · Declaração</b>Militar preenche e envia o mês anterior</div>
+          <div class="at-tr" id="at-tr2"><b>Dias 06–10 · Conferência</b>Secretaria confere e valida</div>
+          <div class="at-tr" id="at-tr3"><b>Após dia 10 · Remessa</b>Envio ao órgão pagador</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- INDICAÇÃO PARA CURSOS -->
+    <a class="card wide rv" data-d="5" href="cursos.html" id="cu-card">
+      <div class="card-top">
+        <img class="card-cocar" src="assets/cocar-fab.png" alt="" />
+        <div>
+          <h2>Indicação para Cursos</h2>
+          <small>Oferta por grande comando, prazos da TCA e remessa ao SIGADAER</small>
+        </div>
+        <span class="card-tag" id="cu-tag">Prazos</span>
+      </div>
+
+      <div class="at-duo">
+        <div>
+          <div class="cu-alerta ok" id="cu-alerta">⏳ Consultando prazos e manifestações…</div>
+          <dl class="trio">
+            <div>
+              <dt><i style="background:var(--jade)"></i> Cursos abertos</dt>
+              <dd id="cu-abertos">—</dd>
+            </div>
+            <div>
+              <dt><i style="background:var(--magenta)"></i> Prazo ≤ 15 dias</dt>
+              <dd id="cu-criticos">—</dd>
+            </div>
+            <div>
+              <dt><i style="background:var(--gold)"></i> Interessados</dt>
+              <dd id="cu-pedidos">—</dd>
+            </div>
+          </dl>
+          <div class="bar" id="cu-bar" role="img" aria-label="Proporção de cursos com prazo crítico">
+            <span style="width:100%;background:rgba(207,228,255,.14)"></span>
+          </div>
+          <p class="note" id="cu-note">Prazos de indicação · manifestações da tropa em tempo real</p>
+          <span class="card-go">Abrir módulo
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+          </span>
+        </div>
+        <div class="cu-pista" id="cu-pista" aria-label="Próximos prazos de indicação">
+          <div class="cu-vazio">Carregando prazos…</div>
+        </div>
+      </div>
+    </a>
+
+    <!-- TACF -->
+    <a class="card rv" data-d="6" href="tacf.html">
+      <div class="card-top">
+        <img class="card-cocar" src="assets/cocar-fab.png" alt="" />
+        <div>
+          <h2>TACF</h2>
+          <small>Condicionamento Físico e Agendamento</small>
+        </div>
+        <span class="card-tag">Semestral</span>
+      </div>
+      <dl class="trio">
+        <div>
+          <dt><i style="background:var(--gold)"></i> Elegíveis</dt>
+          <dd id="tacf-eleg">—</dd>
+        </div>
+        <div>
+          <dt><i style="background:var(--jade)"></i> Agendados</dt>
+          <dd id="tacf-sol">—</dd>
+        </div>
+        <div>
+          <dt><i style="background:var(--magenta)"></i> Realizados</dt>
+          <dd id="tacf-concl">—</dd>
+        </div>
+      </dl>
+      <div class="bar" id="tacf-bar" role="img" aria-label="Distribuição do TACF">
+        <span style="width:100%;background:rgba(212,168,75,.3)"></span>
+      </div>
+      <p class="note" id="tacf-note">Agendamento de datas, escala por antiguidade e e-mails diários</p>
+      <span class="card-go">Abrir módulo
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+      </span>
+    </a>
+  </section>
+
+  <footer class="foot">
+    <img src="assets/cocar-fab.png" alt="" />
+    <span>Academia da Força Aérea · Divisão de Ensino</span>
+    <span class="motto">Macte animo! Generose puer, sic itur ad astra</span>
+  </footer>
+
+</div>
+
+<!-- MODAL DE CONFIGURAÇÕES DO SITE (PIN & GMAIL API) -->
+<div class="cfg-backdrop" id="modalConfigSite" role="dialog" aria-modal="true" aria-labelledby="cfg-title">
+  <div class="cfg-modal">
+    <div class="cfg-header">
+      <div class="cfg-title" id="cfg-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        Configurações da Governança DE
+      </div>
+      <button class="cfg-close-btn" id="btn-cfg-close" title="Fechar">&times;</button>
+    </div>
+
+    <!-- ABAS DO MODAL -->
+    <nav class="cfg-nav" role="tablist">
+      <button class="cfg-tab-btn active" data-tab="tab-pin" role="tab">
+        🔐 Gerenciamento do PIN
+      </button>
+      <button class="cfg-tab-btn" data-tab="tab-gmail" role="tab">
+        📧 Integrações (Gmail API)
+      </button>
+    </nav>
+
+    <div class="cfg-body">
+      <!-- ABA 1: GERENCIAMENTO DO PIN -->
+      <div class="cfg-panel active" id="tab-pin" role="tabpanel">
+        <div class="cfg-badge-status ok" id="cfg-pin-status-badge">
+          <span>● PIN Master Ativo: Sincronizado no Supabase</span>
+        </div>
+
+        <div class="cfg-card-info">
+          <b>Centralização de Segurança:</b> O PIN definido aqui é compartilhado por todos os módulos do aplicativo (Diárias, Efetivo, Cursos, TACF e Transporte). A alteração é refletida em tempo real em todos os sistemas.
+        </div>
+
+        <form id="cfg-form-pin" onsubmit="return false;">
+          <div class="cfg-group">
+            <label class="cfg-label" for="cfg-pin-atual">PIN Atual da Secretaria</label>
+            <div class="cfg-input-wrap">
+              <input type="password" id="cfg-pin-atual" class="cfg-input" placeholder="Digite o PIN atual..." autocomplete="off" />
+              <button type="button" class="cfg-toggle-pwd" data-for="cfg-pin-atual">👁️ Ver</button>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:1rem;" class="cfg-group-row">
+            <div class="cfg-group" style="flex:1;">
+              <label class="cfg-label" for="cfg-pin-novo">Novo PIN (mínimo 4 caracteres)</label>
+              <div class="cfg-input-wrap">
+                <input type="password" id="cfg-pin-novo" class="cfg-input" placeholder="Novo PIN..." autocomplete="off" />
+                <button type="button" class="cfg-toggle-pwd" data-for="cfg-pin-novo">👁️ Ver</button>
+              </div>
+            </div>
+            <div class="cfg-group" style="flex:1;">
+              <label class="cfg-label" for="cfg-pin-conf">Confirmar Novo PIN</label>
+              <div class="cfg-input-wrap">
+                <input type="password" id="cfg-pin-conf" class="cfg-input" placeholder="Repita o novo PIN..." autocomplete="off" />
+                <button type="button" class="cfg-toggle-pwd" data-for="cfg-pin-conf">👁️ Ver</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:1.5rem; display:flex; justify-content:flex-end; gap:.75rem;">
+            <button type="button" class="cfg-btn sec" id="btn-sync-pin">🔄 Resincronizar PIN</button>
+            <button type="button" class="cfg-btn" id="btn-save-pin">💾 Salvar Novo PIN</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- ABA 2: INTEGRAÇÕES GMAIL API -->
+      <div class="cfg-panel" id="tab-gmail" role="tabpanel">
+        <div class="cfg-badge-status warn" id="cfg-gmail-status-badge">
+          <span>● Envio Automático de E-mails: Pronto para Configuração</span>
+        </div>
+
+        <div class="cfg-card-info">
+          <b>Envio via Senha de Aplicativo do Gmail:</b> Conecte a conta oficial para envio automático de escalas de TACF, relatórios e notificações da Secretaria.
+          <br><br>
+          <small>💡 <b>Como criar a Senha de App:</b> Acesse sua Conta Google &rarr; <i>Segurança</i> &rarr; <i>Verificação em 2 Etapas</i> &rarr; <i>Senhas de app</i>. Crie um nome (ex: "Governança DE") e copie a senha de 16 caracteres gerada.</small>
+        </div>
+
+        <form id="cfg-form-gmail" onsubmit="return false;">
+          <div class="cfg-group">
+            <label class="cfg-label" for="cfg-gmail-user">E-mail Remetente do Gmail</label>
+            <input type="email" id="cfg-gmail-user" class="cfg-input" placeholder="ex: secde.afa@gmail.com" />
+          </div>
+
+          <div class="cfg-group">
+            <label class="cfg-label" for="cfg-gmail-name">Nome de Exibição do Remetente</label>
+            <input type="text" id="cfg-gmail-name" class="cfg-input" placeholder="ex: Secretaria DE · Academia da Força Aérea" />
+          </div>
+
+          <div class="cfg-group">
+            <label class="cfg-label" for="cfg-gmail-pass">Senha de Aplicativo (16 caracteres)</label>
+            <div class="cfg-input-wrap">
+              <input type="password" id="cfg-gmail-pass" class="cfg-input" placeholder="xxxx xxxx xxxx xxxx" autocomplete="off" />
+              <button type="button" class="cfg-toggle-pwd" data-for="cfg-gmail-pass">👁️ Ver</button>
+            </div>
+          </div>
+
+          <div class="cfg-group" style="margin-top:0.8rem;">
+            <label class="cfg-label" for="cfg-gmail-relay">URL Web App / Google Apps Script (Opcional · Recomendado para rede militar/proxy)</label>
+            <input type="text" id="cfg-gmail-relay" class="cfg-input" placeholder="https://script.google.com/macros/s/..." />
+          </div>
+
+          <div class="cfg-group" style="display:flex; align-items:center; gap:.75rem; margin-top:.5rem;">
+            <input type="checkbox" id="cfg-gmail-enable" style="width:18px; height:18px; accent-color:var(--gold);" checked />
+            <label for="cfg-gmail-enable" style="font-size:.88rem; color:#fff; cursor:pointer;">Ativar disparos automáticos de e-mail no aplicativo</label>
+          </div>
+
+          <div id="cfg-test-log" class="cfg-log-box"></div>
+
+          <div style="margin-top:1.5rem; display:flex; justify-content:space-between; align-items:center;">
+            <button type="button" class="cfg-btn sec" id="btn-test-gmail">🧪 Enviar E-mail de Teste</button>
+            <button type="button" class="cfg-btn" id="btn-save-gmail">💾 Salvar Integração Gmail</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/smtp.js"></script>
+<script src="assets/js/app-config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   CONFIGURAÇÃO — tudo que você pode querer ajustar mora aqui
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Planilha do módulo de Higienização (já em uso) */
+const SHEET_ID = '1wFKX6eVRi1VOtcQH4Bb0xJ32saXAUw2FihIiHdw_-yc';
+
+/* Módulo de Efetivo — mesmos parâmetros do efetivo.html.
+   O total vem da planilha (C5:E150, aba "efetivo", menos os excluídos).
+   Presentes/ausentes vêm do estado do dia no Apps Script (JSONP). */
+const EF_SHEET_ID = '1UOMh4y-wHL8kHcB9TUUcEmkeF7z6KYAs4vipsoOFgfA';
+const EF_TAB      = 'efetivo';
+const EF_ROW_START = 5, EF_ROW_END = 150;
+const EF_APPS_URL = 'https://script.google.com/macros/s/AKfycbzDig6XjmLQX0THlyCt36KlMGky-rxhqTrrsPNIT3PDLJnHJuJ-izIKcQHd0Yun4dOg/exec';
+const EF_EXCLUIR  = ['Calaza','Braun','Aramys','Eckert','Jesus','Sommer','Xavier','Raiane','Montalvão','Levy','Ivan','Fabricio'];
+
+/* Cena 3D */
+const CFG = {
+  haze:{                    // névoa de alta altitude
+    count:1300, spread:130, depth:80, size:1.5,
+    rise:0.028, drift:0.011, opacity:0.55,
+    colorA:0xcfe4ff, colorB:0xd4a84b
+  },
+  trails:{                  // rastros de contrail — substituem os poliedros
+    n:7,                    // quantidade
+    len:78,                 // comprimento de cada rastro
+    thick:0.95,             // espessura
+    speed:0.42,             // velocidade base
+    spreadX:120, spreadY:70,
+    tilt:-0.30,             // inclinação em radianos (segue a diagonal da arte)
+    opacity:0.32,
+    color:0xdcebff
+  },
+  camera:{ z:52, parallax:5.0, ease:0.045 },
+  scrollBoost:2.4,          // quanto o scroll acelera os rastros
+  maxDPR:1.75
+};
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   0 · ABERTURA EM VÍDEO — PALCO DE FOCO
+   O vídeo (cortado no ápice, com desaceleração assada) toca num
+   cartão em resolução nativa sobre o hero desfocado. O JS calcula a
+   largura pelo devicePixelRatio para nunca ampliar um pixel sequer.
+   Faltando 0,58s para o fim, com os aviões ainda em movimento pleno,
+   dispara o corte na ação: o quadro se abre e revela o hero nítido,
+   e a cortina libera a entrada do conteúdo.
+
+   Nunca bloqueia o scroll: pointer-events:none e saída rápida ao rolar.
+   ═══════════════════════════════════════════════════════════════════ */
+const INTRO = {
+  umaVezPorSessao: false,  // true = toca só na primeira visita da sessão
+  fonte:     'assets/intro.mp4',
+  fonteMob:  'assets/intro-mob.mp4',
+  larguraMob: 760,
+  disparo:    2.05,        // s — dispara a saída COM o vídeo ainda rodando
+  esperaMax: 12000         // desiste se não conseguir começar
+};
+
+(function abertura(){
+  const palco = document.getElementById('palco');
+  const v  = document.getElementById('intro');
+  const gl = document.getElementById('gl');
+  const acenderGL = ()=> gl && gl.classList.add('no-ar');
+  if (!palco || !v){ acenderGL(); return; }
+
+  // Única razão para pular: preferência de movimento reduzido do sistema.
+  const pular =
+      matchMedia('(prefers-reduced-motion: reduce)').matches
+   || (INTRO.umaVezPorSessao && (()=>{ try{ return sessionStorage.getItem('intro-vista')==='1'; }catch(e){ return false; } })());
+
+  if (pular){ palco.remove(); acenderGL(); return; }
+
+  // Cortina: o conteúdo do hero espera a abertura se resolver.
+  document.body.classList.add('cortina');
+
+  // ── Geometria do quadro, em resolução nativa ──
+  // O cartão nunca exibe o vídeo acima do tamanho real do arquivo:
+  // largura CSS máxima = pixels do arquivo ÷ devicePixelRatio.
+  // Os mesmos quatro números alimentam o vídeo, a moldura e o recorte
+  // do #quadro — por construção eles não têm como se desencontrar.
+  const mob = innerWidth <= INTRO.larguraMob;
+  function medir(){
+    const nativo = mob ? 1280 : 1920;
+    const dpr    = Math.min(devicePixelRatio || 1, 3);
+    const cw = Math.round(Math.min(
+      innerWidth  * (mob ? .92 : .76),
+      innerHeight * .70 * (16/9),
+      nativo / dpr
+    ));
+    const ch = Math.round(cw * 9/16);
+    const cl = Math.round((innerWidth  - cw) / 2);
+    const ct = Math.round((innerHeight - ch) / 2 - innerHeight * (mob ? .04 : .025));
+    const s  = palco.style;
+    s.setProperty('--cw', cw + 'px');  s.setProperty('--ch', ch + 'px');
+    s.setProperty('--cl', cl + 'px');  s.setProperty('--ct', ct + 'px');
+    s.setProperty('--rad', (mob ? 14 : 18) + 'px');
+    // insets do recorte = as bordas do mesmo retângulo
+    s.setProperty('--il', cl + 'px');
+    s.setProperty('--ir', (innerWidth  - cw - cl) + 'px');
+    s.setProperty('--it', ct + 'px');
+    s.setProperty('--ib', (innerHeight - ch - ct) + 'px');
+  }
+  medir();
+  addEventListener('resize', ()=>{ if (!fim) medir(); }, { passive:true });
+
+  let fim = false;
+  function encerrar(motivo, rapido){
+    if (fim) return;
+    fim = true;
+    if (motivo) console.info('[abertura]', motivo);
+    try{ sessionStorage.setItem('intro-vista','1'); }catch(e){}
+    palco.classList.add(rapido ? 'saindo-rapido' : 'saindo');
+    // O conteúdo sobe junto com a abertura do quadro (que começa em .35s)
+    setTimeout(()=> document.body.classList.remove('cortina'), rapido ? 0 : 350);
+    // libera o decodificador assim que o vídeo fica invisível, para a
+    // expansão do quadro ter a GPU inteira à disposição
+    setTimeout(()=>{ try{ v.pause(); }catch(e){} }, rapido ? 0 : 560);
+    acenderGL();
+    setTimeout(()=>{ try{ v.pause(); }catch(e){} palco.remove(); }, rapido ? 700 : 1400);
+  }
+
+  // ① O ouvinte de scroll só é armado DEPOIS que o vídeo começa a rodar.
+  //    Antes, a restauração de posição do navegador ao recarregar disparava
+  //    o encerramento antes de o vídeo sequer aparecer.
+  function armarScroll(){
+    const yInicial = scrollY;
+    addEventListener('scroll', ()=>{
+      if (Math.abs(scrollY - yInicial) > 40) encerrar('scroll do usuário', true);
+    }, { passive:true });
+  }
+
+  // ⓪ CORTE NA AÇÃO: a saída começa ANTES de o vídeo acabar, com os
+  //    aviões em movimento pleno. O relógio é o próprio currentTime do
+  //    vídeo, lido a cada quadro — assim o corte cai sempre no mesmo
+  //    ponto da animação, independente de a máquina estar rápida ou
+  //    lenta. ('timeupdate' dispararia só ~4x/s: até 250 ms de atraso,
+  //    e esse atraso era parte do que se sentia como travamento.)
+  function vigiar(){
+    if (fim) return;
+    if (v.currentTime >= INTRO.disparo){ encerrar(); return; }
+    requestAnimationFrame(vigiar);
+  }
+  v.addEventListener('playing', ()=>{ armarScroll(); requestAnimationFrame(vigiar); }, { once:true });
+  v.addEventListener('ended',  ()=> encerrar());                      // rede de segurança
+  v.addEventListener('error',  ()=> encerrar('falha ao carregar o vídeo', true));
+
+  // ② Reforço para iOS/Android: mesmo com o atributo no HTML, alguns
+  //    navegadores só respeitam mute definido via propriedade quando o
+  //    src é atribuído por script — e autoplay sem mute é sempre barrado.
+  v.muted = true;
+  v.defaultMuted = true;
+
+  // ③ Se o autoplay for barrado (modo de baixa energia do iOS, economia
+  //    de bateria do Android), NÃO desistimos de imediato: o primeiro
+  //    toque na tela reaproveita o gesto para dar o play. Se em 7s
+  //    ninguém tocar, seguimos direto para o hero, sem quebrar nada.
+  function autoplayBarrado(err){
+    console.info('[abertura] autoplay barrado (' + err.name + '); aguardando primeiro toque');
+    const tentar = ()=>{
+      const p = v.play();
+      if (p && p.catch) p.catch(()=> encerrar('play barrado mesmo com gesto', true));
+    };
+    addEventListener('pointerdown', tentar, { once:true, passive:true });
+    addEventListener('touchstart',  tentar, { once:true, passive:true });
+    setTimeout(()=>{ if (!fim && v.paused) encerrar('sem gesto do usuário', true); }, 7000);
+  }
+
+  // ④ Espera o vídeo ter dados antes de mandar tocar, em vez de
+  //    matar a abertura por um readyState baixo cedo demais.
+  v.addEventListener('canplay', ()=>{
+    const p = v.play();
+    if (p && p.catch) p.catch(autoplayBarrado);
+  }, { once:true });
+
+  // O palco entra em cena de imediato: o fundo desfocado (12 KB) e o
+  // poster em alta seguram a composição enquanto o vídeo carrega.
+  palco.classList.add('no-ar');
+  v.src = mob ? INTRO.fonteMob : INTRO.fonte;
+  v.load();
+
+  setTimeout(()=>{ if (!fim && v.readyState < 2) encerrar('vídeo demorou a carregar', true); }, INTRO.esperaMax);
+})();
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   1 · CENA THREE.JS — névoa + rastros de contrail
+   ═══════════════════════════════════════════════════════════════════ */
+let setScrollEnergy = () => {};
+
+(function scene(){
+  const canvas = document.getElementById('gl');
+  if (!canvas || typeof THREE === 'undefined') return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const mobile = innerWidth < 760;
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:!mobile });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, CFG.maxDPR));
+  renderer.setSize(innerWidth, innerHeight);
+
+  const scene  = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x061021, 0.011);
+  const camera = new THREE.PerspectiveCamera(58, innerWidth/innerHeight, .1, 340);
+  camera.position.z = CFG.camera.z;
+
+  /* — texturas geradas em canvas, sem requisição extra — */
+  function dotTex(){
+    const c = document.createElement('canvas'); c.width = c.height = 64;
+    const ctx = c.getContext('2d');
+    const g = ctx.createRadialGradient(32,32,0,32,32,32);
+    g.addColorStop(0,'rgba(255,255,255,1)');
+    g.addColorStop(.34,'rgba(255,255,255,.55)');
+    g.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle = g; ctx.fillRect(0,0,64,64);
+    return new THREE.CanvasTexture(c);
+  }
+  /* rastro: opaco no meio, dissolvendo nas duas pontas — como um contrail real */
+  function trailTex(){
+    const c = document.createElement('canvas'); c.width = 256; c.height = 8;
+    const ctx = c.getContext('2d');
+    const g = ctx.createLinearGradient(0,0,256,0);
+    g.addColorStop(0,   'rgba(255,255,255,0)');
+    g.addColorStop(.16, 'rgba(255,255,255,.28)');
+    g.addColorStop(.55, 'rgba(255,255,255,.95)');
+    g.addColorStop(.88, 'rgba(255,255,255,.30)');
+    g.addColorStop(1,   'rgba(255,255,255,0)');
+    ctx.fillStyle = g; ctx.fillRect(0,0,256,8);
+    return new THREE.CanvasTexture(c);
+  }
+
+  /* ── névoa ── */
+  const H = CFG.haze;
+  const total = mobile ? Math.round(H.count*.5) : H.count;
+  const pos = new Float32Array(total*3);
+  const col = new Float32Array(total*3);
+  const vel = new Float32Array(total);
+  const cA = new THREE.Color(H.colorA), cB = new THREE.Color(H.colorB);
+
+  for (let i=0;i<total;i++){
+    pos[i*3]   = (Math.random()-.5)*H.spread;
+    pos[i*3+1] = (Math.random()-.5)*H.spread;
+    pos[i*3+2] = (Math.random()-.5)*H.depth;
+    vel[i]     = .45 + Math.random()*.9;
+    const c = Math.random() < .15 ? cB : cA;
+    col[i*3] = c.r; col[i*3+1] = c.g; col[i*3+2] = c.b;
+  }
+  const hazeGeo = new THREE.BufferGeometry();
+  hazeGeo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  hazeGeo.setAttribute('color',    new THREE.BufferAttribute(col,3));
+  scene.add(new THREE.Points(hazeGeo, new THREE.PointsMaterial({
+    size:H.size, map:dotTex(), vertexColors:true, transparent:true,
+    opacity:H.opacity, depthWrite:false,
+    blending:THREE.AdditiveBlending, sizeAttenuation:true
+  })));
+
+  /* ── rastros de contrail ── */
+  const T = CFG.trails;
+  const tTex = trailTex();
+  const trails = [];
+  const nTrails = mobile ? Math.max(3, Math.round(T.n*.6)) : T.n;
+
+  for (let i=0;i<nTrails;i++){
+    const scale = .55 + Math.random()*.85;
+    const m = new THREE.Mesh(
+      new THREE.PlaneGeometry(T.len*scale, T.thick),
+      new THREE.MeshBasicMaterial({
+        map:tTex, color:T.color, transparent:true,
+        opacity:T.opacity*(.45+Math.random()*.75),
+        depthWrite:false, blending:THREE.AdditiveBlending
+      })
+    );
+    m.rotation.z = T.tilt + (Math.random()-.5)*.16;
+    m.position.set(
+      (Math.random()-.5)*T.spreadX,
+      (Math.random()-.5)*T.spreadY,
+      -14 - Math.random()*46
+    );
+    m.userData = { speed:(.45+Math.random()*1.05)*T.speed, scale };
+    trails.push(m);
+    scene.add(m);
+  }
+
+  /* ── parallax do ponteiro ── */
+  const ptr = { x:0, y:0, tx:0, ty:0 };
+  addEventListener('pointermove', e=>{
+    ptr.tx = (e.clientX/innerWidth  - .5)*2;
+    ptr.ty = (e.clientY/innerHeight - .5)*2;
+  }, { passive:true });
+
+  /* ── energia do scroll: os rastros aceleram enquanto a página rola ── */
+  let energy = 0, energyTarget = 0;
+  setScrollEnergy = v => { energyTarget = Math.min(v, 1); };
+
+  /* ── loop ── */
+  const clock = new THREE.Clock();
+  let running = true, raf = 0;
+  const limY = H.spread/2, limX = T.spreadX/2 + T.len*.6;
+
+  function frame(){
+    raf = requestAnimationFrame(frame);
+    const t  = clock.getElapsedTime();
+    const dt = Math.min(clock.getDelta(), .05);
+
+    energy += (energyTarget - energy)*.07;
+    energyTarget *= .94;                       // decai sozinho ao parar de rolar
+    const boost = 1 + energy*CFG.scrollBoost;
+
+    // névoa
+    const p = hazeGeo.attributes.position.array;
+    for (let i=0;i<total;i++){
+      p[i*3+1] += H.rise*vel[i]*boost;
+      p[i*3]   += Math.sin(t*.22 + i*.045)*H.drift;
+      if (p[i*3+1] > limY){ p[i*3+1] = -limY; p[i*3] = (Math.random()-.5)*H.spread; }
+    }
+    hazeGeo.attributes.position.needsUpdate = true;
+
+    // rastros atravessam a cena e reentram pela esquerda
+    trails.forEach(m=>{
+      m.position.x += m.userData.speed*boost;
+      m.position.y += m.userData.speed*.30*boost;   // acompanha a inclinação
+      if (m.position.x > limX){
+        m.position.x = -limX;
+        m.position.y = (Math.random()-.5)*T.spreadY;
+        m.position.z = -14 - Math.random()*46;
+      }
+    });
+
+    // câmera
+    ptr.x += (ptr.tx - ptr.x)*CFG.camera.ease;
+    ptr.y += (ptr.ty - ptr.y)*CFG.camera.ease;
+    camera.position.x =  ptr.x*CFG.camera.parallax;
+    camera.position.y = -ptr.y*CFG.camera.parallax;
+    camera.lookAt(0,0,0);
+
+    renderer.render(scene, camera);
+  }
+  frame();
+
+  let rt;
+  addEventListener('resize', ()=>{
+    clearTimeout(rt);
+    rt = setTimeout(()=>{
+      camera.aspect = innerWidth/innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setPixelRatio(Math.min(devicePixelRatio, CFG.maxDPR));
+      renderer.setSize(innerWidth, innerHeight);
+    }, 150);
+  });
+
+  document.addEventListener('visibilitychange', ()=>{
+    if (document.hidden && running){ cancelAnimationFrame(raf); running = false; }
+    else if (!document.hidden && !running){ clock.getDelta(); running = true; frame(); }
+  });
+})();
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   2 · SCROLL — véu, parallax do hero, header e reveal
+   ═══════════════════════════════════════════════════════════════════ */
+(function onScroll(){
+  const root = document.documentElement;
+  const top  = document.getElementById('top');
+  const hero = document.getElementById('hero');
+  let last = 0, ticking = false;
+
+  function apply(){
+    const y = scrollY;
+    const vh = innerHeight;
+
+    // véu ganha opacidade entre 25% e 85% da altura do hero
+    const veil = Math.min(Math.max((y - vh*.25) / (vh*.60), 0), 1);
+    root.style.setProperty('--veil', veil.toFixed(3));
+
+    // parallax suave do fundo
+    root.style.setProperty('--heroShift', (y*.16).toFixed(1) + 'px');
+
+    top.classList.toggle('stuck', y > 40);
+    hero.classList.toggle('gone', y > 60);
+
+    // energia repassada aos rastros 3D
+    setScrollEnergy(Math.abs(y - last)/38);
+    last = y;
+    ticking = false;
+  }
+
+  addEventListener('scroll', ()=>{
+    if (!ticking){ requestAnimationFrame(apply); ticking = true; }
+  }, { passive:true });
+  apply();
+
+  // reveal
+  const io = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{ if (e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, { threshold:.18, rootMargin:'0px 0px -6% 0px' });
+  document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+})();
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   3 · RELÓGIO
+   ═══════════════════════════════════════════════════════════════════ */
+(function clock(){
+  const dias = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+  const d1 = document.getElementById('clock-day');
+  const d2 = document.getElementById('clock-time');
+  const tick = ()=>{
+    const d = new Date();
+    d1.textContent = `${dias[d.getDay()]} · ${d.toLocaleDateString('pt-BR')}`;
+    d2.textContent = d.toLocaleTimeString('pt-BR');
+  };
+  tick(); setInterval(tick, 1000);
+})();
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   4 · CONTADOR ANIMADO
+   ═══════════════════════════════════════════════════════════════════ */
+function countTo(el, to){
+  if (!el) return;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches){ el.textContent = to; return; }
+  const from = parseInt(el.textContent, 10) || 0;
+  if (from === to){ el.textContent = to; return; }
+  const dur = 750, t0 = performance.now();
+  (function step(now){
+    const k = Math.min((now - t0)/dur, 1);
+    const e = 1 - Math.pow(1 - k, 3);           // easeOutCubic
+    el.textContent = Math.round(from + (to - from)*e);
+    if (k < 1) requestAnimationFrame(step);
+  })(t0);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   5 · DADOS · HIGIENIZAÇÃO
+   ═══════════════════════════════════════════════════════════════════ */
+const IDS = ['B01','B02','B03','B04','B05','B06','B07','B08','B09','B10','B11','B12'];
+
+function statusDe(quando, tipo){
+  if (!quando) return 'sem';
+  const h = (Date.now() - quando.getTime())/36e5;
+  const janela = tipo === 'full' ? 8 : 3;       // mesma regra do módulo
+  if (h < janela)     return 'ok';
+  if (h < janela + 8) return 'atencao';
+  return 'vencido';
+}
+function paraData(v){
+  if (typeof v === 'string'){
+    const m = v.match(/Date\((\d+),(\d+),(\d+),?(\d+)?,?(\d+)?,?(\d+)?\)/);
+    if (m) return new Date(+m[1], +m[2], +m[3], +(m[4]||0), +(m[5]||0), +(m[6]||0));
+    const d = new Date(v); return isNaN(d) ? null : d;
+  }
+  if (typeof v === 'number') return new Date((v - 25569)*864e5);
+  return null;
+}
+
+async function carregarLimpeza(){
+  const abas = ['Respostas','Respostas do formulário 2','Respostas do formulário 1','Form Responses 1'];
+  let j = null;
+  for (const aba of abas){
+    try{
+      const r = await fetch(`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(aba)}`);
+      const t = await r.text();
+      const m = t.match(/setResponse\(([\s\S]*)\)/);
+      if (!m) continue;
+      const c = JSON.parse(m[1]);
+      if (c?.status === 'error') continue;
+      j = c; break;
+    }catch(e){}
+  }
+  if (!j) return;
+
+  const ultimo = {};
+  (j.table?.rows || []).forEach(row=>{
+    const c = row.c || [];
+    const quando = paraData(c[0]?.v);
+    const id = ((c[1]?.v || '').toString().match(/B\d{2}/i) || [])[0]?.toUpperCase();
+    if (!quando || !id || !IDS.includes(id)) return;
+    const cc = (c[2]?.v || '').toString().toLowerCase().trim();
+    const tipo = cc.startsWith('full') ? 'full'
+               : (cc.startsWith('bas') || cc.startsWith('bás')) ? 'basica' : null;
+    if (!ultimo[id] || quando > ultimo[id].quando) ultimo[id] = { quando, tipo };
+  });
+
+  const n = { ok:0, atencao:0, vencido:0, sem:0 };
+  IDS.forEach(id=>{
+    const u = ultimo[id];
+    n[ statusDe(u?.quando || null, u?.tipo) ]++;
+  });
+
+  countTo(document.getElementById('kpi-ok'),   n.ok);
+  countTo(document.getElementById('kpi-warn'), n.atencao);
+  countTo(document.getElementById('kpi-over'), n.vencido);
+  document.getElementById('kpi-ok-tot').textContent = `/${IDS.length}`;
+
+  countTo(document.getElementById('lp-ok'),   n.ok);
+  countTo(document.getElementById('lp-warn'), n.atencao);
+  countTo(document.getElementById('lp-over'), n.vencido);
+
+  const pct = v => (v/IDS.length*100).toFixed(1) + '%';
+  document.getElementById('lp-bar').innerHTML = `
+    <span style="width:${pct(n.ok)};background:var(--jade)"></span>
+    <span style="width:${pct(n.atencao)};background:var(--amber)"></span>
+    <span style="width:${pct(n.vencido)};background:var(--magenta)"></span>
+    <span style="width:${pct(n.sem)};background:rgba(207,228,255,.16)"></span>`;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   6 · DADOS · EFETIVO  (espelha a leitura do efetivo.html)
+   ═══════════════════════════════════════════════════════════════════ */
+
+// normaliza nome para comparar com a lista de exclusão
+function efNorm(s){
+  return (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .toLowerCase().replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
+}
+const EF_EXCLUIR_NORM = EF_EXCLUIR.map(efNorm);
+function efExcluido(nome){
+  const tokens = efNorm(nome).split(' ');
+  return EF_EXCLUIR_NORM.some(ex => tokens.includes(ex));
+}
+
+// leitura JSONP (o Apps Script bloqueia fetch por CORS) — igual ao efetivo.html
+function efJsonp(baseUrl){
+  return new Promise((resolve, reject)=>{
+    const cb = 'cb_' + Math.random().toString(36).slice(2);
+    const s = document.createElement('script');
+    let done = false;
+    const cleanup = ()=>{
+      window[cb] = () => { try{ delete window[cb]; }catch(_){ window[cb]=undefined; } };
+      if (s.parentNode) s.remove();
+    };
+    window[cb] = d => {
+      if (done) return;
+      done = true;
+      try{ delete window[cb]; }catch(_){ window[cb]=undefined; }
+      if (s.parentNode) s.remove();
+      resolve(d);
+    };
+    s.onerror = ()=>{
+      if(!done){
+        done = true;
+        cleanup();
+        reject(new Error('rede'));
+      }
+    };
+    s.src = baseUrl + (baseUrl.includes('?')?'&':'?') + 'callback=' + cb + '&_=' + Date.now();
+    document.body.appendChild(s);
+    setTimeout(()=>{
+      if(!done){
+        done = true;
+        cleanup();
+        reject(new Error('timeout'));
+      }
+    }, 15000);
+  });
+}
+
+// lê o efetivo da planilha (C..N) — inclui o NOME COMPLETO, que está na coluna N
+let efetivoCache = null;      // reaproveitado pelo gerador de PDF
+
+async function efLerPlanilha(){
+  const url = `https://docs.google.com/spreadsheets/d/${EF_SHEET_ID}/gviz/tq`
+            + `?tqx=out:json&sheet=${encodeURIComponent(EF_TAB)}`
+            + `&range=C${EF_ROW_START}:N${EF_ROW_END}&headers=0`;
+  const r = await fetch(url);
+  const t = await r.text();
+  const m = t.match(/setResponse\(([\s\S]*)\)/);
+  if (!m) return null;
+  const j = JSON.parse(m[1]);
+  if (j?.status === 'error') return null;
+
+  // índices relativos ao início do range (C = 0):
+  // C=0 posto · D=1 especialidade · E=2 nome de guerra · N=11 nome completo
+  const lista = [];
+  (j.table?.rows || []).forEach(row=>{
+    const c = row.c || [];
+    const guerra = (c[2]?.v ?? '').toString().trim();
+    if (!guerra) return;
+    lista.push({
+      posto:    (c[0]?.v  ?? '').toString().trim(),
+      esp:      (c[1]?.v  ?? '').toString().trim(),
+      guerra,
+      completo: (c[11]?.v ?? '').toString().trim(),
+      excluido: efExcluido(guerra)
+    });
+  });
+  efetivoCache = lista;
+  return lista;
+}
+
+// mantém o nome antigo para o KPI: devolve só quem entra na chamada diária
+async function efTotalPlanilha(){
+  const lista = await efLerPlanilha();
+  if (!lista) return null;
+  return lista.filter(m => !m.excluido).map(m => m.guerra);
+}
+
+// estado do dia (quem está PRESENTE / FALTA), via Apps Script
+async function efEstadoDia(){
+  if (!EF_APPS_URL) return null;
+  const hoje = new Date().toLocaleDateString('pt-BR');   // dd/MM/yyyy
+  const url = EF_APPS_URL + '?action=estado&dia=' + encodeURIComponent(hoje);
+  try{
+    const data = await efJsonp(url);
+    if (data && data.ok && data.estado) return data.estado;  // { nome: {situacao, etiquetas} }
+  }catch(e){}
+  return null;
+}
+
+async function carregarEfetivo(){
+  let nomes = null, estado = null;
+  try{ [nomes, estado] = await Promise.all([efTotalPlanilha(), efEstadoDia()]); }
+  catch(e){}
+
+  const total = nomes ? nomes.length : null;
+
+  // conta presentes/ausentes cruzando o estado do servidor com o efetivo real
+  let presentes = null, ausentes = null;
+  if (estado){
+    presentes = 0; ausentes = 0;
+    const chave = nomes || Object.keys(estado);
+    chave.forEach(nome=>{
+      const reg = estado[nome];
+      if (!reg) return;                      // não marcado = pool (não conta)
+      if (reg.situacao === 'PRESENTE') presentes++;
+      else if (reg.situacao === 'FALTA') ausentes++;
+    });
+  }
+
+  const $ = id => document.getElementById(id);
+
+  if (total == null){
+    $('ef-note').textContent = 'Efetivo indisponível · abra o módulo';
+    return;
+  }
+
+  countTo($('ef-total'), total);
+
+  if (presentes == null){
+    // temos o total, mas ainda não há chamada registrada hoje
+    $('ef-pres').textContent = '—';
+    $('ef-aus').textContent  = '—';
+    $('kpi-pres').textContent = '—';
+    $('kpi-pres-tot').textContent = `/${total}`;
+    $('ef-bar').innerHTML = '<span style="width:100%;background:rgba(207,228,255,.14)"></span>';
+    $('ef-note').textContent = 'Chamada do dia ainda não iniciada';
+    return;
+  }
+
+  countTo($('ef-pres'), presentes);
+  countTo($('ef-aus'),  ausentes);
+  countTo($('kpi-pres'), presentes);
+  $('kpi-pres-tot').textContent = `/${total}`;
+
+  const pct = v => (total ? v/total*100 : 0).toFixed(1) + '%';
+  const pend = Math.max(total - presentes - ausentes, 0);
+  $('ef-bar').innerHTML = `
+    <span style="width:${pct(presentes)};background:var(--jade)"></span>
+    <span style="width:${pct(ausentes)};background:var(--amber)"></span>
+    <span style="width:${pct(pend)};background:rgba(207,228,255,.14)"></span>`;
+
+  $('ef-note').textContent =
+    `Chamada de hoje · ${presentes + ausentes} de ${total} conferidos`;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   8 · MÓDULO · DOWNLOAD DA LISTA DE EFETIVO (PDF)
+   Página em proporção 90×190 mm (≈1:2,1) — mesma razão de uma tela de
+   celular, então o PDF abre já legível sem precisar de zoom.
+   ═══════════════════════════════════════════════════════════════════ */
+
+// Mesma composição da chamada diária: aplica a lista EF_EXCLUIR,
+// para o PDF e o cartão de efetivo mostrarem o mesmo número.
+const PDF_APLICAR_EXCLUSOES = true;
+
+const POSTO_NOME = {
+  'CL':'Coronel',            'TC':'Tenente-Coronel',   'MJ':'Major',
+  'CP':'Capitão',            '1T':'Primeiro-Tenente',  '2T':'Segundo-Tenente',
+  'AP':'Aspirante',          'SO':'Suboficial',        '1S':'Primeiro-Sargento',
+  '2S':'Segundo-Sargento',   '3S':'Terceiro-Sargento', 'CB':'Cabo',
+  'S1':'Soldado 1ª Classe',  'S2':'Soldado 2ª Classe'
+};
+
+/* recorta o hero para a proporção pedida e queima um degradê navy no rodapé,
+   para o título assentar sobre área escura sem precisar de camadas no PDF */
+function prepararCapa(img, wmm, hmm, pxPorMm = 9){
+  const W = Math.round(wmm*pxPorMm), H = Math.round(hmm*pxPorMm);
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d');
+
+  const alvo = W/H, orig = img.width/img.height;
+  let sw, sh, sx, sy;
+  if (orig > alvo){ sh = img.height; sw = sh*alvo; sx = (img.width-sw)/2; sy = 0; }
+  else           { sw = img.width;  sh = sw/alvo; sx = 0; sy = (img.height-sh)/2; }
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, W, H);
+
+  const g = ctx.createLinearGradient(0, H*0.40, 0, H);
+  g.addColorStop(0,    'rgba(6,16,33,0)');
+  g.addColorStop(0.60, 'rgba(6,16,33,0.80)');
+  g.addColorStop(1,    'rgba(6,16,33,1)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, H*0.40, W, H*0.60);
+
+  return cv.toDataURL('image/jpeg', 0.90);
+}
+
+function carregarImagem(src){
+  return new Promise((res, rej)=>{
+    const i = new Image();
+    i.onload = ()=>res(i);
+    i.onerror = ()=>rej(new Error('imagem '+src));
+    i.src = src;
+  });
+}
+
+async function baixarListaEfetivo(){
+  const btn = document.getElementById('btn-pdf');
+  const nota = document.getElementById('pdf-nota');
+  const sub = document.getElementById('sub-pdf');
+  btn.disabled = true;
+  sub.classList.add('gerando');          // cocar gira enquanto trabalha
+  nota.textContent = 'Consultando a planilha…';
+
+  try{
+    if (!window.jspdf) throw new Error('biblioteca de PDF não carregou');
+
+    let lista = efetivoCache || await efLerPlanilha();
+    if (!lista || !lista.length) throw new Error('planilha sem registros');
+    if (PDF_APLICAR_EXCLUSOES) lista = lista.filter(m => !m.excluido);
+
+    nota.textContent = 'Montando o documento…';
+    const hero = await carregarImagem('assets/hero-afa.jpg').catch(()=>null);
+
+    const { jsPDF } = window.jspdf;
+    const L = 90, A = 190;                    // largura × altura da página, em mm
+    const doc = new jsPDF({ unit:'mm', format:[L, A], orientation:'portrait' });
+
+    const NAVY9=[10,22,40], NAVY7=[20,49,90], NAVY1=[230,238,247];
+    const GOLD=[212,168,75], CINZA=[100,116,139], ESCURO=[30,45,70];
+    const MG = 7;                             // margem lateral
+
+    /* ───────── CAPA ───────── */
+    doc.setFillColor(...NAVY9);
+    doc.rect(0, 0, L, A, 'F');
+
+    if (hero){
+      const hCapa = 96;
+      doc.addImage(prepararCapa(hero, L, hCapa), 'JPEG', 0, 0, L, hCapa);
+    }
+
+    doc.setDrawColor(...GOLD); doc.setLineWidth(0.7);
+    doc.line(MG, 104, L-MG, 104);
+
+    doc.setTextColor(...GOLD);
+    doc.setFont('helvetica','normal'); doc.setFontSize(6.4); doc.setCharSpace(1.5);
+    doc.text('ACADEMIA DA FORÇA AÉREA', MG, 113);
+
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica','bold'); doc.setFontSize(19); doc.setCharSpace(0.4);
+    doc.text('LISTA DE', MG, 127);
+    doc.text('EFETIVO', MG, 137);
+
+    doc.setFont('helvetica','normal'); doc.setFontSize(8.6); doc.setCharSpace(0.3);
+    doc.setTextColor(148,176,216);
+    doc.text('Divisão de Ensino', MG, 147);
+
+    doc.setDrawColor(40,70,120); doc.setLineWidth(0.3);
+    doc.line(MG, 154, L-MG, 154);
+
+    const agora = new Date();
+    doc.setFontSize(6.6); doc.setCharSpace(0.6);
+    doc.setTextColor(...GOLD);
+    doc.text('EFETIVO', MG, 161);
+    doc.text('EMITIDA EM', MG+34, 161);
+
+    doc.setFont('helvetica','bold'); doc.setFontSize(11); doc.setCharSpace(0);
+    doc.setTextColor(255,255,255);
+    doc.text(String(lista.length), MG, 168);
+    doc.text(agora.toLocaleDateString('pt-BR'), MG+34, 168);
+
+    doc.setFont('helvetica','normal'); doc.setFontSize(5.8); doc.setCharSpace(0.4);
+    doc.setTextColor(110,135,175);
+    doc.text('militares', MG, 172.5);
+    doc.text(agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}), MG+34, 172.5);
+
+    doc.setFontSize(5.6); doc.setCharSpace(0.2);
+    doc.setTextColor(90,112,148);
+    doc.text('Ordenada por antiguidade', MG, 182);
+
+    /* ───────── PÁGINAS DA LISTA ─────────
+       Métrica de cada militar (origem y = topo do bloco):
+         linha 1 → y+3.4  posto·esp (dourado) + nome de guerra (navy)
+         linha 2 → y+7.4  nome completo (cinza)
+         fim do texto ≈ y+8.0 · bloco ocupa 9.4 → sobra 1.4 de respiro
+       Isso garante que nada invada o bloco seguinte nem seja coberto
+       pelo fundo alternado do próximo item.                            */
+    const TOPO = 15, BASE = 11;
+    const ALT_ITEM = 9.4, ALT_QUEBRA = 3.4, ALT_GRUPO = 7.4;
+    const X_NUM = MG + 1, X_CHIP = MG + 7, X_NOME = MG + 24;
+    const LARG_NOME = L - MG - X_NOME;
+    let y = 0, pagina = 0, postoAtual = null;
+    const semNomeCompleto = [];
+
+    function novaPagina(){
+      doc.addPage([L, A], 'portrait');
+      pagina++;
+      doc.setFillColor(...NAVY9);
+      doc.rect(0, 0, L, TOPO-3, 'F');
+      doc.setDrawColor(...GOLD); doc.setLineWidth(0.5);
+      doc.line(0, TOPO-3, L, TOPO-3);
+
+      doc.setTextColor(255,255,255);
+      doc.setFont('helvetica','bold'); doc.setFontSize(6.4); doc.setCharSpace(1.1);
+      doc.text('LISTA DE EFETIVO', MG, 7.8);
+      doc.setFont('helvetica','normal'); doc.setTextColor(...GOLD); doc.setCharSpace(0.8);
+      doc.text('DE · AFA', L-MG, 7.8, { align:'right' });
+      y = TOPO + 3;
+    }
+
+    function rodape(){
+      doc.setDrawColor(...NAVY1); doc.setLineWidth(0.25);
+      doc.line(MG, A-BASE+2, L-MG, A-BASE+2);
+      doc.setFont('helvetica','normal'); doc.setFontSize(5.6); doc.setCharSpace(0.3);
+      doc.setTextColor(...CINZA);
+      doc.text('Divisão de Ensino · AFA', MG, A-BASE+6);
+      doc.text(String(pagina), L-MG, A-BASE+6, { align:'right' });
+    }
+
+    novaPagina();
+
+    lista.forEach((m, i)=>{
+      const posto = (m.posto || '—').toUpperCase();
+      const temNome = !!m.completo;
+      if (!temNome) semNomeCompleto.push(m.guerra);
+
+      // mede a quebra do nome completo antes de decidir a altura do bloco
+      doc.setFont('helvetica','normal'); doc.setFontSize(6.2); doc.setCharSpace(0);
+      const texto = m.completo || 'nome completo não cadastrado';
+      const linhas = doc.splitTextToSize(texto, LARG_NOME);
+      const altBloco = ALT_ITEM + (linhas.length > 1 ? ALT_QUEBRA : 0);
+
+      const trocaGrupo = posto !== postoAtual;
+      if (y + altBloco + (trocaGrupo ? ALT_GRUPO : 0) > A - BASE){
+        rodape(); novaPagina(); postoAtual = null;
+      }
+
+      // faixa de mudança de posto
+      if (posto !== postoAtual){
+        postoAtual = posto;
+        doc.setFillColor(...NAVY7);
+        doc.rect(MG, y, L-MG*2, 5.2, 'F');
+        doc.setTextColor(...GOLD);
+        doc.setFont('helvetica','bold'); doc.setFontSize(5.8); doc.setCharSpace(1);
+        doc.text((POSTO_NOME[posto] || posto).toUpperCase(), MG+2.2, y+3.6);
+        y += ALT_GRUPO;
+      }
+
+      // fundo alternado — fica contido na própria altura do bloco
+      if (i % 2 === 1){
+        doc.setFillColor(245,248,252);
+        doc.rect(MG, y, L-MG*2, altBloco - 0.8, 'F');
+      }
+
+      // antiguidade
+      doc.setFont('helvetica','normal'); doc.setFontSize(5.6); doc.setCharSpace(0);
+      doc.setTextColor(165,183,208);
+      doc.text(String(i+1).padStart(2,'0'), X_NUM, y+3.4);
+
+      // posto · especialidade
+      doc.setFont('helvetica','bold'); doc.setFontSize(5.8); doc.setCharSpace(0.35);
+      doc.setTextColor(...GOLD);
+      doc.text(m.esp ? `${posto}·${m.esp.toUpperCase()}` : posto, X_CHIP, y+3.4);
+
+      // nome de guerra
+      doc.setFont('helvetica','bold'); doc.setFontSize(8.2); doc.setCharSpace(0.15);
+      doc.setTextColor(...NAVY9);
+      doc.text(m.guerra.toUpperCase(), X_NOME, y+3.4);
+
+      // nome completo (uma ou duas linhas)
+      doc.setFont('helvetica','normal'); doc.setFontSize(6.2); doc.setCharSpace(0);
+      doc.setTextColor(...(temNome ? CINZA : [178,190,206]));
+      linhas.slice(0,2).forEach((ln, k)=> doc.text(ln, X_NOME, y+7.4 + k*ALT_QUEBRA));
+
+      y += altBloco;
+    });
+
+    rodape();
+
+    const arq = `lista-efetivo-de-${agora.toISOString().slice(0,10)}.pdf`;
+    doc.save(arq);
+
+    let msg = `${lista.length} militares · ${pagina} ${pagina===1?'página':'páginas'}`;
+    if (semNomeCompleto.length){
+      msg += ` · ${semNomeCompleto.length} sem nome completo na planilha (${semNomeCompleto.slice(0,3).join(', ')}${semNomeCompleto.length>3?'…':''})`;
+    }
+    nota.textContent = msg;
+  }catch(e){
+    console.error(e);
+    nota.textContent = 'Não foi possível gerar: ' + (e.message || 'erro');
+  }finally{
+    btn.disabled = false;
+    sub.classList.remove('gerando');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   9 · DADOS · DIÁRIAS  +  INSTRUMENTO ANALÓGICO
+   Lê do Supabase — mesmo projeto usado em diarias.html.
+   ═══════════════════════════════════════════════════════════════════ */
+const SUPABASE_URL  = 'https://rsaaryrgdrolcsvigckz.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzYWFyeXJnZHJvbGNzdmlnY2t6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMzcyNjEsImV4cCI6MjA4MjcxMzI2MX0.UKACT_OKIMRaLB3FJPtFPGqhVbR83pUiiPfLkcf_Ec0';
+const CONFIG_ID     = 'default';
+const CACHE_KEY     = 'afa_diarias_cache_v2';
+
+const sbOk = !SUPABASE_URL.startsWith('COLE_') && !SUPABASE_ANON.startsWith('COLE_');
+const sbCli = (sbOk && window.supabase) ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
+if (sbCli) { window.sbCli = sbCli; window.sb = sbCli; }
+
+const BRL = new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'});
+const fmtBRL = v => BRL.format(Number(v)||0);
+
+/* geometria do mostrador: escala E→F com varredura de 240° */
+const GG = { cx:130, cy:130, r:96, start:150, sweep:240 };
+const gpol = (cx,cy,r,deg)=>{ const a=deg*Math.PI/180; return {x:cx+r*Math.cos(a), y:cy+r*Math.sin(a)}; };
+function garco(cx,cy,r,d0,d1){
+  const p0=gpol(cx,cy,r,d0), p1=gpol(cx,cy,r,d1);
+  const big=(d1-d0)>180?1:0;
+  return `M ${p0.x.toFixed(2)} ${p0.y.toFixed(2)} A ${r} ${r} 0 ${big} 1 ${p1.x.toFixed(2)} ${p1.y.toFixed(2)}`;
+}
+const gang = v => GG.start + Math.max(0,Math.min(1,v))*GG.sweep;
+
+function montarGaugeIdx(){
+  const el = document.getElementById('gauge-idx');
+  if (!el) return;
+  const {cx,cy,r} = GG;
+  let s = '';
+
+  s += `<defs>
+    <linearGradient id="ibez" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b3a52"/><stop offset=".5" stop-color="#16233a"/><stop offset="1" stop-color="#0a1424"/>
+    </linearGradient>
+    <radialGradient id="iface" cx=".5" cy=".38" r=".72">
+      <stop offset="0" stop-color="#16294a"/><stop offset="1" stop-color="#050c19"/>
+    </radialGradient>
+    <linearGradient id="iglass" x1="0" y1="0" x2=".7" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".17"/>
+      <stop offset=".45" stop-color="#fff" stop-opacity=".03"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="indrop" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2.4" flood-color="#000" flood-opacity=".55"/>
+    </filter>
+  </defs>`;
+
+  // bisel e parafusos
+  s += `<circle cx="${cx}" cy="${cy}" r="126" fill="url(#ibez)"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="114" fill="none" stroke="#040a14" stroke-width="2"/>`;
+  [45,135,225,315].forEach(a=>{
+    const p = gpol(cx,cy,119,a);
+    s += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4.2" fill="#0d1626" stroke="#3d4d68" stroke-width="1"/>
+          <line x1="${(p.x-2.4).toFixed(1)}" y1="${p.y.toFixed(1)}" x2="${(p.x+2.4).toFixed(1)}" y2="${p.y.toFixed(1)}" stroke="#5a6d8c" stroke-width="1"/>`;
+  });
+
+  s += `<circle cx="${cx}" cy="${cy}" r="110" fill="url(#iface)"/>`;
+
+  // faixas de operação: vermelha / âmbar / verde
+  const faixa=(v0,v1,c,o)=>`<path d="${garco(cx,cy,r-3,gang(v0),gang(v1))}" fill="none" stroke="${c}" stroke-width="7" stroke-opacity="${o}"/>`;
+  s += faixa(0,.15,'#ef4444',.85) + faixa(.15,.30,'#f59e0b',.85) + faixa(.30,1,'#10b981',.72);
+
+  // setor do empenhado
+  s += `<path id="idx-spent" d="" fill="none" stroke="#ef4444" stroke-width="15" stroke-opacity=".22"/>`;
+
+  // marcações
+  for (let i=0;i<=16;i++){
+    const v=i/16, a=gang(v), big=i%4===0;
+    const p0=gpol(cx,cy,big?r-14:r-11,a), p1=gpol(cx,cy,big?r-28:r-20,a);
+    s += `<line x1="${p0.x.toFixed(1)}" y1="${p0.y.toFixed(1)}" x2="${p1.x.toFixed(1)}" y2="${p1.y.toFixed(1)}"
+           stroke="${big?'#e6eef7':'#7d93b5'}" stroke-width="${big?2.6:1.2}" stroke-linecap="round"/>`;
+  }
+
+  // rótulos E ¼ ½ ¾ F
+  [['E',0],['1/4',.25],['1/2',.5],['3/4',.75],['F',1]].forEach(([txt,v])=>{
+    const p = gpol(cx,cy,r-42,gang(v));
+    s += `<text x="${p.x.toFixed(1)}" y="${(p.y+4).toFixed(1)}" text-anchor="middle"
+           font-family="Oswald,sans-serif" font-size="${txt.length>1?12:15}" font-weight="600" fill="#c5d4e8">${txt}</text>`;
+  });
+
+  s += `<text x="${cx}" y="${cy-34}" text-anchor="middle" font-family="Oswald,sans-serif"
+         font-size="12" font-weight="600" letter-spacing="2.4" fill="#d4a84b">DIÁRIAS</text>`;
+  s += `<text x="${cx}" y="${cy+46}" text-anchor="middle" font-family="JetBrains Mono,monospace"
+         font-size="8.5" letter-spacing="1.6" fill="#7d93b5">SALDO DISPONÍVEL</text>`;
+
+  // leitura digital
+  s += `<rect x="${cx-46}" y="${cy+54}" width="92" height="24" rx="3" fill="#03080f" stroke="#24344f" stroke-width="1"/>`;
+  s += `<text id="idx-pct" x="${cx}" y="${cy+71}" text-anchor="middle" font-family="JetBrains Mono,monospace"
+         font-size="14" font-weight="700" fill="#7d93b5">—</text>`;
+
+  // ponteiro
+  s += `<g id="idx-needle" filter="url(#indrop)">
+          <polygon points="${cx-3.4},${cy} ${cx},${cy-r+16} ${cx+3.4},${cy}" fill="#f8fafc"/>
+          <polygon points="${cx-3},${cy} ${cx},${cy+22} ${cx+3},${cy}" fill="#94a3b8"/>
+        </g>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="9" fill="#1c2b44" stroke="#4a5d7d" stroke-width="1.6"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="3.4" fill="#d4a84b"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="110" fill="url(#iglass)" pointer-events="none"/>`;
+
+  el.innerHTML = s;
+}
+
+/* ── movimento do ponteiro (mesma mecânica de diarias.html) ── */
+const IOSC = { amp:0.85, f1:2.1, f2:3.7, seguir:0.055 };
+let iAlvo = 0, iAtual = 0, iIniciado = false;
+const iSemAnim = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function moverPonteiroIdx(){
+  const ndl = document.getElementById('idx-needle');
+  if (!ndl) return;
+  iAtual += (iAlvo - iAtual) * IOSC.seguir;
+  let ang = gang(iAtual) - 270;
+  if (!iSemAnim){
+    const t = performance.now()/1000;
+    ang += (Math.sin(t*IOSC.f1)*0.58 + Math.sin(t*IOSC.f2)*0.42) * IOSC.amp;
+  }
+  ndl.setAttribute('transform', `rotate(${ang.toFixed(3)} ${GG.cx} ${GG.cy})`);
+  requestAnimationFrame(moverPonteiroIdx);
+}
+
+function pintarDiarias(total, gasto, nOrdens){
+  const $ = id => document.getElementById(id);
+  const saldo = total - gasto;
+  const frac  = total > 0 ? Math.max(0, Math.min(1, saldo/total)) : 0;
+
+  iAlvo = frac;
+  if (!iIniciado){
+    iIniciado = true;
+    if (iSemAnim) iAtual = frac;
+    requestAnimationFrame(moverPonteiroIdx);
+  }
+
+  const sp = $('idx-spent');
+  if (sp) sp.setAttribute('d', (total>0 && frac<.999) ? garco(GG.cx,GG.cy,GG.r-3,gang(frac),gang(1)) : '');
+
+  const pct = $('idx-pct');
+  if (pct){
+    pct.textContent = total>0 ? (frac*100).toFixed(1).replace('.',',')+'%' : '—';
+    pct.setAttribute('fill', total===0 ? '#7d93b5' : frac<.15 ? '#ef4444' : frac<.30 ? '#f59e0b' : '#10b981');
+  }
+
+  if (total === 0){
+    $('dg-total').textContent = '—';
+    $('dg-gasto').textContent = '—';
+    $('dg-saldo').textContent = '—';
+    $('dg-note').textContent  = sbOk
+      ? 'Nenhuma dotação registrada · abra o módulo para configurar'
+      : 'Supabase não configurado no index.html';
+    return;
+  }
+
+  $('dg-total').textContent = fmtBRL(total);
+  $('dg-gasto').textContent = fmtBRL(gasto);
+  $('dg-saldo').textContent = fmtBRL(saldo);
+
+  const pg = Math.min(gasto/total*100, 100).toFixed(1);
+  $('dg-bar').innerHTML = `
+    <span style="width:${pg}%;background:${saldo<0?'var(--magenta)':'var(--amber)'}"></span>
+    <span style="width:${(100-pg).toFixed(1)}%;background:var(--jade)"></span>`;
+
+  $('dg-note').textContent = saldo < 0
+    ? `Dotação excedida em ${fmtBRL(Math.abs(saldo))} · ${nOrdens} ${nOrdens===1?'OS lançada':'OS lançadas'}`
+    : `${nOrdens} ${nOrdens===1?'ordem de serviço lançada':'ordens de serviço lançadas'} · ${(gasto/total*100).toFixed(1).replace('.',',')}% empenhado`;
+}
+
+async function carregarDiarias(){
+  // pinta na hora com o cache que diarias.html deixou, se houver
+  try{
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (raw){
+      const d = JSON.parse(raw);
+      const g = (d.ordens||[]).reduce((s,o)=> s+(Number(o.valor)||0), 0);
+      pintarDiarias(Number(d.dotacao)||0, g, (d.ordens||[]).length);
+    }
+  }catch(e){}
+
+  if (!sbCli){ pintarDiarias(0,0,0); return; }
+
+  try{
+    const [cfg, os] = await Promise.all([
+      sbCli.from('diarias_config').select('dotacao').eq('id', CONFIG_ID).maybeSingle(),
+      sbCli.from('diarias_os').select('valor_total')
+    ]);
+    if (cfg.error || os.error) throw (cfg.error || os.error);
+
+    const total = Number(cfg.data?.dotacao) || 0;
+    const lista = os.data || [];
+    const gasto = lista.reduce((s,r)=> s + (Number(r.valor_total)||0), 0);
+    pintarDiarias(total, gasto, lista.length);
+  }catch(e){
+    console.warn('Diárias indisponíveis:', e.message);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   10 · DADOS · AUXÍLIO TRANSPORTE  (governança do ciclo mensal)
+   Lê do Supabase — mesmo projeto, tabelas at_militares / at_declaracoes.
+   ═══════════════════════════════════════════════════════════════════ */
+function atCompCiclo(){ // no ciclo dos dias 01–10 declara-se sempre o mês anterior
+  const h = new Date();
+  let a = h.getFullYear(), m = h.getMonth();   // getMonth() em base 0 já é o mês anterior em base 1
+  if (m === 0){ a--; m = 12; }
+  return a + '-' + String(m).padStart(2,'0');
+}
+
+function pintarCicloAT(fase){
+  const tag = document.getElementById('at-fase');
+  if (tag) tag.textContent = fase === 1 ? 'Declaração 01–05' : fase === 2 ? 'Conferência 06–10' : 'Remessa';
+  [1,2,3].forEach(i => {
+    const el = document.getElementById('at-tr' + i);
+    if (!el) return;
+    el.classList.remove('ativa','feita');
+    el.querySelector('.at-aviao')?.remove();
+    if (i < fase) el.classList.add('feita');
+    if (i === fase){
+      el.classList.add('ativa');
+      const av = document.createElement('span');
+      av.className = 'at-aviao'; av.textContent = '✈';
+      el.appendChild(av);
+    }
+  });
+}
+
+async function carregarTransporte(){
+  const fase = (d => d <= 5 ? 1 : d <= 10 ? 2 : 3)(new Date().getDate());
+  pintarCicloAT(fase);
+  const nota = document.getElementById('at-note');
+
+  // leitura direta via REST, imune a cache (mesma base/chave do transporte.html)
+  const atGet = async (caminho) => {
+    const r = await fetch(CUR_URL + '/rest/v1/' + caminho, {
+      headers: { apikey: CUR_ANON, Authorization: 'Bearer ' + CUR_ANON },
+      cache: 'no-store'
+    });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  };
+
+  try{
+    const compCiclo = atCompCiclo();
+    const [mils, todas] = await Promise.all([
+      atGet('at_militares?select=id&ativo=eq.true'),
+      atGet('at_declaracoes?select=status,competencia')
+    ]);
+
+    const total = mils.length;
+
+    // prioriza a competência do ciclo; sem dados nela, usa a mais recente com declarações
+    let comp = compCiclo;
+    let doMes = todas.filter(d => d.competencia === comp);
+    if (!doMes.length && todas.length){
+      comp = todas.map(d => d.competencia).sort().pop();
+      doMes = todas.filter(d => d.competencia === comp);
+    }
+
+    const env  = doMes.filter(d => d.status !== 'rascunho').length;
+    const conf = doMes.filter(d => d.status === 'conferida').length;
+    const semEnvio = Math.max(0, total - env);
+    const semConf  = Math.max(0, env - conf);
+    const pend = fase === 1 ? semEnvio : semEnvio + semConf;
+
+    const defina = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+    defina('at-env',  total ? env + '/' + total : String(env));
+    defina('at-conf', String(conf));
+    defina('at-pend', String(pend));
+
+    const pct = v => (total ? v / total * 100 : 0).toFixed(1) + '%';
+    const bar = document.getElementById('at-bar');
+    if (bar) bar.innerHTML =
+      '<span style="width:' + pct(conf) + ';background:var(--jade)"></span>' +
+      '<span style="width:' + pct(semConf) + ';background:var(--amber)"></span>';
+
+    const [aa, mm] = comp.split('-');
+    const partes = [];
+    if (semEnvio) partes.push(semEnvio + ' sem envio');
+    if (fase > 1 && semConf) partes.push(semConf + ' sem conferência');
+    if (nota) nota.textContent = total === 0
+      ? 'Nenhum militar cadastrado · abra o módulo para começar'
+      : pend === 0
+        ? 'Competência ' + mm + '/' + aa + ' em dia — nenhuma pendência'
+        : (fase === 3 && comp === compCiclo ? '🚨 ' : '') + partes.join(' · ') + ' — competência ' + mm + '/' + aa;
+  }catch(e){
+    console.warn('Auxílio transporte indisponível:', e.message);
+    if (nota) nota.textContent = /at_militares|at_declaracoes|relation|does not exist|404/i.test(e.message || '')
+      ? 'Rode o SQL do módulo no Supabase para ativar'
+      : 'Auxílio transporte indisponível · abra o módulo';
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   11 · DADOS · INDICAÇÃO PARA CURSOS
+   Lê a aba BANCO DE CURSOS (Google Sheets) + as tabelas cur_* do
+   Supabase. Estas duas constantes precisam apontar para o MESMO
+   projeto usado no cursos.html.
+   ═══════════════════════════════════════════════════════════════════ */
+const CUR_URL  = 'https://sovrgsbdhdpxsaomspsp.supabase.co';
+const CUR_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg';
+const CUR_PLAN = { id:'1x3nkmh-XndGlPW3BuPlp-C1kqK1nr2cx6NlQVOPmELw', aba:'BANCO DE CURSOS', faixa:'A1:AZ400' };
+
+const cuEl    = id => document.getElementById(id);
+const cuNorm  = s => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/\s+/g,' ').trim();
+const cuEsc   = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const cuHoje  = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
+const cuBR    = d => d ? String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear() : '';
+const cuDias  = d => d ? Math.ceil((d - cuHoje()) / 86400000) : null;
+const cuIso   = s => { if(!s) return null; const m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? new Date(+m[1], +m[2]-1, +m[3]) : null; };
+
+async function cuGet(caminho){
+  const r = await fetch(CUR_URL + '/rest/v1/' + caminho, {
+    headers: { apikey: CUR_ANON, Authorization: 'Bearer ' + CUR_ANON }, cache:'no-store'
+  });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+function cuVal(c){
+  if (!c) return '';
+  if (c.f != null && c.f !== '') return String(c.f).trim();
+  if (c.v == null) return '';
+  if (typeof c.v === 'string' && /^Date\(/.test(c.v)){ const p = c.v.match(/\d+/g).map(Number); return cuBR(new Date(p[0], p[1], p[2])); }
+  return String(c.v).trim();
+}
+function cuData(c){
+  if (!c) return null;
+  if (typeof c.v === 'string' && /^Date\(/.test(c.v)){ const p = c.v.match(/\d+/g).map(Number); return new Date(p[0], p[1], p[2]); }
+  const a = String((c.f || c.v) || '');
+  const m = a.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+  if (m){ let an = +m[3]; if (an < 100) an += 2000; return new Date(an, +m[2]-1, +m[1]); }
+  const i = a.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return i ? new Date(+i[1], +i[2]-1, +i[3]) : null;
+}
+function cuChave(c){ return cuNorm((c.comando || 'SC') + '|' + String(c.sigla || c.nome || '').slice(0,40)).replace(/[^A-Z0-9|]/g,''); }
+
+async function cuLerPlanilha(){
+  const url = 'https://docs.google.com/spreadsheets/d/' + CUR_PLAN.id +
+              '/gviz/tq?tqx=out:json&headers=0&sheet=' + encodeURIComponent(CUR_PLAN.aba) +
+              '&range=' + CUR_PLAN.faixa;
+  const txt = await (await fetch(url)).text();
+  const m = txt.match(/setResponse\(([\s\S]*)\)/);
+  if (!m) throw new Error('planilha');
+  const j = JSON.parse(m[1]);
+  if (j.status === 'error') throw new Error('planilha');
+  const rows = (j.table && j.table.rows) || [];
+
+  /* descobre a linha de cabeçalho */
+  let iCab = 0, melhor = -1;
+  for (let i = 0; i < Math.min(rows.length, 12); i++){
+    const t = (rows[i].c || []).map(cuVal), jj = cuNorm(t.join(' '));
+    let s = t.filter(Boolean).length;
+    if (/CURSO/.test(jj)) s += 6;
+    if (/SIGLA/.test(jj)) s += 4;
+    if (/INICIO|TERMINO|DATA|PRAZO|LIMITE/.test(jj)) s += 3;
+    if (/COMANDO|TCA/.test(jj)) s += 2;
+    if (s > melhor){ melhor = s; iCab = i; }
+  }
+  const cab = (rows[iCab].c || []).map(cuVal).map(cuNorm);
+  const acha = res => { for (let i = 0; i < cab.length; i++){ if (cab[i] && res.some(r => r.test(cab[i]))) return i; } return null; };
+  const ix = {
+    sigla:   acha([/SIGLA/, /^COD/, /ABREV/]),
+    nome:    acha([/NOME DO CURSO/, /^CURSO$/, /^NOME$/, /DENOMINA/, /CURSO/]),
+    comando: acha([/COMANDO/, /^ODSA/, /^COM$/, /ORGAO/]),
+    limite:  acha([/LIMITE/, /INSCRI/, /MATRICULA/, /PRAZO/, /REMESSA/, /INDICACAO/]),
+    inicio:  acha([/INICIO/])
+  };
+  return rows.slice(iCab + 1).map(r => {
+    const cs = r.c || [], t = cs.map(cuVal), g = i => (i == null ? '' : (t[i] || '').trim());
+    const c = {
+      comando: g(ix.comando) || 'COMGEP', sigla: g(ix.sigla), nome: g(ix.nome),
+      limite: ix.limite == null ? null : cuData(cs[ix.limite]),
+      inicio: ix.inicio == null ? null : cuData(cs[ix.inicio])
+    };
+    c.chave = cuChave(c);
+    return c;
+  }).filter(c => c.sigla || c.nome);
+}
+
+async function carregarCursos(){
+  const nota = cuEl('cu-note'), alerta = cuEl('cu-alerta');
+  try {
+    const [plan, base, manifsTodas] = await Promise.all([
+      cuLerPlanilha().catch(() => []),
+      cuGet('cur_cursos?select=*').catch(() => []),
+      cuGet('cur_manifestacoes?select=id,curso_chave,status,aval_chefia,criada_em,nome_guerra')
+    ]);
+    const manifs = manifsTodas.filter(m => m.status !== 'cancelada');
+
+    /* funde planilha + cadastros e ajustes do Supabase */
+    const ajustes = {}, proprios = [];
+    base.forEach(b => {
+      const c = {
+        comando: b.comando, sigla: b.sigla, nome: b.nome,
+        limite: cuIso(b.data_limite), inicio: cuIso(b.data_inicio), oculto: b.oculto
+      };
+      c.chave = b.chave_planilha || cuChave(c);
+      if (b.chave_planilha) ajustes[b.chave_planilha] = c; else proprios.push(c);
+    });
+    const cursos = plan.map(c => {
+      const a = ajustes[c.chave];
+      if (!a) return c;
+      return { chave:c.chave, comando:a.comando || c.comando, sigla:a.sigla || c.sigla,
+               nome:a.nome || c.nome, limite:a.limite || c.limite, inicio:a.inicio || c.inicio, oculto:a.oculto };
+    }).concat(proprios).filter(c => !c.oculto);
+
+    /* contagens por curso */
+    const porCurso = {};
+    manifs.forEach(m => {
+      const o = porCurso[m.curso_chave] || (porCurso[m.curso_chave] = { total:0, semAval:0, aRemeter:0 });
+      o.total++;
+      if (!m.aval_chefia) o.semAval++;
+      if (m.status === 'recebida') o.aRemeter++;
+    });
+
+    const dados = cursos.map(c => ({ c, d: cuDias(c.limite), r: porCurso[c.chave] || { total:0, semAval:0, aRemeter:0 } }));
+    const abertos  = dados.filter(x => x.d == null || x.d >= 0);
+    const criticos = dados.filter(x => x.d != null && x.d >= 0 && x.d <= 15);
+    const prontos  = criticos.filter(x => x.r.aRemeter > 0);
+    const vazios   = criticos.filter(x => x.r.total === 0);
+    const aRemeter = manifs.filter(m => m.status === 'recebida').length;
+    const semAval  = manifs.filter(m => !m.aval_chefia && m.status === 'recebida').length;
+    const novas7   = manifs.filter(m => (Date.now() - new Date(m.criada_em).getTime()) < 7 * 86400000);
+
+    /* números */
+    countTo(cuEl('cu-abertos'),  abertos.length);
+    countTo(cuEl('cu-criticos'), criticos.length);
+    countTo(cuEl('cu-pedidos'),  manifs.length);
+
+    /* KPI da faixa do topo */
+    countTo(cuEl('kpi-cur'), criticos.length);
+    cuEl('kpi-cur-tot').textContent = '/' + abertos.length;
+    cuEl('kpi-cur').style.color = criticos.length ? '#f0abfc' : '';
+
+    /* barra: crítico · atenção · folga */
+    const aten = abertos.filter(x => x.d != null && x.d > 15 && x.d <= 40).length;
+    const folga = Math.max(0, abertos.length - criticos.length - aten);
+    const tot = Math.max(1, abertos.length);
+    cuEl('cu-bar').innerHTML =
+      `<span style="width:${criticos.length/tot*100}%;background:var(--magenta)"></span>` +
+      `<span style="width:${aten/tot*100}%;background:var(--amber)"></span>` +
+      `<span style="width:${folga/tot*100}%;background:var(--jade)"></span>`;
+
+    /* etiqueta do card */
+    const tag = cuEl('cu-tag');
+    tag.textContent = criticos.length ? criticos.length + ' prazo(s) crítico(s)' : (abertos.length ? 'Ativo' : 'Sem oferta');
+
+    /* alerta — a mensagem principal */
+    const linhas = [];
+    let nivel = 'ok';
+    if (prontos.length){
+      nivel = '';
+      linhas.push('🚨 <b>' + prontos.length + ' curso(s)</b> com prazo em até 15 dias já têm indicação pronta para remeter.');
+    }
+    if (vazios.length){
+      if (nivel === 'ok') nivel = 'aten';
+      linhas.push('⏳ <b>' + vazios.length + ' curso(s)</b> encerram em até 15 dias <b>sem nenhum interessado</b>.');
+    }
+    if (novas7.length){
+      if (nivel === 'ok') nivel = 'aten';
+      linhas.push('👥 <b>' + novas7.length + '</b> manifestação(ões) nos últimos 7 dias' + (semAval ? ' — <b>' + semAval + '</b> sem aval da chefia' : '') + '.');
+    } else if (semAval){
+      if (nivel === 'ok') nivel = 'aten';
+      linhas.push('⚠️ <b>' + semAval + '</b> pedido(s) aguardando o aval da chefia imediata.');
+    }
+    if (!linhas.length){
+      const prox = abertos.filter(x => x.d != null).sort((a,b) => a.d - b.d)[0];
+      linhas.push('✔ Nenhuma pendência de indicação.' + (prox ? ' Próximo prazo: <b>' + cuEsc(prox.c.sigla || prox.c.nome) + '</b> em ' + prox.d + ' dia(s).' : ''));
+    }
+    alerta.className = 'cu-alerta' + (nivel ? ' ' + nivel : '');
+    alerta.innerHTML = linhas.join('<br>');
+
+    /* sino de manifestações novas desde a última visita ao módulo */
+    const visto = Number(localStorage.getItem('cu_visto') || 0);
+    const novas = manifs.filter(m => new Date(m.criada_em).getTime() > visto);
+    const sinoAntigo = tag.parentElement.querySelector('.cu-sino');
+    if (sinoAntigo) sinoAntigo.remove();
+    if (visto && novas.length){
+      const s = document.createElement('span');
+      s.className = 'cu-sino';
+      s.textContent = novas.length + ' nova' + (novas.length > 1 ? 's' : '');
+      s.title = novas.slice(0,6).map(m => m.nome_guerra).filter(Boolean).join(', ');
+      tag.parentElement.appendChild(s);
+    }
+    if (!visto) localStorage.setItem('cu_visto', String(Date.now()));
+
+    /* próximos prazos */
+    const lista = abertos.filter(x => x.d != null).sort((a,b) => a.d - b.d).slice(0, 3);
+    cuEl('cu-pista').innerHTML = lista.length ? lista.map(x => {
+      const cls = x.d <= 15 ? 'crit' : (x.d <= 40 ? 'aten' : '');
+      const extra = x.r.total ? x.r.total + ' interessado(s)' : 'sem interessados';
+      return '<div class="cu-item ' + cls + '">' +
+        '<div class="cu-d"><b>' + x.d + '</b><small>' + (x.d === 1 ? 'dia' : 'dias') + '</small></div>' +
+        '<div class="cu-t"><strong>' + cuEsc(x.c.sigla || x.c.nome || '—') + '</strong>' +
+        '<span>' + cuEsc(x.c.comando || '') + ' · limite ' + cuEsc(cuBR(x.c.limite)) + ' · ' + extra + '</span></div></div>';
+    }).join('') : '<div class="cu-vazio">Nenhum curso com prazo em aberto</div>';
+
+    if (nota) nota.textContent = manifs.length
+      ? manifs.length + ' manifestação(ões) registradas · ' + aRemeter + ' aguardando remessa'
+      : 'Nenhuma manifestação registrada até agora';
+
+  } catch (e){
+    console.warn('Indicação para cursos indisponível:', e.message);
+    if (alerta){
+      alerta.className = 'cu-alerta aten';
+      alerta.textContent = /cur_|relation|does not exist|404/i.test(e.message || '')
+        ? 'Rode o SQL do módulo no Supabase para ativar'
+        : 'Módulo de cursos indisponível · abra para verificar';
+    }
+    if (nota) nota.textContent = 'Prazos de indicação · manifestações da tropa em tempo real';
+  }
+}
+
+/* zera o contador de novidades ao entrar no módulo */
+document.getElementById('cu-card')?.addEventListener('click', () => {
+  localStorage.setItem('cu_visto', String(Date.now()));
+});
+
+
+async function carregarTacfHub() {
+  if (!sbCli) return;
+  try {
+    const { data: sol } = await sbCli.from('tacf_solicitacoes').select('status_solicitacao, status_elegibilidade');
+    if (sol) {
+      const agendados = sol.filter(s => s.status_solicitacao === 'pendente' || s.status_solicitacao === 'escalado').length;
+      const concluidos = sol.filter(s => s.status_solicitacao === 'realizou').length;
+      countTo(cuEl('tacf-sol'), agendados);
+      countTo(cuEl('tacf-concl'), concluidos);
+      countTo(cuEl('tacf-eleg'), sol.length || 0);
+    }
+  } catch (e) {
+    console.warn('TACF hub stats:', e);
+  }
+}
+
+/* ═══ carga inicial + atualização periódica ═══ */
+function atualizar(){ carregarLimpeza(); carregarEfetivo(); carregarDiarias(); carregarTransporte(); carregarCursos(); carregarTacfHub(); }
+montarGaugeIdx();
+atualizar();
+setInterval(atualizar, 60000);
+
+// reflete no ato as mudanças feitas em diarias.html (outra aba, mesmo navegador)
+addEventListener('storage', e=>{ if (e.key === CACHE_KEY) carregarDiarias(); });
+
+/* ═══ LÓGICA DO MODAL DE CONFIGURAÇÕES (GERENCIAMENTO DO PIN & GMAIL API) ═══ */
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('modalConfigSite');
+  const btnOpen = document.getElementById('btn-config-site');
+  const btnClose = document.getElementById('btn-cfg-close');
+  const tabs = document.querySelectorAll('.cfg-tab-btn');
+  const panels = document.querySelectorAll('.cfg-panel');
+
+  function preencherDadosConfig() {
+    if (!window.AppConfig) return;
+    const g = window.AppConfig.getGmailConfig();
+
+    const elUser = document.getElementById('cfg-gmail-user');
+    const elName = document.getElementById('cfg-gmail-name');
+    const elPass = document.getElementById('cfg-gmail-pass');
+    const elRelay = document.getElementById('cfg-gmail-relay');
+    const elEnable = document.getElementById('cfg-gmail-enable');
+    const gBadge = document.getElementById('cfg-gmail-status-badge');
+    const pinBadge = document.getElementById('cfg-pin-status-badge');
+
+    if (elUser) elUser.value = g.user;
+    if (elName) elName.value = g.senderName;
+    if (elPass) elPass.value = g.appPassword;
+    if (elRelay) elRelay.value = localStorage.getItem('gmail_relay_url') || '';
+    if (elEnable) elEnable.checked = g.enabled;
+
+    if (pinBadge) {
+      if (window.AppConfig.isRemoteDbReady) {
+        pinBadge.className = 'cfg-badge-status ok';
+        pinBadge.innerHTML = '<span>● PIN Master Ativo: Sincronizado no Supabase</span>';
+      } else {
+        pinBadge.className = 'cfg-badge-status warn';
+        pinBadge.innerHTML = '<span>● PIN Ativo no Dispositivo (💡 Execute <code>supabase-app-config-setup.sql</code> no Supabase)</span>';
+      }
+    }
+
+    if (gBadge) {
+      if ((g.user && g.appPassword) || localStorage.getItem('gmail_relay_url')) {
+        gBadge.className = 'cfg-badge-status ok';
+        gBadge.innerHTML = '<span>● Gmail Conectado: Conexão Configurada</span>';
+      } else {
+        gBadge.className = 'cfg-badge-status warn';
+        gBadge.innerHTML = '<span>● Envio Automático de E-mails: Pendente de Configuração</span>';
+      }
+    }
+  }
+
+  if (btnOpen && modal) {
+    btnOpen.addEventListener('click', async () => {
+      modal.classList.add('active');
+      if (window.AppConfig) {
+        await window.AppConfig.loadConfig();
+        preencherDadosConfig();
+      }
+    });
+  }
+
+  if (btnClose && modal) {
+    btnClose.addEventListener('click', () => modal.classList.remove('active'));
+  }
+
+  modal?.addEventListener('click', (e) => {
+    if (e.target === modal) modal.classList.remove('active');
+  });
+
+  // Alternância de Abas
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      panels.forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      const targetPanel = document.getElementById(tab.dataset.tab);
+      if (targetPanel) targetPanel.classList.add('active');
+    });
+  });
+
+  // Mostrar/Ocultar senhas
+  document.querySelectorAll('.cfg-toggle-pwd').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.dataset.for;
+      const inp = document.getElementById(targetId);
+      if (inp) {
+        if (inp.type === 'password') {
+          inp.type = 'text';
+          btn.textContent = '🙈 Ocultar';
+        } else {
+          inp.type = 'password';
+          btn.textContent = '👁️ Ver';
+        }
+      }
+    });
+  });
+
+  // Ação de Resincronizar PIN
+  document.getElementById('btn-sync-pin')?.addEventListener('click', async () => {
+    if (!window.AppConfig) return;
+    try {
+      await window.AppConfig.loadConfig();
+      alert('✅ PIN resincronizado com o banco de dados Supabase com sucesso!');
+    } catch(e) {
+      alert('Erro ao resincronizar PIN: ' + e.message);
+    }
+  });
+
+  // Ação de Salvar PIN
+  document.getElementById('btn-save-pin')?.addEventListener('click', async () => {
+    const pAtual = document.getElementById('cfg-pin-atual')?.value || '';
+    const pNovo = document.getElementById('cfg-pin-novo')?.value || '';
+    const pConf = document.getElementById('cfg-pin-conf')?.value || '';
+
+    if (!window.AppConfig) return alert('Motor AppConfig indisponível.');
+
+    const pinValido = await window.AppConfig.verifyPin(pAtual);
+    if (!pinValido) {
+      alert('⚠️ O PIN Atual informado está incorreto.');
+      return;
+    }
+
+    if (!pNovo || pNovo.length < 4) {
+      alert('⚠️ O Novo PIN precisa ter pelo menos 4 caracteres.');
+      return;
+    }
+
+    if (pNovo !== pConf) {
+      alert('⚠️ O Novo PIN e a Confirmação não coincidem.');
+      return;
+    }
+
+    try {
+      await window.AppConfig.setPin(pNovo);
+      alert('✅ PIN master atualizado com sucesso em todo o aplicativo!');
+      document.getElementById('cfg-pin-atual').value = '';
+      document.getElementById('cfg-pin-novo').value = '';
+      document.getElementById('cfg-pin-conf').value = '';
+    } catch(err) {
+      alert('Erro ao alterar PIN: ' + err.message);
+    }
+  });
+
+  // Ação de Salvar Gmail Config
+  document.getElementById('btn-save-gmail')?.addEventListener('click', async () => {
+    const user = document.getElementById('cfg-gmail-user')?.value || '';
+    const name = document.getElementById('cfg-gmail-name')?.value || '';
+    const pass = document.getElementById('cfg-gmail-pass')?.value || '';
+    const relay = document.getElementById('cfg-gmail-relay')?.value || '';
+    const enabled = document.getElementById('cfg-gmail-enable')?.checked;
+
+    if (!window.AppConfig) return alert('Motor AppConfig indisponível.');
+
+    try {
+      if (relay) {
+        localStorage.setItem('gmail_relay_url', relay.trim());
+      } else {
+        localStorage.removeItem('gmail_relay_url');
+      }
+      await window.AppConfig.setGmailConfig({ user, appPassword: pass, senderName: name, enabled });
+      alert('✅ Configurações da API do Gmail salvas com sucesso!');
+      preencherDadosConfig();
+    } catch(err) {
+      alert('Erro ao salvar configurações do Gmail: ' + err.message);
+    }
+  });
+
+  // Testar Envio de E-mail
+  document.getElementById('btn-test-gmail')?.addEventListener('click', async () => {
+    const dest = prompt('Informe o e-mail de destino para o teste:', 'exemplo@fab.mil.br');
+    if (!dest) return;
+
+    const logBox = document.getElementById('cfg-test-log');
+    if (logBox) {
+      logBox.style.display = 'block';
+      logBox.innerHTML = '⏳ Iniciando teste de envio de e-mail via API Gmail...';
+    }
+
+    try {
+      const res = await window.AppConfig.sendEmail({
+        to: dest,
+        subject: '🧪 Teste de Conexão - Governança DE (Gmail API)',
+        html: `<h3>Governança DE - Academia da Força Aérea</h3><p>Este é um e-mail de teste disparado via <b>API do Gmail (Senha de App)</b>.</p><p>Data/Hora: ${new Date().toLocaleString('pt-BR')}</p>`,
+        text: 'Teste de conexão da Governança DE via API do Gmail.'
+      });
+
+      if (logBox) {
+        logBox.innerHTML = `<span style="color:var(--jade);">✅ ${res.message}</span><br><small>Destinatário: ${dest}</small>`;
+      }
+      alert('✅ Teste concluído com sucesso! Verifique a mensagem de confirmação.');
+    } catch(err) {
+      if (logBox) {
+        logBox.innerHTML = `<span style="color:#ef4444;">❌ Falha no teste: ${err.message}</span>`;
+      }
+      alert('❌ Erro no envio de e-mail de teste: ' + err.message);
+    }
+  });
+});
+</script>
+</body>
+</html>

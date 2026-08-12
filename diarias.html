@@ -1,0 +1,2170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AFA · Missões — DE</title>
+<link rel="icon" href="assets/cocar-fab.png" type="image/png" />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<script src="compiladordoc.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy-900:#0a1628; --navy-800:#0f2341; --navy-700:#14315a;
+  --navy-600:#1e4377; --navy-500:#2d5a9e; --navy-400:#5b82c4;
+  --navy-300:#94b0d8; --navy-200:#c5d4e8; --navy-100:#e6eef7; --navy-50:#f2f6fb;
+  --gold-500:#d4a84b; --gold-400:#e6be65;
+  --green-500:#10b981; --green-600:#059669;
+  --yellow-500:#f59e0b;
+  --red-500:#ef4444; --red-600:#dc2626;
+  --gray-100:#f1f5f9; --gray-200:#e2e8f0; --gray-300:#cbd5e1;
+  --gray-400:#94a3b8; --gray-500:#64748b; --gray-700:#334155; --gray-900:#0f172a;
+  --f-display:'Oswald',sans-serif;
+  --f-body:'Inter',sans-serif;
+  --f-mono:'JetBrains Mono',monospace;
+}
+body{font-family:var(--f-body);background:var(--navy-50);color:var(--navy-900);min-height:100vh}
+
+/* ═══ TABS NAV ═══ */
+.tabs-bar{
+  display:flex;gap:.5rem;padding:.75rem 2rem 0 2rem;background:#fff;
+  border-bottom:2px solid var(--navy-100);position:sticky;top:78px;z-index:90;
+}
+.tab-btn{
+  display:inline-flex;align-items:center;gap:.5rem;padding:.65rem 1.2rem;
+  font-family:var(--f-display);font-size:.85rem;font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--gray-500);background:transparent;
+  border:none;border-bottom:3px solid transparent;cursor:pointer;transition:all .2s;
+}
+.tab-btn:hover{color:var(--navy-700);background:var(--navy-50)}
+.tab-btn.active{color:var(--navy-900);border-bottom-color:var(--gold-500);background:rgba(212,168,75,.08)}
+.tab-btn svg{width:16px;height:16px}
+.tab-badge{font-family:var(--f-mono);font-size:.65rem;background:var(--navy-100);color:var(--navy-700);padding:2px 6px;border-radius:10px;margin-left:4px}
+.tab-btn.active .tab-badge{background:var(--gold-500);color:var(--navy-900)}
+.grat-actions{display:flex;gap:.35rem;margin-top:.6rem;flex-wrap:wrap}
+.btn-doc{padding:.3rem .55rem;font-size:.66rem;font-family:var(--f-mono);font-weight:600;border-radius:4px;border:1px solid var(--navy-200);background:var(--navy-50);color:var(--navy-700);cursor:pointer;transition:all .15s}
+.btn-doc:hover{background:var(--navy-700);color:#fff;border-color:var(--navy-700)}
+.btn-doc.gold{background:var(--gold-500);color:var(--navy-900);border-color:var(--gold-500)}
+.btn-doc.gold:hover{background:var(--gold-400)}
+
+/* ═══ TOGGLES & ACCORDION ═══ */
+.toggle-field{background:var(--navy-50);border:1px solid var(--navy-200);border-radius:6px;padding:.75rem .9rem;margin-bottom:.85rem}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;cursor:pointer;user-select:none}
+.toggle-title{font-size:.76rem;font-weight:600;color:var(--navy-900);text-transform:uppercase;letter-spacing:.04em}
+.toggle-sub{font-size:.64rem;color:var(--gray-500);margin-top:2px}
+.switch{position:relative;display:inline-block;width:38px;height:22px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;inset:0;background-color:var(--gray-300);transition:.24s;border-radius:22px}
+.slider:before{position:absolute;content:"";height:16px;width:16px;left:3px;bottom:3px;background-color:white;transition:.24s;border-radius:50%}
+input:checked + .slider{background-color:var(--gold-500)}
+input:checked + .slider:before{transform:translateX(16px)}
+
+.accordion-body{display:none;margin-top:.75rem;padding-top:.75rem;border-top:1px dashed var(--navy-200)}
+.accordion-body.show{display:block}
+
+/* Multimilitar List */
+.militar-item-card{background:#fff;border:1px solid var(--navy-200);border-left:3px solid var(--gold-500);border-radius:6px;padding:.75rem;margin-bottom:.6rem;position:relative}
+.militar-item-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;font-size:.75rem;font-weight:700;color:var(--navy-900)}
+
+body::after{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:linear-gradient(rgba(20,49,90,.04) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(20,49,90,.04) 1px,transparent 1px);
+  background-size:40px 40px;
+}
+
+/* ═══ HEADER ═══ */
+header{
+  background:linear-gradient(135deg,var(--navy-900),var(--navy-700));color:#fff;
+  padding:0 2rem;height:78px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;border-bottom:3px solid var(--gold-500);
+}
+header::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:repeating-linear-gradient(45deg,rgba(212,168,75,.05) 0 1px,transparent 1px 20px);
+}
+.logo{display:flex;align-items:center;gap:1rem;position:relative}
+.crest{width:58px;height:58px;flex-shrink:0;background:#fff;border-radius:6px;padding:3px;
+  border:2px solid var(--gold-500);box-shadow:0 3px 10px rgba(0,0,0,.3)}
+.crest img{width:100%;height:100%;object-fit:contain}
+.logo-text{font-family:var(--f-display);font-size:1.15rem;font-weight:600;letter-spacing:.04em;
+  line-height:1;text-transform:uppercase}
+.logo-sub{font-size:.7rem;color:var(--navy-300);letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
+.header-right{display:flex;align-items:center;gap:1rem;position:relative}
+.hbtn{
+  display:flex;align-items:center;gap:.45rem;font-size:.72rem;font-weight:500;color:#fff;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:4px;
+  padding:.4rem .8rem;cursor:pointer;text-transform:uppercase;letter-spacing:.05em;
+  transition:all .2s;font-family:var(--f-body);text-decoration:none;
+}
+.hbtn:hover{background:rgba(255,255,255,.15)}
+.hbtn.gold{background:var(--gold-500);color:var(--navy-900);border-color:var(--gold-500);font-weight:600}
+.hbtn.gold:hover{background:var(--gold-400)}
+
+/* status de sincronização */
+.sync{display:flex;align-items:center;gap:.45rem;font-family:var(--f-mono);font-size:.66rem;
+  color:var(--navy-200);background:rgba(255,255,255,.08);padding:.35rem .75rem;border-radius:4px;
+  border:1px solid rgba(255,255,255,.1);white-space:nowrap}
+.sync i{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:var(--gray-400)}
+.sync.ok i{background:var(--green-500);box-shadow:0 0 8px rgba(16,185,129,.7)}
+.sync.busy i{background:var(--yellow-500);animation:pulse 1.1s ease-in-out infinite}
+.sync.off i{background:var(--red-500)}
+.sync.cfg i{background:var(--gold-500)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* ═══ SUMMARY ═══ */
+.summary{display:flex;gap:.75rem;padding:1.25rem 2rem;background:#fff;
+  border-bottom:1px solid var(--navy-100);overflow-x:auto;position:relative;z-index:5}
+.scard{flex:0 0 auto;display:flex;align-items:center;gap:.75rem;background:var(--navy-50);
+  border:1px solid var(--navy-100);border-left:3px solid;border-radius:4px;
+  padding:.6rem 1.1rem;min-width:170px}
+.scard.gold{border-left-color:var(--gold-500)}
+.scard.red{border-left-color:var(--red-500)}
+.scard.green{border-left-color:var(--green-500)}
+.scard.navy{border-left-color:var(--navy-600);margin-left:auto}
+.scount{font-family:var(--f-display);font-size:1.35rem;font-weight:600;line-height:1;
+  color:var(--navy-900);font-variant-numeric:tabular-nums}
+.slabel{font-size:.62rem;color:var(--gray-500);text-transform:uppercase;
+  letter-spacing:.08em;font-weight:500;margin-top:3px}
+
+/* ═══ MAIN ═══ */
+main{display:grid;grid-template-columns:1fr 340px;gap:1.5rem;padding:1.5rem 2rem;
+  max-width:1500px;margin:0 auto;position:relative;z-index:5;align-items:start}
+@media(max-width:1000px){main{grid-template-columns:1fr}}
+
+.section-title{font-family:var(--f-display);font-size:.72rem;font-weight:500;
+  text-transform:uppercase;letter-spacing:.12em;color:var(--navy-600);
+  margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+.section-title::before{content:'';width:16px;height:2px;background:var(--gold-500)}
+
+.toolbar{display:flex;gap:.6rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
+.btn{
+  display:inline-flex;align-items:center;gap:.45rem;padding:.6rem 1.1rem;border-radius:5px;
+  font-family:var(--f-display);font-size:.78rem;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;cursor:pointer;border:none;transition:all .2s;
+}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-primary{background:var(--navy-700);color:#fff}
+.btn-primary:not(:disabled):hover{background:var(--navy-600);transform:translateY(-1px);box-shadow:0 4px 12px rgba(20,49,90,.28)}
+.btn-ghost{background:#fff;color:var(--navy-700);border:1px solid var(--navy-200)}
+.btn-ghost:not(:disabled):hover{background:var(--navy-50);border-color:var(--navy-400)}
+.search{
+  flex:1;min-width:180px;padding:.6rem .9rem;border-radius:5px;
+  border:1px solid var(--navy-200);background:#fff;font-family:var(--f-body);
+  font-size:.82rem;color:var(--navy-900);
+}
+.search:focus{outline:2px solid var(--gold-500);outline-offset:1px;border-color:var(--gold-500)}
+
+/* ═══ OS CARDS ═══ */
+.os-grid{display:grid;gap:.85rem;grid-template-columns:repeat(auto-fill,minmax(330px,1fr))}
+.os{
+  background:#fff;border:1px solid var(--navy-100);border-radius:8px;
+  border-top:3px solid var(--navy-600);padding:1.1rem;position:relative;
+  transition:transform .2s,box-shadow .2s,opacity .2s;
+}
+.os:hover{transform:translateY(-2px);box-shadow:0 10px 26px -12px rgba(10,22,40,.3)}
+.os.st-curso{border-top-color:var(--green-500)}
+.os.st-futura{border-top-color:var(--gold-500)}
+.os.st-fim{border-top-color:var(--gray-300)}
+.os.pend{opacity:.55}
+
+.os-head{display:flex;align-items:flex-start;gap:.6rem;margin-bottom:.7rem}
+.os-num{font-family:var(--f-display);font-size:1rem;font-weight:600;letter-spacing:.04em;
+  color:var(--navy-900);line-height:1.1}
+.os-num span{display:block;font-family:var(--f-mono);font-size:.58rem;color:var(--gray-400);
+  font-weight:400;letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+.os-badge{margin-left:auto;font-family:var(--f-mono);font-size:.56rem;letter-spacing:.1em;
+  text-transform:uppercase;padding:.2rem .5rem;border-radius:3px;white-space:nowrap}
+.badge-curso{background:rgba(16,185,129,.12);color:var(--green-600)}
+.badge-futura{background:rgba(212,168,75,.15);color:#8a6d1f}
+.badge-fim{background:var(--gray-100);color:var(--gray-500)}
+
+.os-desc{font-size:.83rem;line-height:1.5;color:var(--gray-700);margin-bottom:.85rem;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.os-meta{display:flex;flex-direction:column;gap:.4rem;margin-bottom:.85rem;
+  padding-bottom:.85rem;border-bottom:1px dashed var(--navy-100)}
+.os-row{display:flex;align-items:center;gap:.5rem;font-size:.74rem;color:var(--gray-700)}
+.os-row svg{width:13px;height:13px;flex-shrink:0;color:var(--navy-400)}
+.os-row b{font-weight:600;color:var(--navy-900)}
+.os-row u{text-decoration:none;color:var(--gray-400);margin-left:auto;font-family:var(--f-mono);font-size:.66rem}
+
+.os-foot{display:flex;align-items:flex-end;justify-content:space-between;gap:.6rem}
+.os-qtd{font-family:var(--f-mono);font-size:.75rem;color:var(--navy-600);font-weight:500}
+.os-qtd small{display:block;font-size:.58rem;color:var(--gray-400);text-transform:uppercase;
+  letter-spacing:.07em;margin-top:1px;font-family:var(--f-body)}
+.os-val{font-family:var(--f-display);font-size:1.2rem;font-weight:600;color:var(--navy-900);
+  font-variant-numeric:tabular-nums;text-align:right;line-height:1}
+.os-val small{display:block;font-size:.55rem;color:var(--gray-400);text-transform:uppercase;
+  letter-spacing:.08em;margin-top:3px;font-family:var(--f-body);font-weight:400}
+
+.os-acts{position:absolute;top:.75rem;right:.7rem;display:flex;gap:.2rem;opacity:0;transition:opacity .2s}
+.os:hover .os-acts,.os:focus-within .os-acts{opacity:1}
+.icon-btn{background:transparent;border:none;cursor:pointer;padding:.28rem;border-radius:4px;
+  color:var(--gray-400);display:flex;transition:all .15s}
+.icon-btn:hover{background:var(--navy-50);color:var(--navy-700)}
+.icon-btn.del:hover{background:rgba(239,68,68,.1);color:var(--red-500)}
+.icon-btn svg{width:14px;height:14px}
+
+.empty{grid-column:1/-1;text-align:center;padding:3.5rem 1rem;color:var(--gray-400)}
+.empty img{width:52px;opacity:.28;margin-bottom:.9rem}
+.empty p{font-size:.88rem;margin-bottom:1.1rem}
+.skel{background:#fff;border:1px solid var(--navy-100);border-radius:8px;height:210px;
+  animation:sk 1.3s ease-in-out infinite}
+@keyframes sk{0%,100%{opacity:.55}50%{opacity:.85}}
+
+/* ═══ SIDEBAR ═══ */
+.sidebar{display:flex;flex-direction:column;gap:1rem}
+.panel{background:#fff;border:1px solid var(--navy-100);border-radius:8px;padding:1.25rem;
+  border-top:3px solid var(--navy-600)}
+.panel.gauge-panel{border-top-color:var(--gold-500)}
+
+#gauge{width:100%;height:auto;display:block;margin:0 auto}
+.gauge-read{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--navy-100);
+  border:1px solid var(--navy-100);border-radius:6px;overflow:hidden;margin-top:.9rem}
+.gauge-read div{background:var(--navy-50);padding:.6rem .5rem;text-align:center}
+.gauge-read dt{font-size:.54rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray-500);
+  margin-bottom:.22rem;font-weight:600}
+.gauge-read dd{font-family:var(--f-mono);font-size:.72rem;font-weight:700;color:var(--navy-900);
+  font-variant-numeric:tabular-nums;line-height:1.2}
+.gauge-read dd.spent{color:var(--red-600)}
+.gauge-read dd.left{color:var(--green-600)}
+
+.field{margin-bottom:.85rem}
+.field label{display:block;font-size:.62rem;font-weight:600;text-transform:uppercase;
+  letter-spacing:.08em;color:var(--navy-500);margin-bottom:.35rem}
+.field input,.field textarea,.field select{
+  width:100%;padding:.6rem .75rem;border-radius:5px;border:1px solid var(--navy-200);
+  background:#fff;font-family:var(--f-body);font-size:.85rem;color:var(--navy-900);
+}
+.field input.money{font-family:var(--f-mono);font-weight:500}
+.field input:focus,.field textarea:focus,.field select:focus{
+  outline:2px solid var(--gold-500);outline-offset:1px;border-color:var(--gold-500)}
+.field textarea{resize:vertical;min-height:70px;line-height:1.5}
+.field .hint{font-size:.62rem;color:var(--gray-400);margin-top:.28rem}
+
+.warn{display:flex;gap:.55rem;align-items:flex-start;padding:.7rem .8rem;border-radius:5px;
+  background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.22);
+  font-size:.72rem;line-height:1.45;color:#991b1b;margin-top:.85rem}
+.warn svg{width:15px;height:15px;flex-shrink:0;margin-top:1px}
+.warn.hide{display:none}
+.warn.setup{background:rgba(212,168,75,.1);border-color:rgba(212,168,75,.3);color:#7a5f16}
+.warn.setup code{font-family:var(--f-mono);font-size:.66rem;background:rgba(0,0,0,.06);
+  padding:1px 4px;border-radius:3px}
+
+/* ═══ MODAL ═══ */
+.backdrop{position:fixed;inset:0;z-index:200;background:rgba(10,22,40,.72);
+  backdrop-filter:blur(3px);display:flex;align-items:flex-start;justify-content:center;
+  padding:2rem 1rem;overflow-y:auto;opacity:0;pointer-events:none;transition:opacity .2s}
+.backdrop.open{opacity:1;pointer-events:auto}
+.modal{background:#fff;border-radius:10px;width:100%;max-width:560px;
+  border-top:4px solid var(--gold-500);box-shadow:0 24px 60px rgba(0,0,0,.4);
+  transform:translateY(-14px);transition:transform .24s cubic-bezier(.2,.8,.2,1)}
+.backdrop.open .modal{transform:none}
+.modal-head{display:flex;align-items:center;gap:.7rem;padding:1.2rem 1.4rem;
+  border-bottom:1px solid var(--navy-100)}
+.modal-head h2{font-family:var(--f-display);font-size:1.05rem;font-weight:600;
+  letter-spacing:.04em;text-transform:uppercase;color:var(--navy-900)}
+.modal-head .icon-btn{margin-left:auto}
+.modal-body{padding:1.3rem 1.4rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.85rem}
+@media(max-width:520px){.grid2{grid-template-columns:1fr}}
+.modal-foot{display:flex;gap:.6rem;justify-content:flex-end;padding:1rem 1.4rem;
+  border-top:1px solid var(--navy-100);background:var(--navy-50);border-radius:0 0 10px 10px}
+.calc{background:var(--navy-50);border:1px solid var(--navy-100);border-radius:5px;
+  padding:.6rem .75rem;font-family:var(--f-mono);font-size:.7rem;color:var(--navy-600);
+  margin-top:-.35rem;margin-bottom:.85rem}
+.err{font-size:.68rem;color:var(--red-600);margin-top:.3rem;display:none}
+.err.show{display:block}
+
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--navy-900);color:#fff;padding:.7rem 1.2rem;border-radius:6px;
+  border:1px solid var(--gold-500);font-size:.8rem;z-index:300;max-width:90vw;
+  opacity:0;pointer-events:none;transition:all .25s}
+.toast.show{opacity:1;transform:translateX(-50%)}
+.toast.bad{border-color:var(--red-500)}
+
+footer{text-align:center;padding:2rem 1rem;font-size:.7rem;color:var(--gray-500);
+  letter-spacing:.04em;position:relative;z-index:5}
+footer img{width:16px;vertical-align:middle;margin:0 .5rem;opacity:.5}
+
+@media(max-width:600px){
+  header{padding:0 .9rem;height:64px}
+  .logo-text{font-size:.9rem}.logo-sub{font-size:.6rem}
+  .crest{width:42px;height:42px}
+  .hbtn span,.sync span{display:none}
+  .summary{padding:.85rem}
+  .scard{min-width:140px;padding:.5rem .8rem}
+  main{padding:1rem .9rem;gap:1rem}
+  .tabs-bar{top:64px;padding:.5rem .6rem 0 .6rem;gap:.25rem;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tab-btn{padding:.5rem .55rem;font-size:.76rem;gap:.35rem;white-space:nowrap;flex-shrink:0}
+  .tab-btn svg{width:14px;height:14px}
+  .hide-mob{display:none}
+/* PORTÃO DE PIN (ACESSO RESTRITO) */
+.pin-gate-wrap{position:fixed;inset:0;background:rgba(10,22,40,0.85);backdrop-filter:blur(6px);z-index:900;display:flex;align-items:center;justify-content:center;padding:1.5rem}
+.pin-gate-card{background:#fff;border-radius:12px;box-shadow:0 20px 40px rgba(0,0,0,0.3);max-width:400px;width:100%;padding:2rem;text-align:center;border-top:5px solid var(--gold-500)}
+.pin-gate-icon{font-size:2.2rem;margin-bottom:1rem}
+.pin-gate-title{font-family:var(--f-display);font-size:1.3rem;color:var(--navy-900);text-transform:uppercase;margin-bottom:.5rem}
+.pin-gate-desc{font-size:.8rem;color:var(--gray-500);line-height:1.4;margin-bottom:1.5rem}
+.pin-gate-form{display:flex;gap:.5rem;justify-content:center}
+.pin-gate-input{font-family:var(--f-mono);font-size:1.2rem;letter-spacing:.25em;text-align:center;padding:.6rem;width:140px;border:2px solid var(--navy-200);border-radius:6px;outline:none}
+.pin-gate-submit{background:var(--gold-500);color:var(--navy-900);border:none;padding:0 1.2rem;font-weight:700;border-radius:6px;cursor:pointer;transition:all .2s;font-family:var(--f-display);text-transform:uppercase}
+.pin-gate-submit:hover{background:var(--gold-400)}
+.pin-gate-err{color:#ef4444;font-size:.75rem;margin-top:.75rem;font-weight:600}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="crest"><img src="assets/brasao-afa.jpg" alt="Brasão da AFA" /></div>
+    <div>
+      <div class="logo-text">Missões</div>
+      <div class="logo-sub">Divisão de Ensino · AFA</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <a class="hbtn" href="index.html">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m3 10 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      <span>Início</span>
+    </a>
+    <button class="hbtn" id="lock-btn" onclick="bloquearSessaoMissoes()" style="display:none" title="Bloquear acesso com PIN">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <span>Bloquear</span>
+    </button>
+    <a class="hbtn gold" href="solicitar.html" target="_blank" title="Abrir formulário de solicitação sem senha">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>
+      <span>Solicitar OS</span>
+    </a>
+    <button class="hbtn gold" id="btn-header-acao" onclick="acaoAbaAtual()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+      <span id="txt-header-acao">Nova OS</span>
+    </button>
+    <span class="sync" id="sync"><i></i><span id="sync-txt">Conectando…</span></span>
+  </div>
+</header>
+
+<!-- PORTÃO DE PIN DE ACESSO RESTRITO -->
+<div id="pinGate" class="pin-gate-wrap" style="display:none;">
+  <div class="pin-gate-card">
+    <div class="pin-gate-icon">🔒</div>
+    <div class="pin-gate-title">Acesso Restrito ao Operador</div>
+    <div class="pin-gate-desc">Informe a Senha / PIN da Secretária para acessar a gestão de Missões, Diárias e Homologações.</div>
+    <div class="pin-gate-form">
+      <input type="password" id="pinInput" class="pin-gate-input" placeholder="••••" maxlength="12" inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter') verificarPinMissoes()" />
+      <button class="pin-gate-submit" onclick="verificarPinMissoes()">Entrar</button>
+    </div>
+    <div id="pinErrorMsg" class="pin-gate-err" style="display:none;"></div>
+  </div>
+</div>
+
+<div id="missoesContent" style="display:none;">
+
+<div class="tabs-bar">
+  <button class="tab-btn active" id="tab-btn-diarias" onclick="trocarAba('diarias')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    Diária
+    <span class="tab-badge" id="badge-diarias-count">0</span>
+  </button>
+  <button class="tab-btn" id="tab-btn-gratificacao" onclick="trocarAba('gratificacao')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>
+    Gratificação <span class="hide-mob">de representação</span>
+    <span class="tab-badge" id="badge-grat-count">0</span>
+  </button>
+  <button class="tab-btn" id="tab-btn-solicitacoes" onclick="trocarAba('solicitacoes')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    Solicitações <span class="hide-mob">de OS</span>
+    <span class="tab-badge" id="badge-solic-count" style="background:#ef4444;color:#fff">0</span>
+  </button>
+</div>
+
+<!-- ABA 1: DIÁRIA -->
+<div id="view-diarias">
+  <div class="summary">
+    <div class="scard gold"><div><div class="scount" id="s-total">—</div><div class="slabel">Dotação total</div></div></div>
+    <div class="scard red"><div><div class="scount" id="s-gasto">—</div><div class="slabel">Empenhado</div></div></div>
+    <div class="scard green"><div><div class="scount" id="s-saldo">—</div><div class="slabel">Saldo disponível</div></div></div>
+    <div class="scard navy"><div><div class="scount" id="s-qtd">—</div><div class="slabel">Ordens de serviço</div></div></div>
+  </div>
+
+  <main>
+    <div>
+      <div class="section-title">Ordens de Serviço (Diárias)</div>
+      <div class="toolbar">
+        <button class="btn btn-primary" onclick="abrirModal()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 5v14M5 12h14"/></svg>
+          Nova OS
+        </button>
+        <input class="search" id="busca" type="search" placeholder="Buscar por número, missão ou servidor…" oninput="render()" />
+        <select class="search" style="flex:0 0 auto;min-width:150px" id="ordem" onchange="render()">
+          <option value="data-desc">Data ↓ (recente)</option>
+          <option value="data-asc">Data ↑ (antiga)</option>
+          <option value="valor-desc">Maior valor</option>
+          <option value="valor-asc">Menor valor</option>
+          <option value="num">Nº da OS</option>
+        </select>
+      </div>
+      <div class="os-grid" id="lista">
+        <div class="skel"></div><div class="skel"></div>
+      </div>
+    </div>
+
+    <aside class="sidebar">
+      <div class="panel gauge-panel">
+        <div class="section-title">Indicador de saldo</div>
+        <svg id="gauge" viewBox="0 0 260 260" role="img" aria-label="Indicador analógico de saldo de diárias"></svg>
+        <dl class="gauge-read">
+          <div><dt>Dotação</dt><dd id="g-total">—</dd></div>
+          <div><dt>Empenhado</dt><dd class="spent" id="g-gasto">—</dd></div>
+          <div><dt>Saldo</dt><dd class="left" id="g-saldo">—</dd></div>
+        </dl>
+      </div>
+
+      <div class="panel">
+        <div class="section-title">Dotação orçamentária</div>
+        <div class="field">
+          <label for="in-total">Valor total disponível</label>
+          <input class="money" id="in-total" type="text" inputmode="decimal" placeholder="R$ 0,00" />
+          <div class="hint">Montante autorizado para pagamento de diárias.</div>
+        </div>
+        <button class="btn btn-primary" style="width:100%" id="btn-dot" onclick="salvarDotacao()">Atualizar dotação</button>
+
+        <div class="warn hide" id="alerta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+          <span id="alerta-txt"></span>
+        </div>
+
+        <div class="warn setup hide" id="setup">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+          <span>Supabase não configurado. Preencha <code>SUPABASE_URL</code> e <code>SUPABASE_ANON</code> no início do script.</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="section-title">Dados</div>
+        <div style="display:flex;flex-direction:column;gap:.5rem">
+          <button class="btn btn-ghost" onclick="recarregar(true)">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.9-3.4L23 10M1 14l4.6 4.4A9 9 0 0 0 20.5 15"/></svg>
+            Recarregar do servidor
+          </button>
+          <button class="btn btn-ghost" onclick="exportar()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            Exportar planilha (CSV)
+          </button>
+        </div>
+        <div class="hint" style="margin-top:.6rem;font-size:.62rem;color:var(--gray-400)">
+          Os lançamentos ficam no Supabase e aparecem em qualquer aparelho.
+        </div>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<!-- ABA 2: GRATIFICAÇÃO DE REPRESENTAÇÃO -->
+<div id="view-gratificacao" style="display:none">
+  <div class="summary">
+    <div class="scard gold"><div><div class="scount" id="sg-qtd">0</div><div class="slabel">Processos no Ano</div></div></div>
+    <div class="scard green"><div><div class="scount" id="sg-dias">0</div><div class="slabel">Total de Dias</div></div></div>
+    <div class="scard navy" style="margin-left:0"><div><div class="scount" id="sg-militares">0</div><div class="slabel">Militares Atendidos</div></div></div>
+  </div>
+
+  <main style="grid-template-columns:1fr;max-width:1500px">
+    <div>
+      <div class="section-title">Processos de Gratificação de Representação</div>
+      <div class="toolbar">
+        <button class="btn btn-primary" onclick="abrirModalGratificacao()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 5v14M5 12h14"/></svg>
+          Nova Gratificação
+        </button>
+        <select class="search" style="flex:0 0 auto;min-width:110px;font-weight:700" id="grat-ano" onchange="renderGratificacao()">
+          <option value="2026" selected>Ano 2026</option>
+          <option value="2025">Ano 2025</option>
+          <option value="2024">Ano 2024</option>
+        </select>
+        <input class="search" id="grat-busca" type="search" placeholder="Buscar por OS, militar, CPF, SARAM ou missão..." oninput="renderGratificacao()" />
+      </div>
+      <div class="os-grid" id="lista-gratificacao">
+        <div class="skel"></div><div class="skel"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ABA 3: SOLICITAÇÕES DE OS (LOG DE MONITORAMENTO) -->
+<div id="view-solicitacoes" style="display:none">
+  <div class="summary">
+    <div class="scard gold"><div><div class="scount" id="ss-qtd">0</div><div class="slabel">Pendentes</div></div></div>
+    <div class="scard green"><div><div class="scount" id="ss-aprovadas">0</div><div class="slabel">OS Criadas</div></div></div>
+    <div class="scard red"><div><div class="scount" id="ss-rejeitadas">0</div><div class="slabel">Canceladas</div></div></div>
+    <div class="scard navy"><div><div class="scount" id="ss-total">0</div><div class="slabel">Total Solicitadas</div></div></div>
+  </div>
+
+  <main style="grid-template-columns:1fr;max-width:1500px;gap:2rem">
+    <div>
+      <div class="section-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>Solicitações Pendentes de Homologação</span>
+        <input class="search" id="solic-busca" type="search" placeholder="Buscar por protocolo, militar ou missão..." oninput="renderSolicitacoes()" style="width:280px" />
+      </div>
+      <div class="os-grid" id="lista-solicitacoes" style="margin-bottom:2rem">
+        <div class="skel"></div><div class="skel"></div>
+      </div>
+
+      <div class="section-title">Histórico Cronológico de Solicitações</div>
+      <div class="os-grid" id="lista-solicitacoes-historico">
+        <div class="skel"></div><div class="skel"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+</div><!-- FECHAMENTO DE missoesContent -->
+
+<footer>
+  <img src="assets/cocar-fab.png" alt="" />
+  Academia da Força Aérea · Divisão de Ensino
+  <img src="assets/cocar-fab.png" alt="" />
+</footer>
+
+<div class="backdrop" id="backdrop" onclick="if(event.target===this)fecharModal()">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-head">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold-500)" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>
+      <h2 id="modal-title">Nova Ordem de Serviço</h2>
+      <button class="icon-btn" onclick="fecharModal()" aria-label="Fechar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="f-id" />
+      <div class="field" style="margin-bottom:.85rem">
+        <label for="f-serv-select">Selecionar do Efetivo (opcional)</label>
+        <select id="f-serv-select" onchange="if(this.value!=='' && listaEfetivo[this.value]) document.getElementById('f-serv').value = (listaEfetivo[this.value].posto+' '+listaEfetivo[this.value].esp+' '+listaEfetivo[this.value].nome).trim()">
+          <option value="">-- Selecione para preencher automaticamente --</option>
+        </select>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label for="f-num">Nº da OS *</label>
+          <input id="f-num" type="text" placeholder="Ex.: 042/2026" />
+          <div class="err" id="e-num">Informe o número da OS.</div>
+        </div>
+        <div class="field">
+          <label for="f-serv">Servidor alocado *</label>
+          <input id="f-serv" type="text" placeholder="Posto e nome" />
+          <div class="err" id="e-serv">Informe o servidor.</div>
+        </div>
+      </div>
+      <div class="field">
+        <label for="f-desc">Descrição da missão *</label>
+        <textarea id="f-desc" placeholder="Objeto e destino da missão"></textarea>
+        <div class="err" id="e-desc">Descreva a missão.</div>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label for="f-ini">Data de início *</label>
+          <input id="f-ini" type="date" />
+          <div class="err" id="e-ini">Informe a data de início.</div>
+        </div>
+        <div class="field">
+          <label for="f-fim">Data de término *</label>
+          <input id="f-fim" type="date" />
+          <div class="err" id="e-fim">Término não pode ser antes do início.</div>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label for="f-qtd">Quantidade de diárias *</label>
+          <input id="f-qtd" type="number" step="0.5" min="0.5" placeholder="Ex.: 2,5" />
+          <div class="err" id="e-qtd">Informe uma quantidade maior que zero.</div>
+        </div>
+        <div class="field">
+          <label for="f-val">Valor total (R$) *</label>
+          <input class="money" id="f-val" type="text" inputmode="decimal" placeholder="R$ 0,00" />
+          <div class="err" id="e-val">Informe o valor total.</div>
+        </div>
+      </div>
+      <div class="calc" id="calc">Valor unitário: —</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button>
+      <button class="btn btn-primary" id="btn-salvar" onclick="salvarOS()">Salvar OS</button>
+    </div>
+  </div>
+</div>
+
+<div class="backdrop" id="backdrop-grat" onclick="if(event.target===this)fecharModalGrat()">
+  <div class="modal" style="max-width:720px" role="dialog" aria-modal="true" aria-labelledby="modal-grat-title">
+    <div class="modal-head">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold-500)" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>
+      <h2 id="modal-grat-title">Nova Gratificação de Representação</h2>
+      <button class="icon-btn" onclick="fecharModalGrat()" aria-label="Fechar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" style="max-height:78vh;overflow-y:auto">
+      <input type="hidden" id="fg-id" />
+      
+      <div class="field">
+        <label for="fg-num">Nº da OS / Processo *</label>
+        <input id="fg-num" type="text" placeholder="Ex.: 24/DE/2026" />
+        <div class="err" id="eg-num">Informe o número da OS.</div>
+      </div>
+
+      <!-- SEÇÃO MULTIMILITAR -->
+      <div style="margin-bottom:1rem;background:var(--navy-50);padding:.85rem;border-radius:6px;border:1px solid var(--navy-100)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">
+          <label style="margin-bottom:0">Militares Designados para a Missão *</label>
+          <button class="btn btn-ghost" style="padding:.3rem .6rem;font-size:.7rem" onclick="adicionarMilitarGratItem()">
+            + Adicionar Militar
+          </button>
+        </div>
+        <div id="lista-militares-container"></div>
+        <div class="err" id="eg-militares">Adicione pelo menos um militar à missão.</div>
+      </div>
+
+      <div class="field">
+        <label for="fg-servico">Serviço a Realizar / Local (Missão) *</label>
+        <textarea id="fg-servico" placeholder="Ex.: Participação no Curso de Gestão de Informação na Área de Biblioteconomia, em São Paulo - SP"></textarea>
+        <div class="err" id="eg-servico">Descreva a missão.</div>
+      </div>
+
+      <div class="field">
+        <label for="fg-apoio">Apoio Recebido</label>
+        <input id="fg-apoio" type="text" value="Apoio de hospedagem e rancho serão prestados pelo (NOME DA UNIDADE), e o apoio de transporte será prestado pela AFA." />
+      </div>
+
+      <div class="field">
+        <label for="fg-enquadramento">Enquadramento Legal</label>
+        <input id="fg-enquadramento" type="text" value="Art 5°, Inc II (Viagem de Instrução)" />
+      </div>
+
+      <!-- TOGGLE 1: FORA DO PRAZO -->
+      <div class="toggle-field">
+        <div class="toggle-row" onclick="toggleSwitch('fg-toggle-prazo')">
+          <div>
+            <div class="toggle-title">Solicitação fora do prazo (Portaria GABAER/GC4 1636/2026)</div>
+            <div class="toggle-sub">Desativado = "Não se aplica." | Ativado = Abrir campo de justificativa</div>
+          </div>
+          <label class="switch" onclick="event.stopPropagation()">
+            <input type="checkbox" id="fg-toggle-prazo" onchange="alternarAccordion('fg-toggle-prazo', 'acc-prazo')" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="accordion-body" id="acc-prazo">
+          <label for="fg-just-prazo">Justificativa para o não cumprimento do prazo:</label>
+          <textarea id="fg-just-prazo" rows="2" placeholder="Digite a justificativa de atraso...">Devido à natureza da missão a solicitação foi feita fora do prazo</textarea>
+        </div>
+      </div>
+
+      <!-- TOGGLE 2: PAGAMENTO ANTECIPADO -->
+      <div class="toggle-field">
+        <div class="toggle-row" onclick="toggleSwitch('fg-toggle-antecipado')">
+          <div>
+            <div class="toggle-title">Pagamento Antecipado da Gratificação</div>
+            <div class="toggle-sub">Desativado = Não autorizando antecipação | Ativado = Autorizando antecipação</div>
+          </div>
+          <label class="switch" onclick="event.stopPropagation()">
+            <input type="checkbox" id="fg-toggle-antecipado" onchange="alternarAccordion('fg-toggle-antecipado', 'acc-antecipado')" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="accordion-body" id="acc-antecipado">
+          <label for="fg-just-antecipado">Justificativa do Pagamento Antecipado:</label>
+          <input id="fg-just-antecipado" type="text" placeholder="Ex.: Necessidade impreterível de custeio inicial da missão" value="Necessidade de custeio inicial da missão." />
+        </div>
+      </div>
+
+      <!-- TOGGLE 3: ALTERAÇÃO NO RETORNO -->
+      <div class="toggle-field">
+        <div class="toggle-row" onclick="toggleSwitch('fg-toggle-retorno')">
+          <div>
+            <div class="toggle-title">Alterações no Retorno (Ficha de Apresentação)</div>
+            <div class="toggle-sub">Desativado = "Não se aplica." | Ativado = Houve alteração por força maior</div>
+          </div>
+          <label class="switch" onclick="event.stopPropagation()">
+            <input type="checkbox" id="fg-toggle-retorno" onchange="alternarAccordion('fg-toggle-retorno', 'acc-retorno')" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="accordion-body" id="acc-retorno">
+          <label for="fg-just-retorno">Justificativa de Alteração de Retorno:</label>
+          <input id="fg-just-retorno" type="text" placeholder="Ex.: Por motivos de trânsito, o militar retornou no horário informado." value="Por motivos de trânsito, o militar retornou no horário informado." />
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="fecharModalGrat()">Cancelar</button>
+      <button class="btn btn-primary" id="btn-salvar-grat" onclick="salvarGratificacao()">Salvar Gratificação</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/app-config.js"></script>
+<script>
+/* ══════════════════════════════════════════════════════════════
+   1 · SUPABASE
+   Projeto: rsaaryrgdrolcsvigckz
+   ══════════════════════════════════════════════════════════════ */
+const SUPABASE_URL  = 'https://rsaaryrgdrolcsvigckz.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzYWFyeXJnZHJvbGNzdmlnY2t6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMzcyNjEsImV4cCI6MjA4MjcxMzI2MX0.UKACT_OKIMRaLB3FJPtFPGqhVbR83pUiiPfLkcf_Ec0';
+
+const CONFIG_ID = 'default';   // permite mais de um exercício no futuro
+const CACHE_KEY = 'afa_diarias_cache_v2';
+
+const configurado = !SUPABASE_URL.startsWith('COLE_') && !SUPABASE_ANON.startsWith('COLE_');
+const sb = configurado ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
+
+/* ══════════════════════════════════════════════════════════════
+   2 · ESTADO
+   ══════════════════════════════════════════════════════════════ */
+let abaAtual = 'diarias';
+let dados = { dotacao:0, ordens:[] };
+let dadosGratificacao = [];
+let dadosSolicitacoes = [];
+let listaEfetivo = [];
+let carregando = true;
+
+const CACHE_GRAT_KEY = 'afa_gratificacao_cache_v1';
+const CACHE_EFETIVO_KEY = 'afa_efetivo_cache_v1';
+const CACHE_SOLICITACOES_KEY = 'afa_solicitacoes_cache_v1';
+
+/* cache local: só para pintar a tela na hora enquanto o servidor responde */
+function lerCache(){
+  try{
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (raw){
+      const d = JSON.parse(raw);
+      dados.dotacao = Number(d.dotacao)||0;
+      dados.ordens  = Array.isArray(d.ordens) ? d.ordens : [];
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+function gravarCache(){
+  try{ localStorage.setItem(CACHE_KEY, JSON.stringify(dados)); }catch(e){}
+}
+
+/* ══════════════════════════════════════════════════════════════
+   3 · MAPEAMENTO  banco ↔ tela
+   ══════════════════════════════════════════════════════════════ */
+const doBanco = r => ({
+  id: r.id,
+  num: r.num || '',
+  desc: r.descricao || '',
+  servidor: r.servidor || '',
+  ini: r.data_inicio || '',
+  fim: r.data_fim || '',
+  qtd: Number(r.qtd_diarias) || 0,
+  valor: Number(r.valor_total) || 0
+});
+const paraBanco = o => ({
+  num: o.num,
+  descricao: o.desc,
+  servidor: o.servidor,
+  data_inicio: o.ini,
+  data_fim: o.fim,
+  qtd_diarias: o.qtd,
+  valor_total: o.valor
+});
+
+/* ══════════════════════════════════════════════════════════════
+   4 · SINCRONIZAÇÃO
+   ══════════════════════════════════════════════════════════════ */
+function setSync(estado, texto){
+  const el = document.getElementById('sync');
+  el.className = 'sync ' + estado;
+  document.getElementById('sync-txt').textContent = texto;
+}
+
+async function recarregar(avisar){
+  if (!configurado){
+    setSync('cfg','Sem conexão');
+    document.getElementById('setup').classList.remove('hide');
+    carregando = false; render();
+    return;
+  }
+  setSync('busy','Sincronizando…');
+  try{
+    const [cfg, os] = await Promise.all([
+      sb.from('diarias_config').select('dotacao').eq('id', CONFIG_ID).maybeSingle(),
+      sb.from('diarias_os').select('*').order('data_inicio', { ascending:false })
+    ]);
+    if (cfg.error) throw cfg.error;
+    if (os.error)  throw os.error;
+
+    dados.dotacao = Number(cfg.data?.dotacao) || 0;
+    dados.ordens  = (os.data || []).map(doBanco);
+
+    carregando = false;
+    gravarCache();
+    const inp = document.getElementById('in-total');
+    if (document.activeElement !== inp) inp.value = dados.dotacao ? fmtM(dados.dotacao) : '';
+    render();
+    setSync('ok','Sincronizado');
+    if (avisar) toast('Dados recarregados');
+  }catch(e){
+    console.error(e);
+    carregando = false; render();
+    setSync('off','Sem conexão');
+    toast('Falha ao falar com o servidor: ' + (e.message || 'erro'), true);
+  }
+}
+
+/* recebe mudanças feitas em outro aparelho, ao vivo */
+function ouvirRealtime(){
+  if (!configurado) return;
+  sb.channel('diarias-live')
+    .on('postgres_changes', { event:'*', schema:'public', table:'diarias_os' },     () => recarregar())
+    .on('postgres_changes', { event:'*', schema:'public', table:'diarias_config' }, () => recarregar())
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') setSync('ok','Sincronizado');
+    });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   5 · FORMATAÇÃO
+   ══════════════════════════════════════════════════════════════ */
+const BRL = new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'});
+const fmtM = v => BRL.format(Number(v)||0);
+function parseM(s){
+  if (typeof s === 'number') return s;
+  if (!s) return 0;
+  let t = s.toString().replace(/[^\d,.-]/g,'');
+  if (t.includes(',')) t = t.replace(/\./g,'').replace(',','.');
+  const n = parseFloat(t);
+  return isNaN(n) ? 0 : n;
+}
+const fmtQtd = q => (Number(q)||0).toFixed(1).replace('.',',');
+function fmtData(iso){
+  if (!iso) return '—';
+  const [a,m,d] = iso.split('-');
+  return `${d}/${m}/${a}`;
+}
+const diasEntre = (i,f) => (!i||!f) ? 0 : Math.round((new Date(f)-new Date(i))/864e5)+1;
+function statusOS(ini,fim){
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const a = new Date(ini+'T00:00:00'), b = new Date(fim+'T00:00:00');
+  if (hoje < a) return 'futura';
+  if (hoje > b) return 'fim';
+  return 'curso';
+}
+const ROTULO = { futura:'Programada', curso:'Em curso', fim:'Concluída' };
+const esc = s => (s||'').toString()
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+  .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
+const totais = () => {
+  const gasto = dados.ordens.reduce((s,o)=> s + (Number(o.valor)||0), 0);
+  return { total: dados.dotacao, gasto, saldo: dados.dotacao - gasto };
+};
+
+/* ══════════════════════════════════════════════════════════════
+   6 · MEDIDOR ANALÓGICO
+   Escala E→F. Ponteiro = saldo. Setor sombreado = empenhado.
+   ══════════════════════════════════════════════════════════════ */
+const G = { cx:130, cy:130, r:96, start:150, sweep:240 };
+const pol = (cx,cy,r,deg)=>{ const a=deg*Math.PI/180; return {x:cx+r*Math.cos(a), y:cy+r*Math.sin(a)}; };
+function arco(cx,cy,r,d0,d1){
+  const p0=pol(cx,cy,r,d0), p1=pol(cx,cy,r,d1);
+  const big=(d1-d0)>180?1:0;
+  return `M ${p0.x.toFixed(2)} ${p0.y.toFixed(2)} A ${r} ${r} 0 ${big} 1 ${p1.x.toFixed(2)} ${p1.y.toFixed(2)}`;
+}
+const angDe = v => G.start + Math.max(0,Math.min(1,v))*G.sweep;
+
+function montarGauge(){
+  const {cx,cy,r} = G;
+  let s = `<defs>
+    <linearGradient id="bezel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b3a52"/><stop offset=".5" stop-color="#16233a"/><stop offset="1" stop-color="#0a1424"/>
+    </linearGradient>
+    <radialGradient id="face" cx=".5" cy=".38" r=".72">
+      <stop offset="0" stop-color="#16294a"/><stop offset="1" stop-color="#070f1e"/>
+    </radialGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2=".7" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".16"/>
+      <stop offset=".45" stop-color="#fff" stop-opacity=".03"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="drop" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2.4" flood-color="#000" flood-opacity=".55"/>
+    </filter>
+  </defs>`;
+
+  s += `<circle cx="${cx}" cy="${cy}" r="126" fill="url(#bezel)"/>
+        <circle cx="${cx}" cy="${cy}" r="114" fill="none" stroke="#050b16" stroke-width="2"/>`;
+  [45,135,225,315].forEach(a=>{
+    const p = pol(cx,cy,119,a);
+    s += `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4.2" fill="#0d1626" stroke="#3d4d68" stroke-width="1"/>
+          <line x1="${(p.x-2.4).toFixed(1)}" y1="${p.y.toFixed(1)}" x2="${(p.x+2.4).toFixed(1)}" y2="${p.y.toFixed(1)}" stroke="#5a6d8c" stroke-width="1"/>`;
+  });
+  s += `<circle cx="${cx}" cy="${cy}" r="110" fill="url(#face)"/>`;
+
+  const faixa=(v0,v1,c,o)=>`<path d="${arco(cx,cy,r-3,angDe(v0),angDe(v1))}" fill="none" stroke="${c}" stroke-width="7" stroke-opacity="${o}"/>`;
+  s += faixa(0,.15,'#ef4444',.85) + faixa(.15,.30,'#f59e0b',.85) + faixa(.30,1,'#10b981',.75);
+  s += `<path id="g-spent" d="" fill="none" stroke="#ef4444" stroke-width="15" stroke-opacity=".22"/>`;
+
+  for (let i=0;i<=16;i++){
+    const v=i/16, a=angDe(v), big=i%4===0;
+    const p0=pol(cx,cy,big?r-14:r-11,a), p1=pol(cx,cy,big?r-28:r-20,a);
+    s += `<line x1="${p0.x.toFixed(1)}" y1="${p0.y.toFixed(1)}" x2="${p1.x.toFixed(1)}" y2="${p1.y.toFixed(1)}"
+           stroke="${big?'#e6eef7':'#7d93b5'}" stroke-width="${big?2.6:1.2}" stroke-linecap="round"/>`;
+  }
+  [['E',0],['1/4',.25],['1/2',.5],['3/4',.75],['F',1]].forEach(([txt,v])=>{
+    const p = pol(cx,cy,r-42,angDe(v));
+    s += `<text x="${p.x.toFixed(1)}" y="${(p.y+4).toFixed(1)}" text-anchor="middle"
+           font-family="Oswald,sans-serif" font-size="${txt.length>1?12:15}" font-weight="600" fill="#c5d4e8">${txt}</text>`;
+  });
+
+  s += `<text x="${cx}" y="${cy-34}" text-anchor="middle" font-family="Oswald,sans-serif"
+         font-size="12" font-weight="600" letter-spacing="2.4" fill="#d4a84b">DIÁRIAS</text>
+        <text x="${cx}" y="${cy+46}" text-anchor="middle" font-family="JetBrains Mono,monospace"
+         font-size="8.5" letter-spacing="1.6" fill="#7d93b5">SALDO DISPONÍVEL</text>
+        <rect x="${cx-46}" y="${cy+54}" width="92" height="24" rx="3" fill="#040a14" stroke="#24344f" stroke-width="1"/>
+        <text id="g-pct" x="${cx}" y="${cy+71}" text-anchor="middle" font-family="JetBrains Mono,monospace"
+         font-size="14" font-weight="700" fill="#7d93b5">—</text>`;
+
+  s += `<g id="g-needle" filter="url(#drop)">
+          <polygon points="${cx-3.4},${cy} ${cx},${cy-r+16} ${cx+3.4},${cy}" fill="#f8fafc"/>
+          <polygon points="${cx-3},${cy} ${cx},${cy+22} ${cx+3},${cy}" fill="#94a3b8"/>
+        </g>
+        <circle cx="${cx}" cy="${cy}" r="9" fill="#1c2b44" stroke="#4a5d7d" stroke-width="1.6"/>
+        <circle cx="${cx}" cy="${cy}" r="3.4" fill="#d4a84b"/>
+        <circle cx="${cx}" cy="${cy}" r="110" fill="url(#glass)" pointer-events="none"/>`;
+
+  document.getElementById('gauge').innerHTML = s;
+}
+
+/* ── movimento do ponteiro ───────────────────────────────────
+   O ponteiro é girado pelo atributo nativo rotate(ângulo cx cy),
+   que sempre usa o sistema de coordenadas do viewBox. Um laço de
+   animação aproxima o valor exibido do alvo e soma uma oscilação
+   contínua — o tremor de instrumento de aeronave em voo.
+   ─────────────────────────────────────────────────────────── */
+const OSC = {
+  amp: 0.85,      // amplitude do tremor, em graus
+  f1: 2.1,        // frequências incomensuráveis para não repetir o padrão
+  f2: 3.7,
+  seguir: 0.055   // quanto o ponteiro se aproxima do alvo a cada quadro
+};
+
+let fracAlvo = 0, fracAtual = 0, ponteiroIniciado = false;
+const semAnim = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function moverPonteiro(){
+  const ndl = document.getElementById('g-needle');
+  if (!ndl) return;
+
+  fracAtual += (fracAlvo - fracAtual) * OSC.seguir;
+
+  let ang = angDe(fracAtual) - 270;
+  if (!semAnim){
+    const t = performance.now() / 1000;
+    ang += (Math.sin(t*OSC.f1)*0.58 + Math.sin(t*OSC.f2)*0.42) * OSC.amp;
+  }
+  ndl.setAttribute('transform', `rotate(${ang.toFixed(3)} ${G.cx} ${G.cy})`);
+
+  requestAnimationFrame(moverPonteiro);
+}
+
+function atualizarGauge(){
+  const t = totais();
+  fracAlvo = t.total > 0 ? Math.max(0, Math.min(1, t.saldo/t.total)) : 0;
+
+  if (!ponteiroIniciado){
+    ponteiroIniciado = true;
+    if (semAnim) fracAtual = fracAlvo;      // sem animação: assenta direto
+    requestAnimationFrame(moverPonteiro);
+  }
+
+  const sp = document.getElementById('g-spent');
+  if (sp) sp.setAttribute('d', (t.total>0 && fracAlvo<.999) ? arco(G.cx,G.cy,G.r-3,angDe(fracAlvo),angDe(1)) : '');
+
+  const pct = document.getElementById('g-pct');
+  if (pct){
+    pct.textContent = t.total>0 ? (fracAlvo*100).toFixed(1).replace('.',',')+'%' : '—';
+    pct.setAttribute('fill', t.total===0 ? '#7d93b5' : fracAlvo<.15 ? '#ef4444' : fracAlvo<.30 ? '#f59e0b' : '#10b981');
+  }
+
+  document.getElementById('g-total').textContent = t.total ? fmtM(t.total) : '—';
+  document.getElementById('g-gasto').textContent = t.total ? fmtM(t.gasto) : '—';
+  document.getElementById('g-saldo').textContent = t.total ? fmtM(t.saldo) : '—';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   7 · RENDER
+   ══════════════════════════════════════════════════════════════ */
+function render(){
+  const t = totais();
+  document.getElementById('s-total').textContent = fmtM(t.total);
+  document.getElementById('s-gasto').textContent = fmtM(t.gasto);
+  document.getElementById('s-saldo').textContent = fmtM(t.saldo);
+  document.getElementById('s-saldo').style.color = t.saldo < 0 ? 'var(--red-600)' : 'var(--navy-900)';
+  document.getElementById('s-qtd').textContent = dados.ordens.length;
+
+  const al = document.getElementById('alerta'), txt = document.getElementById('alerta-txt');
+  if (t.total > 0 && t.saldo < 0){
+    al.classList.remove('hide');
+    txt.textContent = `Dotação excedida em ${fmtM(Math.abs(t.saldo))}. Revise as ordens ou amplie a dotação.`;
+  } else if (t.total > 0 && t.saldo/t.total < .15){
+    al.classList.remove('hide');
+    txt.textContent = `Saldo abaixo de 15% da dotação (${fmtM(t.saldo)} restantes).`;
+  } else al.classList.add('hide');
+
+  atualizarGauge();
+
+  const alvo = document.getElementById('lista');
+  if (carregando){
+    alvo.innerHTML = '<div class="skel"></div><div class="skel"></div>';
+    return;
+  }
+
+  const termo = (document.getElementById('busca').value||'').toLowerCase().trim();
+  const ordem = document.getElementById('ordem').value;
+
+  let lista = dados.ordens.filter(o=>{
+    if (!termo) return true;
+    return [o.num,o.desc,o.servidor].some(c => (c||'').toLowerCase().includes(termo));
+  });
+  lista.sort((a,b)=>{
+    switch(ordem){
+      case 'data-asc':   return (a.ini||'').localeCompare(b.ini||'');
+      case 'valor-desc': return (b.valor||0)-(a.valor||0);
+      case 'valor-asc':  return (a.valor||0)-(b.valor||0);
+      case 'num':        return (a.num||'').localeCompare(b.num||'','pt-BR',{numeric:true});
+      default:           return (b.ini||'').localeCompare(a.ini||'');
+    }
+  });
+
+  if (!lista.length){
+    alvo.innerHTML = `
+      <div class="empty">
+        <img src="assets/cocar-fab.png" alt="" />
+        <p>${dados.ordens.length ? 'Nenhuma OS corresponde à busca.' : 'Nenhuma ordem de serviço lançada ainda.'}</p>
+        ${dados.ordens.length ? '' : '<button class="btn btn-primary" onclick="abrirModal()">Lançar a primeira OS</button>'}
+      </div>`;
+    return;
+  }
+
+  alvo.innerHTML = lista.map(o=>{
+    const st = statusOS(o.ini,o.fim);
+    const dias = diasEntre(o.ini,o.fim);
+    const unit = Number(o.qtd)>0 ? Number(o.valor)/Number(o.qtd) : 0;
+    return `
+    <article class="os st-${st}${o._pend?' pend':''}">
+      <div class="os-acts">
+        <button class="icon-btn" onclick="abrirModal('${o.id}')" aria-label="Editar OS ${esc(o.num)}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+        </button>
+        <button class="icon-btn del" onclick="excluirOS('${o.id}')" aria-label="Excluir OS ${esc(o.num)}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+        </button>
+      </div>
+      <div class="os-head">
+        <div class="os-num">OS ${esc(o.num)}<span>Ordem de serviço</span></div>
+        <span class="os-badge badge-${st}">${ROTULO[st]}</span>
+      </div>
+      <p class="os-desc">${esc(o.desc)}</p>
+      <div class="os-meta">
+        <div class="os-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <b>${esc(o.servidor)}</b>
+        </div>
+        <div class="os-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          ${fmtData(o.ini)} → ${fmtData(o.fim)}
+          <u>${dias} ${dias===1?'dia':'dias'}</u>
+        </div>
+      </div>
+      <div class="os-foot">
+        <div class="os-qtd">${fmtQtd(o.qtd)} diárias<small>${unit?fmtM(unit)+' / diária':''}</small></div>
+        <div class="os-val">${fmtM(o.valor)}<small>Valor total</small></div>
+      </div>
+    </article>`;
+  }).join('');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   8 · DOTAÇÃO
+   ══════════════════════════════════════════════════════════════ */
+async function salvarDotacao(){
+  const v = parseM(document.getElementById('in-total').value);
+  if (v < 0){ toast('Valor inválido', true); return; }
+  if (!configurado){ toast('Configure o Supabase para gravar', true); return; }
+
+  const btn = document.getElementById('btn-dot');
+  btn.disabled = true; setSync('busy','Gravando…');
+  const antes = dados.dotacao;
+  dados.dotacao = v; render();
+
+  try{
+    const { error } = await sb.from('diarias_config')
+      .upsert({ id: CONFIG_ID, dotacao: v, atualizado: new Date().toISOString() });
+    if (error) throw error;
+    document.getElementById('in-total').value = fmtM(v);
+    gravarCache(); setSync('ok','Sincronizado');
+    toast('Dotação atualizada');
+  }catch(e){
+    dados.dotacao = antes; render();
+    setSync('off','Sem conexão');
+    toast('Não foi possível gravar: ' + (e.message||'erro'), true);
+  }finally{ btn.disabled = false; }
+}
+document.getElementById('in-total').addEventListener('blur', e=>{
+  const v = parseM(e.target.value); e.target.value = v ? fmtM(v) : '';
+});
+document.getElementById('in-total').addEventListener('keydown', e=>{
+  if (e.key === 'Enter') salvarDotacao();
+});
+
+/* ══════════════════════════════════════════════════════════════
+   9 · MODAL / CRUD
+   ══════════════════════════════════════════════════════════════ */
+function abrirModal(id){
+  limparErros();
+  if (id){
+    const o = dados.ordens.find(x=>String(x.id)===String(id));
+    if (!o) return;
+    document.getElementById('modal-title').textContent = 'Editar Ordem de Serviço';
+    document.getElementById('f-id').value   = o.id;
+    document.getElementById('f-num').value  = o.num;
+    document.getElementById('f-serv').value = o.servidor;
+    document.getElementById('f-desc').value = o.desc;
+    document.getElementById('f-ini').value  = o.ini;
+    document.getElementById('f-fim').value  = o.fim;
+    document.getElementById('f-qtd').value  = o.qtd;
+    document.getElementById('f-val').value  = fmtM(o.valor);
+  } else {
+    document.getElementById('modal-title').textContent = 'Nova Ordem de Serviço';
+    ['f-id','f-num','f-serv','f-desc','f-ini','f-fim','f-qtd','f-val'].forEach(i=>document.getElementById(i).value='');
+  }
+  atualizarCalc();
+  document.getElementById('backdrop').classList.add('open');
+  setTimeout(()=>document.getElementById('f-num').focus(), 60);
+}
+function fecharModal(){ document.getElementById('backdrop').classList.remove('open'); }
+document.addEventListener('keydown', e=>{ if (e.key==='Escape') fecharModal(); });
+
+function atualizarCalc(){
+  const q = parseFloat(document.getElementById('f-qtd').value)||0;
+  const v = parseM(document.getElementById('f-val').value);
+  document.getElementById('calc').textContent =
+    (q>0 && v>0) ? `Valor unitário: ${fmtM(v/q)} por diária` : 'Valor unitário: —';
+}
+document.getElementById('f-qtd').addEventListener('input', atualizarCalc);
+document.getElementById('f-val').addEventListener('input', atualizarCalc);
+document.getElementById('f-val').addEventListener('blur', e=>{
+  const v = parseM(e.target.value); e.target.value = v ? fmtM(v) : ''; atualizarCalc();
+});
+function limparErros(){ document.querySelectorAll('.err').forEach(e=>e.classList.remove('show')); }
+
+async function salvarOS(){
+  limparErros();
+  const id   = document.getElementById('f-id').value;
+  const num  = document.getElementById('f-num').value.trim();
+  const serv = document.getElementById('f-serv').value.trim();
+  const desc = document.getElementById('f-desc').value.trim();
+  const ini  = document.getElementById('f-ini').value;
+  const fim  = document.getElementById('f-fim').value;
+  const qtd  = parseFloat(document.getElementById('f-qtd').value);
+  const val  = parseM(document.getElementById('f-val').value);
+
+  let erro = false;
+  const marcar = k => { document.getElementById(k).classList.add('show'); erro = true; };
+  if (!num)  marcar('e-num');
+  if (!serv) marcar('e-serv');
+  if (!desc) marcar('e-desc');
+  if (!ini)  marcar('e-ini');
+  if (!fim || (ini && fim < ini)) marcar('e-fim');
+  if (!qtd || qtd <= 0) marcar('e-qtd');
+  if (!val || val <= 0) marcar('e-val');
+  if (erro) return;
+
+  if (!configurado){ toast('Configure o Supabase para gravar', true); return; }
+
+  const registro = {
+    num, servidor: serv, desc, ini, fim,
+    qtd: Math.round(qtd*10)/10,
+    valor: Math.round(val*100)/100
+  };
+
+  const btn = document.getElementById('btn-salvar');
+  btn.disabled = true; setSync('busy','Gravando…');
+
+  try{
+    if (id){
+      const { error } = await sb.from('diarias_os')
+        .update({ ...paraBanco(registro), atualizado: new Date().toISOString() })
+        .eq('id', id);
+      if (error) throw error;
+      const i = dados.ordens.findIndex(x=>String(x.id)===String(id));
+      if (i>=0) dados.ordens[i] = { id, ...registro };
+      toast('OS atualizada');
+    } else {
+      const { data, error } = await sb.from('diarias_os')
+        .insert(paraBanco(registro)).select().single();
+      if (error) throw error;
+      dados.ordens.unshift(doBanco(data));
+      toast('OS lançada');
+    }
+    gravarCache(); render(); fecharModal();
+    setSync('ok','Sincronizado');
+  }catch(e){
+    console.error(e);
+    setSync('off','Sem conexão');
+    toast('Não foi possível gravar: ' + (e.message||'erro'), true);
+  }finally{ btn.disabled = false; }
+}
+
+async function excluirOS(id){
+  const o = dados.ordens.find(x=>String(x.id)===String(id));
+  if (!o) return;
+  if (!confirm(`Excluir a OS ${o.num}?\n\n${o.desc}\n${fmtM(o.valor)}\n\nEsta ação não pode ser desfeita.`)) return;
+  if (!configurado){ toast('Configure o Supabase', true); return; }
+
+  const backup = [...dados.ordens];
+  dados.ordens = dados.ordens.filter(x=>String(x.id)!==String(id));
+  render(); setSync('busy','Gravando…');
+
+  try{
+    const { error } = await sb.from('diarias_os').delete().eq('id', id);
+    if (error) throw error;
+    gravarCache(); setSync('ok','Sincronizado');
+    toast('OS excluída');
+  }catch(e){
+    dados.ordens = backup; render();
+    setSync('off','Sem conexão');
+    toast('Não foi possível excluir: ' + (e.message||'erro'), true);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   10 · EXPORTAÇÃO CSV
+   ══════════════════════════════════════════════════════════════ */
+function exportar(){
+  const cab = ['Nº da OS','Descrição da missão','Servidor','Início','Término','Diárias','Valor total'];
+  const linhas = dados.ordens.map(o=>[
+    o.num, o.desc, o.servidor, fmtData(o.ini), fmtData(o.fim),
+    fmtQtd(o.qtd), (Number(o.valor)||0).toFixed(2).replace('.',',')
+  ]);
+  const t = totais();
+  linhas.push([]);
+  linhas.push(['Dotação total','','','','','', t.total.toFixed(2).replace('.',',')]);
+  linhas.push(['Empenhado','','','','','',  t.gasto.toFixed(2).replace('.',',')]);
+  linhas.push(['Saldo disponível','','','','','', t.saldo.toFixed(2).replace('.',',')]);
+
+  const csv = [cab, ...linhas]
+    .map(l => l.map(c => `"${(c??'').toString().replace(/"/g,'""')}"`).join(';'))
+    .join('\r\n');
+
+  const blob = new Blob(['\uFEFF'+csv], { type:'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `diarias-de-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); URL.revokeObjectURL(a.href);
+  toast('Planilha exportada');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   11 · TOAST
+   ══════════════════════════════════════════════════════════════ */
+let tToast;
+function toast(msg, ruim){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast show' + (ruim ? ' bad' : '');
+  clearTimeout(tToast);
+  tToast = setTimeout(()=>el.classList.remove('show'), ruim ? 5000 : 2600);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   12 · INÍCIO DA PÁGINA (executado ao carregar)
+   ══════════════════════════════════════════════════════════════ */
+// As chamadas de inicialização ficam no final do script após todas as funções declaradas.
+
+function trocarAba(aba) {
+  abaAtual = aba;
+  document.getElementById('tab-btn-diarias').classList.toggle('active', aba === 'diarias');
+  document.getElementById('tab-btn-gratificacao').classList.toggle('active', aba === 'gratificacao');
+  document.getElementById('tab-btn-solicitacoes').classList.toggle('active', aba === 'solicitacoes');
+
+  document.getElementById('view-diarias').style.display = (aba === 'diarias') ? 'block' : 'none';
+  document.getElementById('view-gratificacao').style.display = (aba === 'gratificacao') ? 'block' : 'none';
+  document.getElementById('view-solicitacoes').style.display = (aba === 'solicitacoes') ? 'block' : 'none';
+
+  const txtAcao = document.getElementById('txt-header-acao');
+  if (aba === 'diarias') txtAcao.textContent = 'Nova OS';
+  else if (aba === 'gratificacao') txtAcao.textContent = 'Nova Gratificação';
+  else txtAcao.textContent = '+ Solicitação';
+
+  if (aba === 'gratificacao') renderGratificacao();
+  if (aba === 'solicitacoes') renderSolicitacoes();
+}
+
+function acaoAbaAtual() {
+  if (abaAtual === 'diarias') abrirModal();
+  else if (abaAtual === 'gratificacao') abrirModalGratificacao();
+  else window.open('solicitar.html', '_blank');
+}
+
+/* ── CACHE & SINCRONIZAÇÃO DE SOLICITAÇÕES ── */
+function lerCacheSolicitacoes() {
+  try {
+    const raw = localStorage.getItem(CACHE_SOLICITACOES_KEY);
+    if (raw) {
+      dadosSolicitacoes = JSON.parse(raw);
+      return true;
+    }
+  } catch (e) {}
+  return false;
+}
+function gravarCacheSolicitacoes() {
+  try { localStorage.setItem(CACHE_SOLICITACOES_KEY, JSON.stringify(dadosSolicitacoes)); } catch (e) {}
+}
+
+async function recarregarSolicitacoes() {
+  if (!configurado) return;
+  try {
+    const { data, error } = await sb.from('solicitacoes_missao').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    dadosSolicitacoes = data || [];
+    gravarCacheSolicitacoes();
+    renderSolicitacoes();
+  } catch (e) {
+    console.error('Falha ao buscar solicitações:', e);
+  }
+}
+
+function ouvirRealtimeSolicitacoes() {
+  if (!configurado) return;
+  sb.channel('solicitacoes-live')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'solicitacoes_missao' }, () => recarregarSolicitacoes())
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') setSync('ok','Sincronizado');
+    });
+}
+
+/* ── CACHE & SINCRONIZAÇÃO GRATIFICAÇÃO ── */
+function lerCacheGrat() {
+  try {
+    const raw = localStorage.getItem(CACHE_GRAT_KEY);
+    if (raw) {
+      dadosGratificacao = JSON.parse(raw);
+      return true;
+    }
+  } catch (e) {}
+  return false;
+}
+function gravarCacheGrat() {
+  try { localStorage.setItem(CACHE_GRAT_KEY, JSON.stringify(dadosGratificacao)); } catch (e) {}
+}
+
+async function recarregarGratificacao() {
+  if (!configurado) return;
+  try {
+    const { data, error } = await sb.from('gratificacao_representacao').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    dadosGratificacao = data || [];
+    gravarCacheGrat();
+    renderGratificacao();
+  } catch (e) {
+    console.error('Falha ao buscar gratificação:', e);
+  }
+}
+
+function ouvirRealtimeGratificacao() {
+  if (!configurado) return;
+  sb.channel('gratificacao-live')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'gratificacao_representacao' }, () => recarregarGratificacao())
+    .subscribe((status) => {
+      if (status === 'SUBSCRIBED') setSync('ok','Sincronizado');
+    });
+}
+
+/* ── EFETIVO GOOGLE SHEETS ── */
+const EFETIVO_SHEET_ID = '1UOMh4y-wHL8kHcB9TUUcEmkeF7z6KYAs4vipsoOFgfA';
+const EFETIVO_URL = `https://docs.google.com/spreadsheets/d/${EFETIVO_SHEET_ID}/gviz/tq?tqx=out:json&sheet=efetivo&range=A5:AC250&headers=0`;
+
+function formatarCPF(raw) {
+  if (!raw) return '';
+  let str = String(raw).replace(/\.0$/, '').replace(/\D/g, '');
+  if (!str) return '';
+  str = str.padStart(11, '0');
+  return str.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+}
+
+function formatarSARAM(raw) {
+  if (!raw) return '';
+  let str = String(raw).replace(/\.0$/, '').replace(/\D/g, '');
+  if (!str) return '';
+  return str.padStart(7, '0');
+}
+
+async function carregarEfetivo() {
+  try {
+    const raw = localStorage.getItem(CACHE_EFETIVO_KEY);
+    if (raw) {
+      listaEfetivo = JSON.parse(raw);
+      preencherSelectEfetivo();
+    }
+  } catch (e) {}
+
+  try {
+    const res = await fetch(EFETIVO_URL);
+    const txt = await res.text();
+    const jsonStr = txt.replace(/^\/\*O_o\*\/\s*google\.visualization\.Query\.setResponse\(/, '').replace(/\);?\s*$/, '');
+    const data = JSON.parse(jsonStr);
+
+    if (data.table && data.table.rows) {
+      listaEfetivo = data.table.rows
+        .map(r => {
+          const c = r.c || [];
+          const v = idx => (c[idx]?.v !== undefined && c[idx]?.v !== null) ? c[idx].v.toString().trim() : '';
+          return {
+            posto: v(2),           // Col C
+            esp: v(3),             // Col D
+            nome: v(4),            // Col E (Guerra)
+            funcao: v(7),          // Col H
+            nome_completo: v(13),  // Col N (Completo)
+            cpf: formatarCPF(v(14)),   // Col O (CPF)
+            email: v(15),          // Col P
+            saram: formatarSARAM(v(19)), // Col T (SARAM)
+            rg: v(20),             // Col U
+            banco: v(23),          // Col X
+            banco_cod: v(24),      // Col Y
+            agencia: v(25),        // Col Z
+            conta: v(26)           // Col AA
+          };
+        })
+        .filter(m => m.nome || m.nome_completo);
+
+      localStorage.setItem(CACHE_EFETIVO_KEY, JSON.stringify(listaEfetivo));
+      preencherSelectEfetivo();
+    }
+  } catch (e) {
+    console.warn('Efetivo carregado do cache ou offline', e);
+  }
+}
+
+function preencherSelectEfetivo() {
+  const options = '<option value="">-- Selecione um militar do Efetivo --</option>' +
+    listaEfetivo.map((m, idx) => `<option value="${idx}">${esc(m.posto)} ${esc(m.esp)} ${esc(m.nome_completo || m.nome)}</option>`).join('');
+
+  const sel1 = document.getElementById('fg-militar-select');
+  if (sel1) sel1.innerHTML = options;
+
+  const sel2 = document.getElementById('f-serv-select');
+  if (sel2) sel2.innerHTML = options;
+}
+
+/* ── TOGGLES & ACCORDION ── */
+function toggleSwitch(id) {
+  const chk = document.getElementById(id);
+  if (!chk) return;
+  chk.checked = !chk.checked;
+  chk.dispatchEvent(new Event('change'));
+}
+
+function alternarAccordion(chkId, accId) {
+  const chk = document.getElementById(chkId);
+  const acc = document.getElementById(accId);
+  if (!chk || !acc) return;
+  if (chk.checked) {
+    acc.classList.add('show');
+  } else {
+    acc.classList.remove('show');
+  }
+}
+
+/* ── MULTIMILITAR EM GRATIFICAÇÃO ── */
+let listaMilitaresGratModal = [];
+
+function adicionarMilitarGratItem(m) {
+  const item = m || {
+    posto_grad: '',
+    especialidade: '',
+    nome: '',
+    cpf: '',
+    saram: '',
+    om: 'AFA',
+    data_inicio: '2026-08-03',
+    hora_inicio: '04:00',
+    data_fim: '2026-08-07',
+    hora_fim: '16:00',
+    dias: 5,
+    passagem: 'NÃO'
+  };
+  listaMilitaresGratModal.push(item);
+  renderMilitaresGratModal();
+}
+
+function removerMilitarGratItem(idx) {
+  if (listaMilitaresGratModal.length <= 1) {
+    toast('É necessário pelo menos um militar na missão', true);
+    return;
+  }
+  listaMilitaresGratModal.splice(idx, 1);
+  renderMilitaresGratModal();
+}
+
+function selecionarMilitarGratItem(itemIdx, efetivoIdx) {
+  if (efetivoIdx === '' || !listaEfetivo[efetivoIdx]) return;
+  const m = listaEfetivo[efetivoIdx];
+  const item = listaMilitaresGratModal[itemIdx];
+  if (!item) return;
+  item.posto_grad = m.posto || '';
+  item.especialidade = m.esp || '';
+  item.nome = m.nome_completo || m.nome || '';
+  if (m.cpf) item.cpf = m.cpf;
+  if (m.saram) item.saram = m.saram;
+  renderMilitaresGratModal();
+}
+
+function atualizarCampoMilitarItem(itemIdx, field, val) {
+  const item = listaMilitaresGratModal[itemIdx];
+  if (!item) return;
+  item[field] = val;
+  if (field === 'data_inicio' || field === 'data_fim' || field === 'hora_inicio' || field === 'hora_fim') {
+    const dIni = new Date((item.data_inicio || '2026-08-03') + 'T' + (item.hora_inicio || '04:00'));
+    const dFim = new Date((item.data_fim || '2026-08-07') + 'T' + (item.hora_fim || '16:00'));
+    const diffHours = (dFim - dIni) / (1000 * 60 * 60);
+    item.dias = Math.max(1, Math.ceil(diffHours / 24));
+    document.getElementById(`m-dias-${itemIdx}`).value = item.dias;
+  }
+}
+
+function renderMilitaresGratModal() {
+  const container = document.getElementById('lista-militares-container');
+  if (!container) return;
+
+  if (listaMilitaresGratModal.length === 0) {
+    adicionarMilitarGratItem();
+    return;
+  }
+
+  container.innerHTML = listaMilitaresGratModal.map((m, idx) => `
+    <div class="militar-item-card">
+      <div class="militar-item-head">
+        <span>Militar #${idx + 1}</span>
+        ${listaMilitaresGratModal.length > 1 ? `<button class="icon-btn del" onclick="removerMilitarGratItem(${idx})" title="Remover militar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>` : ''}
+      </div>
+
+      <div class="field" style="margin-bottom:.5rem">
+        <label>Selecionar do Efetivo</label>
+        <select onchange="selecionarMilitarGratItem(${idx}, this.value)">
+          <option value="">-- Selecione para preencher --</option>
+          ${listaEfetivo.map((ef, eIdx) => `<option value="${eIdx}" ${ef.nome === m.nome ? 'selected' : ''}>${esc(ef.posto)} ${esc(ef.esp)} ${esc(ef.nome)}</option>`).join('')}
+        </select>
+      </div>
+
+      <div class="grid2">
+        <div class="field" style="margin-bottom:.5rem">
+          <label>Posto/Grad/Esp *</label>
+          <input type="text" value="${esc(m.posto_grad || ((m.posto||'')+' '+(m.especialidade||'')))}" oninput="atualizarCampoMilitarItem(${idx}, 'posto_grad', this.value)" placeholder="Ex.: 1T PED" />
+        </div>
+        <div class="field" style="margin-bottom:.5rem">
+          <label>Nome Completo *</label>
+          <input type="text" value="${esc(m.nome)}" oninput="atualizarCampoMilitarItem(${idx}, 'nome', this.value)" placeholder="Nome completo" />
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="field" style="margin-bottom:.5rem">
+          <label>CPF *</label>
+          <input type="text" value="${esc(m.cpf)}" oninput="atualizarCampoMilitarItem(${idx}, 'cpf', this.value)" placeholder="372.553.678-36" />
+        </div>
+        <div class="field" style="margin-bottom:.5rem">
+          <label>SARAM *</label>
+          <input type="text" value="${esc(m.saram)}" oninput="atualizarCampoMilitarItem(${idx}, 'saram', this.value)" placeholder="7430540" />
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="field" style="margin-bottom:.5rem">
+          <label>Início (Data/Hora)</label>
+          <div style="display:flex;gap:.3rem">
+            <input type="date" value="${m.data_inicio || '2026-08-03'}" onchange="atualizarCampoMilitarItem(${idx}, 'data_inicio', this.value)" />
+            <input type="time" value="${m.hora_inicio || '04:00'}" onchange="atualizarCampoMilitarItem(${idx}, 'hora_inicio', this.value)" style="width:90px" />
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:.5rem">
+          <label>Término (Data/Hora)</label>
+          <div style="display:flex;gap:.3rem">
+            <input type="date" value="${m.data_fim || '2026-08-07'}" onchange="atualizarCampoMilitarItem(${idx}, 'data_fim', this.value)" />
+            <input type="time" value="${m.hora_fim || '16:00'}" onchange="atualizarCampoMilitarItem(${idx}, 'hora_fim', this.value)" style="width:90px" />
+          </div>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="field" style="margin-bottom:0">
+          <label>Dias Computados</label>
+          <input id="m-dias-${idx}" type="number" value="${m.dias || 5}" oninput="atualizarCampoMilitarItem(${idx}, 'dias', parseFloat(this.value)||1)" />
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Passagem Aérea/Rodoviária</label>
+          <select onchange="atualizarCampoMilitarItem(${idx}, 'passagem', this.value)">
+            <option value="NÃO" ${m.passagem === 'NÃO' ? 'selected' : ''}>NÃO</option>
+            <option value="SIM" ${m.passagem === 'SIM' ? 'selected' : ''}>SIM</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function abrirModalGratificacao(id) {
+  limparErrosGrat();
+  preencherSelectEfetivo();
+  
+  if (id) {
+    const g = dadosGratificacao.find(x => String(x.id) === String(id));
+    if (!g) return;
+    document.getElementById('modal-grat-title').textContent = 'Editar Gratificação de Representação';
+    document.getElementById('fg-id').value = g.id;
+    document.getElementById('fg-num').value = g.num_os || '';
+    document.getElementById('fg-servico').value = g.servico_local || '';
+    document.getElementById('fg-enquadramento').value = g.enquadramento_legal || 'Art 5°, Inc II (Viagem de Instrução)';
+    document.getElementById('fg-apoio').value = g.apoio_recebido || 'Apoio de hospedagem e rancho serão prestados pelo (NOME DA UNIDADE), e o apoio de transporte será prestado pela AFA.';
+
+    // Toggles
+    const chkPrazo = document.getElementById('fg-toggle-prazo');
+    chkPrazo.checked = !!g.fora_prazo;
+    alternarAccordion('fg-toggle-prazo', 'acc-prazo');
+    if (g.justificativa_prazo) document.getElementById('fg-just-prazo').value = g.justificativa_prazo;
+
+    const chkAntecipado = document.getElementById('fg-toggle-antecipado');
+    chkAntecipado.checked = !!g.pagamento_antecipado;
+    alternarAccordion('fg-toggle-antecipado', 'acc-antecipado');
+    if (g.justificativa_antecipacao) document.getElementById('fg-just-antecipado').value = g.justificativa_antecipacao;
+
+    const chkRetorno = document.getElementById('fg-toggle-retorno');
+    chkRetorno.checked = !!g.teve_alteracao_retorno;
+    alternarAccordion('fg-toggle-retorno', 'acc-retorno');
+    if (g.justificativa_alteracao_retorno) document.getElementById('fg-just-retorno').value = g.justificativa_alteracao_retorno;
+
+    // Militares
+    if (Array.isArray(g.militares) && g.militares.length > 0) {
+      listaMilitaresGratModal = JSON.parse(JSON.stringify(g.militares));
+    } else {
+      listaMilitaresGratModal = [{
+        posto_grad: g.posto_grad || '',
+        especialidade: g.especialidade || '',
+        nome: g.nome || '',
+        cpf: g.cpf || '',
+        saram: g.saram || '',
+        om: g.om || 'AFA',
+        data_inicio: g.data_inicio || '2026-08-03',
+        hora_inicio: g.hora_inicio || '04:00',
+        data_fim: g.data_fim || '2026-08-07',
+        hora_fim: g.hora_fim || '16:00',
+        dias: g.dias || 5,
+        passagem: g.passagem || 'NÃO'
+      }];
+    }
+  } else {
+    document.getElementById('modal-grat-title').textContent = 'Nova Gratificação de Representação';
+    document.getElementById('fg-id').value = '';
+    document.getElementById('fg-num').value = '24/DE/' + new Date().getFullYear();
+    document.getElementById('fg-servico').value = '';
+
+    // Toggles reset to false
+    ['fg-toggle-prazo', 'fg-toggle-antecipado', 'fg-toggle-retorno'].forEach(t => {
+      const chk = document.getElementById(t);
+      if (chk) chk.checked = false;
+    });
+    alternarAccordion('fg-toggle-prazo', 'acc-prazo');
+    alternarAccordion('fg-toggle-antecipado', 'acc-antecipado');
+    alternarAccordion('fg-toggle-retorno', 'acc-retorno');
+
+    document.getElementById('fg-just-prazo').value = 'Devido à natureza da missão a solicitação foi feita fora do prazo';
+    document.getElementById('fg-just-antecipado').value = 'Necessidade de custeio inicial da missão.';
+    document.getElementById('fg-just-retorno').value = 'Por motivos de trânsito, o militar retornou no horário informado.';
+
+    listaMilitaresGratModal = [{
+      posto_grad: '',
+      especialidade: '',
+      nome: '',
+      cpf: '',
+      saram: '',
+      om: 'AFA',
+      data_inicio: '2026-08-03',
+      hora_inicio: '04:00',
+      data_fim: '2026-08-07',
+      hora_fim: '16:00',
+      dias: 5,
+      passagem: 'NÃO'
+    }];
+  }
+
+  renderMilitaresGratModal();
+  document.getElementById('backdrop-grat').classList.add('open');
+}
+
+function fecharModalGrat() {
+  document.getElementById('backdrop-grat').classList.remove('open');
+}
+
+function limparErrosGrat() {
+  ['eg-num','eg-servico','eg-militares'].forEach(i => {
+    const el = document.getElementById(i);
+    if (el) el.classList.remove('show');
+  });
+}
+
+async function salvarGratificacao() {
+  limparErrosGrat();
+  const id = document.getElementById('fg-id').value;
+  const num_os = document.getElementById('fg-num').value.trim();
+  const servico_local = document.getElementById('fg-servico').value.trim();
+
+  let erro = false;
+  const marcar = k => { document.getElementById(k).classList.add('show'); erro = true; };
+  if (!num_os) marcar('eg-num');
+  if (!servico_local) marcar('eg-servico');
+  if (!listaMilitaresGratModal || listaMilitaresGratModal.length === 0 || !listaMilitaresGratModal[0].nome) {
+    marcar('eg-militares');
+  }
+  if (erro) return;
+
+  const prim = listaMilitaresGratModal[0] || {};
+  const data_inicio = prim.data_inicio || '2026-08-03';
+  const hora_inicio = prim.hora_inicio || '04:00';
+  const data_fim = prim.data_fim || '2026-08-07';
+  const hora_fim = prim.hora_fim || '16:00';
+  const ano = parseInt(data_inicio.split('-')[0]) || new Date().getFullYear();
+  const dias = prim.dias || 5;
+
+  const fora_prazo = document.getElementById('fg-toggle-prazo').checked;
+  const pagamento_antecipado = document.getElementById('fg-toggle-antecipado').checked;
+  const teve_alteracao_retorno = document.getElementById('fg-toggle-retorno').checked;
+
+  const reg = {
+    ano,
+    num_os,
+    posto_grad: prim.posto_grad || '',
+    nome: prim.nome || '',
+    cpf: prim.cpf || '',
+    saram: prim.saram || '',
+    om: prim.om || 'AFA',
+    servico_local,
+    data_inicio, hora_inicio, data_fim, hora_fim, dias,
+    passagem: prim.passagem || 'NÃO',
+    fora_prazo,
+    justificativa_prazo: fora_prazo ? document.getElementById('fg-just-prazo').value.trim() : 'Não se aplica.',
+    pagamento_antecipado,
+    justificativa_antecipacao: pagamento_antecipado ? document.getElementById('fg-just-antecipado').value.trim() : 'Não se Aplica',
+    teve_alteracao_retorno,
+    justificativa_alteracao_retorno: teve_alteracao_retorno ? document.getElementById('fg-just-retorno').value.trim() : 'Não se aplica.',
+    enquadramento_legal: document.getElementById('fg-enquadramento').value.trim(),
+    apoio_recebido: document.getElementById('fg-apoio').value.trim(),
+    militares: listaMilitaresGratModal,
+    updated_at: new Date().toISOString()
+  };
+
+  const btn = document.getElementById('btn-salvar-grat');
+  btn.disabled = true;
+
+  try {
+    if (id) {
+      if (configurado) {
+        const { error } = await sb.from('gratificacao_representacao').update(reg).eq('id', id);
+        if (error) throw error;
+      }
+      const idx = dadosGratificacao.findIndex(x => String(x.id) === String(id));
+      if (idx >= 0) dadosGratificacao[idx] = { id, ...reg };
+      toast('Gratificação atualizada');
+    } else {
+      if (configurado) {
+        const { data, error } = await sb.from('gratificacao_representacao').insert([reg]).select().single();
+        if (error) throw error;
+        dadosGratificacao.unshift(data);
+      } else {
+        reg.id = 'temp_' + Date.now();
+        dadosGratificacao.unshift(reg);
+      }
+      toast('Gratificação lançada');
+    }
+    gravarCacheGrat();
+    renderGratificacao();
+    fecharModalGrat();
+  } catch (e) {
+    console.error(e);
+    toast('Erro ao salvar: ' + (e.message || 'erro'), true);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function excluirGratificacao(id) {
+  const g = dadosGratificacao.find(x => String(x.id) === String(id));
+  if (!g) return;
+  if (!confirm(`Excluir a Gratificação OS ${g.num_os}?`)) return;
+
+  const backup = [...dadosGratificacao];
+  dadosGratificacao = dadosGratificacao.filter(x => String(x.id) !== String(id));
+  renderGratificacao();
+
+  try {
+    if (configurado && !String(id).startsWith('temp_')) {
+      const { error } = await sb.from('gratificacao_representacao').delete().eq('id', id);
+      if (error) throw error;
+    }
+    gravarCacheGrat();
+    toast('Gratificação excluída');
+  } catch (e) {
+    dadosGratificacao = backup;
+    renderGratificacao();
+    toast('Erro ao excluir: ' + (e.message || 'erro'), true);
+  }
+}
+
+function renderGratificacao() {
+  document.getElementById('badge-diarias-count').textContent = dados.ordens.length;
+  document.getElementById('badge-grat-count').textContent = dadosGratificacao.length;
+
+  const anoSel = parseInt(document.getElementById('grat-ano').value) || 2026;
+  const termo = (document.getElementById('grat-busca').value || '').toLowerCase().trim();
+
+  let lista = dadosGratificacao.filter(g => (g.ano || 2026) === anoSel);
+  if (termo) {
+    lista = lista.filter(g => {
+      const mils = Array.isArray(g.militares) ? g.militares : [{ nome: g.nome, cpf: g.cpf, saram: g.saram }];
+      return [g.num_os, g.servico_local, ...mils.map(m => m.nome + ' ' + m.cpf + ' ' + m.saram)].some(c => (c || '').toLowerCase().includes(termo));
+    });
+  }
+
+  // Métricas
+  const totalDias = lista.reduce((s, g) => {
+    const mils = Array.isArray(g.militares) && g.militares.length > 0 ? g.militares : [{ dias: g.dias }];
+    return s + mils.reduce((ms, m) => ms + (Number(m.dias || g.dias) || 0), 0);
+  }, 0);
+
+  const nomesUnicos = new Set();
+  lista.forEach(g => {
+    if (Array.isArray(g.militares) && g.militares.length > 0) {
+      g.militares.forEach(m => m.nome && nomesUnicos.add(m.nome));
+    } else if (g.nome) {
+      nomesUnicos.add(g.nome);
+    }
+  });
+
+  document.getElementById('sg-qtd').textContent = lista.length;
+  document.getElementById('sg-dias').textContent = totalDias;
+  document.getElementById('sg-militares').textContent = nomesUnicos.size;
+
+  const alvo = document.getElementById('lista-gratificacao');
+  if (!lista.length) {
+    alvo.innerHTML = `
+      <div class="empty">
+        <img src="assets/cocar-fab.png" alt="" />
+        <p>${dadosGratificacao.length ? `Nenhuma gratificação encontrada para o ano de ${anoSel}.` : 'Nenhum processo de gratificação cadastrado ainda.'}</p>
+        <button class="btn btn-primary" onclick="abrirModalGratificacao()">Lançar a primeira Gratificação</button>
+      </div>`;
+    return;
+  }
+
+  alvo.innerHTML = lista.map(g => {
+    const mils = (Array.isArray(g.militares) && g.militares.length > 0)
+      ? g.militares
+      : [{ posto_grad: g.posto_grad, nome: g.nome, saram: g.saram, data_inicio: g.data_inicio, hora_inicio: g.hora_inicio, data_fim: g.data_fim, hora_fim: g.hora_fim, dias: g.dias }];
+
+    const primMilitar = mils[0] || {};
+    const textoMilitares = mils.length === 1 
+      ? `<b>${esc(primMilitar.posto_grad)} ${esc(primMilitar.nome)}</b>`
+      : `<b>${mils.length} Militares</b> (${esc(mils.map(m => m.nome.split(' ')[0]).join(', '))})`;
+
+    const jsonStr = JSON.stringify(g).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+
+    return `
+    <article class="os st-curso" style="border-top-color:var(--gold-500)">
+      <div class="os-acts">
+        <button class="icon-btn" onclick="abrirModalGratificacao('${g.id}')" aria-label="Editar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+        </button>
+        <button class="icon-btn del" onclick="excluirGratificacao('${g.id}')" aria-label="Excluir">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+        </button>
+      </div>
+      <div class="os-head">
+        <div class="os-num">OS ${esc(g.num_os)}<span>Gratificação de Representação</span></div>
+        <span class="os-badge badge-futura">${mils.length} ${mils.length === 1 ? 'militar' : 'militares'} · ${primMilitar.dias || g.dias} dias</span>
+      </div>
+      <p class="os-desc">${esc(g.servico_local)}</p>
+      <div class="os-meta">
+        <div class="os-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          ${textoMilitares}
+        </div>
+        <div class="os-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          ${fmtData(primMilitar.data_inicio || g.data_inicio)} (${primMilitar.hora_inicio || g.hora_inicio || '04:00'}) → ${fmtData(primMilitar.data_fim || g.data_fim)} (${primMilitar.hora_fim || g.hora_fim || '16:00'})
+        </div>
+      </div>
+      <div class="grat-actions">
+        <button class="btn-doc" onclick='CompiladorDoc.gerarOSGratificacao(${jsonStr})'>📄 OS</button>
+        <button class="btn-doc" onclick='CompiladorDoc.gerarAutorizacaoGratificacao(${jsonStr})'>📄 Autorização</button>
+        <button class="btn-doc" onclick='CompiladorDoc.gerarFichaApresentacaoGratificacao(${jsonStr})'>📄 Ficha Retorno</button>
+        <button class="btn-doc gold" onclick='CompiladorDoc.compilarPacoteGratificacao(${jsonStr})'>📦 Baixar 3 Docs</button>
+      </div>
+    </article>`;
+  }).join('');
+}
+
+/* ── AUTENTICAÇÃO E PIN DO OPERADOR ── */
+async function lerPinServidor(){
+  if (window.AppConfig) return window.AppConfig.getPin();
+  try {
+    const { data } = await sb.from('at_config').select('pin').eq('id', 'default').maybeSingle();
+    if (data && data.pin) return String(data.pin).trim();
+  } catch(e){}
+  return localStorage.getItem('secretaria_pin') || '123456';
+}
+
+function checarAutenticacaoPIN() {
+  const pinOk = sessionStorage.getItem('secretaria_pin_ok') === '1' || sessionStorage.getItem('efetivo_pin_ok') === '1' || sessionStorage.getItem('at_sec_ok') === '1';
+  const gate = document.getElementById('pinGate');
+  const content = document.getElementById('missoesContent');
+  const lockBtn = document.getElementById('lock-btn');
+  if (pinOk) {
+    if (gate) gate.style.display = 'none';
+    if (content) content.style.display = 'block';
+    if (lockBtn) lockBtn.style.display = 'inline-flex';
+  } else {
+    if (gate) gate.style.display = 'flex';
+    if (content) content.style.display = 'none';
+    if (lockBtn) lockBtn.style.display = 'none';
+    const input = document.getElementById('pinInput');
+    if (input) { input.value = ''; input.focus(); }
+  }
+}
+
+async function verificarPinMissoes() {
+  const input = document.getElementById('pinInput');
+  const errDiv = document.getElementById('pinErrorMsg');
+  const val = (input?.value || '').trim();
+  if (errDiv) errDiv.style.display = 'none';
+  if (!val) return;
+
+  try {
+    const pinServidor = await lerPinServidor();
+    if (val === pinServidor) {
+      sessionStorage.setItem('secretaria_pin_ok', '1');
+      sessionStorage.setItem('efetivo_pin_ok', '1');
+      sessionStorage.setItem('at_sec_ok', '1');
+      checarAutenticacaoPIN();
+    } else {
+      if (errDiv) {
+        errDiv.textContent = 'PIN incorreto. Tente novamente.';
+        errDiv.style.display = 'block';
+      }
+    }
+  } catch(e) {
+    if (errDiv) {
+      errDiv.textContent = 'Erro ao verificar PIN.';
+      errDiv.style.display = 'block';
+    }
+  }
+}
+
+function bloquearSessaoMissoes() {
+  sessionStorage.removeItem('secretaria_pin_ok');
+  sessionStorage.removeItem('efetivo_pin_ok');
+  sessionStorage.removeItem('at_sec_ok');
+  checarAutenticacaoPIN();
+}
+
+function renderSolicitacoes() {
+  const termo = (document.getElementById('solic-busca') ? document.getElementById('solic-busca').value : '').toLowerCase().trim();
+  
+  let pendentes = dadosSolicitacoes.filter(s => (s.status || 'pendente') === 'pendente');
+  let historico = dadosSolicitacoes.filter(s => (s.status || 'pendente') !== 'pendente');
+
+  if (termo) {
+    const matchTermo = s => {
+      const mils = Array.isArray(s.militares) ? s.militares : [];
+      return [s.protocolo, s.servico_local, s.modalidade, ...mils.map(m => m.nome + ' ' + m.cpf)].some(c => (c || '').toLowerCase().includes(termo));
+    };
+    pendentes = pendentes.filter(matchTermo);
+    historico = historico.filter(matchTermo);
+  }
+
+  const badgeEl = document.getElementById('badge-solic-count');
+  if (badgeEl) badgeEl.textContent = pendentes.length;
+
+  const aprovadas = dadosSolicitacoes.filter(s => s.status === 'aprovado').length;
+  const rejeitadas = dadosSolicitacoes.filter(s => s.status === 'rejeitado').length;
+
+  document.getElementById('ss-qtd').textContent = pendentes.length;
+  document.getElementById('ss-aprovadas').textContent = aprovadas;
+  document.getElementById('ss-rejeitadas').textContent = rejeitadas;
+  document.getElementById('ss-total').textContent = dadosSolicitacoes.length;
+
+  const alvoPend = document.getElementById('lista-solicitacoes');
+  const alvoHist = document.getElementById('lista-solicitacoes-historico');
+
+  if (alvoPend) {
+    if (!pendentes.length) {
+      alvoPend.innerHTML = `
+        <div class="empty" style="grid-column:1/-1">
+          <img src="assets/cocar-fab.png" alt="" />
+          <p>Nenhuma solicitação de missão pendente de homologação no momento.</p>
+        </div>`;
+    } else {
+      alvoPend.innerHTML = pendentes.map(s => {
+        const mils = Array.isArray(s.militares) && s.militares.length > 0 ? s.militares : [{ posto_grad: '', nome: 'Militar' }];
+        const primMilitar = mils[0] || {};
+        const labelModalidade = s.modalidade === 'gratificacao' ? 'Gratificação' : (s.modalidade === 'diaria' ? 'Diária' : 'Sem Custo');
+
+        return `
+        <article class="os st-analise" style="border-top-color:var(--gold-500)">
+          <div class="os-head">
+            <div class="os-num">${esc(s.protocolo)}<span>${labelModalidade}</span></div>
+            <span class="os-badge badge-analise">${mils.length} ${mils.length === 1 ? 'militar' : 'militares'}</span>
+          </div>
+          <p class="os-desc">${esc(s.servico_local)}</p>
+          <div class="os-meta">
+            <div class="os-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <b>${esc(primMilitar.posto_grad)} ${esc(primMilitar.nome)}</b> ${mils.length > 1 ? `(+${mils.length - 1})` : ''}
+            </div>
+            <div class="os-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+              Período: ${fmtData(s.data_inicio)} (${s.hora_inicio || '04:00'}) → ${fmtData(s.data_fim)} (${s.hora_fim || '16:00'})
+            </div>
+          </div>
+          <div class="grat-actions" style="margin-top:.8rem">
+            <button class="btn-doc gold" onclick="aprovarSolicitacao('${s.id}')">✅ Aprovar & Pré-Carregar OS</button>
+            <button class="btn-doc" onclick="rejeitarSolicitacao('${s.id}')" style="color:#ef4444">❌ Rejeitar</button>
+          </div>
+        </article>`;
+      }).join('');
+    }
+  }
+
+  if (alvoHist) {
+    if (!historico.length) {
+      alvoHist.innerHTML = `
+        <div class="empty" style="grid-column:1/-1">
+          <p style="font-size:.8rem;color:var(--gray-500)">Nenhuma solicitação no histórico recente.</p>
+        </div>`;
+    } else {
+      alvoHist.innerHTML = historico.map(s => {
+        const mils = Array.isArray(s.militares) && s.militares.length > 0 ? s.militares : [{ posto_grad: '', nome: 'Militar' }];
+        const primMilitar = mils[0] || {};
+        const labelModalidade = s.modalidade === 'gratificacao' ? 'Gratificação' : (s.modalidade === 'diaria' ? 'Diária' : 'Sem Custo');
+        const stAprov = s.status === 'aprovado';
+
+        return `
+        <article class="os ${stAprov ? 'st-concluida' : 'st-cancelada'}" style="opacity:.85;border-top-color:${stAprov ? '#22c55e' : '#ef4444'}">
+          <div class="os-head">
+            <div class="os-num">${esc(s.protocolo)}<span>${labelModalidade}</span></div>
+            <span class="os-badge ${stAprov ? 'badge-paga' : 'badge-futura'}" style="${stAprov ? 'background:#dcfce7;color:#15803d' : 'background:#fee2e2;color:#b91c1c'}">
+              ${stAprov ? '✅ Aprovada / OS Criada' : '❌ Rejeitada'}
+            </span>
+          </div>
+          <p class="os-desc">${esc(s.servico_local)}</p>
+          <div class="os-meta">
+            <div class="os-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              <b>${esc(primMilitar.posto_grad)} ${esc(primMilitar.nome)}</b> ${mils.length > 1 ? `(+${mils.length - 1})` : ''}
+            </div>
+            <div class="os-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+              Período: ${fmtData(s.data_inicio)} → ${fmtData(s.data_fim)}
+            </div>
+          </div>
+        </article>`;
+      }).join('');
+    }
+  }
+}
+
+async function aprovarSolicitacao(id) {
+  const solic = dadosSolicitacoes.find(x => String(x.id) === String(id));
+  if (!solic) return;
+
+  if (solic.modalidade === 'gratificacao' || solic.modalidade === 'sem_custo') {
+    trocarAba('gratificacao');
+    abrirModalGratificacao();
+    document.getElementById('fg-servico').value = solic.servico_local || '';
+    if (solic.fora_prazo) {
+      document.getElementById('fg-toggle-prazo').checked = true;
+      alternarAccordion('fg-toggle-prazo', 'acc-prazo');
+      if (solic.justificativa_prazo) document.getElementById('fg-just-prazo').value = solic.justificativa_prazo;
+    }
+    if (solic.pagamento_antecipado) {
+      document.getElementById('fg-toggle-antecipado').checked = true;
+      alternarAccordion('fg-toggle-antecipado', 'acc-antecipado');
+      if (solic.justificativa_antecipacao) document.getElementById('fg-just-antecipado').value = solic.justificativa_antecipacao;
+    }
+    if (Array.isArray(solic.militares) && solic.militares.length > 0) {
+      listaMilitaresGratModal = JSON.parse(JSON.stringify(solic.militares));
+      renderMilitaresGratModal();
+    }
+  } else {
+    trocarAba('diarias');
+    abrirModal();
+    const prim = Array.isArray(solic.militares) && solic.militares[0] ? solic.militares[0] : {};
+    document.getElementById('f-serv').value = `${prim.posto_grad || ''} ${prim.nome || ''}`.trim();
+    document.getElementById('f-desc').value = solic.servico_local || '';
+    document.getElementById('f-ini').value = solic.data_inicio || '';
+    document.getElementById('f-fim').value = solic.data_fim || '';
+  }
+
+  // Atualizar status no Supabase
+  try {
+    if (configurado && !String(id).startsWith('loc_')) {
+      await sb.from('solicitacoes_missao').update({ status: 'aprovado' }).eq('id', id);
+    }
+  } catch(e){}
+  solic.status = 'aprovado';
+  gravarCacheSolicitacoes();
+  renderSolicitacoes();
+  toast('Solicitação aprovada e dados pré-carregados no formulário!');
+}
+
+async function rejeitarSolicitacao(id) {
+  const solic = dadosSolicitacoes.find(x => String(x.id) === String(id));
+  if (!solic) return;
+  if (!confirm(`Deseja rejeitar a solicitação ${solic.protocolo}?`)) return;
+
+  try {
+    if (configurado && !String(id).startsWith('loc_')) {
+      await sb.from('solicitacoes_missao').update({ status: 'rejeitado' }).eq('id', id);
+    }
+  } catch(e){}
+  solic.status = 'rejeitado';
+  gravarCacheSolicitacoes();
+  renderSolicitacoes();
+  toast('Solicitação rejeitada');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   14 · EXECUÇÃO DE INÍCIO
+   ══════════════════════════════════════════════════════════════ */
+checarAutenticacaoPIN();
+montarGauge();
+if (lerCache()){
+  carregando = false;
+  document.getElementById('in-total').value = dados.dotacao ? fmtM(dados.dotacao) : '';
+  render();
+}
+lerCacheGrat();
+lerCacheSolicitacoes();
+carregarEfetivo();
+recarregar();
+recarregarGratificacao();
+recarregarSolicitacoes();
+ouvirRealtime();
+ouvirRealtimeGratificacao();
+ouvirRealtimeSolicitacoes();
+addEventListener('online',  ()=>{ recarregar(); recarregarGratificacao(); recarregarSolicitacoes(); });
+addEventListener('offline', ()=>setSync('off','Sem conexão'));
+</script>
+</body>
+</html>
