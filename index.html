@@ -4,7 +4,14 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Governança DE · Academia da Força Aérea</title>
-<link rel="icon" href="assets/cocar-fab.png" type="image/png" />
+<link rel="icon" href="assets/favicon.ico" sizes="any" />
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32" />
+<link rel="icon" href="assets/favicon-16.png" type="image/png" sizes="16x16" />
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png" sizes="180x180" />
+<link rel="manifest" href="site.webmanifest" />
+<meta name="theme-color" content="#061021" />
+<meta name="apple-mobile-web-app-title" content="Governança DE" />
 <meta name="description" content="Painel único para os sistemas de controle da Divisão de Ensino da Academia da Força Aérea." />
 <link rel="preload" as="image" href="assets/hero-afa.jpg" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -1238,6 +1245,7 @@ body.cortina .cue{animation-play-state:paused}
     <img src="assets/cocar-fab.png" alt="" />
     <span>Academia da Força Aérea · Divisão de Ensino</span>
     <span class="motto">Macte animo! Generose puer, sic itur ad astra</span>
+    <span class="motto" style="opacity:.55">Governança DE · v3.2</span>
   </footer>
 
 </div>
@@ -2572,16 +2580,17 @@ async function carregarTransporte(){
 
 /* ═══════════════════════════════════════════════════════════════════
    11 · DADOS · INDICAÇÃO PARA CURSOS
-   Lê a aba BANCO DE CURSOS (Google Sheets) + as tabelas cur_* do
-   Supabase. Estas duas constantes precisam apontar para o MESMO
-   projeto usado no cursos.html.
+   Fonte única: as tabelas cur_* do Supabase — exatamente as mesmas
+   que o cursos.html lê. A planilha BANCO DE CURSOS não é mais
+   consultada aqui (o módulo deixou de depender dela), por isso a
+   contagem exibida no card passa a bater com a dos cursos cadastrados.
+   O vínculo manifestação → curso é cur_manifestacoes.curso_chave,
+   que guarda o id da linha em cur_cursos.
    ═══════════════════════════════════════════════════════════════════ */
 const CUR_URL  = 'https://sovrgsbdhdpxsaomspsp.supabase.co';
 const CUR_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg';
-const CUR_PLAN = { id:'1x3nkmh-XndGlPW3BuPlp-C1kqK1nr2cx6NlQVOPmELw', aba:'BANCO DE CURSOS', faixa:'A1:AZ400' };
 
 const cuEl    = id => document.getElementById(id);
-const cuNorm  = s => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase().replace(/\s+/g,' ').trim();
 const cuEsc   = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const cuHoje  = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
 const cuBR    = d => d ? String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear() : '';
@@ -2595,104 +2604,39 @@ async function cuGet(caminho){
   if (!r.ok) throw new Error('HTTP ' + r.status);
   return r.json();
 }
-function cuVal(c){
-  if (!c) return '';
-  if (c.f != null && c.f !== '') return String(c.f).trim();
-  if (c.v == null) return '';
-  if (typeof c.v === 'string' && /^Date\(/.test(c.v)){ const p = c.v.match(/\d+/g).map(Number); return cuBR(new Date(p[0], p[1], p[2])); }
-  return String(c.v).trim();
-}
-function cuData(c){
-  if (!c) return null;
-  if (typeof c.v === 'string' && /^Date\(/.test(c.v)){ const p = c.v.match(/\d+/g).map(Number); return new Date(p[0], p[1], p[2]); }
-  const a = String((c.f || c.v) || '');
-  const m = a.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
-  if (m){ let an = +m[3]; if (an < 100) an += 2000; return new Date(an, +m[2]-1, +m[1]); }
-  const i = a.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  return i ? new Date(+i[1], +i[2]-1, +i[3]) : null;
-}
-function cuChave(c){ return cuNorm((c.comando || 'SC') + '|' + String(c.sigla || c.nome || '').slice(0,40)).replace(/[^A-Z0-9|]/g,''); }
-
-async function cuLerPlanilha(){
-  const url = 'https://docs.google.com/spreadsheets/d/' + CUR_PLAN.id +
-              '/gviz/tq?tqx=out:json&headers=0&sheet=' + encodeURIComponent(CUR_PLAN.aba) +
-              '&range=' + CUR_PLAN.faixa;
-  const txt = await (await fetch(url)).text();
-  const m = txt.match(/setResponse\(([\s\S]*)\)/);
-  if (!m) throw new Error('planilha');
-  const j = JSON.parse(m[1]);
-  if (j.status === 'error') throw new Error('planilha');
-  const rows = (j.table && j.table.rows) || [];
-
-  /* descobre a linha de cabeçalho */
-  let iCab = 0, melhor = -1;
-  for (let i = 0; i < Math.min(rows.length, 12); i++){
-    const t = (rows[i].c || []).map(cuVal), jj = cuNorm(t.join(' '));
-    let s = t.filter(Boolean).length;
-    if (/CURSO/.test(jj)) s += 6;
-    if (/SIGLA/.test(jj)) s += 4;
-    if (/INICIO|TERMINO|DATA|PRAZO|LIMITE/.test(jj)) s += 3;
-    if (/COMANDO|TCA/.test(jj)) s += 2;
-    if (s > melhor){ melhor = s; iCab = i; }
-  }
-  const cab = (rows[iCab].c || []).map(cuVal).map(cuNorm);
-  const acha = res => { for (let i = 0; i < cab.length; i++){ if (cab[i] && res.some(r => r.test(cab[i]))) return i; } return null; };
-  const ix = {
-    sigla:   acha([/SIGLA/, /^COD/, /ABREV/]),
-    nome:    acha([/NOME DO CURSO/, /^CURSO$/, /^NOME$/, /DENOMINA/, /CURSO/]),
-    comando: acha([/COMANDO/, /^ODSA/, /^COM$/, /ORGAO/]),
-    limite:  acha([/LIMITE/, /INSCRI/, /MATRICULA/, /PRAZO/, /REMESSA/, /INDICACAO/]),
-    inicio:  acha([/INICIO/])
-  };
-  return rows.slice(iCab + 1).map(r => {
-    const cs = r.c || [], t = cs.map(cuVal), g = i => (i == null ? '' : (t[i] || '').trim());
-    const c = {
-      comando: g(ix.comando) || 'COMGEP', sigla: g(ix.sigla), nome: g(ix.nome),
-      limite: ix.limite == null ? null : cuData(cs[ix.limite]),
-      inicio: ix.inicio == null ? null : cuData(cs[ix.inicio])
-    };
-    c.chave = cuChave(c);
-    return c;
-  }).filter(c => c.sigla || c.nome);
-}
 
 async function carregarCursos(){
   const nota = cuEl('cu-note'), alerta = cuEl('cu-alerta');
   try {
-    const [plan, base, manifsTodas] = await Promise.all([
-      cuLerPlanilha().catch(() => []),
-      cuGet('cur_cursos?select=*').catch(() => []),
-      cuGet('cur_manifestacoes?select=id,curso_chave,status,aval_chefia,criada_em,nome_guerra')
+    const [base, manifsTodas] = await Promise.all([
+      cuGet('cur_cursos?select=*'),
+      cuGet('cur_manifestacoes?select=id,curso_chave,status,aval_chefia,criada_em,nome_guerra').catch(() => [])
     ]);
-    const manifs = manifsTodas.filter(m => m.status !== 'cancelada');
 
-    /* funde planilha + cadastros e ajustes do Supabase */
-    const ajustes = {}, proprios = [];
-    base.forEach(b => {
-      const c = {
-        comando: b.comando, sigla: b.sigla, nome: b.nome,
-        limite: cuIso(b.data_limite), inicio: cuIso(b.data_inicio), oculto: b.oculto
-      };
-      c.chave = b.chave_planilha || cuChave(c);
-      if (b.chave_planilha) ajustes[b.chave_planilha] = c; else proprios.push(c);
-    });
-    const cursos = plan.map(c => {
-      const a = ajustes[c.chave];
-      if (!a) return c;
-      return { chave:c.chave, comando:a.comando || c.comando, sigla:a.sigla || c.sigla,
-               nome:a.nome || c.nome, limite:a.limite || c.limite, inicio:a.inicio || c.inicio, oculto:a.oculto };
-    }).concat(proprios).filter(c => !c.oculto);
+    /* cursos cadastrados — nada de planilha, nada de fusão */
+    const cursos = base.map(b => ({
+      id: b.id, comando: b.comando, sigla: b.sigla, nome: b.nome,
+      limite: cuIso(b.data_limite), inicio: cuIso(b.data_inicio)
+    }));
+    const idsValidos = new Set(cursos.map(c => String(c.id)));
+
+    /* descarta canceladas e órfãs (curso já excluído) */
+    const manifs = manifsTodas.filter(m =>
+      m.status !== 'cancelada' && idsValidos.has(String(m.curso_chave)));
 
     /* contagens por curso */
     const porCurso = {};
     manifs.forEach(m => {
-      const o = porCurso[m.curso_chave] || (porCurso[m.curso_chave] = { total:0, semAval:0, aRemeter:0 });
+      const k = String(m.curso_chave);
+      const o = porCurso[k] || (porCurso[k] = { total:0, semAval:0, aRemeter:0 });
       o.total++;
       if (!m.aval_chefia) o.semAval++;
       if (m.status === 'recebida') o.aRemeter++;
     });
 
-    const dados = cursos.map(c => ({ c, d: cuDias(c.limite), r: porCurso[c.chave] || { total:0, semAval:0, aRemeter:0 } }));
+    const dados = cursos.map(c => ({
+      c, d: cuDias(c.limite), r: porCurso[String(c.id)] || { total:0, semAval:0, aRemeter:0 }
+    }));
     const abertos  = dados.filter(x => x.d == null || x.d >= 0);
     const criticos = dados.filter(x => x.d != null && x.d >= 0 && x.d <= 15);
     const prontos  = criticos.filter(x => x.r.aRemeter > 0);
@@ -2712,9 +2656,9 @@ async function carregarCursos(){
     cuEl('kpi-cur').style.color = criticos.length ? '#f0abfc' : '';
 
     /* barra: crítico · atenção · folga */
-    const aten = abertos.filter(x => x.d != null && x.d > 15 && x.d <= 40).length;
+    const aten  = abertos.filter(x => x.d != null && x.d > 15 && x.d <= 40).length;
     const folga = Math.max(0, abertos.length - criticos.length - aten);
-    const tot = Math.max(1, abertos.length);
+    const tot   = Math.max(1, abertos.length);
     cuEl('cu-bar').innerHTML =
       `<span style="width:${criticos.length/tot*100}%;background:var(--magenta)"></span>` +
       `<span style="width:${aten/tot*100}%;background:var(--amber)"></span>` +
@@ -2744,7 +2688,9 @@ async function carregarCursos(){
     }
     if (!linhas.length){
       const prox = abertos.filter(x => x.d != null).sort((a,b) => a.d - b.d)[0];
-      linhas.push('✔ Nenhuma pendência de indicação.' + (prox ? ' Próximo prazo: <b>' + cuEsc(prox.c.sigla || prox.c.nome) + '</b> em ' + prox.d + ' dia(s).' : ''));
+      linhas.push(cursos.length
+        ? '✔ Nenhuma pendência de indicação.' + (prox ? ' Próximo prazo: <b>' + cuEsc(prox.c.sigla || prox.c.nome) + '</b> em ' + prox.d + ' dia(s).' : '')
+        : '📋 Nenhum curso cadastrado ainda — use o painel da secretaria para incluir a oferta.');
     }
     alerta.className = 'cu-alerta' + (nivel ? ' ' + nivel : '');
     alerta.innerHTML = linhas.join('<br>');
@@ -2774,9 +2720,14 @@ async function carregarCursos(){
         '<span>' + cuEsc(x.c.comando || '') + ' · limite ' + cuEsc(cuBR(x.c.limite)) + ' · ' + extra + '</span></div></div>';
     }).join('') : '<div class="cu-vazio">Nenhum curso com prazo em aberto</div>';
 
-    if (nota) nota.textContent = manifs.length
-      ? manifs.length + ' manifestação(ões) registradas · ' + aRemeter + ' aguardando remessa'
-      : 'Nenhuma manifestação registrada até agora';
+    /* nota — deixa o total cadastrado visível para conferência */
+    if (nota) nota.textContent =
+      cursos.length + ' curso(s) cadastrado(s) · ' +
+      (manifs.length
+        ? manifs.length + ' manifestação(ões) · ' + aRemeter + ' aguardando remessa'
+        : 'nenhuma manifestação registrada');
+
+    console.log('[hub·cursos] ' + cursos.length + ' cadastrados · ' + abertos.length + ' abertos · ' + manifs.length + ' manifestações válidas');
 
   } catch (e){
     console.warn('Indicação para cursos indisponível:', e.message);
