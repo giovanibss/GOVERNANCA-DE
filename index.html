@@ -12,7 +12,7 @@
 <link rel="manifest" href="site.webmanifest" />
 <meta name="theme-color" content="#061021" />
 <meta name="apple-mobile-web-app-title" content="Governança DE" />
-<meta name="description" content="Painel único para os sistemas de controle da Divisão de Ensino da Academia da Força Aérea." />
+<meta name="description" content="Painel único para os sistemas de controle da Secretaria da Divisão de Ensino da Academia da Força Aérea." />
 <link rel="preload" as="image" href="assets/hero-afa.jpg" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -604,14 +604,115 @@ body.cortina .cue{animation-play-state:paused}
   color:rgba(207,228,255,.32);
 }
 
+/* ═══ FAIXA DO DASHBOARD — mostrador e contagem regressiva ═══ */
+.strip-in{grid-template-columns:repeat(3,1fr) 1.05fr 1.45fr}
+.stat{display:flex;flex-direction:column;justify-content:center}
+.stat-k{align-items:flex-start;line-height:1.45}
+.stat-k i{margin-top:.32em}
+
+/* minirelógio — réplica reduzida do instrumento de Missões */
+.gauge-row{display:flex;align-items:center;gap:.7rem;min-width:0}
+#gauge-mini{
+  width:64px;height:64px;flex:0 0 64px;display:block;
+  filter:drop-shadow(0 5px 13px rgba(0,0,0,.6));
+}
+.gauge-lead{min-width:0}
+.gauge-val{
+  display:block;font-family:var(--f-display);font-weight:400;
+  font-size:clamp(1rem,1.9vw,1.3rem);line-height:1.05;color:#fff;
+  font-variant-numeric:tabular-nums;overflow-wrap:anywhere;
+}
+.gauge-lead small{
+  display:block;margin-top:.22rem;font-family:var(--f-data);
+  font-size:.55rem;letter-spacing:.09em;color:var(--contrail-dim);
+}
+
+/* contagem regressiva do auxílio transporte */
+.cdn{display:flex;gap:.34rem;align-items:flex-start}
+.cdn > div{
+  flex:1 1 0;min-width:0;text-align:center;
+  border:1px solid var(--hair);border-radius:6px;
+  background:rgba(6,16,33,.42);padding:.34rem .12rem .28rem;
+}
+.cdn b{
+  display:block;font-family:var(--f-display);font-weight:400;
+  font-size:clamp(1.05rem,2.1vw,1.5rem);line-height:1;color:#fff;
+  font-variant-numeric:tabular-nums;
+}
+.cdn small{
+  display:block;margin-top:.16rem;font-family:var(--f-data);
+  font-size:.46rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--contrail-dim);
+}
+.cdn.aberta > div{border-color:rgba(62,207,154,.45);background:rgba(62,207,154,.08)}
+.cdn.aberta b{color:#6ee7b7}
+.cdn.fecha > div{border-color:rgba(245,158,11,.45);background:rgba(245,158,11,.08)}
+.cdn.fecha b{color:var(--amber)}
+.cdn-note{
+  margin-top:.4rem;font-family:var(--f-data);font-size:.53rem;
+  letter-spacing:.08em;color:rgba(207,228,255,.45);line-height:1.4;
+}
+
+/* ═══ CARTÕES EXPANSÍVEIS — pilha vertical, ordem alfabética ═══ */
+.modules{grid-template-columns:1fr}
+.card.wide{grid-column:auto}
+.card.host{display:block}
+.sect-label{justify-content:space-between}
+.sect-label > span{display:flex;align-items:center;gap:.7rem;white-space:nowrap}
+.sect-label::after{order:1}
+.expand-all{
+  order:2;flex:0 0 auto;cursor:pointer;
+  background:transparent;border:1px solid rgba(212,168,75,.34);border-radius:4px;
+  color:var(--gold-lt);padding:.26rem .6rem;
+  font-family:var(--f-data);font-size:.56rem;letter-spacing:.16em;
+  text-transform:uppercase;transition:background .22s,border-color .22s;
+}
+.expand-all:hover{background:rgba(212,168,75,.14);border-color:rgba(212,168,75,.6)}
+.expand-all:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+/* o cartão agora é <details>: o cabeçalho é o <summary> */
+.card{padding:0}
+.card > summary{
+  list-style:none;cursor:pointer;margin:0;
+  display:flex;align-items:center;gap:.85rem;
+  padding:1.15rem 1.4rem;min-height:86px;
+}
+.card > summary::-webkit-details-marker{display:none}
+.card > summary::marker{content:''}
+.card > summary:focus-visible{outline:2px solid var(--gold);outline-offset:-3px;border-radius:13px}
+.card-id{flex:1;min-width:0}
+.card-chev{
+  flex:0 0 auto;display:inline-flex;color:var(--gold-lt);opacity:.7;
+  transition:transform .32s cubic-bezier(.2,.8,.2,1),opacity .25s;
+}
+.card-chev svg{width:19px;height:19px}
+.card > summary:hover .card-chev{opacity:1}
+.card[open] > summary .card-chev{transform:rotate(180deg);opacity:1}
+.card[open] > summary{border-bottom:1px solid var(--hair)}
+
+.card-body{padding:1.35rem 1.4rem 1.45rem}
+.card[open] > .card-body{animation:abrirCard .34s cubic-bezier(.2,.8,.2,1)}
+@keyframes abrirCard{from{opacity:0;transform:translateY(-9px)}to{opacity:1;transform:none}}
+.card-body .note{margin-bottom:0}
+.card-body .sub{margin-top:1.1rem}
+.card-acoes{
+  display:flex;align-items:center;justify-content:space-between;gap:.8rem;
+  flex-wrap:wrap;margin-top:1.2rem;padding-top:1rem;
+  border-top:1px solid var(--hair);
+}
+a.card-go{text-decoration:none}
+.card:hover{transform:translateY(-3px)}
+
 /* ═══ RESPONSIVO ═══ */
 @media(max-width:1180px){
   .strip-in{grid-template-columns:repeat(3,1fr)}
+  .stat-count{grid-column:span 2}
 }
 @media(max-width:900px){
   .modules{grid-template-columns:1fr}
   .at-duo{grid-template-columns:1fr}
   .strip-in{grid-template-columns:repeat(2,1fr)}
+  .stat-count{grid-column:span 2}
   .intro-in{max-width:100%}
 }
 @media(max-width:560px){
@@ -622,7 +723,13 @@ body.cortina .cue{animation-play-state:paused}
   .top-clock .lbl{display:none}
   .mark{width:31px;height:31px}
   .stat{padding:.85rem}
+  .strip-in{grid-template-columns:1fr}
+  .stat-count{grid-column:auto}
   .trio dd{font-size:1.2rem}
+  .card > summary{padding:.95rem 1.05rem;min-height:0;gap:.7rem}
+  .card-body{padding:1.1rem 1.05rem 1.2rem}
+  .card-chev svg{width:17px;height:17px}
+  .sect-label > span{font-size:.6rem}
   .foot .motto{margin-left:0;width:100%}
 }
 
@@ -942,7 +1049,7 @@ body.cortina .cue{animation-play-state:paused}
   <div class="mark"><img src="assets/brasao-afa.jpg" alt="Brasão da Academia da Força Aérea" /></div>
   <div class="top-id">
     <b>Governança DE</b>
-    <span>Divisão de Ensino</span>
+    <span>Secretaria da Divisão de Ensino</span>
   </div>
   <div class="top-clock">
     <span class="beacon" aria-hidden="true"></span>
@@ -970,7 +1077,7 @@ body.cortina .cue{animation-play-state:paused}
   <section class="intro">
     <div class="intro-in">
       <p class="eyebrow rv">Academia da Força Aérea</p>
-      <h1 class="rv" data-d="1">Governança da<em>Divisão de Ensino</em></h1>
+      <h1 class="rv" data-d="1">Governança da<em>Secretaria da Divisão de Ensino</em></h1>
       <p class="rv" data-d="2">Ponto único de acesso aos sistemas de controle da DE. Os números abaixo refletem a situação de agora — escolha um módulo para operar.</p>
     </div>
   </section>
@@ -978,274 +1085,272 @@ body.cortina .cue{animation-play-state:paused}
   <section class="strip rv" aria-label="Situação atual">
     <div class="strip-in">
       <div class="stat">
-        <div class="stat-k"><i style="background:var(--jade)"></i> Instalações OK</div>
+        <div class="stat-k"><i style="background:var(--jade)"></i> Toilets higienizados</div>
         <div class="stat-v"><span id="kpi-ok">—</span><small id="kpi-ok-tot"></small></div>
-      </div>
-      <div class="stat">
-        <div class="stat-k"><i style="background:var(--amber)"></i> Em atenção</div>
-        <div class="stat-v" id="kpi-warn">—</div>
-      </div>
-      <div class="stat">
-        <div class="stat-k"><i style="background:var(--magenta)"></i> Vencidas +8h</div>
-        <div class="stat-v" id="kpi-over">—</div>
       </div>
       <div class="stat">
         <div class="stat-k"><i style="background:var(--gold)"></i> Efetivo presente</div>
         <div class="stat-v"><span id="kpi-pres">—</span><small id="kpi-pres-tot"></small></div>
       </div>
       <div class="stat">
-        <div class="stat-k"><i style="background:#5aa2e0"></i> Cursos · prazo ≤15d</div>
+        <div class="stat-k"><i style="background:#5aa2e0"></i> Cursos em período de Manifestação</div>
         <div class="stat-v"><span id="kpi-cur">—</span><small id="kpi-cur-tot"></small></div>
+      </div>
+
+      <!-- minirelógio: réplica do instrumento do módulo Missões -->
+      <div class="stat stat-gauge">
+        <div class="stat-k"><i style="background:#6ee7b7"></i> Restante em Diárias</div>
+        <div class="gauge-row">
+          <svg id="gauge-mini" viewBox="0 0 260 260" role="img" aria-label="Indicador analógico do saldo disponível de diárias"></svg>
+          <div class="gauge-lead">
+            <span class="gauge-val" id="kpi-dg-saldo">—</span>
+            <small id="kpi-dg-pct">aguardando dotação</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- contagem regressiva do ciclo do auxílio transporte -->
+      <div class="stat stat-count">
+        <div class="stat-k"><i style="background:var(--amber)"></i> Contagem regressiva para envio da próxima declaração de aux transporte</div>
+        <div class="cdn" id="kpi-at-cd">
+          <div><b id="cd-d">—</b><small>dias</small></div>
+          <div><b id="cd-h">—</b><small>hor</small></div>
+          <div><b id="cd-m">—</b><small>min</small></div>
+          <div><b id="cd-s">—</b><small>seg</small></div>
+        </div>
+        <p class="cdn-note" id="cd-note">calculando…</p>
       </div>
     </div>
   </section>
 
   <section class="modules">
-    <p class="sect-label rv">Módulos</p>
+    <div class="sect-label rv">
+      <span>Módulos</span>
+      <button class="expand-all" id="btn-expandir" type="button" aria-expanded="false">Expandir todos</button>
+    </div>
 
-    <!-- EFETIVO -->
-    <div class="card host rv" data-d="1">
-      <a class="card-main" href="efetivo.html">
-        <div class="card-top">
-          <img class="card-cocar" src="assets/cocar-fab.png" alt="" />
-          <div>
-            <h2>Efetivo</h2>
-            <small>Chamada e controle de faltas</small>
-          </div>
-          <span class="card-tag">Ativo</span>
+    <!-- ══ AUXÍLIO TRANSPORTE ══ -->
+    <details class="card rv" data-d="1">
+      <summary>
+        <img class="card-cocar" src="assets/cocar-fab.png" alt="" />
+        <div class="card-id">
+          <h2>Auxílio Transporte</h2>
+          <small>Declaração mensal, cálculo automático e conferência</small>
         </div>
+        <span class="card-tag" id="at-fase">Ciclo</span>
+        <span class="card-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+      </summary>
+      <div class="card-body">
+        <div class="at-duo">
+          <div>
+            <dl class="trio">
+              <div><dt><i style="background:var(--gold)"></i> Enviadas</dt><dd id="at-env">—</dd></div>
+              <div><dt><i style="background:var(--jade)"></i> Conferidas</dt><dd id="at-conf">—</dd></div>
+              <div><dt><i style="background:var(--amber)"></i> Pendências</dt><dd id="at-pend">—</dd></div>
+            </dl>
+            <div class="bar" id="at-bar" role="img" aria-label="Progresso das declarações do auxílio transporte">
+              <span style="width:100%;background:rgba(207,228,255,.14)"></span>
+            </div>
+            <p class="note" id="at-note">Declarações do mês · sincronizadas entre dispositivos</p>
+          </div>
+          <div class="at-pista" aria-label="Fases do ciclo mensal do auxílio">
+            <div class="at-tr" id="at-tr1"><b>Dias 01–05 · Declaração</b>Militar preenche e envia o mês anterior</div>
+            <div class="at-tr" id="at-tr2"><b>Dias 06–10 · Conferência</b>Secretaria confere e valida</div>
+            <div class="at-tr" id="at-tr3"><b>Após dia 10 · Remessa</b>Envio ao órgão pagador</div>
+          </div>
+        </div>
+        <div class="card-acoes">
+          <a class="card-go" href="transporte.html">Abrir módulo
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+          </a>
+        </div>
+      </div>
+    </details>
+
+    <!-- ══ EFETIVO ══ -->
+    <details class="card rv" data-d="2">
+      <summary>
+        <img class="card-cocar" src="assets/cocar-fab.png" alt="" />
+        <div class="card-id">
+          <h2>Efetivo</h2>
+          <small>Chamada e controle de faltas</small>
+        </div>
+        <span class="card-tag">Ativo</span>
+        <span class="card-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+      </summary>
+      <div class="card-body">
         <dl class="trio">
-          <div>
-            <dt>Efetivo total</dt>
-            <dd id="ef-total">—</dd>
-          </div>
-          <div>
-            <dt><i style="background:var(--jade)"></i> Presentes</dt>
-            <dd id="ef-pres">—</dd>
-          </div>
-          <div>
-            <dt><i style="background:var(--amber)"></i> Ausentes</dt>
-            <dd id="ef-aus">—</dd>
-          </div>
+          <div><dt>Efetivo total</dt><dd id="ef-total">—</dd></div>
+          <div><dt><i style="background:var(--jade)"></i> Presentes</dt><dd id="ef-pres">—</dd></div>
+          <div><dt><i style="background:var(--amber)"></i> Ausentes</dt><dd id="ef-aus">—</dd></div>
         </dl>
         <div class="bar" id="ef-bar" role="img" aria-label="Presentes e ausentes">
           <span style="width:100%;background:rgba(207,228,255,.14)"></span>
         </div>
         <p class="note" id="ef-note">Chamada do dia · sincronizada entre dispositivos</p>
-        <span class="card-go">Abrir módulo
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
-        </span>
-      </a>
 
-      <!-- submódulo: download da lista -->
-      <div class="sub" id="sub-pdf">
-        <img class="sub-cocar" src="assets/cocar-fab.png" alt="" />
-        <div class="sub-txt">
-          <strong>Lista de efetivo</strong>
-          <span id="pdf-nota">PDF por antiguidade · vertical para celular</span>
+        <!-- submódulo: download da lista -->
+        <div class="sub" id="sub-pdf">
+          <img class="sub-cocar" src="assets/cocar-fab.png" alt="" />
+          <div class="sub-txt">
+            <strong>Lista de efetivo</strong>
+            <span id="pdf-nota">PDF por antiguidade · vertical para celular</span>
+          </div>
+          <button class="sub-btn" id="btn-pdf" type="button" onclick="baixarListaEfetivo()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+            </svg>
+            PDF
+          </button>
         </div>
-        <button class="sub-btn" id="btn-pdf" onclick="baixarListaEfetivo()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
-          </svg>
-          PDF
-        </button>
-      </div>
-    </div>
 
-    <!-- HIGIENIZAÇÃO -->
-    <a class="card rv" data-d="2" href="limpeza.html">
-      <div class="card-top">
+        <div class="card-acoes">
+          <a class="card-go" href="efetivo.html">Abrir módulo
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+          </a>
+        </div>
+      </div>
+    </details>
+
+    <!-- ══ HIGIENIZAÇÃO ══ -->
+    <details class="card rv" data-d="3">
+      <summary>
         <img class="card-cocar" src="assets/cocar-fab.png" alt="" />
-        <div>
+        <div class="card-id">
           <h2>Higienização</h2>
           <small>Monitoramento de limpeza dos banheiros</small>
         </div>
         <span class="card-tag">Ativo</span>
-      </div>
-      <dl class="trio">
-        <div>
-          <dt><i style="background:var(--jade)"></i> Operacionais</dt>
-          <dd id="lp-ok">—</dd>
+        <span class="card-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+      </summary>
+      <div class="card-body">
+        <dl class="trio">
+          <div><dt><i style="background:var(--jade)"></i> Operacionais</dt><dd id="lp-ok">—</dd></div>
+          <div><dt><i style="background:var(--amber)"></i> Atenção</dt><dd id="lp-warn">—</dd></div>
+          <div><dt><i style="background:var(--magenta)"></i> Vencidas</dt><dd id="lp-over">—</dd></div>
+        </dl>
+        <div class="bar" id="lp-bar" role="img" aria-label="Distribuição de status das instalações">
+          <span style="width:100%;background:rgba(207,228,255,.14)"></span>
         </div>
-        <div>
-          <dt><i style="background:var(--amber)"></i> Atenção</dt>
-          <dd id="lp-warn">—</dd>
-        </div>
-        <div>
-          <dt><i style="background:var(--magenta)"></i> Vencidas</dt>
-          <dd id="lp-over">—</dd>
-        </div>
-      </dl>
-      <div class="bar" id="lp-bar" role="img" aria-label="Distribuição de status das instalações">
-        <span style="width:100%;background:rgba(207,228,255,.14)"></span>
-      </div>
-      <p class="note" id="lp-note">12 instalações · planta isométrica em tempo real</p>
-      <span class="card-go">Abrir módulo
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
-      </span>
-    </a>
-
-    <!-- DIÁRIAS -->
-    <a class="card wide rv" data-d="3" href="diarias.html">
-      <div class="card-top">
-        <img class="card-cocar" src="assets/cocar-fab.png" alt="" />
-        <div>
-          <h2>Missões</h2>
-          <small>Diárias e Gratificação de Representação</small>
-        </div>
-        <span class="card-tag">Ativo</span>
-      </div>
-
-      <div class="instr">
-        <svg id="gauge-idx" viewBox="0 0 260 260" role="img" aria-label="Indicador analógico de saldo de diárias"></svg>
-        <div class="instr-side">
-          <dl class="readout">
-            <div><dt>Dotação inicial</dt><dd id="dg-total">—</dd></div>
-            <div><dt>Empenhado</dt><dd class="spent" id="dg-gasto">—</dd></div>
-            <div><dt>Disponível</dt><dd class="left" id="dg-saldo">—</dd></div>
-          </dl>
-          <div class="bar" id="dg-bar" role="img" aria-label="Proporção empenhada">
-            <span style="width:100%;background:rgba(207,228,255,.14)"></span>
-          </div>
-          <p class="note" id="dg-note">Nenhuma dotação registrada</p>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:.75rem">
-            <span class="card-go" style="margin-top:0">Abrir módulo
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
-            </span>
-            <button class="sub-btn-mini" onclick="event.preventDefault(); event.stopPropagation(); window.open('solicitar.html','_blank')">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>
-              Solicitar OS
-            </button>
-          </div>
-        </div>
-      </div>
-    </a>
-
-    <!-- AUXÍLIO TRANSPORTE -->
-    <a class="card wide rv" data-d="4" href="transporte.html">
-      <div class="card-top">
-        <img class="card-cocar" src="assets/cocar-fab.png" alt="" />
-        <div>
-          <h2>Auxílio Transporte</h2>
-          <small>Declaração mensal, cálculo automático e conferência</small>
-        </div>
-        <span class="card-tag" id="at-fase">Ciclo</span>
-      </div>
-
-      <div class="at-duo">
-        <div>
-          <dl class="trio">
-            <div>
-              <dt><i style="background:var(--gold)"></i> Enviadas</dt>
-              <dd id="at-env">—</dd>
-            </div>
-            <div>
-              <dt><i style="background:var(--jade)"></i> Conferidas</dt>
-              <dd id="at-conf">—</dd>
-            </div>
-            <div>
-              <dt><i style="background:var(--amber)"></i> Pendências</dt>
-              <dd id="at-pend">—</dd>
-            </div>
-          </dl>
-          <div class="bar" id="at-bar" role="img" aria-label="Progresso das declarações do auxílio transporte">
-            <span style="width:100%;background:rgba(207,228,255,.14)"></span>
-          </div>
-          <p class="note" id="at-note">Declarações do mês · sincronizadas entre dispositivos</p>
-          <span class="card-go">Abrir módulo
+        <p class="note" id="lp-note">12 instalações · planta isométrica em tempo real</p>
+        <div class="card-acoes">
+          <a class="card-go" href="limpeza.html">Abrir módulo
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
-          </span>
-        </div>
-        <div class="at-pista" aria-label="Fases do ciclo mensal do auxílio">
-          <div class="at-tr" id="at-tr1"><b>Dias 01–05 · Declaração</b>Militar preenche e envia o mês anterior</div>
-          <div class="at-tr" id="at-tr2"><b>Dias 06–10 · Conferência</b>Secretaria confere e valida</div>
-          <div class="at-tr" id="at-tr3"><b>Após dia 10 · Remessa</b>Envio ao órgão pagador</div>
+          </a>
         </div>
       </div>
-    </a>
+    </details>
 
-    <!-- INDICAÇÃO PARA CURSOS -->
-    <a class="card wide rv" data-d="5" href="cursos.html" id="cu-card">
-      <div class="card-top">
+    <!-- ══ INDICAÇÃO PARA CURSOS ══ -->
+    <details class="card rv" data-d="4">
+      <summary>
         <img class="card-cocar" src="assets/cocar-fab.png" alt="" />
-        <div>
+        <div class="card-id">
           <h2>Indicação para Cursos</h2>
           <small>Oferta por grande comando, prazos da TCA e remessa ao SIGADAER</small>
         </div>
         <span class="card-tag" id="cu-tag">Prazos</span>
-      </div>
-
-      <div class="at-duo">
-        <div>
-          <div class="cu-alerta ok" id="cu-alerta">⏳ Consultando prazos e manifestações…</div>
-          <dl class="trio">
-            <div>
-              <dt><i style="background:var(--jade)"></i> Cursos abertos</dt>
-              <dd id="cu-abertos">—</dd>
+        <span class="card-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+      </summary>
+      <div class="card-body">
+        <div class="at-duo">
+          <div>
+            <div class="cu-alerta ok" id="cu-alerta">⏳ Consultando prazos e manifestações…</div>
+            <dl class="trio">
+              <div><dt><i style="background:var(--jade)"></i> Cursos abertos</dt><dd id="cu-abertos">—</dd></div>
+              <div><dt><i style="background:var(--magenta)"></i> Prazo ≤ 15 dias</dt><dd id="cu-criticos">—</dd></div>
+              <div><dt><i style="background:var(--gold)"></i> Interessados</dt><dd id="cu-pedidos">—</dd></div>
+            </dl>
+            <div class="bar" id="cu-bar" role="img" aria-label="Proporção de cursos com prazo crítico">
+              <span style="width:100%;background:rgba(207,228,255,.14)"></span>
             </div>
-            <div>
-              <dt><i style="background:var(--magenta)"></i> Prazo ≤ 15 dias</dt>
-              <dd id="cu-criticos">—</dd>
-            </div>
-            <div>
-              <dt><i style="background:var(--gold)"></i> Interessados</dt>
-              <dd id="cu-pedidos">—</dd>
-            </div>
-          </dl>
-          <div class="bar" id="cu-bar" role="img" aria-label="Proporção de cursos com prazo crítico">
-            <span style="width:100%;background:rgba(207,228,255,.14)"></span>
+            <p class="note" id="cu-note">Prazos de indicação · manifestações da tropa em tempo real</p>
           </div>
-          <p class="note" id="cu-note">Prazos de indicação · manifestações da tropa em tempo real</p>
-          <span class="card-go">Abrir módulo
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
-          </span>
+          <div class="cu-pista" id="cu-pista" aria-label="Próximos prazos de indicação">
+            <div class="cu-vazio">Carregando prazos…</div>
+          </div>
         </div>
-        <div class="cu-pista" id="cu-pista" aria-label="Próximos prazos de indicação">
-          <div class="cu-vazio">Carregando prazos…</div>
+        <div class="card-acoes">
+          <a class="card-go" href="cursos.html" id="cu-card">Abrir módulo
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+          </a>
         </div>
       </div>
-    </a>
+    </details>
 
-    <!-- TACF -->
-    <a class="card rv" data-d="6" href="tacf.html">
-      <div class="card-top">
+    <!-- ══ MISSÕES ══ -->
+    <details class="card rv" data-d="5">
+      <summary>
         <img class="card-cocar" src="assets/cocar-fab.png" alt="" />
-        <div>
+        <div class="card-id">
+          <h2>Missões</h2>
+          <small>Diárias e Gratificação de Representação</small>
+        </div>
+        <span class="card-tag">Ativo</span>
+        <span class="card-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+      </summary>
+      <div class="card-body">
+        <div class="instr">
+          <svg id="gauge-idx" viewBox="0 0 260 260" role="img" aria-label="Indicador analógico de saldo de diárias"></svg>
+          <div class="instr-side">
+            <dl class="readout">
+              <div><dt>Dotação inicial</dt><dd id="dg-total">—</dd></div>
+              <div><dt>Empenhado</dt><dd class="spent" id="dg-gasto">—</dd></div>
+              <div><dt>Disponível</dt><dd class="left" id="dg-saldo">—</dd></div>
+            </dl>
+            <div class="bar" id="dg-bar" role="img" aria-label="Proporção empenhada">
+              <span style="width:100%;background:rgba(207,228,255,.14)"></span>
+            </div>
+            <p class="note" id="dg-note">Nenhuma dotação registrada</p>
+          </div>
+        </div>
+        <div class="card-acoes">
+          <a class="card-go" href="diarias.html">Abrir módulo
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+          </a>
+          <button class="sub-btn-mini" type="button" onclick="window.open('solicitar.html','_blank')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>
+            Solicitar OS
+          </button>
+        </div>
+      </div>
+    </details>
+
+    <!-- ══ TACF ══ -->
+    <details class="card rv" data-d="6">
+      <summary>
+        <img class="card-cocar" src="assets/cocar-fab.png" alt="" />
+        <div class="card-id">
           <h2>TACF</h2>
           <small>Condicionamento Físico e Agendamento</small>
         </div>
         <span class="card-tag">Semestral</span>
+        <span class="card-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+      </summary>
+      <div class="card-body">
+        <dl class="trio">
+          <div><dt><i style="background:var(--gold)"></i> Elegíveis</dt><dd id="tacf-eleg">—</dd></div>
+          <div><dt><i style="background:var(--jade)"></i> Agendados</dt><dd id="tacf-sol">—</dd></div>
+          <div><dt><i style="background:var(--magenta)"></i> Realizados</dt><dd id="tacf-concl">—</dd></div>
+        </dl>
+        <div class="bar" id="tacf-bar" role="img" aria-label="Distribuição do TACF">
+          <span style="width:100%;background:rgba(212,168,75,.3)"></span>
+        </div>
+        <p class="note" id="tacf-note">Agendamento de datas, escala por antiguidade e e-mails diários</p>
+        <div class="card-acoes">
+          <a class="card-go" href="tacf.html">Abrir módulo
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+          </a>
+        </div>
       </div>
-      <dl class="trio">
-        <div>
-          <dt><i style="background:var(--gold)"></i> Elegíveis</dt>
-          <dd id="tacf-eleg">—</dd>
-        </div>
-        <div>
-          <dt><i style="background:var(--jade)"></i> Agendados</dt>
-          <dd id="tacf-sol">—</dd>
-        </div>
-        <div>
-          <dt><i style="background:var(--magenta)"></i> Realizados</dt>
-          <dd id="tacf-concl">—</dd>
-        </div>
-      </dl>
-      <div class="bar" id="tacf-bar" role="img" aria-label="Distribuição do TACF">
-        <span style="width:100%;background:rgba(212,168,75,.3)"></span>
-      </div>
-      <p class="note" id="tacf-note">Agendamento de datas, escala por antiguidade e e-mails diários</p>
-      <span class="card-go">Abrir módulo
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
-      </span>
-    </a>
+    </details>
   </section>
 
   <footer class="foot">
     <img src="assets/cocar-fab.png" alt="" />
-    <span>Academia da Força Aérea · Divisão de Ensino</span>
+    <span>Academia da Força Aérea · Secretaria da Divisão de Ensino</span>
     <span class="motto">Macte animo! Generose puer, sic itur ad astra</span>
-    <span class="motto" style="opacity:.55">Governança DE · v3.2</span>
+    <span class="motto" style="opacity:.55">Governança DE · v3.3</span>
   </footer>
 
 </div>
@@ -1866,9 +1971,7 @@ async function carregarLimpeza(){
     n[ statusDe(u?.quando || null, u?.tipo) ]++;
   });
 
-  countTo(document.getElementById('kpi-ok'),   n.ok);
-  countTo(document.getElementById('kpi-warn'), n.atencao);
-  countTo(document.getElementById('kpi-over'), n.vencido);
+  countTo(document.getElementById('kpi-ok'), n.ok);
   document.getElementById('kpi-ok-tot').textContent = `/${IDS.length}`;
 
   countTo(document.getElementById('lp-ok'),   n.ok);
@@ -2389,21 +2492,73 @@ function montarGaugeIdx(){
   el.innerHTML = s;
 }
 
+/* ── MINIRELÓGIO DA FAIXA — réplica reduzida do instrumento acima ──
+   Usa a MESMA geometria (GG) e o mesmo viewBox 260×260; o que muda é
+   só o nível de detalhe: sem rótulos nem visor digital, traços e
+   ponteiro mais grossos, porque o mostrador é renderizado a ~64px.  */
+function montarGaugeMini(){
+  const el = document.getElementById('gauge-mini');
+  if (!el) return;
+  const {cx,cy,r} = GG;
+  let s = `<defs>
+    <linearGradient id="mbez" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2b3a52"/><stop offset=".5" stop-color="#16233a"/><stop offset="1" stop-color="#0a1424"/>
+    </linearGradient>
+    <radialGradient id="mface" cx=".5" cy=".38" r=".72">
+      <stop offset="0" stop-color="#16294a"/><stop offset="1" stop-color="#050c19"/>
+    </radialGradient>
+    <linearGradient id="mglass" x1="0" y1="0" x2=".7" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".20"/>
+      <stop offset=".45" stop-color="#fff" stop-opacity=".04"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>`;
+
+  s += `<circle cx="${cx}" cy="${cy}" r="128" fill="url(#mbez)"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="113" fill="none" stroke="#040a14" stroke-width="5"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="108" fill="url(#mface)"/>`;
+
+  const faixa=(v0,v1,c,o)=>`<path d="${garco(cx,cy,r-4,gang(v0),gang(v1))}" fill="none" stroke="${c}" stroke-width="13" stroke-opacity="${o}"/>`;
+  s += faixa(0,.15,'#ef4444',.9) + faixa(.15,.30,'#f59e0b',.9) + faixa(.30,1,'#10b981',.78);
+
+  s += `<path id="mini-spent" d="" fill="none" stroke="#ef4444" stroke-width="26" stroke-opacity=".2"/>`;
+
+  for (let i=0;i<=8;i++){
+    const v=i/8, a=gang(v), big=i%2===0;
+    const p0=gpol(cx,cy,r-16,a), p1=gpol(cx,cy,big?r-40:r-30,a);
+    s += `<line x1="${p0.x.toFixed(1)}" y1="${p0.y.toFixed(1)}" x2="${p1.x.toFixed(1)}" y2="${p1.y.toFixed(1)}"
+           stroke="${big?'#e6eef7':'#7d93b5'}" stroke-width="${big?7:3.4}" stroke-linecap="round"/>`;
+  }
+
+  s += `<g id="mini-needle">
+          <polygon points="${cx-8},${cy} ${cx},${cy-r+20} ${cx+8},${cy}" fill="#f8fafc"/>
+          <polygon points="${cx-7},${cy} ${cx},${cy+30} ${cx+7},${cy}" fill="#94a3b8"/>
+        </g>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="17" fill="#1c2b44" stroke="#4a5d7d" stroke-width="3"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="7" fill="#d4a84b"/>`;
+  s += `<circle cx="${cx}" cy="${cy}" r="108" fill="url(#mglass)" pointer-events="none"/>`;
+
+  el.innerHTML = s;
+}
+
 /* ── movimento do ponteiro (mesma mecânica de diarias.html) ── */
 const IOSC = { amp:0.85, f1:2.1, f2:3.7, seguir:0.055 };
 let iAlvo = 0, iAtual = 0, iIniciado = false;
 const iSemAnim = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 function moverPonteiroIdx(){
-  const ndl = document.getElementById('idx-needle');
-  if (!ndl) return;
+  const ndl  = document.getElementById('idx-needle');
+  const mini = document.getElementById('mini-needle');
+  if (!ndl && !mini) return;
   iAtual += (iAlvo - iAtual) * IOSC.seguir;
   let ang = gang(iAtual) - 270;
   if (!iSemAnim){
     const t = performance.now()/1000;
     ang += (Math.sin(t*IOSC.f1)*0.58 + Math.sin(t*IOSC.f2)*0.42) * IOSC.amp;
   }
-  ndl.setAttribute('transform', `rotate(${ang.toFixed(3)} ${GG.cx} ${GG.cy})`);
+  const rot = `rotate(${ang.toFixed(3)} ${GG.cx} ${GG.cy})`;
+  if (ndl)  ndl.setAttribute('transform', rot);
+  if (mini) mini.setAttribute('transform', rot);   /* os dois lêem o mesmo saldo */
   requestAnimationFrame(moverPonteiroIdx);
 }
 
@@ -2421,6 +2576,20 @@ function pintarDiarias(total, gasto, nOrdens){
 
   const sp = $('idx-spent');
   if (sp) sp.setAttribute('d', (total>0 && frac<.999) ? garco(GG.cx,GG.cy,GG.r-3,gang(frac),gang(1)) : '');
+
+  /* setor empenhado do minirelógio da faixa */
+  const msp = $('mini-spent');
+  if (msp) msp.setAttribute('d', (total>0 && frac<.999) ? garco(GG.cx,GG.cy,GG.r-4,gang(frac),gang(1)) : '');
+
+  /* leitura textual ao lado do minirelógio */
+  const kSaldo = $('kpi-dg-saldo'), kPct = $('kpi-dg-pct');
+  if (kSaldo){
+    kSaldo.textContent = total > 0 ? fmtBRL(total - gasto) : '—';
+    kSaldo.style.color = total === 0 ? '' : frac < .15 ? '#fca5a5' : frac < .30 ? '#fcd34d' : '#6ee7b7';
+  }
+  if (kPct) kPct.textContent = total > 0
+    ? (frac*100).toFixed(1).replace('.',',') + '% da dotação'
+    : 'aguardando dotação';
 
   const pct = $('idx-pct');
   if (pct){
@@ -2764,8 +2933,66 @@ async function carregarTacfHub() {
 }
 
 /* ═══ carga inicial + atualização periódica ═══ */
+/* ═══════════════════════════════════════════════════════════════════
+   12 · CONTAGEM REGRESSIVA · AUXÍLIO TRANSPORTE
+   A declaração é enviada na janela dos dias 01–05 de cada mês e cobre
+   sempre a competência do mês anterior. Dentro da janela o relógio
+   conta para o FECHAMENTO (fim do dia 05); fora dela, para a ABERTURA
+   (dia 01 do mês seguinte).
+   ═══════════════════════════════════════════════════════════════════ */
+const AT_MESES = ['janeiro','fevereiro','março','abril','maio','junho',
+                  'julho','agosto','setembro','outubro','novembro','dezembro'];
+
+function alvoDeclaracaoAT(){
+  const h = new Date();
+  if (h.getDate() <= 5){
+    /* janela aberta — encerra na virada do dia 05 para o 06 */
+    return { alvo: new Date(h.getFullYear(), h.getMonth(), 6, 0, 0, 0), aberta: true };
+  }
+  const vira = h.getMonth() === 11;
+  return {
+    alvo: new Date(vira ? h.getFullYear()+1 : h.getFullYear(), vira ? 0 : h.getMonth()+1, 1, 0, 0, 0),
+    aberta: false
+  };
+}
+
+function tickContagemAT(){
+  const cd = document.getElementById('kpi-at-cd');
+  if (!cd) return;
+  const { alvo, aberta } = alvoDeclaracaoAT();
+  const ms = Math.max(0, alvo - new Date());
+  const p2 = n => String(n).padStart(2,'0');
+
+  document.getElementById('cd-d').textContent = p2(Math.floor(ms/86400000));
+  document.getElementById('cd-h').textContent = p2(Math.floor(ms/3600000) % 24);
+  document.getElementById('cd-m').textContent = p2(Math.floor(ms/60000) % 60);
+  document.getElementById('cd-s').textContent = p2(Math.floor(ms/1000) % 60);
+
+  cd.classList.toggle('aberta', aberta);
+  cd.classList.toggle('fecha', aberta && ms < 48*3600000);
+
+  /* a competência declarada é sempre o mês anterior ao da abertura */
+  const comp = new Date(alvo.getFullYear(), alvo.getMonth() - 1, 1);
+  const compTxt = AT_MESES[comp.getMonth()] + '/' + comp.getFullYear();
+  document.getElementById('cd-note').textContent = aberta
+    ? 'Janela ABERTA · encerra ao fim de ' + p2(5) + '/' + p2(alvo.getMonth()+1) + ' · competência ' + compTxt
+    : 'Abre em 01/' + p2(alvo.getMonth()+1) + '/' + alvo.getFullYear() + ' · competência ' + compTxt;
+}
+setInterval(tickContagemAT, 1000);
+tickContagemAT();
+
+/* botão expandir/retrair todos os cartões */
+document.getElementById('btn-expandir')?.addEventListener('click', function(){
+  const cards = document.querySelectorAll('.modules details.card');
+  const abrir = ![...cards].every(c => c.open);
+  cards.forEach(c => c.open = abrir);
+  this.textContent = abrir ? 'Retrair todos' : 'Expandir todos';
+  this.setAttribute('aria-expanded', String(abrir));
+});
+
 function atualizar(){ carregarLimpeza(); carregarEfetivo(); carregarDiarias(); carregarTransporte(); carregarCursos(); carregarTacfHub(); }
 montarGaugeIdx();
+montarGaugeMini();
 atualizar();
 setInterval(atualizar, 60000);
 
