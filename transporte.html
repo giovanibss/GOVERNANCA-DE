@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Auxílio Transporte · Governança DE</title>
 <meta name="description" content="Declaração mensal, cálculo automático e conferência do Auxílio Transporte da Divisão de Ensino." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✈️</text></svg>" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -1878,11 +1879,18 @@ function dadosDoMes(comp){
 function valorDesconto(r){ return r.zerado ? r.vig : r.desconto; }
 
 /* ══════════════ Nº DO OFÍCIO / Nº SIGAD (por competência) ══════════════ */
+let _atOficiosSupabaseAvailable = null;
+
 async function lerOficio(comp){
-  try {
-    const r = await sbGet('at_oficios?select=*&competencia=eq.' + comp);
-    if (r && r[0]) return { num_oficio:r[0].num_oficio || '', num_sigad:r[0].num_sigad || '', email_enviado_em:r[0].email_enviado_em || null };
-  } catch(e){ /* tabela ainda não criada → cai no armazenamento local */ }
+  if (_atOficiosSupabaseAvailable !== false) {
+    try {
+      const r = await sbGet('at_oficios?select=*&competencia=eq.' + comp);
+      _atOficiosSupabaseAvailable = true;
+      if (r && r[0]) return { num_oficio:r[0].num_oficio || '', num_sigad:r[0].num_sigad || '', email_enviado_em:r[0].email_enviado_em || null };
+    } catch(e){
+      _atOficiosSupabaseAvailable = false;
+    }
+  }
   try {
     const ls = localStorage.getItem('at_oficio_' + comp);
     if (ls) return JSON.parse(ls);
@@ -1894,22 +1902,19 @@ async function salvarOficio(comp, extra){
   const o = Object.assign({}, atual, { num_oficio:$('numOficio').value.trim(), num_sigad:$('numSigad').value.trim() }, extra || {});
   try { localStorage.setItem('at_oficio_' + comp, JSON.stringify(o)); } catch(e){}
   
-  try {
-    const payload = Object.assign({ competencia:comp }, o);
-    const existente = await sbGet('at_oficios?select=id&competencia=eq.' + comp).catch(() => []);
-    if (existente && existente.length > 0) {
-      await sbPatch('at_oficios?competencia=eq.' + comp, payload);
-    } else {
-      await sbUpsert('at_oficios', payload, 'competencia').catch(async () => {
-        await fetch(SB.url + '/rest/v1/at_oficios', {
-          method: 'POST',
-          headers: sbCab(),
-          body: JSON.stringify(payload)
-        });
-      });
+  if (_atOficiosSupabaseAvailable !== false) {
+    try {
+      const payload = Object.assign({ competencia:comp }, o);
+      const existente = await sbGet('at_oficios?select=id&competencia=eq.' + comp);
+      if (existente && existente.length > 0) {
+        await sbPatch('at_oficios?competencia=eq.' + comp, payload);
+      } else {
+        await sbUpsert('at_oficios', payload, 'competencia');
+      }
+      _atOficiosSupabaseAvailable = true;
+    } catch(e){
+      _atOficiosSupabaseAvailable = false;
     }
-  } catch(e){
-    console.warn('[salvarOficio] Supabase at_oficios fallback para localStorage:', e.message);
   }
   return o;
 }
