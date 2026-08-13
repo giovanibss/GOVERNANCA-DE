@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Indicação para Cursos · Governança DE</title>
 <meta name="description" content="Oferta de cursos, prazos de matrícula, manifestação de interesse e remessa da indicação ao setor de capacitação." />
+<link rel="icon" href="assets/favicon.ico" sizes="any" />
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="assets/favicon-32.png" type="image/png" sizes="32x32" />
+<link rel="icon" href="assets/favicon-16.png" type="image/png" sizes="16x16" />
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png" sizes="180x180" />
+<meta name="theme-color" content="#060d1d" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -578,12 +584,12 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
 
 <div id="areaImpressao"></div>
 
-<footer>Governança DE · Academia da Força Aérea — módulo Indicação para Cursos · <b>v1.0</b></footer>
+<footer>Governança DE · Academia da Força Aérea — módulo Indicação para Cursos · <b>v1.1</b></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="assets/js/app-config.js"></script>
 <script>
-console.log('%cIndicação para Cursos · v1.0', 'color:#d4a84b;font-weight:bold');
+console.log('%cIndicação para Cursos · v1.1', 'color:#d4a84b;font-weight:bold');
 
 /* ══════════════════════════════════════════════════════════════
    CONFIGURAÇÃO
@@ -970,7 +976,30 @@ async function enviarManifestacao(){
 
 async function carregarManifs(){
   try { manifs = await sbGet('cur_manifestacoes?select=*&order=criada_em.asc'); }
-  catch (e){ manifs = []; console.warn(e); }
+  catch (e){ manifs = []; console.warn(e); return; }
+
+  /* ── higiene: manifestação de curso já excluído não existe mais ──
+     Só filtra se a lista de cursos carregou de fato; se cur_cursos
+     falhou, cursos fica vazio e nada pode ser considerado órfão.   */
+  if (!cursos.length) return;
+  const validos = new Set(cursos.map(c => String(c.id)));
+  const orfas = manifs.filter(m => !validos.has(String(m.curso_chave)));
+  if (!orfas.length) return;
+
+  manifs = manifs.filter(m => validos.has(String(m.curso_chave)));
+  console.warn('[cursos] ' + orfas.length + ' manifestação(ões) órfã(s) — curso removido.');
+  if (secLiberada()) limparOrfas(orfas);
+}
+
+/* remove do banco as manifestações que sobraram de cursos excluídos
+   antes da regra de cascata existir. Roda só na sessão da secretaria. */
+async function limparOrfas(orfas){
+  let n = 0;
+  for (const m of orfas){
+    try { await sbDel('cur_manifestacoes?id=eq.' + encodeURIComponent(m.id)); n++; }
+    catch (e){ console.warn('órfã ' + m.id + ':', e.message); }
+  }
+  if (n) aviso('ok', '🧹 ' + n + ' manifestação(ões) de curso já excluído foram removidas.', 7000);
 }
 
 /* ══════════════ MINHAS MANIFESTAÇÕES ══════════════ */
@@ -1350,10 +1379,29 @@ function listarCursosSec(){
   $('corpoCursosSec').querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => abrirModalCurso(b.dataset.edit)));
   
   $('corpoCursosSec').querySelectorAll('[data-excluir]').forEach(b => b.addEventListener('click', async () => {
-    if (!confirm('Tem certeza que deseja excluir este curso permanentemente? O curso será removido da base de dados.')) return;
+    const id = b.dataset.excluir;
+    const c  = acharCurso(id);
+    const rotulo = (c && (c.sigla || c.nome)) || 'este curso';
+    const atreladas = manifs.filter(m => String(m.curso_chave) === String(id));
+
+    /* excluir o curso apaga junto tudo o que estava pendurado nele */
+    const alerta = atreladas.length
+      ? '\n\nATENÇÃO: ' + atreladas.length + ' manifestação(ões) de interesse vinculada(s) a este curso serão apagadas junto, em definitivo.'
+      : '';
+    if (!confirm('Excluir "' + rotulo + '" permanentemente da base de dados?' + alerta)) return;
+
     try {
-      await sbDel('cur_cursos?id=eq.' + b.dataset.excluir);
-      await carregarCursos(); pintarCursos(); listarCursosSec(); pintarSecretaria();
+      /* a ordem importa: primeiro as manifestações, depois o curso.
+         Se o curso caísse antes e a segunda chamada falhasse, as
+         manifestações virariam órfãs — exatamente o que queremos evitar. */
+      if (atreladas.length) await sbDel('cur_manifestacoes?curso_chave=eq.' + encodeURIComponent(id));
+      await sbDel('cur_cursos?id=eq.' + encodeURIComponent(id));
+
+      await carregarCursos();
+      await carregarManifs();
+      pintarCursos(); listarCursosSec(); pintarSecretaria();
+      aviso('ok', '🗑 Curso "' + esc(rotulo) + '" excluído' +
+        (atreladas.length ? ' junto com ' + atreladas.length + ' manifestação(ões).' : '.'), 6000);
     } catch (e) {
       alert('Não consegui excluir: ' + e.message);
     }
@@ -1463,8 +1511,9 @@ async function iniciar(recarga){
   if (!SB.key){ faixa($('avisoConfig'), 'alerta', '⚙️ Falta preencher a chave anônima do Supabase no topo do script.'); }
   HERO_OK = await acharHero();
   await carregarPessoas();
+  await carregarCursos();   /* precisa vir antes: carregarManifs usa a lista
+                               de cursos para descartar manifestações órfãs */
   await carregarManifs();
-  await carregarCursos();
   pintarCursos();
   preencherSelectPessoas($('mPessoa'), 'militar');
   if (secLiberada() && $('telaSec').style.display !== 'none') pintarSecretaria();
