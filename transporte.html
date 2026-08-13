@@ -409,8 +409,9 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
         <button class="acao fantasma" id="btnDocDecl">📎 Declarações compiladas</button>
         <button class="acao fantasma" id="btnDocSigad">📄 Demonstrativo SIGADAER</button>
         <button class="acao fantasma" id="btnDocAci">🧾 Demonstrativo ACI</button>
-        <button class="acao fantasma" id="btnDocEmail">✉️ Template de E-mail</button>
-        <small>Os documentos saem em <b>PDF A4 retrato</b> ou <b>Template de E-mail</b> para cópia. O <b>Demonstrativo ACI</b> usa o Nº do Ofício e o Nº SIGAD informados acima.</small>
+        <button class="acao fantasma" id="btnDocEmail">✉️ E-mail</button>
+        <span id="badgeEmailStatus" class="chip jade" style="display:none;margin-left:.4rem;">✔ E-mail Enviado</span>
+        <small>Os documentos saem em <b>PDF A4 retrato</b> ou <b>E-mail</b> com Demonstrativo ACI anexado. O <b>Demonstrativo ACI</b> usa o Nº do Ofício e o Nº SIGAD informados acima.</small>
       </div>
       <dl class="kpis">
         <div class="resCel"><dt>Militares ativos</dt><dd id="kAtivos">—</dd></div>
@@ -1130,7 +1131,29 @@ function baixarArquivoCsv(comp, textoCsv) {
 
 async function gerarTemplateEmailRemessa(){
   const comp = $('selCompSec').value; if (!comp) return;
-  const oficio = await lerOficio(comp);
+  let oficio = await lerOficio(comp);
+
+  // Exige o preenchimento do Nº SIGAD antes de abrir o e-mail / Demonstrativo ACI
+  if (!oficio.num_sigad && !$('numSigad').value.trim()) {
+    if (typeof Swal !== 'undefined') {
+      const sigadRes = await Swal.fire({
+        title: '📄 Nº SIGAD Necessário',
+        html: '<p style="font-size:.84rem;color:var(--texto-2);margin-bottom:.8rem;text-align:left">Informe o Nº SIGAD referente a esta competência para incluir no Demonstrativo ACI e no e-mail:</p>',
+        input: 'text',
+        inputPlaceholder: 'Ex: 550297',
+        showCancelButton: true,
+        confirmButtonText: 'Confirmar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#d4a84b',
+        background: '#101f3e',
+        color: '#cfe4ff'
+      });
+      if (!sigadRes.isConfirmed || !sigadRes.value.trim()) return;
+      $('numSigad').value = sigadRes.value.trim();
+      oficio = await salvarOficio(comp);
+    }
+  }
+
   await carregarSecretaria();
   const dados = dadosDoMes(comp);
   if (!dados.length){
@@ -1138,6 +1161,7 @@ async function gerarTemplateEmailRemessa(){
     return;
   }
 
+  const [ano, mes] = comp.split('-').map(Number);
   const compRotulo = rotuloComp(comp);
   const numOficioStr = oficio.num_oficio ? `${oficio.num_oficio}/DE` : '______/DE';
   const numSigadStr  = oficio.num_sigad  ? `(SIGAD ${oficio.num_sigad})` : '(SIGAD ______)';
@@ -1159,6 +1183,9 @@ async function gerarTemplateEmailRemessa(){
     }
   });
 
+  const assuntoStr = `Auxílio-Transporte - Remessa da Competência ${compRotulo} - Ofício nº ${numOficioStr} ${numSigadStr}`;
+  const nomeArquivoAci = `DEMONSTRATIVO_ACI_${MESES[mes-1].substring(0,3)}_${ano}.pdf`;
+
   const htmlCorpoComDesc = comDesconto.length
     ? `<ul style="margin:6px 0;padding-left:20px;">` +
       comDesconto.map(x => `<li><b>${x.m.grad} ${x.m.nome}</b> (SARAM ${x.m.saram}) — <b>${x.r.diasDescNum} dia(s) descontado(s)</b> — Desconto: <b>${fmtBRL(x.r.desconto)}</b></li>`).join('') +
@@ -1173,8 +1200,9 @@ async function gerarTemplateEmailRemessa(){
 
   const htmlEmail = `
     <div id="boxEmailRemessa" style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#cfe4ff;line-height:1.5;text-align:left;">
-      <p style="margin:0 0 10px 0;font-weight:bold;color:#e8c56f;">Assunto: Auxílio-Transporte - Remessa da Competência ${compRotulo} - Ofício nº ${numOficioStr} ${numSigadStr}</p>
-      <p style="margin:0 0 12px 0;">Prezados,</p>
+      <p style="margin:0 0 10px 0;font-weight:bold;color:#e8c56f;">Assunto: ${assuntoStr}</p>
+      <p style="margin:0 0 10px 0;font-size:11.5px;color:#8fe9c8;background:rgba(62,207,154,.12);padding:4px 8px;border-radius:6px;display:inline-block;">📌 Anexo: <b>${nomeArquivoAci}</b> (Ofício nº ${numOficioStr})</p>
+      <p style="margin:8px 0 12px 0;">Prezados,</p>
       <p style="margin:0 0 12px 0;">Encaminho as informações referentes à consolidação das declarações de Auxílio-Transporte da Divisão de Ensino para a competência <b>${compRotulo}</b>.</p>
       
       <p style="margin:12px 0 4px 0;font-weight:bold;color:#3ecf9a;">1. MILITARES COM DESCONTO A SER PUBLICADO (CSV):</p>
@@ -1196,7 +1224,8 @@ async function gerarTemplateEmailRemessa(){
     ? semDesconto.map(x => `  • ${x.m.grad} ${x.m.nome} (SARAM ${x.m.saram}) - ${x.motivoSemDesc}`).join('\n')
     : '  (Nenhum militar nesta condição.)';
 
-  const plainTextEmail = `Assunto: Auxílio-Transporte - Remessa da Competência ${compRotulo} - Ofício nº ${numOficioStr} ${numSigadStr}\n\n` +
+  const plainTextEmail = `Assunto: ${assuntoStr}\n` +
+    `Anexo: ${nomeArquivoAci}\n\n` +
     `Prezados,\n\nEncaminho as informações referentes à consolidação das declarações de Auxílio-Transporte da Divisão de Ensino para a competência ${compRotulo}.\n\n` +
     `1. MILITARES COM DESCONTO A SER PUBLICADO (CSV):\n${txtComDesc}\n\n` +
     `2. MILITARES SEM DESCONTO OU COM MÊS ZERADO POR FÉRIAS (SEM PUBLICAÇÃO DE DESCONTO):\n${txtSemDesc}\n\n` +
@@ -1204,24 +1233,92 @@ async function gerarTemplateEmailRemessa(){
 
   if (typeof Swal !== 'undefined') {
     Swal.fire({
-      title: '✉️ Template de E-mail de Remessa',
+      title: '✉️ E-mail da Remessa',
       html: `
         <p style="font-size:.8rem;color:var(--texto-2);margin-bottom:.8rem;text-align:left">
-          Copie o modelo abaixo para enviar à secretaria ou publicar a consolidação da competência <b>${compRotulo}</b>:
+          Confira abaixo o e-mail da competência <b>${compRotulo}</b> com o <b>Demonstrativo ACI</b> anexado:
         </p>
         <div style="background:#060d1d;border:1px solid var(--linha);border-radius:10px;padding:1rem;max-height:260px;overflow-y:auto;margin-bottom:.8rem;">
           ${htmlEmail}
         </div>
       `,
       showCancelButton: true,
-      confirmButtonText: '📋 Copiar E-mail',
+      showDenyButton: true,
+      confirmButtonText: '🚀 Disparar E-mail',
+      denyButtonText: '📋 Copiar E-mail',
       cancelButtonText: 'Fechar',
-      confirmButtonColor: '#d4a84b',
+      confirmButtonColor: '#3ecf9a',
+      denyButtonColor: '#d4a84b',
       background: '#101f3e',
       color: '#cfe4ff',
       width: '680px'
-    }).then(result => {
+    }).then(async result => {
       if (result.isConfirmed) {
+        let dest = 'secde.afa@fab.mil.br';
+        try {
+          const cfg = window.AppConfig?.getGmailConfig();
+          if (cfg && cfg.user) dest = cfg.user;
+        } catch(e){}
+
+        const emailDestRes = await Swal.fire({
+          title: '🚀 Disparar E-mail',
+          html: '<p style="font-size:.84rem;color:var(--texto-2);margin-bottom:.8rem">Confirme o e-mail do destinatário para o envio automático:</p>',
+          input: 'email',
+          inputValue: dest,
+          showCancelButton: true,
+          confirmButtonText: 'Enviar Agora',
+          cancelButtonText: 'Cancelar',
+          confirmButtonColor: '#3ecf9a',
+          background: '#101f3e',
+          color: '#cfe4ff'
+        });
+
+        if (!emailDestRes.isConfirmed || !emailDestRes.value) return;
+        const targetEmail = emailDestRes.value.trim();
+
+        Swal.fire({
+          title: '⏳ Disparando E-mail...',
+          text: 'Aguarde a transmissão do e-mail e do Demonstrativo ACI...',
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          background: '#101f3e',
+          color: '#cfe4ff',
+          didOpen: () => Swal.showLoading()
+        });
+
+        try {
+          if (window.AppConfig && typeof window.AppConfig.sendEmail === 'function') {
+            await window.AppConfig.sendEmail({
+              to: targetEmail,
+              subject: assuntoStr,
+              html: htmlEmail,
+              text: plainTextEmail
+            });
+
+            const agoraIso = new Date().toISOString();
+            await salvarOficio(comp, { email_enviado_em: agoraIso });
+            await pintarOficio(comp);
+
+            Swal.fire({
+              icon: 'success',
+              title: 'E-mail Enviado!',
+              html: `O e-mail da remessa foi disparado com sucesso para <b>${targetEmail}</b>.<br><br><span class="chip jade">✔ E-mail Enviado</span> atualizado na sessão.`,
+              background: '#101f3e',
+              color: '#cfe4ff'
+            });
+          } else {
+            throw new Error('Módulo AppConfig.sendEmail indisponível.');
+          }
+        } catch(err) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Falha no disparo',
+            text: err.message || 'Erro ao enviar e-mail.',
+            background: '#101f3e',
+            color: '#cfe4ff'
+          });
+        }
+      } else if (result.isDenied) {
         navigator.clipboard.writeText(plainTextEmail).then(() => {
           Swal.fire({ icon:'success', title:'Copiado!', text:'Template de e-mail copiado para a área de transferência.', timer:1800, showConfirmButton:false, background:'#101f3e', color:'#cfe4ff' });
         }).catch(() => {
@@ -1784,16 +1881,17 @@ function valorDesconto(r){ return r.zerado ? r.vig : r.desconto; }
 async function lerOficio(comp){
   try {
     const r = await sbGet('at_oficios?select=*&competencia=eq.' + comp);
-    if (r && r[0]) return { num_oficio:r[0].num_oficio || '', num_sigad:r[0].num_sigad || '' };
+    if (r && r[0]) return { num_oficio:r[0].num_oficio || '', num_sigad:r[0].num_sigad || '', email_enviado_em:r[0].email_enviado_em || null };
   } catch(e){ /* tabela ainda não criada → cai no armazenamento local */ }
   try {
     const ls = localStorage.getItem('at_oficio_' + comp);
     if (ls) return JSON.parse(ls);
   } catch(e){}
-  return { num_oficio:'', num_sigad:'' };
+  return { num_oficio:'', num_sigad:'', email_enviado_em:null };
 }
-async function salvarOficio(comp){
-  const o = { num_oficio:$('numOficio').value.trim(), num_sigad:$('numSigad').value.trim() };
+async function salvarOficio(comp, extra){
+  const atual = await lerOficio(comp);
+  const o = Object.assign({}, atual, { num_oficio:$('numOficio').value.trim(), num_sigad:$('numSigad').value.trim() }, extra || {});
   try { localStorage.setItem('at_oficio_' + comp, JSON.stringify(o)); } catch(e){}
   try { await sbUpsert('at_oficios', Object.assign({ competencia:comp }, o), 'competencia'); } catch(e){}
   return o;
@@ -1802,6 +1900,18 @@ async function pintarOficio(comp){
   const o = await lerOficio(comp);
   $('numOficio').value = o.num_oficio || '';
   $('numSigad').value  = o.num_sigad  || '';
+
+  const b = $('badgeEmailStatus');
+  if (b) {
+    if (o.email_enviado_em) {
+      const dt = new Date(o.email_enviado_em);
+      const dStr = dt.toLocaleDateString('pt-BR') + ' às ' + dt.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+      b.innerHTML = '✔ E-mail Enviado (' + dStr + ')';
+      b.style.display = 'inline-block';
+    } else {
+      b.style.display = 'none';
+    }
+  }
 }
 function celulaOficio(o){
   return [
