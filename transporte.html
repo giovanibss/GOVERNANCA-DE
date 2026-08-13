@@ -1893,7 +1893,24 @@ async function salvarOficio(comp, extra){
   const atual = await lerOficio(comp);
   const o = Object.assign({}, atual, { num_oficio:$('numOficio').value.trim(), num_sigad:$('numSigad').value.trim() }, extra || {});
   try { localStorage.setItem('at_oficio_' + comp, JSON.stringify(o)); } catch(e){}
-  try { await sbUpsert('at_oficios', Object.assign({ competencia:comp }, o), 'competencia'); } catch(e){}
+  
+  try {
+    const payload = Object.assign({ competencia:comp }, o);
+    const existente = await sbGet('at_oficios?select=id&competencia=eq.' + comp).catch(() => []);
+    if (existente && existente.length > 0) {
+      await sbPatch('at_oficios?competencia=eq.' + comp, payload);
+    } else {
+      await sbUpsert('at_oficios', payload, 'competencia').catch(async () => {
+        await fetch(SB.url + '/rest/v1/at_oficios', {
+          method: 'POST',
+          headers: sbCab(),
+          body: JSON.stringify(payload)
+        });
+      });
+    }
+  } catch(e){
+    console.warn('[salvarOficio] Supabase at_oficios fallback para localStorage:', e.message);
+  }
   return o;
 }
 async function pintarOficio(comp){
