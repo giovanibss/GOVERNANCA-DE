@@ -409,7 +409,8 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
         <button class="acao fantasma" id="btnDocDecl">📎 Declarações compiladas</button>
         <button class="acao fantasma" id="btnDocSigad">📄 Demonstrativo SIGADAER</button>
         <button class="acao fantasma" id="btnDocAci">🧾 Demonstrativo ACI</button>
-        <small>Os três documentos saem em <b>PDF A4 retrato</b>, com brasão, fundo institucional e carimbo de geração. O <b>Demonstrativo ACI</b> usa o Nº do Ofício e o Nº SIGAD informados acima.</small>
+        <button class="acao fantasma" id="btnDocEmail">✉️ Template de E-mail</button>
+        <small>Os documentos saem em <b>PDF A4 retrato</b> ou <b>Template de E-mail</b> para cópia. O <b>Demonstrativo ACI</b> usa o Nº do Ofício e o Nº SIGAD informados acima.</small>
       </div>
       <dl class="kpis">
         <div class="resCel"><dt>Militares ativos</dt><dd id="kAtivos">—</dd></div>
@@ -1127,6 +1128,110 @@ function baixarArquivoCsv(comp, textoCsv) {
   URL.revokeObjectURL(a.href);
 }
 
+async function gerarTemplateEmailRemessa(){
+  const comp = $('selCompSec').value; if (!comp) return;
+  const oficio = await lerOficio(comp);
+  await carregarSecretaria();
+  const dados = dadosDoMes(comp);
+  if (!dados.length){
+    if (typeof Swal !== 'undefined') Swal.fire({ icon:'warning', title:'Nenhum militar ativo', text:'Nenhum militar ativo cadastrado nesta competência.', background:'#101f3e', color:'#cfe4ff' });
+    return;
+  }
+
+  const compRotulo = rotuloComp(comp);
+  const numOficioStr = oficio.num_oficio ? `${oficio.num_oficio}/DE` : '______/DE';
+  const numSigadStr  = oficio.num_sigad  ? `(SIGAD ${oficio.num_sigad})` : '(SIGAD ______)';
+
+  const comDesconto = [];
+  const semDesconto = [];
+
+  dados.forEach(x => {
+    const { m, d, r } = x;
+    const temDescontoPublicar = !r.zerado && r.diasDescNum > 0;
+    if (temDescontoPublicar) {
+      comDesconto.push({ m, d, r });
+    } else {
+      let motivoSemDesc = '0 dia(s) descontado(s) (utilização integral)';
+      if (r.zerado) {
+        motivoSemDesc = 'Mês zerado (1ª parcela de férias / férias completas / férias restantes)';
+      }
+      semDesconto.push({ m, d, r, motivoSemDesc });
+    }
+  });
+
+  const htmlCorpoComDesc = comDesconto.length
+    ? `<ul style="margin:6px 0;padding-left:20px;">` +
+      comDesconto.map(x => `<li><b>${x.m.grad} ${x.m.nome}</b> (SARAM ${x.m.saram}) — <b>${x.r.diasDescNum} dia(s) descontado(s)</b> — Desconto: <b>${fmtBRL(x.r.desconto)}</b></li>`).join('') +
+      `</ul>`
+    : `<p style="margin:4px 0 12px 18px;color:#8fa9cf;"><i>Nenhum militar possui desconto a publicar nesta competência.</i></p>`;
+
+  const htmlCorpoSemDesc = semDesconto.length
+    ? `<ul style="margin:6px 0;padding-left:20px;">` +
+      semDesconto.map(x => `<li><b>${x.m.grad} ${x.m.nome}</b> (SARAM ${x.m.saram}) — ${x.motivoSemDesc}</li>`).join('') +
+      `</ul>`
+    : `<p style="margin:4px 0 12px 18px;color:#8fa9cf;"><i>Nenhum militar nesta condição.</i></p>`;
+
+  const htmlEmail = `
+    <div id="boxEmailRemessa" style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#cfe4ff;line-height:1.5;text-align:left;">
+      <p style="margin:0 0 10px 0;font-weight:bold;color:#e8c56f;">Assunto: Auxílio-Transporte - Remessa da Competência ${compRotulo} - Ofício nº ${numOficioStr} ${numSigadStr}</p>
+      <p style="margin:0 0 12px 0;">Prezados,</p>
+      <p style="margin:0 0 12px 0;">Encaminho as informações referentes à consolidação das declarações de Auxílio-Transporte da Divisão de Ensino para a competência <b>${compRotulo}</b>.</p>
+      
+      <p style="margin:12px 0 4px 0;font-weight:bold;color:#3ecf9a;">1. MILITARES COM DESCONTO A SER PUBLICADO (CSV):</p>
+      ${htmlCorpoComDesc}
+
+      <p style="margin:14px 0 4px 0;font-weight:bold;color:#8fa9cf;">2. MILITARES SEM DESCONTO OU COM MÊS ZERADO POR FÉRIAS (SEM PUBLICAÇÃO DE DESCONTO):</p>
+      ${htmlCorpoSemDesc}
+
+      <p style="margin:16px 0 4px 0;">Respeitosamente,</p>
+      <p style="margin:0;"><b>Secretaria da Divisão de Ensino (SEC-DE)</b><br>Academia da Força Aérea</p>
+    </div>
+  `;
+
+  const txtComDesc = comDesconto.length
+    ? comDesconto.map(x => `  • ${x.m.grad} ${x.m.nome} (SARAM ${x.m.saram}) - ${x.r.diasDescNum} dia(s) descontado(s) - Desconto: ${fmtBRL(x.r.desconto)}`).join('\n')
+    : '  (Nenhum militar possui desconto a publicar nesta competência.)';
+
+  const txtSemDesc = semDesconto.length
+    ? semDesconto.map(x => `  • ${x.m.grad} ${x.m.nome} (SARAM ${x.m.saram}) - ${x.motivoSemDesc}`).join('\n')
+    : '  (Nenhum militar nesta condição.)';
+
+  const plainTextEmail = `Assunto: Auxílio-Transporte - Remessa da Competência ${compRotulo} - Ofício nº ${numOficioStr} ${numSigadStr}\n\n` +
+    `Prezados,\n\nEncaminho as informações referentes à consolidação das declarações de Auxílio-Transporte da Divisão de Ensino para a competência ${compRotulo}.\n\n` +
+    `1. MILITARES COM DESCONTO A SER PUBLICADO (CSV):\n${txtComDesc}\n\n` +
+    `2. MILITARES SEM DESCONTO OU COM MÊS ZERADO POR FÉRIAS (SEM PUBLICAÇÃO DE DESCONTO):\n${txtSemDesc}\n\n` +
+    `Respeitosamente,\nSecretaria da Divisão de Ensino (SEC-DE)\nAcademia da Força Aérea`;
+
+  if (typeof Swal !== 'undefined') {
+    Swal.fire({
+      title: '✉️ Template de E-mail de Remessa',
+      html: `
+        <p style="font-size:.8rem;color:var(--texto-2);margin-bottom:.8rem;text-align:left">
+          Copie o modelo abaixo para enviar à secretaria ou publicar a consolidação da competência <b>${compRotulo}</b>:
+        </p>
+        <div style="background:#060d1d;border:1px solid var(--linha);border-radius:10px;padding:1rem;max-height:260px;overflow-y:auto;margin-bottom:.8rem;">
+          ${htmlEmail}
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: '📋 Copiar E-mail',
+      cancelButtonText: 'Fechar',
+      confirmButtonColor: '#d4a84b',
+      background: '#101f3e',
+      color: '#cfe4ff',
+      width: '680px'
+    }).then(result => {
+      if (result.isConfirmed) {
+        navigator.clipboard.writeText(plainTextEmail).then(() => {
+          Swal.fire({ icon:'success', title:'Copiado!', text:'Template de e-mail copiado para a área de transferência.', timer:1800, showConfirmButton:false, background:'#101f3e', color:'#cfe4ff' });
+        }).catch(() => {
+          alert('Copiado para a área de transferência!');
+        });
+      }
+    });
+  }
+}
+
 $('btnCsv').addEventListener('click', () => {
   const comp = $('selCompSec').value; if (!comp) return;
   const prevFlag = Object.fromEntries(secDeclsPrev.map(d => [d.militar_id, d.zera_mes_seguinte]));
@@ -1140,20 +1245,47 @@ $('btnCsv').addEventListener('click', () => {
   militares.filter(m => m.ativo).forEach(m => {
     const d = secDecls.find(x => x.militar_id === m.id);
     const r = calcularDecl(comp, (d && d.dias) || {}, m, !!prevFlag[m.id]);
-    const diasNum = r.zerado ? (r.diasDescNum || 30) : r.diasDescNum;
-    const diasTexto = diasNum === 1 ? '1 dia' : `${diasNum} dias`;
-    const descTexto = `não utilização do Auxílio-Transporte por ${diasTexto} no mês de ${mesAno}`;
-    linhas.push([m.saram, descTexto, 'CAIXA D-89-08-0175', num(r.desconto)].join('; '));
+    // Inclui no CSV apenas quem efetivamente possui desconto a ser publicado (dias descontados > 0 e mês NÃO zerado por férias)
+    if (!r.zerado && r.diasDescNum > 0) {
+      const diasTexto = r.diasDescNum === 1 ? '1 dia' : `${r.diasDescNum} dias`;
+      const descTexto = `não utilização do Auxílio-Transporte por ${diasTexto} no mês de ${mesAno}`;
+      linhas.push([m.saram, descTexto, 'CAIXA D-89-08-0175', num(r.desconto)].join('; '));
+    }
   });
 
   const textoCsv = linhas.join('\r\n');
 
   if (typeof Swal !== 'undefined') {
+    if (linhas.length === 0) {
+      Swal.fire({
+        icon: 'info',
+        title: 'Gerador CSV',
+        html: `
+          <p style="font-size:.85rem;color:var(--texto-2);margin-bottom:.8rem;text-align:left">
+            Nenhum militar possui desconto a ser publicado na competência <b>${rotuloComp(comp)}</b> (todos utilizaram o auxílio em todos os dias úteis ou estão em fruição de férias).
+          </p>
+          <p style="font-size:.78rem;color:var(--texto-3);text-align:left">
+            O arquivo CSV de publicação foi ocultado pois não há lançamentos de desconto. A situação está detalhada no <b>Template de E-mail</b>.
+          </p>
+        `,
+        showCancelButton: true,
+        confirmButtonText: '✉️ Ver Template de E-mail',
+        cancelButtonText: 'Fechar',
+        confirmButtonColor: '#d4a84b',
+        background: '#101f3e',
+        color: '#cfe4ff',
+        width: '560px'
+      }).then(res => {
+        if (res.isConfirmed) gerarTemplateEmailRemessa();
+      });
+      return;
+    }
+
     Swal.fire({
       title: 'Gerador CSV',
       html: `
         <p style="font-size:.82rem;color:var(--texto-2);margin-bottom:.8rem;text-align:left">
-          Dados em formato CSV (separados por ponto e vírgula) referentes a <b>${rotuloComp(comp)}</b>:
+          Dados em formato CSV (separados por ponto e vírgula) referentes aos descontos a publicar em <b>${rotuloComp(comp)}</b>:
         </p>
         <textarea id="swalTxtCsv" readonly style="width:100%;height:190px;background:#060d1d;color:#cfe4ff;border:1px solid var(--linha);border-radius:10px;padding:.7rem;font-family:monospace;font-size:.76rem;resize:vertical;line-height:1.4">${textoCsv}</textarea>
       `,
@@ -1190,7 +1322,8 @@ $('btnCsv').addEventListener('click', () => {
       }
     });
   } else {
-    baixarArquivoCsv(comp, textoCsv);
+    if (linhas.length > 0) baixarArquivoCsv(comp, textoCsv);
+    else alert('Nenhum militar possui desconto a publicar nesta competência.');
   }
 });
 
@@ -2004,6 +2137,7 @@ $('btnPdf').addEventListener('click', gerarPdfDeclaracao);
 $('btnDocDecl').addEventListener('click', gerarDeclaracoesCompiladas);
 $('btnDocSigad').addEventListener('click', gerarDemonstrativoSigadaer);
 $('btnDocAci').addEventListener('click', gerarDemonstrativoAci);
+$('btnDocEmail').addEventListener('click', gerarTemplateEmailRemessa);
 ['numOficio','numSigad'].forEach(id =>
   $(id).addEventListener('change', () => { const cp = $('selCompSec').value; if (cp) salvarOficio(cp); }));
 
