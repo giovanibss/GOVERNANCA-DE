@@ -344,8 +344,8 @@ const CompiladorDoc = (function() {
       .box-info strong{display:inline-block;margin-bottom:1mm;font-size:8.5pt}
       .check-item{display:flex;align-items:center;gap:3mm;margin:1.5mm 0}
       .check-box{display:inline-block;width:12px;height:12px;border:1pt solid #000;text-align:center;line-height:10px;font-size:8pt;font-weight:700}
-      .ass-block{margin-top:10mm;text-align:right;font-size:9pt}
-      .ass-block .ass-digital{margin-top:6mm;text-align:center;font-size:8.5pt;font-style:italic;color:#444}
+      .ass-block{margin-top:14mm;text-align:right;font-size:9pt}
+      .ass-block .ass-digital{margin-top:18mm;text-align:center;font-size:8.5pt;font-style:italic;color:#444}
       .ass-block .ass-nome{font-weight:700;text-transform:uppercase;margin-top:1mm}
       @media print{
         @page{size:A4 portrait;margin:10mm}
@@ -603,7 +603,7 @@ const CompiladorDoc = (function() {
       </tbody>
     </table>
 
-    <div class="ass-block" style="margin-top:12mm">
+    <div class="ass-block" style="margin-top:20mm">
       Pirassununga-SP, ${d.data_retorno_fmt || primMilitar.retorno_fim_fmt || primMilitar.data_fim_fmt || new Date().toLocaleDateString('pt-BR')}<br>
       <div style="margin-top:3mm;font-weight:600">Responsável pelo serviço:</div>
       <div class="ass-digital">assinado digitalmente</div>

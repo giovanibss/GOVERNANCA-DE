@@ -267,8 +267,8 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
   .impResumo .bloco span{font-family:'Rajdhani',sans-serif;font-size:10pt;font-weight:700;color:#0a1730}
   .impResumo .bloco.final span{color:#1c7a55}
   .impRodape{margin-top:3.5mm;font-size:7.4pt;color:#0a1730;line-height:1.3}
-  .impRodape .linhaAss{border-top:.7pt solid #0a1730;margin-top:6mm;padding-top:1mm;
-    width:105mm;font-size:6.2pt;letter-spacing:.13em;text-transform:uppercase;color:#5f7699}
+  .impRodape .linhaAss{border-top:.7pt solid #0a1730;margin-top:20mm;padding-top:1.2mm;
+    width:110mm;font-size:6.2pt;letter-spacing:.13em;text-transform:uppercase;color:#5f7699}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -2231,23 +2231,23 @@ async function gerarPdfDeclaracao(){
 
     const fim = tabela(ctx, {
       pagina:p, y, colunas, linhas,
-      tamCel:7.2, cabPersonalizado:cabDuplo, reservaFinal:112
+      tamCel:6.8, cabPersonalizado:cabDuplo, reservaFinal:145
     });
-    p = fim.pagina; y = fim.y - 11;
+    p = fim.pagina; y = fim.y - 10;
 
     y = blocos(ctx, p, y, [
       { rot:'Dias descontados', val: r.zerado ? '— (mês sem pagamento)' : String(r.diasDescNum) },
       { rot:'Desconto',         val: fmtBRL(r.desconto), cor:'rubi' },
       { rot:'Valor a receber',  val: fmtBRL(r.final), cor:'jade' }
-    ]) - 16;
+    ]) - 12;
 
     const decl = 'Declaro, sob minha responsabilidade, que as informações acima refletem a efetiva utilização do auxílio transporte na competência indicada.';
-    quebrar(decl, ctx.fR, 8, LARG).forEach(l => {
-      p.drawText(l, { x:MG, y, size:8, font:ctx.fR, color:c(ctx,'navy') });
-      y -= 11;
+    quebrar(decl, ctx.fR, 7.8, LARG).forEach(l => {
+      p.drawText(l, { x:MG, y, size:7.8, font:ctx.fR, color:c(ctx,'navy') });
+      y -= 10.5;
     });
 
-    y -= 24;
+    y -= 56;
     p.drawRectangle({ x:MG, y, width:300, height:.8, color:c(ctx,'navy') });
     p.drawText(cortar('Assinatura digital GOV.BR - ' + mil.grad + ' ' + mil.nome, ctx.fB, 6.4, 300),
                { x:MG, y:y - 9, size:6.4, font:ctx.fB, color:c(ctx,'cinza') });
