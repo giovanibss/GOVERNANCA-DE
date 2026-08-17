@@ -251,9 +251,10 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
   .impIdent .bloco b{display:block;font-size:5.8pt;letter-spacing:.13em;text-transform:uppercase;color:#5f7699;margin-bottom:.6mm}
   .impIdent .bloco span{font-family:'Rajdhani',sans-serif;font-size:9.5pt;font-weight:700;color:#0a1730}
   .impIdent .bloco.ouro span{color:#8a6a1e}
-  table.imp{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0;font-size:6.6pt;line-height:1.15;border:.8pt solid #aebdd4;border-radius:2mm;overflow:hidden;background:rgba(255,255,255,.85)}
-  table.imp th{background:#0a1730;color:#fff;font-family:'Rajdhani',sans-serif;font-size:6.2pt;letter-spacing:.06em;text-transform:uppercase;padding:1.1mm .8mm;border-bottom:1.2pt solid #d4a84b}
-  table.imp td{padding:.9mm .8mm;text-align:center;border-bottom:.4pt solid #dbe4f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  table.imp{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:0;font-size:6.5pt;line-height:1.25;border:.8pt solid #aebdd4;border-radius:2mm;background:rgba(255,255,255,.85)}
+  table.imp th{background:#0a1730;color:#fff;font-family:'Rajdhani',sans-serif;font-size:6.2pt;letter-spacing:.05em;text-transform:uppercase;padding:1.3mm .8mm;border-bottom:1.2pt solid #d4a84b;vertical-align:middle;text-align:center}
+  table.imp td{padding:1.4mm .9mm;text-align:center;border-bottom:.4pt solid #dbe4f0;white-space:normal;word-break:normal;overflow-wrap:break-word;word-wrap:break-word;vertical-align:middle}
+  table.imp td.email{word-break:break-all;overflow-wrap:anywhere}
   table.imp tr{page-break-inside:avoid}
   table.imp tr:nth-child(even) td{background:rgba(10,23,48,.035)}
   table.imp tr:last-child td{border-bottom:none}
@@ -1311,8 +1312,26 @@ function gerarPdf(){
   const linhas = lista.map((m, i) =>
     '<tr><td>' + (m.prioridade || i + 1) + '</td><td>' + esc(m.posto) + '</td><td>' + esc(m.esp) + '</td>' +
     '<td class="esq">' + esc(m.nome_completo) + '</td><td>' + esc(m.nome_guerra) + '</td><td>' + esc(m.cpf) + '</td>' +
-    '<td class="esq">' + esc(m.email) + '</td><td>' + esc(m.tel_fixo) + '</td><td>' + esc(m.tel_celular) + '</td>' +
+    '<td class="esq email">' + esc(m.email) + '</td><td>' + esc(m.tel_fixo) + '</td><td>' + esc(m.tel_celular) + '</td>' +
     '<td class="esq">' + esc(m.funcao_atual) + '</td><td>' + esc(m.atende_prereq) + '</td><td class="esq">' + esc(m.justificativa) + '</td></tr>').join('');
+
+  const colunas = [
+    { nome: 'Ordem', larg: '3.5%' },
+    { nome: 'Pst/Grd', larg: '5.5%' },
+    { nome: 'Qd/Esp', larg: '5%' },
+    { nome: 'Nome Completo', larg: '14%' },
+    { nome: 'Nome de Guerra', larg: '7%' },
+    { nome: 'CPF', larg: '8%' },
+    { nome: 'E-mail Funcional', larg: '12%' },
+    { nome: 'Tel. Fixo', larg: '6.5%' },
+    { nome: 'Tel. Celular', larg: '7%' },
+    { nome: 'Função atual', larg: '11%' },
+    { nome: 'Pré-req.', larg: '4.5%' },
+    { nome: 'Justificativa', larg: '16%' }
+  ];
+
+  const colgroupHtml = '<colgroup>' + colunas.map(col => '<col style="width:' + col.larg + '">').join('') + '</colgroup>';
+  const theadHtml = '<thead><tr>' + colunas.map(col => '<th>' + col.nome + '</th>').join('') + '</tr></thead>';
 
   $('areaImpressao').innerHTML =
     (HERO_OK ? '<img class="impFundo" src="' + HERO_OK + '" alt="" />' : '') +
@@ -1323,10 +1342,7 @@ function gerarPdf(){
     '<div class="impIdent">' + bloco('Início', dataBR(c.inicio)) + bloco('Término', dataBR(c.termino)) +
       '<div class="bloco ouro"><b>Limite de matrícula</b><span>' + esc(dataBR(c.limite) || '—') + '</span></div>' +
       bloco('Indicados', String(lista.length)) + '</div>' +
-    '<table class="imp"><thead><tr>' +
-      ['Ordem','Pst/Grd','Qd/Esp','Nome Completo','Nome de Guerra','CPF','E-mail Funcional','Tel. Fixo','Tel. Celular','Função atual','Pré-req.','Justificativa']
-        .map(h => '<th>' + h + '</th>').join('') +
-    '</tr></thead><tbody>' + linhas + '</tbody></table>' +
+    '<table class="imp">' + colgroupHtml + theadHtml + '<tbody>' + linhas + '</tbody></table>' +
     '<div class="impRodape">Relação de indicados gerada pelo módulo Indicação para Cursos — Governança DE em ' +
       new Date().toLocaleString('pt-BR') + '.' +
       '<div class="linhaAss">Chefe da Secretaria da Divisão de Ensino</div></div>';
