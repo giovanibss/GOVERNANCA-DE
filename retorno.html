@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AFA · Apresentação por Retorno de Missão — DE</title>
+  <link rel="icon" href="assets/cocar-fab.png" type="image/png" />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <script src="compiladordoc.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy-900: #0a192f; --navy-800: #0f2341; --navy-700: #14315a;
+      --navy-600: #1e4377; --navy-500: #2d5a9e; --navy-400: #5b82c4;
+      --navy-300: #94b0d8; --navy-200: #c5d4e8; --navy-100: #e6eef7; --navy-50: #f2f6fb;
+      --gold-500: #d4a84b; --gold-400: #e5b95c; --gold-100: #fef9c3;
+      --green-500: #10b981; --green-600: #059669; --green-50: #ecfdf5;
+      --yellow-500: #f59e0b; --yellow-50: #fefce8;
+      --red-500: #ef4444; --red-600: #dc2626; --red-50: #fef2f2;
+      --gray-100: #f1f5f9; --gray-200: #e2e8f0; --gray-300: #cbd5e1;
+      --gray-400: #94a3b8; --gray-500: #64748b; --gray-700: #334155; --gray-900: #0f172a;
+      --f-display: 'Oswald', sans-serif;
+      --f-body: 'Inter', sans-serif;
+      --f-mono: 'JetBrains Mono', monospace;
+    }
+    body {
+      font-family: var(--f-body);
+      background: var(--navy-50);
+      color: var(--navy-900);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    body::after {
+      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image: linear-gradient(rgba(20,49,90,.04) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(20,49,90,.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--navy-900), var(--navy-700));
+      color: #fff; padding: 0 2rem; height: 78px; display: flex; align-items: center;
+      justify-content: space-between; position: sticky; top: 0; z-index: 100;
+      border-bottom: 3px solid var(--gold-500);
+    }
+    .head-brand { display: flex; align-items: center; gap: 1rem; }
+    .head-brand img { width: 50px; height: 50px; object-fit: contain; }
+    .head-title h1 { font-family: var(--f-display); font-size: 1.15rem; text-transform: uppercase; letter-spacing: .04em; }
+    .head-title p { font-size: .7rem; color: var(--navy-300); text-transform: uppercase; letter-spacing: .08em; }
+    .head-nav { display: flex; gap: .5rem; }
+    .btn-link {
+      color: #fff; font-size: .75rem; text-decoration: none; padding: .4rem .8rem;
+      border: 1px solid rgba(255,255,255,0.2); border-radius: 4px; transition: all .2s;
+      font-family: var(--f-body); text-transform: uppercase; font-weight: 500;
+    }
+    .btn-link:hover { background: rgba(255,255,255,0.15); }
+    .btn-link.gold { background: var(--gold-500); color: var(--navy-900); border-color: var(--gold-500); font-weight: 700; }
+    .btn-link.gold:hover { background: var(--gold-400); }
+
+    main {
+      flex: 1; max-width: 920px; width: 100%; margin: 2rem auto; padding: 0 1rem;
+      position: relative; z-index: 5;
+    }
+    .card-box {
+      background: #fff; border: 1px solid var(--navy-100); border-radius: 10px;
+      padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 4px 16px rgba(10,25,47,0.05);
+    }
+    .card-title {
+      font-family: var(--f-display); font-size: 1.1rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .04em; color: var(--navy-900); margin-bottom: 1rem; display: flex;
+      align-items: center; gap: .5rem; border-bottom: 2px solid var(--navy-100); padding-bottom: .6rem;
+    }
+
+    .field { margin-bottom: .85rem; }
+    .field label { display: block; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--navy-700); margin-bottom: .35rem; }
+    .field input, .field textarea, .field select {
+      width: 100%; padding: .65rem .85rem; border-radius: 6px; border: 1px solid var(--navy-200);
+      background: #fff; font-family: var(--f-body); font-size: .85rem; color: var(--navy-900);
+    }
+    .field input:focus, .field textarea:focus, .field select:focus {
+      outline: 2px solid var(--gold-500); border-color: var(--gold-500);
+    }
+    .field .hint { font-size: .68rem; color: var(--gray-500); margin-top: .25rem; }
+
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+    .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: .75rem; }
+    @media(max-width: 650px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+      padding: .75rem 1.5rem; font-family: var(--f-display); font-size: .95rem; font-weight: 600;
+      letter-spacing: .05em; text-transform: uppercase; border-radius: 6px; border: none; cursor: pointer; transition: all .2s;
+    }
+    .btn-primary { background: var(--gold-500); color: var(--navy-900); }
+    .btn-primary:hover { background: var(--gold-400); transform: translateY(-1px); }
+    .btn-navy { background: var(--navy-700); color: #fff; }
+    .btn-navy:hover { background: var(--navy-600); }
+    .btn-ghost { background: transparent; border: 1px solid var(--navy-200); color: var(--navy-700); }
+    .btn-ghost:hover { background: var(--navy-100); }
+    .btn-success { background: var(--green-500); color: #fff; }
+    .btn-success:hover { background: var(--green-600); }
+
+    /* Dropzone de Upload */
+    .dropzone {
+      border: 2px dashed var(--navy-300); border-radius: 8px; padding: 2rem 1.5rem;
+      text-align: center; background: var(--navy-50); cursor: pointer; transition: all .2s;
+      position: relative;
+    }
+    .dropzone:hover, .dropzone.dragover { border-color: var(--gold-500); background: #fefce8; }
+    .dropzone-icon { font-size: 2.2rem; margin-bottom: .5rem; }
+    .dropzone-title { font-family: var(--f-display); font-size: 1.05rem; font-weight: 600; text-transform: uppercase; color: var(--navy-900); }
+    .dropzone-desc { font-size: .78rem; color: var(--gray-500); margin-top: 4px; }
+    .dropzone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+    .card-militar-resumo {
+      background: #f8fafc; border-left: 4px solid var(--gold-500); border-radius: 6px;
+      padding: 1rem; margin-bottom: 1rem; font-size: .85rem; line-height: 1.5;
+    }
+
+    .alert-box {
+      padding: .85rem 1rem; border-radius: 6px; margin-bottom: 1rem; font-size: .82rem; line-height: 1.45;
+      display: flex; gap: .6rem; align-items: flex-start;
+    }
+    .alert-box.info { background: #e0f2fe; border: 1px solid #bae6fd; color: #0369a1; }
+    .alert-box.success { background: #dcfce7; border: 1px solid #bbf7d0; color: #15803d; }
+    .alert-box.warn { background: #fef3c7; border: 1px solid #fde68a; color: #92400e; }
+
+    .toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--navy-900); color: #fff;
+      padding: .75rem 1.25rem; border-radius: 6px; font-size: .82rem; box-shadow: 0 10px 25px rgba(0,0,0,.25);
+      border-left: 4px solid var(--gold-500); z-index: 300; opacity: 0; transform: translateY(10px);
+      transition: all .25s; pointer-events: none;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    footer { text-align: center; padding: 1.5rem; font-size: .75rem; color: var(--gray-500); margin-top: auto; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="head-brand">
+      <img src="assets/cocar-fab.png" alt="AFA" />
+      <div class="head-title">
+        <h1>Academia da Força Aérea</h1>
+        <p>Divisão de Ensino — Apresentação por Retorno de Missão</p>
+      </div>
+    </div>
+    <div class="head-nav">
+      <a href="index.html" class="btn-link">Início</a>
+      <a href="solicitar.html" class="btn-link gold">+ Solicitar OS</a>
+    </div>
+  </header>
+
+  <main>
+    
+    <!-- PASSO 1: LOCALIZAR MISSÃO -->
+    <div class="card-box" id="box-busca">
+      <div class="card-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        1. Localizar a Missão Realizada
+      </div>
+      <p style="font-size:.82rem;color:var(--gray-500);margin-bottom:1rem">
+        Informe o <b>Número do Protocolo</b> (ex.: SOL-2026-0001), <b>Número da OS</b> (ex.: 24/DE/2026), <b>CPF</b> ou <b>SARAM</b> do Coordenador da Missão.
+      </p>
+      <div style="display:flex;gap:.5rem;margin-bottom:1rem">
+        <input type="search" id="in-busca-missao" placeholder="Digite Protocolo, Nº OS, CPF ou SARAM..." style="flex:1;padding:.75rem;border:1px solid var(--navy-200);border-radius:6px" onkeydown="if(event.key==='Enter')buscarMissao()" />
+        <button class="btn btn-navy" onclick="buscarMissao()">Buscar Missão</button>
+      </div>
+
+      <div id="busca-resultado" style="display:none"></div>
+    </div>
+
+    <!-- PASSO 2: FORMULÁRIO DE APRESENTAÇÃO DE RETORNO -->
+    <div class="card-box" id="box-formulario-retorno" style="display:none">
+      <div class="card-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>
+        2. Relato do Responsável pelo Serviço
+      </div>
+
+      <div class="card-militar-resumo" id="resumo-missao-selecionada"></div>
+
+      <div class="field">
+        <label>Ocorreram, por motivo de força maior, alterações no local de realização do serviço e/ou nas datas de início/retorno autorizados inicialmente? *</label>
+        <select id="f-teve-alteracao" onchange="alternarCamposAlteracao(this.value)">
+          <option value="NAO" selected>NÃO (Missão realizada conforme autorizada inicialmente)</option>
+          <option value="SIM">SIM (Houve alterações de datas, horários ou efetivo)</option>
+        </select>
+      </div>
+
+      <!-- CAMPOS DE ALTERAÇÃO (CONDICIONAL) -->
+      <div id="box-campos-alteracao" style="display:none;background:var(--navy-50);padding:1rem;border-radius:8px;border:1px solid var(--navy-200);margin-bottom:1rem">
+        <div style="font-weight:700;font-size:.82rem;color:var(--navy-900);text-transform:uppercase;margin-bottom:.6rem">
+          Detalhamento das Alterações no Retorno
+        </div>
+
+        <div class="grid2">
+          <div class="field">
+            <label>Data / Horário Efetivo de Ida</label>
+            <div style="display:flex;gap:.3rem">
+              <input type="date" id="f-alt-data-ida" />
+              <input type="time" id="f-alt-hora-ida" value="04:00" style="width:95px" />
+            </div>
+          </div>
+          <div class="field">
+            <label>Data / Horário Efetivo de Retorno</label>
+            <div style="display:flex;gap:.3rem">
+              <input type="date" id="f-alt-data-volta" />
+              <input type="time" id="f-alt-hora-volta" value="16:00" style="width:95px" />
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Justificativa Sucinta das Alterações Ocorridas *</label>
+          <textarea id="f-alt-justificativa" rows="2" placeholder="Ex.: Devido a atraso no trânsito/voo da missão, o retorno ocorreu às 18h00."></textarea>
+        </div>
+      </div>
+
+      <!-- PASSO 3: GERAR E BAIXAR FICHA -->
+      <div style="background:#fefce8;border:1px solid #fde047;border-radius:8px;padding:1.2rem;margin-bottom:1.5rem">
+        <h4 style="font-family:var(--f-display);font-size:.95rem;text-transform:uppercase;color:#854d0e;margin-bottom:.4rem">
+          Etapas para Conclusão da Apresentação:
+        </h4>
+        <ol style="margin-left:1.4rem;font-size:.82rem;color:#713f12;line-height:1.6">
+          <li>Clique no botão abaixo para <b>gerar e baixar a Ficha de Apresentação</b> preenchida.</li>
+          <li>Acesse o portal do <b>GOV.BR (Assinador Eletrônico)</b> e assine digitalmente o documento baixado.</li>
+          <li>Faça o <b>upload do PDF já assinado</b> na área abaixo para enviar à Divisão de Ensino.</li>
+        </ol>
+        <div style="margin-top:1rem">
+          <button class="btn btn-navy" onclick="baixarFichaApresentacaoPreenchida()">
+            📄 1º Passo: Gerar & Baixar Ficha de Apresentação (.html / PDF)
+          </button>
+        </div>
+      </div>
+
+      <!-- PASSO 4: UPLOAD DO PDF ASSINADO -->
+      <div class="field">
+        <label>Anexar Ficha de Apresentação Assinada (GOV.BR) *</label>
+        <div class="dropzone" id="dropzoneRetorno" onclick="document.getElementById('arquivoPdfAssinado').click()">
+          <div class="dropzone-icon">📎</div>
+          <div class="dropzone-title" id="dropzone-txt">Clique ou arraste aqui o PDF assinado no GOV.BR</div>
+          <div class="dropzone-desc">Formatos aceitos: PDF assinado digitalmente (máx. 10MB)</div>
+          <input type="file" id="arquivoPdfAssinado" accept="application/pdf" onchange="selecionarPdfAssinado(event)" />
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;gap:.5rem;margin-top:1.5rem">
+        <button class="btn btn-ghost" onclick="cancelarApresentacao()">Cancelar</button>
+        <button class="btn btn-success" id="btn-concluir-apresentacao" onclick="concluirApresentacao()" disabled>
+          ✅ Concluir Envio da Apresentação
+        </button>
+      </div>
+
+    </div>
+
+    <!-- SUCESSO / COMPROVANTE -->
+    <div class="card-box" id="box-sucesso-apresentacao" style="display:none;text-align:center;padding:2.5rem 1.5rem">
+      <div style="font-size:3rem;margin-bottom:1rem">🎉</div>
+      <h2 style="font-family:var(--f-display);font-size:1.4rem;text-transform:uppercase;color:var(--green-600);margin-bottom:.5rem">
+        Apresentação de Retorno Enviada com Sucesso!
+      </h2>
+      <p style="font-size:.88rem;color:var(--gray-700);max-width:550px;margin:0 auto 1.5rem;line-height:1.5">
+        O documento assinado via GOV.BR foi recebido pela Divisão de Ensino (DE). O operador anexará a ficha ao processo <b>SIGADAER</b> para despacho e publicação em <b>BCA</b>.
+      </p>
+      <div id="sucesso-detalhes" style="font-family:var(--f-mono);font-size:.85rem;background:var(--navy-50);padding:1rem;border-radius:6px;display:inline-block;margin-bottom:1.5rem"></div>
+      <div>
+        <a href="index.html" class="btn btn-navy">Voltar ao Início</a>
+      </div>
+    </div>
+
+  </main>
+
+  <footer>
+    Academia da Força Aérea · Divisão de Ensino (AFA / DE)
+  </footer>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/app-config.js"></script>
+  <script>
+    const SUPABASE_URL  = 'https://rsaaryrgdrolcsvigckz.supabase.co';
+    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzYWFyeXJnZHJvbGNzdmlnY2t6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMzcyNjEsImV4cCI6MjA4MjcxMzI2MX0.UKACT_OKIMRaLB3FJPtFPGqhVbR83pUiiPfLkcf_Ec0';
+    const configurado = !SUPABASE_URL.startsWith('COLE_') && !SUPABASE_ANON.startsWith('COLE_');
+    const sb = configurado ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
+
+    let missaoSelecionada = null;
+    let arquivoPdfParaUpload = null;
+
+    function toast(msg, erro){
+      const t = document.getElementById('toast');
+      if (!t) return;
+      t.textContent = msg;
+      t.style.borderLeftColor = erro ? 'var(--red-500)' : 'var(--gold-500)';
+      t.classList.add('show');
+      setTimeout(()=>t.classList.remove('show'), 3500);
+    }
+
+    const esc = s => (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    function fmtData(iso){ if (!iso) return '—'; const [a,m,d] = iso.split('-'); return `${d}/${m}/${a}`; }
+
+    async function buscarMissao() {
+      const termo = document.getElementById('in-busca-missao').value.trim().toLowerCase();
+      const resDiv = document.getElementById('busca-resultado');
+      if (!termo) {
+        toast('Digite um termo para busca', true);
+        return;
+      }
+
+      resDiv.style.display = 'block';
+      resDiv.innerHTML = '<div style="padding:1rem;color:var(--gray-500)">Pesquisando missões cadastradas...</div>';
+
+      let lista = [];
+
+      // 1. Tenta buscar no cache do navegador
+      try {
+        const rawGrat = localStorage.getItem('afa_gratificacao_cache_v1');
+        const rawSolic = localStorage.getItem('afa_solicitacoes_cache_v1');
+        if (rawGrat) lista.push(...JSON.parse(rawGrat));
+        if (rawSolic) lista.push(...JSON.parse(rawSolic));
+      } catch(e) {}
+
+      // 2. Tenta buscar no Supabase
+      if (configurado) {
+        try {
+          const [resG, resS] = await Promise.all([
+            sb.from('gratificacao_representacao').select('*'),
+            sb.from('solicitacoes_missao').select('*')
+          ]);
+          if (resG.data) lista.push(...resG.data);
+          if (resS.data) lista.push(...resS.data);
+        } catch(e) {}
+      }
+
+      // Remove duplicados por num_os / protocolo
+      const unicos = [];
+      const mapa = new Set();
+      lista.forEach(item => {
+        const chave = item.num_os || item.protocolo;
+        if (chave && !mapa.has(chave)) {
+          mapa.add(chave);
+          unicos.push(item);
+        }
+      });
+
+      const termoLimpo = termo.replace(/\D/g, '');
+      const filtrados = unicos.filter(item => {
+        const mils = Array.isArray(item.militares) ? item.militares : [];
+        const matchCpfSaram = mils.some(m => {
+          const cLimpo = (m.cpf || '').replace(/\D/g, '');
+          const sLimpo = (m.saram || '').replace(/\D/g, '');
+          return (termoLimpo && (cLimpo.includes(termoLimpo) || sLimpo.includes(termoLimpo))) ||
+                 (m.nome && m.nome.toLowerCase().includes(termo)) ||
+                 (m.nome_guerra && m.nome_guerra.toLowerCase().includes(termo));
+        });
+
+        return matchCpfSaram ||
+               (item.protocolo && item.protocolo.toLowerCase().includes(termo)) ||
+               (item.num_os && item.num_os.toLowerCase().includes(termo)) ||
+               (item.servico_local && item.servico_local.toLowerCase().includes(termo));
+      });
+
+      if (!filtrados.length) {
+        resDiv.innerHTML = `<div class="alert-box warn">Nenhuma missão encontrada para "${esc(termo)}". Verifique o protocolo ou CPF/SARAM e tente novamente.</div>`;
+        return;
+      }
+
+      resDiv.innerHTML = filtrados.map((m, idx) => {
+        const mils = Array.isArray(m.militares) && m.militares.length ? m.militares : [{ posto_grad: m.posto_grad, nome: m.nome }];
+        const prim = mils[0] || {};
+        const jsonStr = JSON.stringify(m).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+
+        return `
+          <div class="card-militar-resumo" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.8rem;margin-top:.75rem">
+            <div>
+              <div style="font-family:var(--f-mono);font-weight:700;color:var(--navy-900);font-size:.95rem">
+                ${esc(m.num_os ? `OS Nº ${m.num_os}` : (m.protocolo || 'SOLICITAÇÃO'))}
+              </div>
+              <div style="font-weight:600;color:var(--navy-700);margin-top:2px">
+                Coord: ${esc(prim.posto_grad)} ${esc(prim.nome_guerra || prim.nome)} (${mils.length} militar(es))
+              </div>
+              <div style="font-size:.78rem;color:var(--gray-500)">
+                Período: ${fmtData(prim.data_inicio || m.data_inicio)} → ${fmtData(prim.data_fim || m.data_fim)} · ${esc(m.servico_local)}
+              </div>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick='selecionarParaApresentacao(${jsonStr})'>
+              Selecionar Missão
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selecionarParaApresentacao(missao) {
+      missaoSelecionada = missao;
+      document.getElementById('box-formulario-retorno').style.display = 'block';
+      document.getElementById('box-busca').style.display = 'none';
+
+      const mils = Array.isArray(missao.militares) && missao.militares.length ? missao.militares : [{ posto_grad: missao.posto_grad, nome: missao.nome }];
+      const prim = mils[0] || {};
+
+      document.getElementById('resumo-missao-selecionada').innerHTML = `
+        <div style="font-weight:700;font-size:.92rem;color:var(--navy-900)">
+          ${esc(missao.num_os ? `OS ${missao.num_os}` : (missao.protocolo || 'Missão Selecionada'))}
+        </div>
+        <div><b>Coordenador(a):</b> ${esc(prim.posto_grad)} ${esc(prim.nome_guerra || prim.nome)}</div>
+        <div><b>Objeto:</b> ${esc(missao.servico_local)}</div>
+        <div><b>Período Autorizado:</b> ${fmtData(prim.data_inicio || missao.data_inicio)} (${prim.hora_inicio || missao.hora_inicio || '04:00'}) a ${fmtData(prim.data_fim || missao.data_fim)} (${prim.hora_fim || missao.hora_fim || '16:00'})</div>
+      `;
+
+      document.getElementById('f-alt-data-ida').value = prim.data_inicio || missao.data_inicio || '';
+      document.getElementById('f-alt-hora-ida').value = prim.hora_inicio || missao.hora_inicio || '04:00';
+      document.getElementById('f-alt-data-volta').value = prim.data_fim || missao.data_fim || '';
+      document.getElementById('f-alt-hora-volta').value = prim.hora_fim || missao.hora_fim || '16:00';
+
+      document.getElementById('box-formulario-retorno').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function alternarCamposAlteracao(val) {
+      document.getElementById('box-campos-alteracao').style.display = (val === 'SIM') ? 'block' : 'none';
+    }
+
+    function baixarFichaApresentacaoPreenchida() {
+      if (!missaoSelecionada) return;
+
+      const teveAlteracao = document.getElementById('f-teve-alteracao').value === 'SIM';
+      const justTxt = teveAlteracao ? document.getElementById('f-alt-justificativa').value.trim() : 'Não se aplica.';
+
+      const dadosComp = {
+        ...missaoSelecionada,
+        teve_alteracao_retorno: teveAlteracao,
+        justificativa_alteracao_retorno: justTxt
+      };
+
+      if (teveAlteracao) {
+        const dIda = document.getElementById('f-alt-data-ida').value;
+        const hIda = document.getElementById('f-alt-hora-ida').value;
+        const dVolta = document.getElementById('f-alt-data-volta').value;
+        const hVolta = document.getElementById('f-alt-hora-volta').value;
+
+        const diffHours = (new Date(`${dVolta}T${hVolta}`) - new Date(`${dIda}T${hIda}`)) / (1000 * 60 * 60);
+        const diasCalc = Math.max(1, Math.ceil(diffHours / 24));
+
+        dadosComp.retorno_dados_alteracao = (Array.isArray(missaoSelecionada.militares) ? missaoSelecionada.militares : [missaoSelecionada]).map(m => ({
+          ...m,
+          retorno_inicio_fmt: fmtData(dIda),
+          retorno_hora_inicio: hIda,
+          retorno_fim_fmt: fmtData(dVolta),
+          retorno_hora_fim: hVolta,
+          dias_retorno: diasCalc
+        }));
+      }
+
+      window.CompiladorDoc.gerarFichaApresentacaoGratificacao(dadosComp, true);
+      toast('Ficha de Apresentação gerada! Assine no GOV.BR e faça o upload.');
+    }
+
+    function selecionarPdfAssinado(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
+        alert('Por favor, selecione um arquivo no formato PDF.');
+        return;
+      }
+
+      arquivoPdfParaUpload = file;
+      document.getElementById('dropzone-txt').textContent = `📄 Selecionado: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+      document.getElementById('dropzoneRetorno').style.borderColor = 'var(--green-500)';
+      document.getElementById('dropzoneRetorno').style.background = '#f0fdf4';
+      document.getElementById('btn-concluir-apresentacao').disabled = false;
+    }
+
+    async function concluirApresentacao() {
+      if (!missaoSelecionada || !arquivoPdfParaUpload) {
+        alert('Selecione o arquivo PDF assinado via GOV.BR para concluir.');
+        return;
+      }
+
+      const teveAlteracao = document.getElementById('f-teve-alteracao').value === 'SIM';
+      const justTxt = teveAlteracao ? document.getElementById('f-alt-justificativa').value.trim() : 'Não se aplica.';
+      const numIdent = missaoSelecionada.num_os || missaoSelecionada.protocolo || 'RETORNO';
+      const nomeLimpo = numIdent.replace(/[^\w.-]/g, '_');
+      const caminhoStorage = `retornos_os/${nomeLimpo}_assinado_${Date.now()}.pdf`;
+
+      const btn = document.getElementById('btn-concluir-apresentacao');
+      btn.disabled = true;
+      btn.textContent = 'Enviando PDF...';
+
+      let pdfCaminhoGravado = caminhoStorage;
+
+      // 1. Tenta upload no Storage do Supabase
+      if (configurado) {
+        try {
+          const res = await fetch(`${SUPABASE_URL}/storage/v1/object/auxilio-transporte/${caminhoStorage}`, {
+            method: 'POST',
+            headers: {
+              apikey: SUPABASE_ANON,
+              Authorization: `Bearer ${SUPABASE_ANON}`,
+              'Content-Type': 'application/pdf',
+              'x-upsert': 'true'
+            },
+            body: arquivoPdfParaUpload
+          });
+          if (!res.ok) throw new Error('Upload Storage ' + res.status);
+        } catch(e) {
+          console.warn('Storage fallback:', e.message);
+        }
+      }
+
+      // 2. Atualiza registros no banco / LocalStorage
+      const agora = new Date().toISOString();
+      const payloadAtualizacao = {
+        retorno_apresentado: true,
+        retorno_apresentado_em: agora,
+        teve_alteracao_retorno: teveAlteracao,
+        justificativa_alteracao_retorno: justTxt,
+        pdf_retorno_assinado: pdfCaminhoGravado,
+        status: 'Apresentado'
+      };
+
+      try {
+        if (configurado) {
+          if (missaoSelecionada.num_os) {
+            await sb.from('gratificacao_representacao').update(payloadAtualizacao).eq('num_os', missaoSelecionada.num_os);
+            await sb.from('controle_os_processos').update({ status: 'Apresentado', pdf_retorno_assinado: pdfCaminhoGravado }).eq('num_os', missaoSelecionada.num_os);
+          }
+          if (missaoSelecionada.protocolo) {
+            await sb.from('solicitacoes_missao').update(payloadAtualizacao).eq('protocolo', missaoSelecionada.protocolo);
+          }
+        }
+      } catch(e) {}
+
+      document.getElementById('box-formulario-retorno').style.display = 'none';
+      document.getElementById('box-sucesso-apresentacao').style.display = 'block';
+      document.getElementById('sucesso-detalhes').innerHTML = `
+        <b>Protocolo/OS:</b> ${esc(numIdent)}<br>
+        <b>Data/Hora do Envio:</b> ${new Date().toLocaleString('pt-BR')}<br>
+        <b>Status Atualizado:</b> <span style="color:#15803d;font-weight:bold">APRESENTADO</span>
+      `;
+      toast('Apresentação de Retorno concluída com sucesso!');
+    }
+
+    function cancelarApresentacao() {
+      document.getElementById('box-formulario-retorno').style.display = 'none';
+      document.getElementById('box-busca').style.display = 'block';
+      missaoSelecionada = null;
+      arquivoPdfParaUpload = null;
+    }
+  </script>
+</body>
+</html>

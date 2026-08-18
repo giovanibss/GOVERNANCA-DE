@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>AFA · Missões — DE</title>
+<title>AFA · Gestão de Missões & OS — DE</title>
 <link rel="icon" href="assets/cocar-fab.png" type="image/png" />
-<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
 <script src="compiladordoc.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -13,10 +13,11 @@
   --navy-900:#0a1628; --navy-800:#0f2341; --navy-700:#14315a;
   --navy-600:#1e4377; --navy-500:#2d5a9e; --navy-400:#5b82c4;
   --navy-300:#94b0d8; --navy-200:#c5d4e8; --navy-100:#e6eef7; --navy-50:#f2f6fb;
-  --gold-500:#d4a84b; --gold-400:#e6be65;
-  --green-500:#10b981; --green-600:#059669;
-  --yellow-500:#f59e0b;
-  --red-500:#ef4444; --red-600:#dc2626;
+  --gold-500:#d4a84b; --gold-400:#e6be65; --gold-100:#fef9c3;
+  --green-500:#10b981; --green-600:#059669; --green-50:#ecfdf5;
+  --yellow-500:#f59e0b; --yellow-50:#fefce8;
+  --red-500:#ef4444; --red-600:#dc2626; --red-50:#fef2f2;
+  --purple-500:#8b5cf6; --purple-50:#f5f3ff;
   --gray-100:#f1f5f9; --gray-200:#e2e8f0; --gray-300:#cbd5e1;
   --gray-400:#94a3b8; --gray-500:#64748b; --gray-700:#334155; --gray-900:#0f172a;
   --f-display:'Oswald',sans-serif;
@@ -25,16 +26,43 @@
 }
 body{font-family:var(--f-body);background:var(--navy-50);color:var(--navy-900);min-height:100vh}
 
+/* ═══ PIN GATE ═══ */
+.pin-gate-wrap{
+  min-height: calc(100vh - 78px); display: flex; align-items: center; justify-content: center;
+  padding: 2rem 1rem; position: relative; z-index: 5;
+}
+.pin-gate-card{
+  background: #fff; border: 1px solid var(--navy-100); border-top: 4px solid var(--gold-500);
+  border-radius: 12px; padding: 2.5rem 2rem; max-width: 440px; width: 100%; text-align: center;
+  box-shadow: 0 16px 40px -10px rgba(10,22,40,.2);
+}
+.pin-gate-icon{ font-size: 2.5rem; margin-bottom: .8rem; }
+.pin-gate-title{ font-family: var(--f-display); font-size: 1.4rem; font-weight: 600; text-transform: uppercase; color: var(--navy-900); margin-bottom: .4rem; }
+.pin-gate-desc{ font-size: .82rem; color: var(--gray-500); margin-bottom: 1.5rem; line-height: 1.5; }
+.pin-gate-form{ display: flex; gap: .6rem; justify-content: center; }
+.pin-gate-input{
+  padding: .75rem 1rem; border-radius: 6px; border: 1px solid var(--navy-200); font-family: var(--f-mono);
+  font-size: 1.2rem; text-align: center; width: 160px; letter-spacing: .2em; outline: none;
+}
+.pin-gate-input:focus{ border-color: var(--gold-500); box-shadow: 0 0 0 3px rgba(212,168,75,.2); }
+.pin-gate-submit{
+  padding: .75rem 1.4rem; border-radius: 6px; background: var(--gold-500); color: var(--navy-900);
+  border: none; font-family: var(--f-display); font-size: .95rem; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .06em; cursor: pointer; transition: all .2s;
+}
+.pin-gate-submit:hover{ background: var(--gold-400); transform: translateY(-1px); }
+.pin-gate-err{ margin-top: 1rem; font-size: .8rem; color: var(--red-500); font-weight: 600; }
+
 /* ═══ TABS NAV ═══ */
 .tabs-bar{
   display:flex;gap:.5rem;padding:.75rem 2rem 0 2rem;background:#fff;
-  border-bottom:2px solid var(--navy-100);position:sticky;top:78px;z-index:90;
+  border-bottom:2px solid var(--navy-100);position:sticky;top:78px;z-index:90;overflow-x:auto;
 }
 .tab-btn{
-  display:inline-flex;align-items:center;gap:.5rem;padding:.65rem 1.2rem;
+  display:inline-flex;align-items:center;gap:.5rem;padding:.65rem 1.1rem;
   font-family:var(--f-display);font-size:.85rem;font-weight:600;letter-spacing:.06em;
   text-transform:uppercase;color:var(--gray-500);background:transparent;
-  border:none;border-bottom:3px solid transparent;cursor:pointer;transition:all .2s;
+  border:none;border-bottom:3px solid transparent;cursor:pointer;transition:all .2s;white-space:nowrap;
 }
 .tab-btn:hover{color:var(--navy-700);background:var(--navy-50)}
 .tab-btn.active{color:var(--navy-900);border-bottom-color:var(--gold-500);background:rgba(212,168,75,.08)}
@@ -42,10 +70,14 @@ body{font-family:var(--f-body);background:var(--navy-50);color:var(--navy-900);m
 .tab-badge{font-family:var(--f-mono);font-size:.65rem;background:var(--navy-100);color:var(--navy-700);padding:2px 6px;border-radius:10px;margin-left:4px}
 .tab-btn.active .tab-badge{background:var(--gold-500);color:var(--navy-900)}
 .grat-actions{display:flex;gap:.35rem;margin-top:.6rem;flex-wrap:wrap}
-.btn-doc{padding:.3rem .55rem;font-size:.66rem;font-family:var(--f-mono);font-weight:600;border-radius:4px;border:1px solid var(--navy-200);background:var(--navy-50);color:var(--navy-700);cursor:pointer;transition:all .15s}
+.btn-doc{padding:.32rem .6rem;font-size:.68rem;font-family:var(--f-mono);font-weight:600;border-radius:4px;border:1px solid var(--navy-200);background:var(--navy-50);color:var(--navy-700);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:.3rem}
 .btn-doc:hover{background:var(--navy-700);color:#fff;border-color:var(--navy-700)}
 .btn-doc.gold{background:var(--gold-500);color:var(--navy-900);border-color:var(--gold-500)}
 .btn-doc.gold:hover{background:var(--gold-400)}
+.btn-doc.green{background:#dcfce7;color:#15803d;border-color:#bbf7d0}
+.btn-doc.green:hover{background:#16a34a;color:#fff;border-color:#16a34a}
+.btn-doc.purple{background:#f3e8ff;color:#6b21a8;border-color:#e9d5ff}
+.btn-doc.purple:hover{background:#7e22ce;color:#fff;border-color:#7e22ce}
 
 /* ═══ TOGGLES & ACCORDION ═══ */
 .toggle-field{background:var(--navy-50);border:1px solid var(--navy-200);border-radius:6px;padding:.75rem .9rem;margin-bottom:.85rem}
@@ -63,8 +95,9 @@ input:checked + .slider:before{transform:translateX(16px)}
 .accordion-body.show{display:block}
 
 /* Multimilitar List */
-.militar-item-card{background:#fff;border:1px solid var(--navy-200);border-left:3px solid var(--gold-500);border-radius:6px;padding:.75rem;margin-bottom:.6rem;position:relative}
-.militar-item-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem;font-size:.75rem;font-weight:700;color:var(--navy-900)}
+.militar-item-card{background:#fff;border:1px solid var(--navy-200);border-left:3px solid var(--gold-500);border-radius:6px;padding:.85rem;margin-bottom:.65rem;position:relative}
+.militar-item-card.coord{border-left-color:#10b981;background:#f0fdf4}
+.militar-item-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;font-size:.78rem;font-weight:700;color:var(--navy-900)}
 
 body::after{
   content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
@@ -90,7 +123,7 @@ header::before{
 .logo-text{font-family:var(--f-display);font-size:1.15rem;font-weight:600;letter-spacing:.04em;
   line-height:1;text-transform:uppercase}
 .logo-sub{font-size:.7rem;color:var(--navy-300);letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
-.header-right{display:flex;align-items:center;gap:1rem;position:relative}
+.header-right{display:flex;align-items:center;gap:.65rem;position:relative}
 .hbtn{
   display:flex;align-items:center;gap:.45rem;font-size:.72rem;font-weight:500;color:#fff;
   background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:4px;
@@ -117,10 +150,11 @@ header::before{
   border-bottom:1px solid var(--navy-100);overflow-x:auto;position:relative;z-index:5}
 .scard{flex:0 0 auto;display:flex;align-items:center;gap:.75rem;background:var(--navy-50);
   border:1px solid var(--navy-100);border-left:3px solid;border-radius:4px;
-  padding:.6rem 1.1rem;min-width:170px}
+  padding:.6rem 1.1rem;min-width:160px}
 .scard.gold{border-left-color:var(--gold-500)}
 .scard.red{border-left-color:var(--red-500)}
 .scard.green{border-left-color:var(--green-500)}
+.scard.purple{border-left-color:var(--purple-500)}
 .scard.navy{border-left-color:var(--navy-600);margin-left:auto}
 .scount{font-family:var(--f-display);font-size:1.35rem;font-weight:600;line-height:1;
   color:var(--navy-900);font-variant-numeric:tabular-nums}
@@ -132,7 +166,7 @@ main{display:grid;grid-template-columns:1fr 340px;gap:1.5rem;padding:1.5rem 2rem
   max-width:1500px;margin:0 auto;position:relative;z-index:5;align-items:start}
 @media(max-width:1000px){main{grid-template-columns:1fr}}
 
-.section-title{font-family:var(--f-display);font-size:.72rem;font-weight:500;
+.section-title{font-family:var(--f-display);font-size:.74rem;font-weight:500;
   text-transform:uppercase;letter-spacing:.12em;color:var(--navy-600);
   margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
 .section-title::before{content:'';width:16px;height:2px;background:var(--gold-500)}
@@ -166,6 +200,9 @@ main{display:grid;grid-template-columns:1fr 340px;gap:1.5rem;padding:1.5rem 2rem
 .os.st-curso{border-top-color:var(--green-500)}
 .os.st-futura{border-top-color:var(--gold-500)}
 .os.st-fim{border-top-color:var(--gray-300)}
+.os.st-analise{border-top-color:var(--gold-500)}
+.os.st-concluida{border-top-color:var(--green-500)}
+.os.st-cancelada{border-top-color:var(--red-500)}
 .os.pend{opacity:.55}
 
 .os-head{display:flex;align-items:flex-start;gap:.6rem;margin-bottom:.7rem}
@@ -178,6 +215,10 @@ main{display:grid;grid-template-columns:1fr 340px;gap:1.5rem;padding:1.5rem 2rem
 .badge-curso{background:rgba(16,185,129,.12);color:var(--green-600)}
 .badge-futura{background:rgba(212,168,75,.15);color:#8a6d1f}
 .badge-fim{background:var(--gray-100);color:var(--gray-500)}
+.badge-paga{background:#dcfce7;color:#15803d}
+.badge-analise{background:rgba(212,168,75,.18);color:#8a6d1f}
+.badge-siloms-ok{background:#dbeafe;color:#1e40af;font-weight:700}
+.badge-siloms-pend{background:#fef3c7;color:#92400e;font-weight:700}
 
 .os-desc{font-size:.83rem;line-height:1.5;color:var(--gray-700);margin-bottom:.85rem;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -230,7 +271,7 @@ main{display:grid;grid-template-columns:1fr 340px;gap:1.5rem;padding:1.5rem 2rem
 .gauge-read dd.left{color:var(--green-600)}
 
 .field{margin-bottom:.85rem}
-.field label{display:block;font-size:.62rem;font-weight:600;text-transform:uppercase;
+.field label{display:block;font-size:.64rem;font-weight:600;text-transform:uppercase;
   letter-spacing:.08em;color:var(--navy-500);margin-bottom:.35rem}
 .field input,.field textarea,.field select{
   width:100%;padding:.6rem .75rem;border-radius:5px;border:1px solid var(--navy-200);
@@ -241,115 +282,124 @@ main{display:grid;grid-template-columns:1fr 340px;gap:1.5rem;padding:1.5rem 2rem
   outline:2px solid var(--gold-500);outline-offset:1px;border-color:var(--gold-500)}
 .field textarea{resize:vertical;min-height:70px;line-height:1.5}
 .field .hint{font-size:.62rem;color:var(--gray-400);margin-top:.28rem}
+.err{display:none;font-size:.68rem;color:var(--red-500);margin-top:3px;font-weight:600}
+.err.show{display:block}
 
 .warn{display:flex;gap:.55rem;align-items:flex-start;padding:.7rem .8rem;border-radius:5px;
   background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.22);
   font-size:.72rem;line-height:1.45;color:#991b1b;margin-top:.85rem}
 .warn svg{width:15px;height:15px;flex-shrink:0;margin-top:1px}
 .warn.hide{display:none}
-.warn.setup{background:rgba(212,168,75,.1);border-color:rgba(212,168,75,.3);color:#7a5f16}
-.warn.setup code{font-family:var(--f-mono);font-size:.66rem;background:rgba(0,0,0,.06);
-  padding:1px 4px;border-radius:3px}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem}
+@media(max-width:600px){.grid2,.grid3{grid-template-columns:1fr}}
+
+/* ═══ TABELA DE CONTROLE DE PROCESSOS (CONTROLE OS 2026) ═══ */
+.table-controle-wrap{
+  background:#fff;border:1px solid var(--navy-100);border-radius:8px;overflow-x:auto;box-shadow:0 4px 16px rgba(10,25,47,0.04);
+}
+.table-controle{
+  width:100%;border-collapse:collapse;font-size:.82rem;text-align:left;min-width:1050px;
+}
+.table-controle th{
+  background:var(--navy-900);color:#fff;font-family:var(--f-display);font-size:.75rem;
+  letter-spacing:.06em;text-transform:uppercase;padding:.75rem .9rem;white-space:nowrap;
+}
+.table-controle td{
+  padding:.75rem .9rem;border-bottom:1px solid var(--navy-100);vertical-align:middle;
+}
+.table-controle tr:hover td{background:var(--navy-50)}
+.badge-st{
+  display:inline-block;padding:.2rem .55rem;border-radius:4px;font-family:var(--f-mono);
+  font-size:.68rem;font-weight:700;text-transform:uppercase;
+}
+.st-pendente{background:#fef3c7;color:#92400e}
+.st-analise{background:#e0e7ff;color:#3730a3}
+.st-aprovada{background:#dbeafe;color:#1e40af}
+.st-apresentado{background:#d1fae5;color:#065f46;border:1px solid #a7f3d0}
+.st-despachado{background:#ede9fe;color:#5b21b6;border:1px solid #ddd6fe}
+.st-corrigir{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
+.st-aceito{background:#dbeafe;color:#1e40af}
+.st-aguardando-bca{background:#fef9c3;color:#854d0e;border:1px solid #fde047}
+.st-confeccionado{background:#dcfce7;color:#15803d}
+.st-publicado{background:#ccfbf1;color:#115e59;border:1px solid #99f6e4}
 
 /* ═══ MODAL ═══ */
-.backdrop{position:fixed;inset:0;z-index:200;background:rgba(10,22,40,.72);
-  backdrop-filter:blur(3px);display:flex;align-items:flex-start;justify-content:center;
-  padding:2rem 1rem;overflow-y:auto;opacity:0;pointer-events:none;transition:opacity .2s}
-.backdrop.open{opacity:1;pointer-events:auto}
-.modal{background:#fff;border-radius:10px;width:100%;max-width:560px;
-  border-top:4px solid var(--gold-500);box-shadow:0 24px 60px rgba(0,0,0,.4);
-  transform:translateY(-14px);transition:transform .24s cubic-bezier(.2,.8,.2,1)}
-.backdrop.open .modal{transform:none}
-.modal-head{display:flex;align-items:center;gap:.7rem;padding:1.2rem 1.4rem;
-  border-bottom:1px solid var(--navy-100)}
-.modal-head h2{font-family:var(--f-display);font-size:1.05rem;font-weight:600;
-  letter-spacing:.04em;text-transform:uppercase;color:var(--navy-900)}
-.modal-head .icon-btn{margin-left:auto}
-.modal-body{padding:1.3rem 1.4rem}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.85rem}
-@media(max-width:520px){.grid2{grid-template-columns:1fr}}
-.modal-foot{display:flex;gap:.6rem;justify-content:flex-end;padding:1rem 1.4rem;
-  border-top:1px solid var(--navy-100);background:var(--navy-50);border-radius:0 0 10px 10px}
-.calc{background:var(--navy-50);border:1px solid var(--navy-100);border-radius:5px;
-  padding:.6rem .75rem;font-family:var(--f-mono);font-size:.7rem;color:var(--navy-600);
-  margin-top:-.35rem;margin-bottom:.85rem}
-.err{font-size:.68rem;color:var(--red-600);margin-top:.3rem;display:none}
-.err.show{display:block}
-
-.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(20px);
-  background:var(--navy-900);color:#fff;padding:.7rem 1.2rem;border-radius:6px;
-  border:1px solid var(--gold-500);font-size:.8rem;z-index:300;max-width:90vw;
-  opacity:0;pointer-events:none;transition:all .25s}
-.toast.show{opacity:1;transform:translateX(-50%)}
-.toast.bad{border-color:var(--red-500)}
-
-footer{text-align:center;padding:2rem 1rem;font-size:.7rem;color:var(--gray-500);
-  letter-spacing:.04em;position:relative;z-index:5}
-footer img{width:16px;vertical-align:middle;margin:0 .5rem;opacity:.5}
-
-@media(max-width:600px){
-  header{padding:0 .9rem;height:64px}
-  .logo-text{font-size:.9rem}.logo-sub{font-size:.6rem}
-  .crest{width:42px;height:42px}
-  .hbtn span,.sync span{display:none}
-  .summary{padding:.85rem}
-  .scard{min-width:140px;padding:.5rem .8rem}
-  main{padding:1rem .9rem;gap:1rem}
-  .tabs-bar{top:64px;padding:.5rem .6rem 0 .6rem;gap:.25rem;overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .tab-btn{padding:.5rem .55rem;font-size:.76rem;gap:.35rem;white-space:nowrap;flex-shrink:0}
-  .tab-btn svg{width:14px;height:14px}
-  .hide-mob{display:none}
-/* PORTÃO DE PIN (ACESSO RESTRITO) */
-.pin-gate-wrap{position:fixed;inset:0;background:rgba(10,22,40,0.85);backdrop-filter:blur(6px);z-index:900;display:flex;align-items:center;justify-content:center;padding:1.5rem}
-.pin-gate-card{background:#fff;border-radius:12px;box-shadow:0 20px 40px rgba(0,0,0,0.3);max-width:400px;width:100%;padding:2rem;text-align:center;border-top:5px solid var(--gold-500)}
-.pin-gate-icon{font-size:2.2rem;margin-bottom:1rem}
-.pin-gate-title{font-family:var(--f-display);font-size:1.3rem;color:var(--navy-900);text-transform:uppercase;margin-bottom:.5rem}
-.pin-gate-desc{font-size:.8rem;color:var(--gray-500);line-height:1.4;margin-bottom:1.5rem}
-.pin-gate-form{display:flex;gap:.5rem;justify-content:center}
-.pin-gate-input{font-family:var(--f-mono);font-size:1.2rem;letter-spacing:.25em;text-align:center;padding:.6rem;width:140px;border:2px solid var(--navy-200);border-radius:6px;outline:none}
-.pin-gate-submit{background:var(--gold-500);color:var(--navy-900);border:none;padding:0 1.2rem;font-weight:700;border-radius:6px;cursor:pointer;transition:all .2s;font-family:var(--f-display);text-transform:uppercase}
-.pin-gate-submit:hover{background:var(--gold-400)}
-.pin-gate-err{color:#ef4444;font-size:.75rem;margin-top:.75rem;font-weight:600}
+.backdrop{
+  position:fixed;inset:0;background:rgba(10,22,40,.6);backdrop-filter:blur(3px);
+  display:flex;align-items:center;justify-content:center;padding:1rem;
+  z-index:200;opacity:0;pointer-events:none;transition:opacity .2s;
 }
+.backdrop.open{opacity:1;pointer-events:auto}
+.modal{
+  background:#fff;border-radius:10px;box-shadow:0 24px 48px -12px rgba(10,22,40,.4);
+  width:100%;max-width:600px;overflow:hidden;transform:scale(.96);transition:transform .2s;
+  display:flex;flex-direction:column;max-height:90vh;
+}
+.backdrop.open .modal{transform:scale(1)}
+.modal-head{
+  display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;
+  background:var(--navy-900);color:#fff;border-bottom:3px solid var(--gold-500);
+}
+.modal-head h2{font-family:var(--f-display);font-size:1.05rem;letter-spacing:.04em;text-transform:uppercase}
+.modal-head svg{color:var(--gold-500)}
+.modal-body{padding:1.25rem;overflow-y:auto;flex:1}
+.modal-foot{
+  display:flex;align-items:center;justify-content:flex-end;gap:.6rem;padding:.9rem 1.25rem;
+  background:var(--navy-50);border-top:1px solid var(--navy-100);
+}
+
+.calc{font-family:var(--f-mono);font-size:.78rem;color:var(--gray-500);margin-top:.4rem;padding:.5rem .75rem;background:var(--navy-50);border-radius:4px}
+.toast{
+  position:fixed;bottom:1.5rem;right:1.5rem;background:var(--navy-900);color:#fff;
+  padding:.75rem 1.25rem;border-radius:6px;font-size:.82rem;box-shadow:0 10px 25px rgba(0,0,0,.25);
+  border-left:4px solid var(--gold-500);z-index:300;opacity:0;transform:translateY(10px);
+  transition:all .25s;pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateY(0)}
+
+footer{
+  display:flex;align-items:center;justify-content:center;gap:.6rem;padding:1.5rem;
+  font-size:.72rem;color:var(--gray-400);letter-spacing:.06em;text-transform:uppercase;margin-top:auto;
+}
+footer img{height:16px;opacity:.4}
 </style>
 </head>
 <body>
 
 <header>
   <div class="logo">
-    <div class="crest"><img src="assets/brasao-afa.jpg" alt="Brasão da AFA" /></div>
+    <div class="crest"><img src="assets/brasao-afa.jpg" alt="AFA" /></div>
     <div>
-      <div class="logo-text">Missões</div>
-      <div class="logo-sub">Divisão de Ensino · AFA</div>
+      <div class="logo-text">Divisão de Ensino · AFA</div>
+      <div class="logo-sub">Gestão Central de Missões & Ordens de Serviço</div>
     </div>
   </div>
   <div class="header-right">
-    <a class="hbtn" href="index.html">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m3 10 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-      <span>Início</span>
-    </a>
+    <div class="sync ok" id="sync"><i id="sync-dot"></i><span id="sync-txt">Sincronizado</span></div>
+    <button class="hbtn" onclick="abrirModalExternos()" title="Gerenciar Militares Externos">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Militares Externos
+    </button>
+    <button class="hbtn" onclick="abrirModalConfig()" title="Configurações de Assinantes e SMTP">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Configurações
+    </button>
     <button class="hbtn" id="lock-btn" onclick="bloquearSessaoMissoes()" style="display:none" title="Bloquear acesso com PIN">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      <span>Bloquear</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Bloquear
     </button>
-    <a class="hbtn gold" href="solicitar.html" target="_blank" title="Abrir formulário de solicitação sem senha">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>
-      <span>Solicitar OS</span>
-    </a>
-    <button class="hbtn gold" id="btn-header-acao" onclick="acaoAbaAtual()">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
-      <span id="txt-header-acao">Nova OS</span>
-    </button>
-    <span class="sync" id="sync"><i></i><span id="sync-txt">Conectando…</span></span>
+    <a href="solicitar.html" target="_blank" class="hbtn gold">+ Solicitar OS</a>
   </div>
 </header>
 
-<!-- PORTÃO DE PIN DE ACESSO RESTRITO -->
-<div id="pinGate" class="pin-gate-wrap" style="display:none;">
+<!-- GATE DE SENHA PIN -->
+<div id="pinGate" class="pin-gate-wrap">
   <div class="pin-gate-card">
     <div class="pin-gate-icon">🔒</div>
     <div class="pin-gate-title">Acesso Restrito ao Operador</div>
-    <div class="pin-gate-desc">Informe a Senha / PIN da Secretária para acessar a gestão de Missões, Diárias e Homologações.</div>
+    <div class="pin-gate-desc">Informe a Senha / PIN da Secretária para acessar a gestão de Missões, Diárias, OMIS e Processos.</div>
     <div class="pin-gate-form">
       <input type="password" id="pinInput" class="pin-gate-input" placeholder="••••" maxlength="12" inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter') verificarPinMissoes()" />
       <button class="pin-gate-submit" onclick="verificarPinMissoes()">Entrar</button>
@@ -362,19 +412,29 @@ footer img{width:16px;vertical-align:middle;margin:0 .5rem;opacity:.5}
 
 <div class="tabs-bar">
   <button class="tab-btn active" id="tab-btn-diarias" onclick="trocarAba('diarias')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
     Diária
     <span class="tab-badge" id="badge-diarias-count">0</span>
   </button>
   <button class="tab-btn" id="tab-btn-gratificacao" onclick="trocarAba('gratificacao')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>
-    Gratificação <span class="hide-mob">de representação</span>
+    Gratificação <span class="hide-mob">de Representação</span>
     <span class="tab-badge" id="badge-grat-count">0</span>
+  </button>
+  <button class="tab-btn" id="tab-btn-omis" onclick="trocarAba('omis')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    Ordens de Missão (OMIS)
+    <span class="tab-badge" id="badge-omis-count">0</span>
   </button>
   <button class="tab-btn" id="tab-btn-solicitacoes" onclick="trocarAba('solicitacoes')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
     Solicitações <span class="hide-mob">de OS</span>
     <span class="tab-badge" id="badge-solic-count" style="background:#ef4444;color:#fff">0</span>
+  </button>
+  <button class="tab-btn" id="tab-btn-controle" onclick="trocarAba('controle')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+    Controle OS 2026 (Esteira)
+    <span class="tab-badge" id="badge-controle-count">0</span>
   </button>
 </div>
 
@@ -393,7 +453,7 @@ footer img{width:16px;vertical-align:middle;margin:0 .5rem;opacity:.5}
       <div class="toolbar">
         <button class="btn btn-primary" onclick="abrirModal()">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 5v14M5 12h14"/></svg>
-          Nova OS
+          Nova OS Diária
         </button>
         <input class="search" id="busca" type="search" placeholder="Buscar por número, missão ou servidor…" oninput="render()" />
         <select class="search" style="flex:0 0 auto;min-width:150px" id="ordem" onchange="render()">
@@ -433,27 +493,19 @@ footer img{width:16px;vertical-align:middle;margin:0 .5rem;opacity:.5}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
           <span id="alerta-txt"></span>
         </div>
-
-        <div class="warn setup hide" id="setup">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
-          <span>Supabase não configurado. Preencha <code>SUPABASE_URL</code> e <code>SUPABASE_ANON</code> no início do script.</span>
-        </div>
       </div>
 
       <div class="panel">
-        <div class="section-title">Dados</div>
+        <div class="section-title">Ações Rápidas</div>
         <div style="display:flex;flex-direction:column;gap:.5rem">
           <button class="btn btn-ghost" onclick="recarregar(true)">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.9-3.4L23 10M1 14l4.6 4.4A9 9 0 0 0 20.5 15"/></svg>
-            Recarregar do servidor
+            Recarregar Dados
           </button>
-          <button class="btn btn-ghost" onclick="exportar()">
+          <button class="btn btn-ghost" onclick="exportarDiariasCSV()">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-            Exportar planilha (CSV)
+            Exportar Diárias (CSV)
           </button>
-        </div>
-        <div class="hint" style="margin-top:.6rem;font-size:.62rem;color:var(--gray-400)">
-          Os lançamentos ficam no Supabase e aparecem em qualquer aparelho.
         </div>
       </div>
     </aside>
@@ -470,7 +522,7 @@ footer img{width:16px;vertical-align:middle;margin:0 .5rem;opacity:.5}
 
   <main style="grid-template-columns:1fr;max-width:1500px">
     <div>
-      <div class="section-title">Processos de Gratificação de Representação</div>
+      <div class="section-title">Processos de Gratificação de Representação (GratiRep)</div>
       <div class="toolbar">
         <button class="btn btn-primary" onclick="abrirModalGratificacao()">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 5v14M5 12h14"/></svg>
@@ -490,11 +542,38 @@ footer img{width:16px;vertical-align:middle;margin:0 .5rem;opacity:.5}
   </main>
 </div>
 
-<!-- ABA 3: SOLICITAÇÕES DE OS (LOG DE MONITORAMENTO) -->
+<!-- ABA 3: ORDENS DE MISSÃO (OMIS) -->
+<div id="view-omis" style="display:none">
+  <div class="summary">
+    <div class="scard gold"><div><div class="scount" id="so-qtd">0</div><div class="slabel">OMIS Emitidas</div></div></div>
+    <div class="scard green"><div><div class="scount" id="so-siloms-ok">0</div><div class="slabel">Protocoladas SILOMS</div></div></div>
+    <div class="scard purple"><div><div class="scount" id="so-enviadas">0</div><div class="slabel">E-mails Disparados</div></div></div>
+    <div class="scard navy" style="margin-left:0"><div><div class="scount" id="so-mils">0</div><div class="slabel">Militares em Missão</div></div></div>
+  </div>
+
+  <main style="grid-template-columns:1fr;max-width:1500px">
+    <div>
+      <div class="section-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem">
+        <span>Ordens de Missão de Caráter Imediato / Emergencial (OMIS)</span>
+        <button class="btn btn-primary" onclick="abrirModalNovaOmisSemCusto()">
+          + Nova OMIS (Sem Custo)
+        </button>
+      </div>
+      <div class="toolbar">
+        <input class="search" id="omis-busca" type="search" placeholder="Buscar por OMIS, OS, SILOMS, coordenador ou destino..." oninput="renderOmis()" />
+      </div>
+      <div class="os-grid" id="lista-omis">
+        <div class="skel"></div><div class="skel"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- ABA 4: SOLICITAÇÕES DE OS (TRIAGEM PÚBLICA) -->
 <div id="view-solicitacoes" style="display:none">
   <div class="summary">
     <div class="scard gold"><div><div class="scount" id="ss-qtd">0</div><div class="slabel">Pendentes</div></div></div>
-    <div class="scard green"><div><div class="scount" id="ss-aprovadas">0</div><div class="slabel">OS Criadas</div></div></div>
+    <div class="scard green"><div><div class="scount" id="ss-aprovadas">0</div><div class="slabel">OS Homologadas</div></div></div>
     <div class="scard red"><div><div class="scount" id="ss-rejeitadas">0</div><div class="slabel">Canceladas</div></div></div>
     <div class="scard navy"><div><div class="scount" id="ss-total">0</div><div class="slabel">Total Solicitadas</div></div></div>
   </div>
@@ -517,6 +596,71 @@ footer img{width:16px;vertical-align:middle;margin:0 .5rem;opacity:.5}
   </main>
 </div>
 
+<!-- ABA 5: CONTROLE OS 2026 (ESTEIRA & AUDITORIA) -->
+<div id="view-controle" style="display:none">
+  <div class="summary">
+    <div class="scard gold"><div><div class="scount" id="sc-pend">0</div><div class="slabel">Em Tramitação</div></div></div>
+    <div class="scard" style="border-color:#0ea5e9;--scard-accent:#0ea5e9"><div><div class="scount" id="sc-missao">0</div><div class="slabel">Em Missão / Retorno</div></div></div>
+    <div class="scard red"><div><div class="scount" id="sc-corrigir">0</div><div class="slabel">Com Pendência (Corrigir)</div></div></div>
+    <div class="scard purple"><div><div class="scount" id="sc-bca">0</div><div class="slabel">Aguardando BCA</div></div></div>
+    <div class="scard green"><div><div class="scount" id="sc-conf">0</div><div class="slabel">Confeccionadas</div></div></div>
+  </div>
+
+  <main style="grid-template-columns:1fr;max-width:1500px">
+    <div>
+      <div class="section-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem">
+        <span>Acompanhamento da Esteira de Processos (SIGADAER / SILOMS / BCA / BI)</span>
+        <div style="display:flex;gap:.5rem">
+          <button class="btn btn-primary" onclick="abrirModalControle()">
+            + Novo Processo na Esteira
+          </button>
+          <button class="btn btn-ghost" onclick="exportarControleCSV()">
+            📥 Exportar CONTROLE OS 2026 (CSV)
+          </button>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <select class="search" style="flex:0 0 auto;min-width:140px;font-weight:700" id="ctrl-status-filtro" onchange="renderControle()">
+          <option value="TODOS">Todos os Status</option>
+          <option value="Pendente">🕒 Pendente</option>
+          <option value="Em Análise">🔍 Em Análise</option>
+          <option value="Missão Aprovada">✈️ Missão Aprovada</option>
+          <option value="Apresentado">📥 Apresentado</option>
+          <option value="Despachado">📤 Despachado</option>
+          <option value="Corrigir">⚠️ Corrigir (Auditoria)</option>
+          <option value="Aguardando BCA">⏳ Aguardando BCA</option>
+          <option value="Confeccionado">📝 Confeccionado</option>
+          <option value="Publicado">🎉 Publicado</option>
+        </select>
+        <input class="search" id="ctrl-busca" type="search" placeholder="Buscar por OS, SIGADAER, SILOMS, NUP, BCA, coordenador ou pendência..." oninput="renderControle()" />
+      </div>
+
+      <div class="table-controle-wrap">
+        <table class="table-controle">
+          <thead>
+            <tr>
+              <th>OS / OMIS</th>
+              <th>Modalidade</th>
+              <th>Coordenador / Militares</th>
+              <th>Período / Destino</th>
+              <th>SIGADAER / SILOMS</th>
+              <th>Status</th>
+              <th>NUP (Col X)</th>
+              <th>BCA (Col AB)</th>
+              <th>Auditoria / Pendências</th>
+              <th style="text-align:right">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-controle">
+            <tr><td colspan="10" style="text-align:center;padding:2rem">Carregando processos da esteira...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
 </div><!-- FECHAMENTO DE missoesContent -->
 
 <footer>
@@ -525,20 +669,25 @@ footer img{width:16px;vertical-align:middle;margin:0 .5rem;opacity:.5}
   <img src="assets/cocar-fab.png" alt="" />
 </footer>
 
+<!-- ══════════════════════════════════════════════════════════════
+     MODAIS DE CADASTRO E EDIÇÃO
+     ══════════════════════════════════════════════════════════════ -->
+
+<!-- MODAL 1: OS DIÁRIA -->
 <div class="backdrop" id="backdrop" onclick="if(event.target===this)fecharModal()">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal" role="dialog" aria-modal="true">
     <div class="modal-head">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold-500)" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>
-      <h2 id="modal-title">Nova Ordem de Serviço</h2>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+      <h2 id="modal-title">Nova Ordem de Serviço (Diárias)</h2>
       <button class="icon-btn" onclick="fecharModal()" aria-label="Fechar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="f-id" />
-      <div class="field" style="margin-bottom:.85rem">
-        <label for="f-serv-select">Selecionar do Efetivo (opcional)</label>
-        <select id="f-serv-select" onchange="if(this.value!=='' && listaEfetivo[this.value]) document.getElementById('f-serv').value = (listaEfetivo[this.value].posto+' '+listaEfetivo[this.value].esp+' '+listaEfetivo[this.value].nome).trim()">
+      <div class="field">
+        <label for="f-serv-select">Selecionar do Efetivo da AFA</label>
+        <select id="f-serv-select" onchange="selecionarServidorDiaria(this.value)">
           <option value="">-- Selecione para preencher automaticamente --</option>
         </select>
       </div>
@@ -587,36 +736,49 @@ footer img{width:16px;vertical-align:middle;margin:0 .5rem;opacity:.5}
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button>
-      <button class="btn btn-primary" id="btn-salvar" onclick="salvarOS()">Salvar OS</button>
+      <button class="btn btn-primary" id="btn-salvar" onclick="salvarOS()">Salvar OS Diária</button>
     </div>
   </div>
 </div>
 
+<!-- MODAL 2: GRATIFICAÇÃO DE REPRESENTAÇÃO -->
 <div class="backdrop" id="backdrop-grat" onclick="if(event.target===this)fecharModalGrat()">
-  <div class="modal" style="max-width:720px" role="dialog" aria-modal="true" aria-labelledby="modal-grat-title">
+  <div class="modal" style="max-width:760px" role="dialog" aria-modal="true">
     <div class="modal-head">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--gold-500)" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>
       <h2 id="modal-grat-title">Nova Gratificação de Representação</h2>
       <button class="icon-btn" onclick="fecharModalGrat()" aria-label="Fechar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
     </div>
-    <div class="modal-body" style="max-height:78vh;overflow-y:auto">
+    <div class="modal-body">
       <input type="hidden" id="fg-id" />
       
-      <div class="field">
-        <label for="fg-num">Nº da OS / Processo *</label>
-        <input id="fg-num" type="text" placeholder="Ex.: 24/DE/2026" />
-        <div class="err" id="eg-num">Informe o número da OS.</div>
+      <div class="grid3">
+        <div class="field">
+          <label for="fg-num">Nº da OS (GratiRep) *</label>
+          <input id="fg-num" type="text" placeholder="Ex.: 24/DE/2026" />
+          <div class="err" id="eg-num">Informe o número da OS.</div>
+        </div>
+        <div class="field">
+          <label for="fg-num-omis">Nº da OMIS (Série Independente)</label>
+          <input id="fg-num-omis" type="text" placeholder="Ex.: 05/DE/2026" />
+        </div>
+        <div class="field">
+          <label for="fg-enquadramento">Enquadramento Legal</label>
+          <input id="fg-enquadramento" type="text" value="Art 5°, Inc II (Viagem de Instrução)" />
+        </div>
       </div>
 
       <!-- SEÇÃO MULTIMILITAR -->
-      <div style="margin-bottom:1rem;background:var(--navy-50);padding:.85rem;border-radius:6px;border:1px solid var(--navy-100)">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">
-          <label style="margin-bottom:0">Militares Designados para a Missão *</label>
-          <button class="btn btn-ghost" style="padding:.3rem .6rem;font-size:.7rem" onclick="adicionarMilitarGratItem()">
-            + Adicionar Militar
-          </button>
+      <div style="margin-bottom:1rem;background:var(--navy-50);padding:.85rem;border-radius:6px;border:1px solid var(--navy-200)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;flex-wrap:wrap;gap:.4rem">
+          <label style="margin-bottom:0;font-weight:700">Militares Designados (1º é Coordenador / Responsável) *</label>
+          <div style="display:flex;gap:.4rem">
+            <button class="btn btn-ghost" style="padding:.3rem .6rem;font-size:.7rem" onclick="adicionarMilitarGratItem()">
+              + Militar
+            </button>
+          </div>
         </div>
         <div id="lista-militares-container"></div>
         <div class="err" id="eg-militares">Adicione pelo menos um militar à missão.</div>
@@ -630,20 +792,15 @@ footer img{width:16px;vertical-align:middle;margin:0 .5rem;opacity:.5}
 
       <div class="field">
         <label for="fg-apoio">Apoio Recebido</label>
-        <input id="fg-apoio" type="text" value="Apoio de hospedagem e rancho serão prestados pelo (NOME DA UNIDADE), e o apoio de transporte será prestado pela AFA." />
+        <input id="fg-apoio" type="text" value="O apoio de transporte será fornecido pela AFA e a hospedagem e o rancho serão fornecidos pela Escola Naval." />
       </div>
 
-      <div class="field">
-        <label for="fg-enquadramento">Enquadramento Legal</label>
-        <input id="fg-enquadramento" type="text" value="Art 5°, Inc II (Viagem de Instrução)" />
-      </div>
-
-      <!-- TOGGLE 1: FORA DO PRAZO -->
+      <!-- TOGGLES -->
       <div class="toggle-field">
         <div class="toggle-row" onclick="toggleSwitch('fg-toggle-prazo')">
           <div>
             <div class="toggle-title">Solicitação fora do prazo (Portaria GABAER/GC4 1636/2026)</div>
-            <div class="toggle-sub">Desativado = "Não se aplica." | Ativado = Abrir campo de justificativa</div>
+            <div class="toggle-sub">Desativado = "Não se aplica." | Ativado = Abrir justificativa</div>
           </div>
           <label class="switch" onclick="event.stopPropagation()">
             <input type="checkbox" id="fg-toggle-prazo" onchange="alternarAccordion('fg-toggle-prazo', 'acc-prazo')" />
@@ -652,11 +809,10 @@ footer img{width:16px;vertical-align:middle;margin:0 .5rem;opacity:.5}
         </div>
         <div class="accordion-body" id="acc-prazo">
           <label for="fg-just-prazo">Justificativa para o não cumprimento do prazo:</label>
-          <textarea id="fg-just-prazo" rows="2" placeholder="Digite a justificativa de atraso...">Devido à natureza da missão a solicitação foi feita fora do prazo</textarea>
+          <textarea id="fg-just-prazo" rows="2">Devido à natureza da missão a solicitação foi feita fora do prazo.</textarea>
         </div>
       </div>
 
-      <!-- TOGGLE 2: PAGAMENTO ANTECIPADO -->
       <div class="toggle-field">
         <div class="toggle-row" onclick="toggleSwitch('fg-toggle-antecipado')">
           <div>
@@ -670,11 +826,10 @@ footer img{width:16px;vertical-align:middle;margin:0 .5rem;opacity:.5}
         </div>
         <div class="accordion-body" id="acc-antecipado">
           <label for="fg-just-antecipado">Justificativa do Pagamento Antecipado:</label>
-          <input id="fg-just-antecipado" type="text" placeholder="Ex.: Necessidade impreterível de custeio inicial da missão" value="Necessidade de custeio inicial da missão." />
+          <input id="fg-just-antecipado" type="text" value="Necessidade de custeio inicial da missão." />
         </div>
       </div>
 
-      <!-- TOGGLE 3: ALTERAÇÃO NO RETORNO -->
       <div class="toggle-field">
         <div class="toggle-row" onclick="toggleSwitch('fg-toggle-retorno')">
           <div>
@@ -688,7 +843,7 @@ footer img{width:16px;vertical-align:middle;margin:0 .5rem;opacity:.5}
         </div>
         <div class="accordion-body" id="acc-retorno">
           <label for="fg-just-retorno">Justificativa de Alteração de Retorno:</label>
-          <input id="fg-just-retorno" type="text" placeholder="Ex.: Por motivos de trânsito, o militar retornou no horário informado." value="Por motivos de trânsito, o militar retornou no horário informado." />
+          <input id="fg-just-retorno" type="text" value="Por motivos de trânsito, o militar retornou no horário informado." />
         </div>
       </div>
 
@@ -700,6 +855,365 @@ footer img{width:16px;vertical-align:middle;margin:0 .5rem;opacity:.5}
   </div>
 </div>
 
+<!-- MODAL 3: CONTROLE DE PROCESSO (ESTEIRA / SIGADAER) -->
+<div class="backdrop" id="backdrop-controle" onclick="if(event.target===this)fecharModalControle()">
+  <div class="modal" style="max-width:640px" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <h2 id="modal-ctrl-title">Processo na Esteira (CONTROLE OS 2026)</h2>
+      <button class="icon-btn" onclick="fecharModalControle()" aria-label="Fechar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="fc-id" />
+
+      <div class="grid3">
+        <div class="field">
+          <label for="fc-num">Nº da OS *</label>
+          <input id="fc-num" type="text" placeholder="Ex.: 24/DE/2026" />
+        </div>
+        <div class="field">
+          <label for="fc-num-omis">Nº OMIS Vinculada</label>
+          <input id="fc-num-omis" type="text" placeholder="Ex.: 05/DE/2026" />
+        </div>
+        <div class="field">
+          <label for="fc-modalidade">Modalidade</label>
+          <select id="fc-modalidade">
+            <option value="Gratificação">Gratificação de Representação</option>
+            <option value="Diária">Diária de Viagem</option>
+            <option value="Sem Custo">Sem Custo (apenas OMIS)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label for="fc-coord">Coordenador / Militares *</label>
+          <input id="fc-coord" type="text" placeholder="Posto e nome do coordenador" />
+        </div>
+        <div class="field">
+          <label for="fc-servico">Objeto / Local da Missão</label>
+          <input id="fc-servico" type="text" placeholder="Destino e descrição curta" />
+        </div>
+      </div>
+
+      <div class="grid3">
+        <div class="field">
+          <label for="fc-sigad">Nº SIGADAER (FAB)</label>
+          <input id="fc-sigad" type="text" placeholder="Ex.: 550297" />
+        </div>
+        <div class="field">
+          <label for="fc-siloms">Nº SILOMS (Assinatura)</label>
+          <input id="fc-siloms" type="text" placeholder="Ex.: SILOMS 12345/2026" />
+        </div>
+        <div class="field">
+          <label for="fc-comgep">Nº Linha COMGEP</label>
+          <input id="fc-comgep" type="text" placeholder="Ex.: Linha 42" />
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label for="fc-status">Status do Processo na Esteira *</label>
+          <select id="fc-status" onchange="atualizarCamposStatusControle()">
+            <option value="Pendente">🕒 Pendente / Triagem</option>
+            <option value="Em Análise">🔍 Em Análise (SIGADAER inicial & COMGEP)</option>
+            <option value="Missão Aprovada">✈️ Missão Aprovada (Aguardando Retorno)</option>
+            <option value="Apresentado">📥 Apresentado (Upload Gov.br Recebido)</option>
+            <option value="Despachado">📤 Despachado (SIGADAER final com Ficha)</option>
+            <option value="Corrigir">⚠️ Corrigir (Devolvido com Auditoria)</option>
+            <option value="Aguardando BCA">⏳ Aguardando Publicação BCA (NUP)</option>
+            <option value="Confeccionado">📝 Confeccionado (BI em confecção)</option>
+            <option value="Publicado">🎉 Publicado (Finalizado)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="fc-nup">NUP (Coluna X)</label>
+          <input id="fc-nup" type="text" placeholder="Ex.: 67510.003421/2026-11" />
+        </div>
+      </div>
+
+      <div class="field" id="box-fc-auditoria">
+        <label for="fc-auditoria" style="color:#991b1b;font-weight:700">Auditoria / Pendências para Correção</label>
+        <textarea id="fc-auditoria" rows="2" placeholder="Descreva os ajustes solicitados pelo comando ou auditoria..."></textarea>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label for="fc-bca">Nº e Data do BCA (Coluna AB)</label>
+          <input id="fc-bca" type="text" placeholder="Ex.: BCA nº 142 de 10/08/2026" />
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label for="fc-bi">Boletim Interno (Publicação BI)</label>
+          <input id="fc-bi" type="text" placeholder="Ex.: BI nº 150 de 15/08/2026" />
+        </div>
+        <div class="field">
+          <label for="fc-ano">Ano do Exercício</label>
+          <input id="fc-ano" type="number" value="2026" />
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="fecharModalControle()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarControleProcesso()">Salvar no Controle</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL 4: CONFIGURAÇÕES DE ASSINANTES E SMTP (⚙️) -->
+<div class="backdrop" id="backdrop-config" onclick="if(event.target===this)fecharModalConfig()">
+  <div class="modal" style="max-width:620px" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      <h2>Configurações do Módulo OS & Assinantes</h2>
+      <button class="icon-btn" onclick="fecharModalConfig()" aria-label="Fechar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      
+      <!-- ASSINANTE OMIS -->
+      <div style="background:var(--navy-50);padding:.85rem;border-radius:6px;border:1px solid var(--navy-200);margin-bottom:1rem">
+        <div style="font-weight:700;font-size:.82rem;color:var(--navy-900);text-transform:uppercase;margin-bottom:.6rem">
+          1. Autoridade da Ordem de Missão (OMIS) — Vice-Chefe / Chefe DE
+        </div>
+        <div class="field">
+          <label>Selecionar do Efetivo AFA (Puxa Nome e E-mail)</label>
+          <select id="cfg-omis-select" onchange="selecionarAutoridadeOmisEfetivo(this.value)">
+            <option value="">-- Selecione do Efetivo --</option>
+          </select>
+        </div>
+        <div class="grid2">
+          <div class="field">
+            <label>Nome e Posto Completo *</label>
+            <input type="text" id="cfg-omis-nome" value="Odilor da Silva Lopes Cel Int R1" />
+          </div>
+          <div class="field">
+            <label>Cargo / Função *</label>
+            <input type="text" id="cfg-omis-cargo" value="Adjunto da Divisão de Ensino da AFA" />
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>E-mail Funcional para Receber Solicitações SILOMS via SMTP</label>
+          <input type="email" id="cfg-omis-email" placeholder="adjunto.de@fab.mil.br" />
+        </div>
+      </div>
+
+      <!-- ASSINANTE OS GRATIREP -->
+      <div style="background:var(--navy-50);padding:.85rem;border-radius:6px;border:1px solid var(--navy-200);margin-bottom:1rem">
+        <div style="font-weight:700;font-size:.82rem;color:var(--navy-900);text-transform:uppercase;margin-bottom:.6rem">
+          2. Autoridade da Ordem de Serviço (OS Gratificação)
+        </div>
+        <div class="grid2">
+          <div class="field">
+            <label>Nome e Posto *</label>
+            <input type="text" id="cfg-grat-os-nome" value="Cel QOINT WELLINGTON MARCELO FERNANDES" />
+          </div>
+          <div class="field">
+            <label>Cargo *</label>
+            <input type="text" id="cfg-grat-os-cargo" value="Chefe da Divisão Administrativa" />
+          </div>
+        </div>
+      </div>
+
+      <!-- ASSINANTE AUTORIZAÇÃO PAGAMENTO -->
+      <div style="background:var(--navy-50);padding:.85rem;border-radius:6px;border:1px solid var(--navy-200);margin-bottom:1rem">
+        <div style="font-weight:700;font-size:.82rem;color:var(--navy-900);text-transform:uppercase;margin-bottom:.6rem">
+          3. Autoridade para Pagamento (2SC / Brasília-DF)
+        </div>
+        <div class="grid2">
+          <div class="field">
+            <label>Nome e Posto *</label>
+            <input type="text" id="cfg-grat-aut-nome" value="GABRIEL HENRIQUES DE OLIVEIRA FARIAS Cel Av" />
+          </div>
+          <div class="field">
+            <label>Cargo *</label>
+            <input type="text" id="cfg-grat-aut-cargo" value="Chefe da 2SC" />
+          </div>
+        </div>
+        <div class="field" style="margin-bottom:0">
+          <label>Cidade / UF</label>
+          <input type="text" id="cfg-grat-aut-cidade" value="Brasilia-DF" />
+        </div>
+      </div>
+
+      <!-- CREDENCIAIS GMAIL SMTP -->
+      <div style="background:var(--navy-50);padding:.85rem;border-radius:6px;border:1px solid var(--navy-200)">
+        <div style="font-weight:700;font-size:.82rem;color:var(--navy-900);text-transform:uppercase;margin-bottom:.6rem">
+          4. Integração Gmail / Notificações SMTP
+        </div>
+        <div class="grid2">
+          <div class="field">
+            <label>E-mail Remetente (Gmail)</label>
+            <input type="email" id="cfg-gmail-user" placeholder="secretaria.de.afa@gmail.com" />
+          </div>
+          <div class="field">
+            <label>Senha de Aplicativo (16 dígitos)</label>
+            <input type="password" id="cfg-gmail-pass" placeholder="•••• •••• •••• ••••" />
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="fecharModalConfig()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarConfiguracoesOS()">Salvar Configurações</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL 5: SILOMS & DISPARO DE OMIS VIA E-MAIL -->
+<div class="backdrop" id="backdrop-siloms" onclick="if(event.target===this)fecharModalSiloms()">
+  <div class="modal" style="max-width:620px" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      <h2>Tramitação SILOMS & Disparo de Assinatura</h2>
+      <button class="icon-btn" onclick="fecharModalSiloms()" aria-label="Fechar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="fsil-id" />
+      <input type="hidden" id="fsil-tipo" />
+
+      <div style="background:var(--navy-50);padding:.85rem;border-radius:6px;border:1px solid var(--navy-200);margin-bottom:1rem">
+        <div class="grid2">
+          <div><small style="color:var(--gray-500);text-transform:uppercase;font-size:.65rem;font-weight:700">Ordem de Missão</small><div id="fsil-num-txt" style="font-family:var(--f-mono);font-weight:700;font-size:1rem;color:var(--navy-900)">—</div></div>
+          <div><small style="color:var(--gray-500);text-transform:uppercase;font-size:.65rem;font-weight:700">Coordenador(a)</small><div id="fsil-coord-txt" style="font-weight:600;font-size:.88rem;color:var(--navy-900)">—</div></div>
+        </div>
+        <div style="margin-top:.5rem"><small style="color:var(--gray-500);text-transform:uppercase;font-size:.65rem;font-weight:700">Missão / Destino</small><div id="fsil-servico-txt" style="font-size:.82rem;color:var(--gray-700)">—</div></div>
+      </div>
+
+      <div class="field">
+        <label for="fsil-numero">Número de Protocolo / Registro no SILOMS *</label>
+        <input type="text" id="fsil-numero" placeholder="Ex.: SILOMS 44921/2026 ou 67500.00421/2026" oninput="atualizarPreviewEmailSiloms()" />
+        <div class="hint">Suba o HTML/PDF no sistema SILOMS e cole aqui o número gerado para constar no e-mail de solicitação de assinatura.</div>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label for="fsil-email-dest">E-mail da Autoridade (Destinatário)</label>
+          <input type="email" id="fsil-email-dest" />
+        </div>
+        <div class="field">
+          <label for="fsil-email-cc">E-mail Coordenador / Solicitante (Cópia)</label>
+          <input type="email" id="fsil-email-cc" />
+        </div>
+      </div>
+
+      <div style="background:#f8fafc;padding:.85rem;border-radius:6px;border:1px dashed var(--navy-300);margin-top:.5rem">
+        <label style="font-size:.66rem;font-weight:700;text-transform:uppercase;color:var(--navy-700);margin-bottom:.35rem;display:block">
+          Pré-Visualização da Mensagem Oficial (Padrão FAB)
+        </label>
+        <div id="fsil-preview-msg" style="font-family:var(--f-body);font-size:.84rem;color:#1e293b;line-height:1.5;font-style:italic">
+          "Venho por meio deste solicitar a assinatura da OMIS..."
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="fecharModalSiloms()">Cancelar</button>
+      <button class="btn btn-ghost" onclick="salvarSilomsApenas()">Apenas Salvar SILOMS</button>
+      <button class="btn btn-primary" id="btn-enviar-siloms-smtp" onclick="confirmarDisparoSilomsSMTP()">✉️ Salvar & Disparar E-mail</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL 6: GESTÃO DE MILITARES EXTERNOS -->
+<div class="backdrop" id="backdrop-externos" onclick="if(event.target===this)fecharModalExternos()">
+  <div class="modal" style="max-width:780px" role="dialog" aria-modal="true">
+    <div class="modal-head">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <h2>Cadastro & Gestão de Militares Externos</h2>
+      <button class="icon-btn" onclick="fecharModalExternos()" aria-label="Fechar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      
+      <!-- FORMULÁRIO DE NOVO / EDIÇÃO MILITAR EXTERNO -->
+      <div style="background:var(--navy-50);padding:1rem;border-radius:8px;border:1px solid var(--navy-200);margin-bottom:1.2rem">
+        <input type="hidden" id="fe-id" />
+        <div style="font-weight:700;font-size:.82rem;color:var(--navy-900);text-transform:uppercase;margin-bottom:.6rem" id="fe-form-title">
+          + Cadastrar / Atualizar Militar Externo
+        </div>
+        <div class="grid3">
+          <div class="field">
+            <label>Posto / Graduação *</label>
+            <input type="text" id="fe-posto" placeholder="Ex.: 1T ou Maj" />
+          </div>
+          <div class="field">
+            <label>Especialidade</label>
+            <input type="text" id="fe-esp" placeholder="Ex.: PED, AV, INT" />
+          </div>
+          <div class="field">
+            <label>Nome de Guerra</label>
+            <input type="text" id="fe-guerra" placeholder="Ex.: SILVA" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Nome Completo *</label>
+          <input type="text" id="fe-nome" placeholder="Nome completo do militar" />
+        </div>
+        <div class="grid3">
+          <div class="field">
+            <label>CPF *</label>
+            <input type="text" id="fe-cpf" placeholder="000.000.000-00" />
+          </div>
+          <div class="field">
+            <label>SARAM *</label>
+            <input type="text" id="fe-saram" placeholder="7430540" />
+          </div>
+          <div class="field">
+            <label>OM de Origem *</label>
+            <input type="text" id="fe-om" placeholder="Ex.: CINDACTA I ou GAP-SJ" />
+          </div>
+        </div>
+        <div class="grid2">
+          <div class="field" style="margin-bottom:0">
+            <label>E-mail de Contato</label>
+            <input type="email" id="fe-email" placeholder="militar@fab.mil.br" />
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:.5rem">
+            <button class="btn btn-primary" style="flex:1" onclick="salvarMilitarExterno()">Salvar Militar</button>
+            <button class="btn btn-ghost" onclick="limparFormExterno()">Limpar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- LISTA DE MILITARES EXTERNOS -->
+      <div style="font-weight:700;font-size:.78rem;color:var(--navy-700);text-transform:uppercase;margin-bottom:.5rem">
+        Militares Externos Registrados no Banco
+      </div>
+      <div class="table-controle-wrap">
+        <table class="table-controle" style="min-width:650px">
+          <thead>
+            <tr>
+              <th>Posto / Nome</th>
+              <th>OM</th>
+              <th>CPF / SARAM</th>
+              <th>E-mail</th>
+              <th style="text-align:right">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-externos">
+            <tr><td colspan="5" style="text-align:center;padding:1.5rem">Carregando militares externos...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="fecharModalExternos()">Fechar</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -707,50 +1221,152 @@ footer img{width:16px;vertical-align:middle;margin:0 .5rem;opacity:.5}
 <script>
 /* ══════════════════════════════════════════════════════════════
    1 · SUPABASE
-   Projeto: rsaaryrgdrolcsvigckz
    ══════════════════════════════════════════════════════════════ */
 const SUPABASE_URL  = 'https://rsaaryrgdrolcsvigckz.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzYWFyeXJnZHJvbGNzdmlnY2t6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMzcyNjEsImV4cCI6MjA4MjcxMzI2MX0.UKACT_OKIMRaLB3FJPtFPGqhVbR83pUiiPfLkcf_Ec0';
 
-const CONFIG_ID = 'default';   // permite mais de um exercício no futuro
+const CONFIG_ID = 'default';
 const CACHE_KEY = 'afa_diarias_cache_v2';
 
 const configurado = !SUPABASE_URL.startsWith('COLE_') && !SUPABASE_ANON.startsWith('COLE_');
 const sb = configurado ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
 
+function urlPdf(caminho) {
+  if (!caminho) return '#';
+  if (caminho.startsWith('http://') || caminho.startsWith('https://')) return caminho;
+  return SUPABASE_URL + '/storage/v1/object/public/auxilio-transporte/' + encodeURI(caminho);
+}
+
 /* ══════════════════════════════════════════════════════════════
-   2 · ESTADO
+   2 · ESTADO GLOBAL
    ══════════════════════════════════════════════════════════════ */
 let abaAtual = 'diarias';
 let dados = { dotacao:0, ordens:[] };
 let dadosGratificacao = [];
 let dadosSolicitacoes = [];
+let dadosControle = [];
 let listaEfetivo = [];
+let listaExternos = [];
+let omisEmEdicaoSiloms = null;
 let carregando = true;
 
 const CACHE_GRAT_KEY = 'afa_gratificacao_cache_v1';
 const CACHE_EFETIVO_KEY = 'afa_efetivo_cache_v1';
+const CACHE_EXTERNOS_KEY = 'afa_externos_cache_v1';
 const CACHE_SOLICITACOES_KEY = 'afa_solicitacoes_cache_v1';
+const CACHE_CONTROLE_KEY = 'afa_controle_os_cache_v1';
 
-/* cache local: só para pintar a tela na hora enquanto o servidor responde */
-function lerCache(){
-  try{
-    const raw = localStorage.getItem(CACHE_KEY);
-    if (raw){
-      const d = JSON.parse(raw);
-      dados.dotacao = Number(d.dotacao)||0;
-      dados.ordens  = Array.isArray(d.ordens) ? d.ordens : [];
-      return true;
-    }
-  }catch(e){}
-  return false;
+/* ── EFETIVO GOOGLE SHEETS ── */
+const EFETIVO_SHEET_ID = '1UOMh4y-wHL8kHcB9TUUcEmkeF7z6KYAs4vipsoOFgfA';
+const EFETIVO_URL = `https://docs.google.com/spreadsheets/d/${EFETIVO_SHEET_ID}/gviz/tq?tqx=out:json&sheet=efetivo&range=A5:AC250&headers=0`;
+
+function formatarCPF(raw) {
+  if (!raw) return '';
+  let str = String(raw).replace(/\.0$/, '').replace(/\D/g, '');
+  if (!str) return '';
+  str = str.padStart(11, '0');
+  return str.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
 }
-function gravarCache(){
-  try{ localStorage.setItem(CACHE_KEY, JSON.stringify(dados)); }catch(e){}
+
+function formatarSARAM(raw) {
+  if (!raw) return '';
+  let str = String(raw).replace(/\.0$/, '').replace(/\D/g, '');
+  if (!str) return '';
+  return str.padStart(7, '0');
+}
+
+async function carregarEfetivo() {
+  try {
+    const raw = localStorage.getItem(CACHE_EFETIVO_KEY);
+    if (raw) {
+      listaEfetivo = JSON.parse(raw);
+      preencherSelectsEfetivo();
+    }
+  } catch (e) {}
+
+  try {
+    const res = await fetch(EFETIVO_URL);
+    const txt = await res.text();
+    const jsonStr = txt.replace(/^\/\*O_o\*\/\s*google\.visualization\.Query\.setResponse\(/, '').replace(/\);?\s*$/, '');
+    const data = JSON.parse(jsonStr);
+
+    if (data.table && data.table.rows) {
+      listaEfetivo = data.table.rows
+        .map((r, i) => {
+          const c = r.c || [];
+          const v = idx => (c[idx]?.v !== undefined && c[idx]?.v !== null) ? c[idx].v.toString().trim() : '';
+          return {
+            efetivo_order: i,
+            posto: v(2),           // Col C
+            esp: v(3),             // Col D
+            nome: v(4),            // Col E (Guerra)
+            funcao: v(7),          // Col H
+            nome_completo: v(13),  // Col N (Completo)
+            cpf: formatarCPF(v(14)),   // Col O (CPF)
+            email: v(15),          // Col P
+            saram: formatarSARAM(v(19)), // Col T (SARAM)
+            rg: v(20)              // Col U
+          };
+        })
+        .filter(m => m.nome || m.nome_completo);
+
+      localStorage.setItem(CACHE_EFETIVO_KEY, JSON.stringify(listaEfetivo));
+      preencherSelectsEfetivo();
+    }
+  } catch (e) {}
+}
+
+async function carregarMilitaresExternos() {
+  try {
+    const raw = localStorage.getItem(CACHE_EXTERNOS_KEY);
+    if (raw) {
+      listaExternos = JSON.parse(raw);
+      renderTabelaExternos();
+    }
+  } catch(e) {}
+
+  if (configurado) {
+    try {
+      const { data } = await sb.from('militares_externos').select('*').order('created_at', { ascending: false });
+      if (data) {
+        listaExternos = data;
+        localStorage.setItem(CACHE_EXTERNOS_KEY, JSON.stringify(listaExternos));
+        renderTabelaExternos();
+      }
+    } catch(e) {}
+  }
+}
+
+function preencherSelectsEfetivo() {
+  const options = '<option value="">-- Selecione do Efetivo --</option>' +
+    listaEfetivo.map((m, idx) => `<option value="${idx}">${esc(m.posto)} ${esc(m.esp)} ${esc(m.nome_completo || m.nome)}</option>`).join('');
+
+  const sel1 = document.getElementById('f-serv-select');
+  if (sel1) sel1.innerHTML = options;
+
+  const selCfg = document.getElementById('cfg-omis-select');
+  if (selCfg) selCfg.innerHTML = options;
+}
+
+function setSync(estado, texto){
+  const el = document.getElementById('sync');
+  if (!el) return;
+  el.className = 'sync ' + estado;
+  const txt = document.getElementById('sync-txt');
+  if (txt) txt.textContent = texto;
+}
+
+function toast(msg, erro){
+  const t = document.getElementById('toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.style.borderLeftColor = erro ? 'var(--red-500)' : 'var(--gold-500)';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3500);
 }
 
 /* ══════════════════════════════════════════════════════════════
-   3 · MAPEAMENTO  banco ↔ tela
+   3 · DIÁRIAS (ABA 1)
    ══════════════════════════════════════════════════════════════ */
 const doBanco = r => ({
   id: r.id,
@@ -772,63 +1388,6 @@ const paraBanco = o => ({
   valor_total: o.valor
 });
 
-/* ══════════════════════════════════════════════════════════════
-   4 · SINCRONIZAÇÃO
-   ══════════════════════════════════════════════════════════════ */
-function setSync(estado, texto){
-  const el = document.getElementById('sync');
-  el.className = 'sync ' + estado;
-  document.getElementById('sync-txt').textContent = texto;
-}
-
-async function recarregar(avisar){
-  if (!configurado){
-    setSync('cfg','Sem conexão');
-    document.getElementById('setup').classList.remove('hide');
-    carregando = false; render();
-    return;
-  }
-  setSync('busy','Sincronizando…');
-  try{
-    const [cfg, os] = await Promise.all([
-      sb.from('diarias_config').select('dotacao').eq('id', CONFIG_ID).maybeSingle(),
-      sb.from('diarias_os').select('*').order('data_inicio', { ascending:false })
-    ]);
-    if (cfg.error) throw cfg.error;
-    if (os.error)  throw os.error;
-
-    dados.dotacao = Number(cfg.data?.dotacao) || 0;
-    dados.ordens  = (os.data || []).map(doBanco);
-
-    carregando = false;
-    gravarCache();
-    const inp = document.getElementById('in-total');
-    if (document.activeElement !== inp) inp.value = dados.dotacao ? fmtM(dados.dotacao) : '';
-    render();
-    setSync('ok','Sincronizado');
-    if (avisar) toast('Dados recarregados');
-  }catch(e){
-    console.error(e);
-    carregando = false; render();
-    setSync('off','Sem conexão');
-    toast('Falha ao falar com o servidor: ' + (e.message || 'erro'), true);
-  }
-}
-
-/* recebe mudanças feitas em outro aparelho, ao vivo */
-function ouvirRealtime(){
-  if (!configurado) return;
-  sb.channel('diarias-live')
-    .on('postgres_changes', { event:'*', schema:'public', table:'diarias_os' },     () => recarregar())
-    .on('postgres_changes', { event:'*', schema:'public', table:'diarias_config' }, () => recarregar())
-    .subscribe((status) => {
-      if (status === 'SUBSCRIBED') setSync('ok','Sincronizado');
-    });
-}
-
-/* ══════════════════════════════════════════════════════════════
-   5 · FORMATAÇÃO
-   ══════════════════════════════════════════════════════════════ */
 const BRL = new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'});
 const fmtM = v => BRL.format(Number(v)||0);
 function parseM(s){
@@ -854,19 +1413,14 @@ function statusOS(ini,fim){
   return 'curso';
 }
 const ROTULO = { futura:'Programada', curso:'Em curso', fim:'Concluída' };
-const esc = s => (s||'').toString()
-  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-  .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+const esc = s => (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
 const totais = () => {
   const gasto = dados.ordens.reduce((s,o)=> s + (Number(o.valor)||0), 0);
   return { total: dados.dotacao, gasto, saldo: dados.dotacao - gasto };
 };
 
-/* ══════════════════════════════════════════════════════════════
-   6 · MEDIDOR ANALÓGICO
-   Escala E→F. Ponteiro = saldo. Setor sombreado = empenhado.
-   ══════════════════════════════════════════════════════════════ */
+/* Medidor Analógico */
 const G = { cx:130, cy:130, r:96, start:150, sweep:240 };
 const pol = (cx,cy,r,deg)=>{ const a=deg*Math.PI/180; return {x:cx+r*Math.cos(a), y:cy+r*Math.sin(a)}; };
 function arco(cx,cy,r,d0,d1){
@@ -939,133 +1493,88 @@ function montarGauge(){
   document.getElementById('gauge').innerHTML = s;
 }
 
-/* ── movimento do ponteiro ───────────────────────────────────
-   O ponteiro é girado pelo atributo nativo rotate(ângulo cx cy),
-   que sempre usa o sistema de coordenadas do viewBox. Um laço de
-   animação aproxima o valor exibido do alvo e soma uma oscilação
-   contínua — o tremor de instrumento de aeronave em voo.
-   ─────────────────────────────────────────────────────────── */
-const OSC = {
-  amp: 0.85,      // amplitude do tremor, em graus
-  f1: 2.1,        // frequências incomensuráveis para não repetir o padrão
-  f2: 3.7,
-  seguir: 0.055   // quanto o ponteiro se aproxima do alvo a cada quadro
-};
-
+const OSC = { amp: 0.85, f1: 2.1, f2: 3.7, seguir: 0.055 };
 let fracAlvo = 0, fracAtual = 0, ponteiroIniciado = false;
 const semAnim = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 function moverPonteiro(){
   const ndl = document.getElementById('g-needle');
   if (!ndl) return;
-
   fracAtual += (fracAlvo - fracAtual) * OSC.seguir;
-
   let ang = angDe(fracAtual) - 270;
   if (!semAnim){
     const t = performance.now() / 1000;
     ang += (Math.sin(t*OSC.f1)*0.58 + Math.sin(t*OSC.f2)*0.42) * OSC.amp;
   }
   ndl.setAttribute('transform', `rotate(${ang.toFixed(3)} ${G.cx} ${G.cy})`);
-
   requestAnimationFrame(moverPonteiro);
 }
 
 function atualizarGauge(){
   const t = totais();
   fracAlvo = t.total > 0 ? Math.max(0, Math.min(1, t.saldo/t.total)) : 0;
-
   if (!ponteiroIniciado){
     ponteiroIniciado = true;
-    if (semAnim) fracAtual = fracAlvo;      // sem animação: assenta direto
+    if (semAnim) fracAtual = fracAlvo;
     requestAnimationFrame(moverPonteiro);
   }
-
   const sp = document.getElementById('g-spent');
   if (sp) sp.setAttribute('d', (t.total>0 && fracAlvo<.999) ? arco(G.cx,G.cy,G.r-3,angDe(fracAlvo),angDe(1)) : '');
-
   const pct = document.getElementById('g-pct');
   if (pct){
     pct.textContent = t.total>0 ? (fracAlvo*100).toFixed(1).replace('.',',')+'%' : '—';
     pct.setAttribute('fill', t.total===0 ? '#7d93b5' : fracAlvo<.15 ? '#ef4444' : fracAlvo<.30 ? '#f59e0b' : '#10b981');
   }
-
   document.getElementById('g-total').textContent = t.total ? fmtM(t.total) : '—';
   document.getElementById('g-gasto').textContent = t.total ? fmtM(t.gasto) : '—';
   document.getElementById('g-saldo').textContent = t.total ? fmtM(t.saldo) : '—';
 }
 
-/* ══════════════════════════════════════════════════════════════
-   7 · RENDER
-   ══════════════════════════════════════════════════════════════ */
 function render(){
   const t = totais();
-  document.getElementById('s-total').textContent = fmtM(t.total);
-  document.getElementById('s-gasto').textContent = fmtM(t.gasto);
-  document.getElementById('s-saldo').textContent = fmtM(t.saldo);
-  document.getElementById('s-saldo').style.color = t.saldo < 0 ? 'var(--red-600)' : 'var(--navy-900)';
+  document.getElementById('s-total').textContent = t.total ? fmtM(t.total) : '—';
+  document.getElementById('s-gasto').textContent = t.total ? fmtM(t.gasto) : '—';
+  document.getElementById('s-saldo').textContent = t.total ? fmtM(t.saldo) : '—';
   document.getElementById('s-qtd').textContent = dados.ordens.length;
-
-  const al = document.getElementById('alerta'), txt = document.getElementById('alerta-txt');
-  if (t.total > 0 && t.saldo < 0){
-    al.classList.remove('hide');
-    txt.textContent = `Dotação excedida em ${fmtM(Math.abs(t.saldo))}. Revise as ordens ou amplie a dotação.`;
-  } else if (t.total > 0 && t.saldo/t.total < .15){
-    al.classList.remove('hide');
-    txt.textContent = `Saldo abaixo de 15% da dotação (${fmtM(t.saldo)} restantes).`;
-  } else al.classList.add('hide');
 
   atualizarGauge();
 
-  const alvo = document.getElementById('lista');
-  if (carregando){
-    alvo.innerHTML = '<div class="skel"></div><div class="skel"></div>';
-    return;
-  }
+  const termo = (document.getElementById('busca').value || '').toLowerCase().trim();
+  const crit = document.getElementById('ordem').value;
 
-  const termo = (document.getElementById('busca').value||'').toLowerCase().trim();
-  const ordem = document.getElementById('ordem').value;
+  let lista = dados.ordens.filter(o => !termo || [o.num, o.desc, o.servidor].some(c => (c||'').toLowerCase().includes(termo)));
 
-  let lista = dados.ordens.filter(o=>{
-    if (!termo) return true;
-    return [o.num,o.desc,o.servidor].some(c => (c||'').toLowerCase().includes(termo));
-  });
   lista.sort((a,b)=>{
-    switch(ordem){
-      case 'data-asc':   return (a.ini||'').localeCompare(b.ini||'');
-      case 'valor-desc': return (b.valor||0)-(a.valor||0);
-      case 'valor-asc':  return (a.valor||0)-(b.valor||0);
-      case 'num':        return (a.num||'').localeCompare(b.num||'','pt-BR',{numeric:true});
-      default:           return (b.ini||'').localeCompare(a.ini||'');
-    }
+    if (crit === 'data-desc') return (b.ini||'').localeCompare(a.ini||'');
+    if (crit === 'data-asc')  return (a.ini||'').localeCompare(b.ini||'');
+    if (crit === 'valor-desc') return b.valor - a.valor;
+    if (crit === 'valor-asc')  return a.valor - b.valor;
+    if (crit === 'num') return (a.num||'').localeCompare(b.num||'', undefined, {numeric:true});
+    return 0;
   });
 
+  const alvo = document.getElementById('lista');
   if (!lista.length){
-    alvo.innerHTML = `
-      <div class="empty">
-        <img src="assets/cocar-fab.png" alt="" />
-        <p>${dados.ordens.length ? 'Nenhuma OS corresponde à busca.' : 'Nenhuma ordem de serviço lançada ainda.'}</p>
-        ${dados.ordens.length ? '' : '<button class="btn btn-primary" onclick="abrirModal()">Lançar a primeira OS</button>'}
-      </div>`;
+    alvo.innerHTML = `<div class="empty"><img src="assets/cocar-fab.png" alt="" /><p>${dados.ordens.length ? 'Nenhuma OS coincide com a busca.' : 'Nenhuma ordem de serviço cadastrada ainda.'}</p><button class="btn btn-primary" onclick="abrirModal()">Lançar a primeira OS</button></div>`;
     return;
   }
 
-  alvo.innerHTML = lista.map(o=>{
-    const st = statusOS(o.ini,o.fim);
-    const dias = diasEntre(o.ini,o.fim);
-    const unit = Number(o.qtd)>0 ? Number(o.valor)/Number(o.qtd) : 0;
+  alvo.innerHTML = lista.map(o => {
+    const st = statusOS(o.ini, o.fim);
+    const dias = diasEntre(o.ini, o.fim);
+    const unit = o.qtd > 0 ? o.valor / o.qtd : 0;
     return `
-    <article class="os st-${st}${o._pend?' pend':''}">
+    <article class="os st-${st}">
       <div class="os-acts">
-        <button class="icon-btn" onclick="abrirModal('${o.id}')" aria-label="Editar OS ${esc(o.num)}">
+        <button class="icon-btn" onclick="editarOS('${o.id}')" aria-label="Editar">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
         </button>
-        <button class="icon-btn del" onclick="excluirOS('${o.id}')" aria-label="Excluir OS ${esc(o.num)}">
+        <button class="icon-btn del" onclick="excluirOS('${o.id}')" aria-label="Excluir">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
         </button>
       </div>
       <div class="os-head">
-        <div class="os-num">OS ${esc(o.num)}<span>Ordem de serviço</span></div>
+        <div class="os-num">OS ${esc(o.num)}<span>Diárias de Viagem</span></div>
         <span class="os-badge badge-${st}">${ROTULO[st]}</span>
       </div>
       <p class="os-desc">${esc(o.desc)}</p>
@@ -1076,411 +1585,204 @@ function render(){
         </div>
         <div class="os-row">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-          ${fmtData(o.ini)} → ${fmtData(o.fim)}
-          <u>${dias} ${dias===1?'dia':'dias'}</u>
+          ${fmtData(o.ini)} → ${fmtData(o.fim)} <u>${dias} ${dias===1?'dia':'dias'}</u>
         </div>
       </div>
       <div class="os-foot">
-        <div class="os-qtd">${fmtQtd(o.qtd)} diárias<small>${unit?fmtM(unit)+' / diária':''}</small></div>
+        <div class="os-qtd">${fmtQtd(o.qtd)} ${o.qtd===1?'diária':'diárias'}<small>${fmtM(unit)} / dia</small></div>
         <div class="os-val">${fmtM(o.valor)}<small>Valor total</small></div>
       </div>
     </article>`;
   }).join('');
 }
 
-/* ══════════════════════════════════════════════════════════════
-   8 · DOTAÇÃO
-   ══════════════════════════════════════════════════════════════ */
-async function salvarDotacao(){
-  const v = parseM(document.getElementById('in-total').value);
-  if (v < 0){ toast('Valor inválido', true); return; }
-  if (!configurado){ toast('Configure o Supabase para gravar', true); return; }
-
-  const btn = document.getElementById('btn-dot');
-  btn.disabled = true; setSync('busy','Gravando…');
-  const antes = dados.dotacao;
-  dados.dotacao = v; render();
-
+async function recarregar(avisar){
+  if (!configurado) return;
+  setSync('busy','Sincronizando…');
   try{
-    const { error } = await sb.from('diarias_config')
-      .upsert({ id: CONFIG_ID, dotacao: v, atualizado: new Date().toISOString() });
-    if (error) throw error;
-    document.getElementById('in-total').value = fmtM(v);
-    gravarCache(); setSync('ok','Sincronizado');
-    toast('Dotação atualizada');
-  }catch(e){
-    dados.dotacao = antes; render();
-    setSync('off','Sem conexão');
-    toast('Não foi possível gravar: ' + (e.message||'erro'), true);
-  }finally{ btn.disabled = false; }
-}
-document.getElementById('in-total').addEventListener('blur', e=>{
-  const v = parseM(e.target.value); e.target.value = v ? fmtM(v) : '';
-});
-document.getElementById('in-total').addEventListener('keydown', e=>{
-  if (e.key === 'Enter') salvarDotacao();
-});
+    const [cfg, os] = await Promise.all([
+      sb.from('diarias_config').select('dotacao').eq('id', CONFIG_ID).maybeSingle(),
+      sb.from('diarias_os').select('*').order('data_inicio', { ascending:false })
+    ]);
+    if (cfg.error) throw cfg.error;
+    if (os.error)  throw os.error;
 
-/* ══════════════════════════════════════════════════════════════
-   9 · MODAL / CRUD
-   ══════════════════════════════════════════════════════════════ */
-function abrirModal(id){
-  limparErros();
-  if (id){
-    const o = dados.ordens.find(x=>String(x.id)===String(id));
-    if (!o) return;
-    document.getElementById('modal-title').textContent = 'Editar Ordem de Serviço';
-    document.getElementById('f-id').value   = o.id;
-    document.getElementById('f-num').value  = o.num;
-    document.getElementById('f-serv').value = o.servidor;
-    document.getElementById('f-desc').value = o.desc;
-    document.getElementById('f-ini').value  = o.ini;
-    document.getElementById('f-fim').value  = o.fim;
-    document.getElementById('f-qtd').value  = o.qtd;
-    document.getElementById('f-val').value  = fmtM(o.valor);
-  } else {
-    document.getElementById('modal-title').textContent = 'Nova Ordem de Serviço';
-    ['f-id','f-num','f-serv','f-desc','f-ini','f-fim','f-qtd','f-val'].forEach(i=>document.getElementById(i).value='');
+    dados.dotacao = Number(cfg.data?.dotacao) || 0;
+    dados.ordens  = (os.data || []).map(doBanco);
+
+    carregando = false;
+    gravarCache();
+    const inp = document.getElementById('in-total');
+    if (document.activeElement !== inp) inp.value = dados.dotacao ? fmtM(dados.dotacao) : '';
+    render();
+    setSync('ok','Sincronizado');
+    if (avisar) toast('Dados de diárias atualizados');
+  }catch(e){
+    console.error(e);
+    setSync('off','Offline');
   }
-  atualizarCalc();
+}
+
+function lerCache(){
+  try{
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (raw){
+      const d = JSON.parse(raw);
+      dados.dotacao = Number(d.dotacao)||0;
+      dados.ordens  = Array.isArray(d.ordens) ? d.ordens : [];
+      return true;
+    }
+  }catch(e){}
+  return false;
+}
+function gravarCache(){
+  try{ localStorage.setItem(CACHE_KEY, JSON.stringify(dados)); }catch(e){}
+}
+
+function abrirModal(){
+  limparErros();
+  document.getElementById('f-id').value = '';
+  document.getElementById('f-num').value = '';
+  document.getElementById('f-serv').value = '';
+  document.getElementById('f-desc').value = '';
+  document.getElementById('f-ini').value = '';
+  document.getElementById('f-fim').value = '';
+  document.getElementById('f-qtd').value = '';
+  document.getElementById('f-val').value = '';
+  document.getElementById('calc').textContent = 'Valor unitário: —';
+  document.getElementById('modal-title').textContent = 'Nova Ordem de Serviço (Diárias)';
   document.getElementById('backdrop').classList.add('open');
-  setTimeout(()=>document.getElementById('f-num').focus(), 60);
 }
 function fecharModal(){ document.getElementById('backdrop').classList.remove('open'); }
-document.addEventListener('keydown', e=>{ if (e.key==='Escape') fecharModal(); });
 
-function atualizarCalc(){
-  const q = parseFloat(document.getElementById('f-qtd').value)||0;
-  const v = parseM(document.getElementById('f-val').value);
-  document.getElementById('calc').textContent =
-    (q>0 && v>0) ? `Valor unitário: ${fmtM(v/q)} por diária` : 'Valor unitário: —';
+function selecionarServidorDiaria(idx) {
+  if (idx === '' || !listaEfetivo[idx]) return;
+  const m = listaEfetivo[idx];
+  document.getElementById('f-serv').value = `${m.posto} ${m.esp || ''} ${m.nome_completo || m.nome}`.trim();
 }
-document.getElementById('f-qtd').addEventListener('input', atualizarCalc);
-document.getElementById('f-val').addEventListener('input', atualizarCalc);
-document.getElementById('f-val').addEventListener('blur', e=>{
-  const v = parseM(e.target.value); e.target.value = v ? fmtM(v) : ''; atualizarCalc();
-});
-function limparErros(){ document.querySelectorAll('.err').forEach(e=>e.classList.remove('show')); }
+
+function editarOS(id){
+  const o = dados.ordens.find(x => String(x.id) === String(id));
+  if (!o) return;
+  limparErros();
+  document.getElementById('f-id').value = o.id;
+  document.getElementById('f-num').value = o.num;
+  document.getElementById('f-serv').value = o.servidor;
+  document.getElementById('f-desc').value = o.desc;
+  document.getElementById('f-ini').value = o.ini;
+  document.getElementById('f-fim').value = o.fim;
+  document.getElementById('f-qtd').value = o.qtd;
+  document.getElementById('f-val').value = fmtM(o.valor);
+  calcUnitario();
+  document.getElementById('modal-title').textContent = 'Editar Ordem de Serviço';
+  document.getElementById('backdrop').classList.add('open');
+}
+
+function limparErros(){
+  ['e-num','e-serv','e-desc','e-ini','e-fim','e-qtd','e-val'].forEach(k=>{
+    const el = document.getElementById(k); if (el) el.classList.remove('show');
+  });
+}
+
+function calcUnitario(){
+  const qtd = parseFloat(document.getElementById('f-qtd').value)||0;
+  const val = parseM(document.getElementById('f-val').value);
+  const el = document.getElementById('calc');
+  el.textContent = (qtd>0 && val>0) ? `Valor unitário: ${fmtM(val/qtd)} por diária` : 'Valor unitário: —';
+}
+
+document.getElementById('f-qtd')?.addEventListener('input', calcUnitario);
+document.getElementById('f-val')?.addEventListener('input', calcUnitario);
 
 async function salvarOS(){
   limparErros();
-  const id   = document.getElementById('f-id').value;
-  const num  = document.getElementById('f-num').value.trim();
-  const serv = document.getElementById('f-serv').value.trim();
-  const desc = document.getElementById('f-desc').value.trim();
-  const ini  = document.getElementById('f-ini').value;
-  const fim  = document.getElementById('f-fim').value;
-  const qtd  = parseFloat(document.getElementById('f-qtd').value);
-  const val  = parseM(document.getElementById('f-val').value);
+  const id  = document.getElementById('f-id').value;
+  const num = document.getElementById('f-num').value.trim();
+  const serv= document.getElementById('f-serv').value.trim();
+  const desc= document.getElementById('f-desc').value.trim();
+  const ini = document.getElementById('f-ini').value;
+  const fim = document.getElementById('f-fim').value;
+  const qtd = parseFloat(document.getElementById('f-qtd').value);
+  const val = parseM(document.getElementById('f-val').value);
 
   let erro = false;
   const marcar = k => { document.getElementById(k).classList.add('show'); erro = true; };
-  if (!num)  marcar('e-num');
+  if (!num) marcar('e-num');
   if (!serv) marcar('e-serv');
   if (!desc) marcar('e-desc');
   if (!ini)  marcar('e-ini');
-  if (!fim || (ini && fim < ini)) marcar('e-fim');
-  if (!qtd || qtd <= 0) marcar('e-qtd');
-  if (!val || val <= 0) marcar('e-val');
+  if (!fim || fim < ini) marcar('e-fim');
+  if (!qtd || qtd <= 0)  marcar('e-qtd');
+  if (!val || val <= 0)  marcar('e-val');
   if (erro) return;
 
-  if (!configurado){ toast('Configure o Supabase para gravar', true); return; }
-
-  const registro = {
-    num, servidor: serv, desc, ini, fim,
-    qtd: Math.round(qtd*10)/10,
-    valor: Math.round(val*100)/100
-  };
-
+  const o = { num, desc, servidor:serv, ini, fim, qtd, valor:val };
   const btn = document.getElementById('btn-salvar');
-  btn.disabled = true; setSync('busy','Gravando…');
+  btn.disabled = true;
 
   try{
     if (id){
-      const { error } = await sb.from('diarias_os')
-        .update({ ...paraBanco(registro), atualizado: new Date().toISOString() })
-        .eq('id', id);
-      if (error) throw error;
-      const i = dados.ordens.findIndex(x=>String(x.id)===String(id));
-      if (i>=0) dados.ordens[i] = { id, ...registro };
+      if (configurado) await sb.from('diarias_os').update(paraBanco(o)).eq('id', id);
+      const idx = dados.ordens.findIndex(x => String(x.id) === String(id));
+      if (idx >= 0) dados.ordens[idx] = { id, ...o };
       toast('OS atualizada');
-    } else {
-      const { data, error } = await sb.from('diarias_os')
-        .insert(paraBanco(registro)).select().single();
-      if (error) throw error;
-      dados.ordens.unshift(doBanco(data));
-      toast('OS lançada');
+    }else{
+      if (configurado){
+        const { data } = await sb.from('diarias_os').insert([paraBanco(o)]).select().single();
+        dados.ordens.unshift(doBanco(data));
+      }else{
+        o.id = 'temp_' + Date.now();
+        dados.ordens.unshift(o);
+      }
+      toast('OS lançada com sucesso');
     }
     gravarCache(); render(); fecharModal();
-    setSync('ok','Sincronizado');
   }catch(e){
-    console.error(e);
-    setSync('off','Sem conexão');
-    toast('Não foi possível gravar: ' + (e.message||'erro'), true);
-  }finally{ btn.disabled = false; }
+    toast('Erro ao salvar OS: ' + (e.message||'erro'), true);
+  }finally{
+    btn.disabled = false;
+  }
 }
 
 async function excluirOS(id){
-  const o = dados.ordens.find(x=>String(x.id)===String(id));
+  const o = dados.ordens.find(x => String(x.id) === String(id));
   if (!o) return;
-  if (!confirm(`Excluir a OS ${o.num}?\n\n${o.desc}\n${fmtM(o.valor)}\n\nEsta ação não pode ser desfeita.`)) return;
-  if (!configurado){ toast('Configure o Supabase', true); return; }
-
-  const backup = [...dados.ordens];
-  dados.ordens = dados.ordens.filter(x=>String(x.id)!==String(id));
-  render(); setSync('busy','Gravando…');
-
+  if (!confirm(`Excluir a OS ${o.num}?`)) return;
   try{
-    const { error } = await sb.from('diarias_os').delete().eq('id', id);
-    if (error) throw error;
-    gravarCache(); setSync('ok','Sincronizado');
-    toast('OS excluída');
+    if (configurado && !String(id).startsWith('temp_')) await sb.from('diarias_os').delete().eq('id', id);
+    dados.ordens = dados.ordens.filter(x => String(x.id) !== String(id));
+    gravarCache(); render(); toast('OS excluída');
   }catch(e){
-    dados.ordens = backup; render();
-    setSync('off','Sem conexão');
-    toast('Não foi possível excluir: ' + (e.message||'erro'), true);
+    toast('Erro ao excluir: ' + (e.message||'erro'), true);
   }
 }
 
-/* ══════════════════════════════════════════════════════════════
-   10 · EXPORTAÇÃO CSV
-   ══════════════════════════════════════════════════════════════ */
-function exportar(){
-  const cab = ['Nº da OS','Descrição da missão','Servidor','Início','Término','Diárias','Valor total'];
-  const linhas = dados.ordens.map(o=>[
-    o.num, o.desc, o.servidor, fmtData(o.ini), fmtData(o.fim),
-    fmtQtd(o.qtd), (Number(o.valor)||0).toFixed(2).replace('.',',')
-  ]);
-  const t = totais();
-  linhas.push([]);
-  linhas.push(['Dotação total','','','','','', t.total.toFixed(2).replace('.',',')]);
-  linhas.push(['Empenhado','','','','','',  t.gasto.toFixed(2).replace('.',',')]);
-  linhas.push(['Saldo disponível','','','','','', t.saldo.toFixed(2).replace('.',',')]);
+async function salvarDotacao(){
+  const val = parseM(document.getElementById('in-total').value);
+  dados.dotacao = val;
+  try{
+    if (configurado) await sb.from('diarias_config').upsert({ id: CONFIG_ID, dotacao: val });
+    gravarCache(); render(); toast('Dotação atualizada');
+  }catch(e){
+    toast('Erro ao salvar dotação', true);
+  }
+}
 
-  const csv = [cab, ...linhas]
-    .map(l => l.map(c => `"${(c??'').toString().replace(/"/g,'""')}"`).join(';'))
-    .join('\r\n');
-
-  const blob = new Blob(['\uFEFF'+csv], { type:'text/csv;charset=utf-8' });
+function exportarDiariasCSV(){
+  const cab = ['Nº OS','Servidor','Descrição','Início','Término','Qtd Diárias','Valor Total (R$)'];
+  const linhas = dados.ordens.map(o => [o.num, o.servidor, `"${o.desc.replace(/"/g,'""')}"`, o.ini, o.fim, o.qtd, o.valor]);
+  const csv = [cab.join(';'), ...linhas.map(l => l.join(';'))].join('\n');
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
+  a.href = url;
   a.download = `diarias-de-${new Date().toISOString().slice(0,10)}.csv`;
-  a.click(); URL.revokeObjectURL(a.href);
-  toast('Planilha exportada');
+  a.click();
 }
 
 /* ══════════════════════════════════════════════════════════════
-   11 · TOAST
+   4 · GRATIFICAÇÃO DE REPRESENTAÇÃO (ABA 2)
    ══════════════════════════════════════════════════════════════ */
-let tToast;
-function toast(msg, ruim){
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.className = 'toast show' + (ruim ? ' bad' : '');
-  clearTimeout(tToast);
-  tToast = setTimeout(()=>el.classList.remove('show'), ruim ? 5000 : 2600);
-}
-
-/* ══════════════════════════════════════════════════════════════
-   12 · INÍCIO DA PÁGINA (executado ao carregar)
-   ══════════════════════════════════════════════════════════════ */
-// As chamadas de inicialização ficam no final do script após todas as funções declaradas.
-
-function trocarAba(aba) {
-  abaAtual = aba;
-  document.getElementById('tab-btn-diarias').classList.toggle('active', aba === 'diarias');
-  document.getElementById('tab-btn-gratificacao').classList.toggle('active', aba === 'gratificacao');
-  document.getElementById('tab-btn-solicitacoes').classList.toggle('active', aba === 'solicitacoes');
-
-  document.getElementById('view-diarias').style.display = (aba === 'diarias') ? 'block' : 'none';
-  document.getElementById('view-gratificacao').style.display = (aba === 'gratificacao') ? 'block' : 'none';
-  document.getElementById('view-solicitacoes').style.display = (aba === 'solicitacoes') ? 'block' : 'none';
-
-  const txtAcao = document.getElementById('txt-header-acao');
-  if (aba === 'diarias') txtAcao.textContent = 'Nova OS';
-  else if (aba === 'gratificacao') txtAcao.textContent = 'Nova Gratificação';
-  else txtAcao.textContent = '+ Solicitação';
-
-  if (aba === 'gratificacao') renderGratificacao();
-  if (aba === 'solicitacoes') renderSolicitacoes();
-}
-
-function acaoAbaAtual() {
-  if (abaAtual === 'diarias') abrirModal();
-  else if (abaAtual === 'gratificacao') abrirModalGratificacao();
-  else window.open('solicitar.html', '_blank');
-}
-
-/* ── CACHE & SINCRONIZAÇÃO DE SOLICITAÇÕES ── */
-function lerCacheSolicitacoes() {
-  try {
-    const raw = localStorage.getItem(CACHE_SOLICITACOES_KEY);
-    if (raw) {
-      dadosSolicitacoes = JSON.parse(raw);
-      return true;
-    }
-  } catch (e) {}
-  return false;
-}
-function gravarCacheSolicitacoes() {
-  try { localStorage.setItem(CACHE_SOLICITACOES_KEY, JSON.stringify(dadosSolicitacoes)); } catch (e) {}
-}
-
-async function recarregarSolicitacoes() {
-  if (!configurado) return;
-  try {
-    const { data, error } = await sb.from('solicitacoes_missao').select('*').order('created_at', { ascending: false });
-    if (error) throw error;
-    dadosSolicitacoes = data || [];
-    gravarCacheSolicitacoes();
-    renderSolicitacoes();
-  } catch (e) {
-    console.error('Falha ao buscar solicitações:', e);
-  }
-}
-
-function ouvirRealtimeSolicitacoes() {
-  if (!configurado) return;
-  sb.channel('solicitacoes-live')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'solicitacoes_missao' }, () => recarregarSolicitacoes())
-    .subscribe((status) => {
-      if (status === 'SUBSCRIBED') setSync('ok','Sincronizado');
-    });
-}
-
-/* ── CACHE & SINCRONIZAÇÃO GRATIFICAÇÃO ── */
-function lerCacheGrat() {
-  try {
-    const raw = localStorage.getItem(CACHE_GRAT_KEY);
-    if (raw) {
-      dadosGratificacao = JSON.parse(raw);
-      return true;
-    }
-  } catch (e) {}
-  return false;
-}
-function gravarCacheGrat() {
-  try { localStorage.setItem(CACHE_GRAT_KEY, JSON.stringify(dadosGratificacao)); } catch (e) {}
-}
-
-async function recarregarGratificacao() {
-  if (!configurado) return;
-  try {
-    const { data, error } = await sb.from('gratificacao_representacao').select('*').order('created_at', { ascending: false });
-    if (error) throw error;
-    dadosGratificacao = data || [];
-    gravarCacheGrat();
-    renderGratificacao();
-  } catch (e) {
-    console.error('Falha ao buscar gratificação:', e);
-  }
-}
-
-function ouvirRealtimeGratificacao() {
-  if (!configurado) return;
-  sb.channel('gratificacao-live')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'gratificacao_representacao' }, () => recarregarGratificacao())
-    .subscribe((status) => {
-      if (status === 'SUBSCRIBED') setSync('ok','Sincronizado');
-    });
-}
-
-/* ── EFETIVO GOOGLE SHEETS ── */
-const EFETIVO_SHEET_ID = '1UOMh4y-wHL8kHcB9TUUcEmkeF7z6KYAs4vipsoOFgfA';
-const EFETIVO_URL = `https://docs.google.com/spreadsheets/d/${EFETIVO_SHEET_ID}/gviz/tq?tqx=out:json&sheet=efetivo&range=A5:AC250&headers=0`;
-
-function formatarCPF(raw) {
-  if (!raw) return '';
-  let str = String(raw).replace(/\.0$/, '').replace(/\D/g, '');
-  if (!str) return '';
-  str = str.padStart(11, '0');
-  return str.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
-}
-
-function formatarSARAM(raw) {
-  if (!raw) return '';
-  let str = String(raw).replace(/\.0$/, '').replace(/\D/g, '');
-  if (!str) return '';
-  return str.padStart(7, '0');
-}
-
-async function carregarEfetivo() {
-  try {
-    const raw = localStorage.getItem(CACHE_EFETIVO_KEY);
-    if (raw) {
-      listaEfetivo = JSON.parse(raw);
-      preencherSelectEfetivo();
-    }
-  } catch (e) {}
-
-  try {
-    const res = await fetch(EFETIVO_URL);
-    const txt = await res.text();
-    const jsonStr = txt.replace(/^\/\*O_o\*\/\s*google\.visualization\.Query\.setResponse\(/, '').replace(/\);?\s*$/, '');
-    const data = JSON.parse(jsonStr);
-
-    if (data.table && data.table.rows) {
-      listaEfetivo = data.table.rows
-        .map(r => {
-          const c = r.c || [];
-          const v = idx => (c[idx]?.v !== undefined && c[idx]?.v !== null) ? c[idx].v.toString().trim() : '';
-          return {
-            posto: v(2),           // Col C
-            esp: v(3),             // Col D
-            nome: v(4),            // Col E (Guerra)
-            funcao: v(7),          // Col H
-            nome_completo: v(13),  // Col N (Completo)
-            cpf: formatarCPF(v(14)),   // Col O (CPF)
-            email: v(15),          // Col P
-            saram: formatarSARAM(v(19)), // Col T (SARAM)
-            rg: v(20),             // Col U
-            banco: v(23),          // Col X
-            banco_cod: v(24),      // Col Y
-            agencia: v(25),        // Col Z
-            conta: v(26)           // Col AA
-          };
-        })
-        .filter(m => m.nome || m.nome_completo);
-
-      localStorage.setItem(CACHE_EFETIVO_KEY, JSON.stringify(listaEfetivo));
-      preencherSelectEfetivo();
-    }
-  } catch (e) {
-    console.warn('Efetivo carregado do cache ou offline', e);
-  }
-}
-
-function preencherSelectEfetivo() {
-  const options = '<option value="">-- Selecione um militar do Efetivo --</option>' +
-    listaEfetivo.map((m, idx) => `<option value="${idx}">${esc(m.posto)} ${esc(m.esp)} ${esc(m.nome_completo || m.nome)}</option>`).join('');
-
-  const sel1 = document.getElementById('fg-militar-select');
-  if (sel1) sel1.innerHTML = options;
-
-  const sel2 = document.getElementById('f-serv-select');
-  if (sel2) sel2.innerHTML = options;
-}
-
-/* ── TOGGLES & ACCORDION ── */
-function toggleSwitch(id) {
-  const chk = document.getElementById(id);
-  if (!chk) return;
-  chk.checked = !chk.checked;
-  chk.dispatchEvent(new Event('change'));
-}
-
-function alternarAccordion(chkId, accId) {
-  const chk = document.getElementById(chkId);
-  const acc = document.getElementById(accId);
-  if (!chk || !acc) return;
-  if (chk.checked) {
-    acc.classList.add('show');
-  } else {
-    acc.classList.remove('show');
-  }
-}
-
-/* ── MULTIMILITAR EM GRATIFICAÇÃO ── */
 let listaMilitaresGratModal = [];
 
 function adicionarMilitarGratItem(m) {
@@ -1488,12 +1790,13 @@ function adicionarMilitarGratItem(m) {
     posto_grad: '',
     especialidade: '',
     nome: '',
+    nome_guerra: '',
     cpf: '',
     saram: '',
     om: 'AFA',
-    data_inicio: '2026-08-03',
+    data_inicio: new Date().toISOString().slice(0,10),
     hora_inicio: '04:00',
-    data_fim: '2026-08-07',
+    data_fim: new Date(Date.now() + 4*86400000).toISOString().slice(0,10),
     hora_fim: '16:00',
     dias: 5,
     passagem: 'NÃO'
@@ -1512,15 +1815,35 @@ function removerMilitarGratItem(idx) {
 }
 
 function selecionarMilitarGratItem(itemIdx, efetivoIdx) {
-  if (efetivoIdx === '' || !listaEfetivo[efetivoIdx]) return;
-  const m = listaEfetivo[efetivoIdx];
+  if (efetivoIdx === '') return;
   const item = listaMilitaresGratModal[itemIdx];
   if (!item) return;
+
+  if (String(efetivoIdx).startsWith('ext_')) {
+    const extIdx = parseInt(efetivoIdx.replace('ext_', ''));
+    const ext = listaExternos[extIdx];
+    if (!ext) return;
+    item.posto_grad = (ext.posto_grad || '').trim();
+    item.especialidade = (ext.especialidade || '').trim();
+    item.nome = ext.nome_completo || ext.nome;
+    item.nome_guerra = ext.nome_guerra || '';
+    item.cpf = ext.cpf || '';
+    item.saram = ext.saram || '';
+    item.om = ext.om || 'OUTRA';
+    renderMilitaresGratModal();
+    return;
+  }
+
+  const idxEf = parseInt(efetivoIdx);
+  if (isNaN(idxEf) || !listaEfetivo[idxEf]) return;
+  const m = listaEfetivo[idxEf];
   item.posto_grad = m.posto || '';
   item.especialidade = m.esp || '';
   item.nome = m.nome_completo || m.nome || '';
+  item.nome_guerra = m.nome || '';
   if (m.cpf) item.cpf = m.cpf;
   if (m.saram) item.saram = m.saram;
+  item.om = 'AFA';
   renderMilitaresGratModal();
 }
 
@@ -1529,42 +1852,49 @@ function atualizarCampoMilitarItem(itemIdx, field, val) {
   if (!item) return;
   item[field] = val;
   if (field === 'data_inicio' || field === 'data_fim' || field === 'hora_inicio' || field === 'hora_fim') {
-    const dIni = new Date((item.data_inicio || '2026-08-03') + 'T' + (item.hora_inicio || '04:00'));
-    const dFim = new Date((item.data_fim || '2026-08-07') + 'T' + (item.hora_fim || '16:00'));
+    const dIni = new Date((item.data_inicio || '2026-08-01') + 'T' + (item.hora_inicio || '04:00'));
+    const dFim = new Date((item.data_fim || '2026-08-05') + 'T' + (item.hora_fim || '16:00'));
     const diffHours = (dFim - dIni) / (1000 * 60 * 60);
     item.dias = Math.max(1, Math.ceil(diffHours / 24));
-    document.getElementById(`m-dias-${itemIdx}`).value = item.dias;
+    const dInp = document.getElementById(`m-dias-${itemIdx}`);
+    if (dInp) dInp.value = item.dias;
   }
 }
 
 function renderMilitaresGratModal() {
   const container = document.getElementById('lista-militares-container');
   if (!container) return;
-
   if (listaMilitaresGratModal.length === 0) {
     adicionarMilitarGratItem();
     return;
   }
 
   container.innerHTML = listaMilitaresGratModal.map((m, idx) => `
-    <div class="militar-item-card">
+    <div class="militar-item-card ${idx===0 ? 'coord' : ''}">
       <div class="militar-item-head">
-        <span>Militar #${idx + 1}</span>
+        <span>${idx===0 ? '👑 Coordenador da Missão (Militar #1)' : `Militar #${idx + 1}`}</span>
         ${listaMilitaresGratModal.length > 1 ? `<button class="icon-btn del" onclick="removerMilitarGratItem(${idx})" title="Remover militar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>` : ''}
       </div>
 
       <div class="field" style="margin-bottom:.5rem">
-        <label>Selecionar do Efetivo</label>
+        <label>Preencher a partir do Efetivo ou Externos</label>
         <select onchange="selecionarMilitarGratItem(${idx}, this.value)">
           <option value="">-- Selecione para preencher --</option>
-          ${listaEfetivo.map((ef, eIdx) => `<option value="${eIdx}" ${ef.nome === m.nome ? 'selected' : ''}>${esc(ef.posto)} ${esc(ef.esp)} ${esc(ef.nome)}</option>`).join('')}
+          <optgroup label="Efetivo da AFA (Divisão de Ensino)">
+            ${listaEfetivo.map((ef, eIdx) => `<option value="${eIdx}" ${ef.nome_completo === m.nome || ef.nome === m.nome ? 'selected' : ''}>${esc(ef.posto)} ${esc(ef.esp)} ${esc(ef.nome)}</option>`).join('')}
+          </optgroup>
+          ${listaExternos.length ? `
+            <optgroup label="Militares Externos Cadastrados">
+              ${listaExternos.map((ex, exIdx) => `<option value="ext_${exIdx}" ${ex.nome_completo === m.nome ? 'selected' : ''}>${esc(ex.posto_grad)} ${esc(ex.nome_guerra || ex.nome_completo)} — ${esc(ex.om)}</option>`).join('')}
+            </optgroup>
+          ` : ''}
         </select>
       </div>
 
       <div class="grid2">
         <div class="field" style="margin-bottom:.5rem">
-          <label>Posto/Grad/Esp *</label>
-          <input type="text" value="${esc(m.posto_grad || ((m.posto||'')+' '+(m.especialidade||'')))}" oninput="atualizarCampoMilitarItem(${idx}, 'posto_grad', this.value)" placeholder="Ex.: 1T PED" />
+          <label>Posto / Grad / Esp *</label>
+          <input type="text" value="${esc(m.posto_grad)}" oninput="atualizarCampoMilitarItem(${idx}, 'posto_grad', this.value)" placeholder="Ex.: 1T PED" />
         </div>
         <div class="field" style="margin-bottom:.5rem">
           <label>Nome Completo *</label>
@@ -1572,7 +1902,11 @@ function renderMilitaresGratModal() {
         </div>
       </div>
 
-      <div class="grid2">
+      <div class="grid3">
+        <div class="field" style="margin-bottom:.5rem">
+          <label>Nome de Guerra</label>
+          <input type="text" value="${esc(m.nome_guerra)}" oninput="atualizarCampoMilitarItem(${idx}, 'nome_guerra', this.value)" placeholder="Ex.: THAIS BERGUE" />
+        </div>
         <div class="field" style="margin-bottom:.5rem">
           <label>CPF *</label>
           <input type="text" value="${esc(m.cpf)}" oninput="atualizarCampoMilitarItem(${idx}, 'cpf', this.value)" placeholder="372.553.678-36" />
@@ -1587,14 +1921,14 @@ function renderMilitaresGratModal() {
         <div class="field" style="margin-bottom:.5rem">
           <label>Início (Data/Hora)</label>
           <div style="display:flex;gap:.3rem">
-            <input type="date" value="${m.data_inicio || '2026-08-03'}" onchange="atualizarCampoMilitarItem(${idx}, 'data_inicio', this.value)" />
+            <input type="date" value="${m.data_inicio}" onchange="atualizarCampoMilitarItem(${idx}, 'data_inicio', this.value)" />
             <input type="time" value="${m.hora_inicio || '04:00'}" onchange="atualizarCampoMilitarItem(${idx}, 'hora_inicio', this.value)" style="width:90px" />
           </div>
         </div>
         <div class="field" style="margin-bottom:.5rem">
           <label>Término (Data/Hora)</label>
           <div style="display:flex;gap:.3rem">
-            <input type="date" value="${m.data_fim || '2026-08-07'}" onchange="atualizarCampoMilitarItem(${idx}, 'data_fim', this.value)" />
+            <input type="date" value="${m.data_fim}" onchange="atualizarCampoMilitarItem(${idx}, 'data_fim', this.value)" />
             <input type="time" value="${m.hora_fim || '16:00'}" onchange="atualizarCampoMilitarItem(${idx}, 'hora_fim', this.value)" style="width:90px" />
           </div>
         </div>
@@ -1617,9 +1951,37 @@ function renderMilitaresGratModal() {
   `).join('');
 }
 
+function sugerirProximoNumeroOS(ano) {
+  let maior = 0;
+  const lista = [...dadosGratificacao, ...dadosControle];
+  lista.forEach(item => {
+    const num = String(item.num_os || item.num || '');
+    const match = num.match(/^(\d+)/);
+    if (match) {
+      const n = parseInt(match[1]);
+      if (n > maior) maior = n;
+    }
+  });
+  return maior > 0 ? (maior + 1) : 24;
+}
+
+function sugerirProximoNumeroOMIS(ano) {
+  let maior = 0;
+  const lista = [...dadosGratificacao, ...dadosControle];
+  lista.forEach(item => {
+    const num = String(item.num_omis || '');
+    const match = num.match(/^(\d+)/);
+    if (match) {
+      const n = parseInt(match[1]);
+      if (n > maior) maior = n;
+    }
+  });
+  return maior > 0 ? (maior + 1) : 1;
+}
+
 function abrirModalGratificacao(id) {
   limparErrosGrat();
-  preencherSelectEfetivo();
+  preencherSelectsEfetivo();
   
   if (id) {
     const g = dadosGratificacao.find(x => String(x.id) === String(id));
@@ -1627,11 +1989,11 @@ function abrirModalGratificacao(id) {
     document.getElementById('modal-grat-title').textContent = 'Editar Gratificação de Representação';
     document.getElementById('fg-id').value = g.id;
     document.getElementById('fg-num').value = g.num_os || '';
+    document.getElementById('fg-num-omis').value = g.num_omis || '';
     document.getElementById('fg-servico').value = g.servico_local || '';
     document.getElementById('fg-enquadramento').value = g.enquadramento_legal || 'Art 5°, Inc II (Viagem de Instrução)';
-    document.getElementById('fg-apoio').value = g.apoio_recebido || 'Apoio de hospedagem e rancho serão prestados pelo (NOME DA UNIDADE), e o apoio de transporte será prestado pela AFA.';
+    document.getElementById('fg-apoio').value = g.apoio_recebido || 'O apoio de transporte será fornecido pela AFA e a hospedagem e o rancho serão fornecidos pela OM de destino.';
 
-    // Toggles
     const chkPrazo = document.getElementById('fg-toggle-prazo');
     chkPrazo.checked = !!g.fora_prazo;
     alternarAccordion('fg-toggle-prazo', 'acc-prazo');
@@ -1647,7 +2009,6 @@ function abrirModalGratificacao(id) {
     alternarAccordion('fg-toggle-retorno', 'acc-retorno');
     if (g.justificativa_alteracao_retorno) document.getElementById('fg-just-retorno').value = g.justificativa_alteracao_retorno;
 
-    // Militares
     if (Array.isArray(g.militares) && g.militares.length > 0) {
       listaMilitaresGratModal = JSON.parse(JSON.stringify(g.militares));
     } else {
@@ -1655,12 +2016,13 @@ function abrirModalGratificacao(id) {
         posto_grad: g.posto_grad || '',
         especialidade: g.especialidade || '',
         nome: g.nome || '',
+        nome_guerra: g.nome_guerra || '',
         cpf: g.cpf || '',
         saram: g.saram || '',
         om: g.om || 'AFA',
-        data_inicio: g.data_inicio || '2026-08-03',
+        data_inicio: g.data_inicio || '2026-08-01',
         hora_inicio: g.hora_inicio || '04:00',
-        data_fim: g.data_fim || '2026-08-07',
+        data_fim: g.data_fim || '2026-08-05',
         hora_fim: g.hora_fim || '16:00',
         dias: g.dias || 5,
         passagem: g.passagem || 'NÃO'
@@ -1669,10 +2031,16 @@ function abrirModalGratificacao(id) {
   } else {
     document.getElementById('modal-grat-title').textContent = 'Nova Gratificação de Representação';
     document.getElementById('fg-id').value = '';
-    document.getElementById('fg-num').value = '24/DE/' + new Date().getFullYear();
+    
+    // Sugere próximo número de OS e OMIS sequenciais independentes
+    const anoAtual = new Date().getFullYear();
+    const proxNumOS = sugerirProximoNumeroOS(anoAtual);
+    const proxNumOMIS = sugerirProximoNumeroOMIS(anoAtual);
+    document.getElementById('fg-num').value = `${proxNumOS}/DE/${anoAtual}`;
+    document.getElementById('fg-num-omis').value = `${proxNumOMIS}/DE/${anoAtual}`;
     document.getElementById('fg-servico').value = '';
+    document.getElementById('fg-apoio').value = 'O apoio de transporte será fornecido pela AFA e a hospedagem e o rancho serão fornecidos pela OM de destino.';
 
-    // Toggles reset to false
     ['fg-toggle-prazo', 'fg-toggle-antecipado', 'fg-toggle-retorno'].forEach(t => {
       const chk = document.getElementById(t);
       if (chk) chk.checked = false;
@@ -1681,20 +2049,17 @@ function abrirModalGratificacao(id) {
     alternarAccordion('fg-toggle-antecipado', 'acc-antecipado');
     alternarAccordion('fg-toggle-retorno', 'acc-retorno');
 
-    document.getElementById('fg-just-prazo').value = 'Devido à natureza da missão a solicitação foi feita fora do prazo';
-    document.getElementById('fg-just-antecipado').value = 'Necessidade de custeio inicial da missão.';
-    document.getElementById('fg-just-retorno').value = 'Por motivos de trânsito, o militar retornou no horário informado.';
-
     listaMilitaresGratModal = [{
       posto_grad: '',
       especialidade: '',
       nome: '',
+      nome_guerra: '',
       cpf: '',
       saram: '',
       om: 'AFA',
-      data_inicio: '2026-08-03',
+      data_inicio: new Date().toISOString().slice(0,10),
       hora_inicio: '04:00',
-      data_fim: '2026-08-07',
+      data_fim: new Date(Date.now() + 4*86400000).toISOString().slice(0,10),
       hora_fim: '16:00',
       dias: 5,
       passagem: 'NÃO'
@@ -1709,6 +2074,17 @@ function fecharModalGrat() {
   document.getElementById('backdrop-grat').classList.remove('open');
 }
 
+function abrirModalNovaOmisSemCusto() {
+  const anoAtual = new Date().getFullYear();
+  const proxNumOMIS = sugerirProximoNumeroOMIS(anoAtual);
+  
+  abrirModalGratificacao();
+  document.getElementById('modal-grat-title').textContent = 'Nova Ordem de Missão (Sem Custo)';
+  document.getElementById('fg-num').value = `SEM CUSTO (${proxNumOMIS}/DE/${anoAtual})`;
+  document.getElementById('fg-num-omis').value = `${proxNumOMIS}/DE/${anoAtual}`;
+  document.getElementById('fg-enquadramento').value = 'Sem Custo (apenas OMIS)';
+}
+
 function limparErrosGrat() {
   ['eg-num','eg-servico','eg-militares'].forEach(i => {
     const el = document.getElementById(i);
@@ -1720,6 +2096,7 @@ async function salvarGratificacao() {
   limparErrosGrat();
   const id = document.getElementById('fg-id').value;
   const num_os = document.getElementById('fg-num').value.trim();
+  const num_omis = document.getElementById('fg-num-omis').value.trim();
   const servico_local = document.getElementById('fg-servico').value.trim();
 
   let erro = false;
@@ -1732,9 +2109,9 @@ async function salvarGratificacao() {
   if (erro) return;
 
   const prim = listaMilitaresGratModal[0] || {};
-  const data_inicio = prim.data_inicio || '2026-08-03';
+  const data_inicio = prim.data_inicio || new Date().toISOString().slice(0,10);
   const hora_inicio = prim.hora_inicio || '04:00';
-  const data_fim = prim.data_fim || '2026-08-07';
+  const data_fim = prim.data_fim || new Date(Date.now() + 4*86400000).toISOString().slice(0,10);
   const hora_fim = prim.hora_fim || '16:00';
   const ano = parseInt(data_inicio.split('-')[0]) || new Date().getFullYear();
   const dias = prim.dias || 5;
@@ -1743,11 +2120,16 @@ async function salvarGratificacao() {
   const pagamento_antecipado = document.getElementById('fg-toggle-antecipado').checked;
   const teve_alteracao_retorno = document.getElementById('fg-toggle-retorno').checked;
 
+  const cfg = window.AppConfig ? window.AppConfig.getOsConfig() : {};
+
   const reg = {
     ano,
     num_os,
+    num_omis,
     posto_grad: prim.posto_grad || '',
+    especialidade: prim.especialidade || '',
     nome: prim.nome || '',
+    nome_guerra: prim.nome_guerra || '',
     cpf: prim.cpf || '',
     saram: prim.saram || '',
     om: prim.om || 'AFA',
@@ -1763,6 +2145,10 @@ async function salvarGratificacao() {
     enquadramento_legal: document.getElementById('fg-enquadramento').value.trim(),
     apoio_recebido: document.getElementById('fg-apoio').value.trim(),
     militares: listaMilitaresGratModal,
+    comandante_nome: cfg.grat_os_autoridade_nome || 'Cel QOINT WELLINGTON MARCELO FERNANDES',
+    comandante_cargo: cfg.grat_os_autoridade_cargo || 'Chefe da Divisão Administrativa',
+    chefe_nome: cfg.grat_aut_autoridade_nome || 'GABRIEL HENRIQUES DE OLIVEIRA FARIAS Cel Av',
+    chefe_cargo: cfg.grat_aut_autoridade_cargo || 'Chefe da 2SC',
     updated_at: new Date().toISOString()
   };
 
@@ -1772,8 +2158,7 @@ async function salvarGratificacao() {
   try {
     if (id) {
       if (configurado) {
-        const { error } = await sb.from('gratificacao_representacao').update(reg).eq('id', id);
-        if (error) throw error;
+        await sb.from('gratificacao_representacao').update(reg).eq('id', id);
       }
       const idx = dadosGratificacao.findIndex(x => String(x.id) === String(id));
       if (idx >= 0) dadosGratificacao[idx] = { id, ...reg };
@@ -1789,8 +2174,14 @@ async function salvarGratificacao() {
       }
       toast('Gratificação lançada');
     }
+
+    // Atualiza ou insere na esteira de Controle OS
+    sincronizarProcessoComControle(reg);
+
     gravarCacheGrat();
     renderGratificacao();
+    renderOmis();
+    renderControle();
     fecharModalGrat();
   } catch (e) {
     console.error(e);
@@ -1800,25 +2191,67 @@ async function salvarGratificacao() {
   }
 }
 
+function sincronizarProcessoComControle(reg) {
+  const coord = `${reg.posto_grad} ${reg.nome_guerra || reg.nome}`.trim();
+  const milsResumo = Array.isArray(reg.militares) ? reg.militares.map(m=>m.nome_guerra||m.nome).join(', ') : coord;
+  
+  const existe = dadosControle.find(c => c.num_os === reg.num_os && c.ano === reg.ano);
+  if (!existe) {
+    const novoCtrl = {
+      id: 'ctrl_' + Date.now(),
+      ano: reg.ano,
+      num_os: reg.num_os,
+      num_omis: reg.num_omis || '',
+      modalidade: reg.enquadramento_legal && reg.enquadramento_legal.includes('Sem Custo') ? 'Sem Custo' : 'Gratificação',
+      coordenador: coord,
+      militares_resumo: milsResumo,
+      servico_local: reg.servico_local,
+      periodo_inicio: reg.data_inicio,
+      periodo_fim: reg.data_fim,
+      status: 'Pendente',
+      auditoria: '',
+      sigad_numero: '',
+      siloms_numero: reg.siloms_numero || '',
+      comgep_linha: reg.comgep_linha || '',
+      nup: '',
+      bca_numero: '',
+      bi_numero: ''
+    };
+    dadosControle.unshift(novoCtrl);
+    if (configurado) {
+      sb.from('controle_os_processos').insert([novoCtrl]).then(()=>{});
+    }
+    gravarCacheControle();
+  } else {
+    existe.coordenador = coord;
+    existe.militares_resumo = milsResumo;
+    existe.servico_local = reg.servico_local;
+    existe.periodo_inicio = reg.data_inicio;
+    existe.periodo_fim = reg.data_fim;
+    existe.num_omis = reg.num_omis || existe.num_omis;
+    if (configurado && !String(existe.id).startsWith('ctrl_')) {
+      sb.from('controle_os_processos').update(existe).eq('id', existe.id).then(()=>{});
+    }
+    gravarCacheControle();
+  }
+}
+
 async function excluirGratificacao(id) {
   const g = dadosGratificacao.find(x => String(x.id) === String(id));
   if (!g) return;
   if (!confirm(`Excluir a Gratificação OS ${g.num_os}?`)) return;
 
-  const backup = [...dadosGratificacao];
   dadosGratificacao = dadosGratificacao.filter(x => String(x.id) !== String(id));
   renderGratificacao();
+  renderOmis();
 
   try {
     if (configurado && !String(id).startsWith('temp_')) {
-      const { error } = await sb.from('gratificacao_representacao').delete().eq('id', id);
-      if (error) throw error;
+      await sb.from('gratificacao_representacao').delete().eq('id', id);
     }
     gravarCacheGrat();
     toast('Gratificação excluída');
   } catch (e) {
-    dadosGratificacao = backup;
-    renderGratificacao();
     toast('Erro ao excluir: ' + (e.message || 'erro'), true);
   }
 }
@@ -1834,11 +2267,10 @@ function renderGratificacao() {
   if (termo) {
     lista = lista.filter(g => {
       const mils = Array.isArray(g.militares) ? g.militares : [{ nome: g.nome, cpf: g.cpf, saram: g.saram }];
-      return [g.num_os, g.servico_local, ...mils.map(m => m.nome + ' ' + m.cpf + ' ' + m.saram)].some(c => (c || '').toLowerCase().includes(termo));
+      return [g.num_os, g.num_omis, g.servico_local, ...mils.map(m => m.nome + ' ' + m.cpf + ' ' + m.saram)].some(c => (c || '').toLowerCase().includes(termo));
     });
   }
 
-  // Métricas
   const totalDias = lista.reduce((s, g) => {
     const mils = Array.isArray(g.militares) && g.militares.length > 0 ? g.militares : [{ dias: g.dias }];
     return s + mils.reduce((ms, m) => ms + (Number(m.dias || g.dias) || 0), 0);
@@ -1875,8 +2307,8 @@ function renderGratificacao() {
 
     const primMilitar = mils[0] || {};
     const textoMilitares = mils.length === 1 
-      ? `<b>${esc(primMilitar.posto_grad)} ${esc(primMilitar.nome)}</b>`
-      : `<b>${mils.length} Militares</b> (${esc(mils.map(m => m.nome.split(' ')[0]).join(', '))})`;
+      ? `<b>${esc(primMilitar.posto_grad)} ${esc(primMilitar.nome_guerra || primMilitar.nome)}</b>`
+      : `<b>${mils.length} Militares</b> (Coord: ${esc(primMilitar.posto_grad)} ${esc(primMilitar.nome_guerra || primMilitar.nome)})`;
 
     const jsonStr = JSON.stringify(g).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
 
@@ -1906,78 +2338,321 @@ function renderGratificacao() {
         </div>
       </div>
       <div class="grat-actions">
+        <button class="btn-doc gold" onclick='CompiladorDoc.compilarPacoteInicial(${jsonStr})' title="Baixa OS e Autorização para montagem do processo SIGADAER">📦 Baixar Processo Inicial (OS + Autorização)</button>
         <button class="btn-doc" onclick='CompiladorDoc.gerarOSGratificacao(${jsonStr})'>📄 OS</button>
         <button class="btn-doc" onclick='CompiladorDoc.gerarAutorizacaoGratificacao(${jsonStr})'>📄 Autorização</button>
         <button class="btn-doc" onclick='CompiladorDoc.gerarFichaApresentacaoGratificacao(${jsonStr})'>📄 Ficha Retorno</button>
-        <button class="btn-doc gold" onclick='CompiladorDoc.compilarPacoteGratificacao(${jsonStr})'>📦 Baixar 3 Docs</button>
+        <button class="btn-doc" onclick='CompiladorDoc.gerarOMIS(${jsonStr})'>📄 OMIS</button>
+        ${g.pdf_retorno_assinado ? `<a class="btn-doc" style="background:#15803d;color:#fff;text-decoration:none;font-weight:700" target="_blank" href="${urlPdf(g.pdf_retorno_assinado)}">📄 PDF Assinado Gov.br</a>` : ''}
+        <button class="btn-doc purple" onclick='abrirModalSiloms(${jsonStr})'>📝 Tramitar SILOMS</button>
       </div>
     </article>`;
   }).join('');
 }
 
-/* ── AUTENTICAÇÃO E PIN DO OPERADOR ── */
-async function lerPinServidor(){
-  if (window.AppConfig) return window.AppConfig.getPin();
-  try {
-    const { data } = await sb.from('at_config').select('pin').eq('id', 'default').maybeSingle();
-    if (data && data.pin) return String(data.pin).trim();
-  } catch(e){}
-  return localStorage.getItem('secretaria_pin') || '123456';
+/* ══════════════════════════════════════════════════════════════
+   5 · ORDENS DE MISSÃO (OMIS - ABA 3) & FLUXO SILOMS
+   ══════════════════════════════════════════════════════════════ */
+function renderOmis() {
+  const termo = (document.getElementById('omis-busca') ? document.getElementById('omis-busca').value : '').toLowerCase().trim();
+  
+  let lista = dadosGratificacao.map(g => ({
+    ...g,
+    tipoOrigem: 'Gratificação',
+    modalidade_label: g.enquadramento_legal && g.enquadramento_legal.includes('Sem Custo') ? 'SEM CUSTO' : 'GRATIFICAÇÃO DE REPRESENTAÇÃO'
+  }));
+
+  if (termo) {
+    lista = lista.filter(o => [o.num_os, o.num_omis, o.siloms_numero, o.servico_local, o.nome, o.posto_grad].some(c => (c||'').toLowerCase().includes(termo)));
+  }
+
+  const badgeEl = document.getElementById('badge-omis-count');
+  if (badgeEl) badgeEl.textContent = lista.length;
+
+  document.getElementById('so-qtd').textContent = lista.length;
+  document.getElementById('so-siloms-ok').textContent = lista.filter(x => x.siloms_numero).length;
+  document.getElementById('so-enviadas').textContent = lista.filter(x => x.omis_enviada).length;
+  
+  const totalMils = lista.reduce((s, o) => s + (Array.isArray(o.militares) ? o.militares.length : 1), 0);
+  document.getElementById('so-mils').textContent = totalMils;
+
+  const alvo = document.getElementById('lista-omis');
+  if (!alvo) return;
+
+  if (!lista.length) {
+    alvo.innerHTML = `
+      <div class="empty">
+        <img src="assets/cocar-fab.png" alt="" />
+        <p>Nenhuma Ordem de Missão (OMIS) registrada.</p>
+        <button class="btn btn-primary" onclick="abrirModalNovaOmisSemCusto()">+ Nova OMIS (Sem Custo)</button>
+      </div>`;
+    return;
+  }
+
+  alvo.innerHTML = lista.map(o => {
+    const mils = Array.isArray(o.militares) && o.militares.length ? o.militares : [{ posto_grad: o.posto_grad, nome: o.nome }];
+    const prim = mils[0] || {};
+    const numOmisDisplay = o.num_omis || o.num_os || 'OMIS';
+    const silomsBadge = o.siloms_numero
+      ? `<span class="os-badge badge-siloms-ok">SILOMS: ${esc(o.siloms_numero)}</span>`
+      : `<span class="os-badge badge-siloms-pend">⚠️ SILOMS Pendente</span>`;
+    const jsonStr = JSON.stringify(o).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+
+    return `
+    <article class="os st-curso" style="border-top-color:var(--navy-600)">
+      <div class="os-head">
+        <div class="os-num">OMIS Nº ${esc(numOmisDisplay)}<span>${esc(o.modalidade_label)} · OS: ${esc(o.num_os)}</span></div>
+        ${silomsBadge}
+      </div>
+      <p class="os-desc">${esc(o.servico_local)}</p>
+      <div class="os-meta">
+        <div class="os-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <b>Coord: ${esc(prim.posto_grad)} ${esc(prim.nome_guerra || prim.nome)}</b> ${mils.length > 1 ? `(+${mils.length - 1})` : ''}
+        </div>
+        <div class="os-row">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          Período: ${fmtData(prim.data_inicio || o.data_inicio)} → ${fmtData(prim.data_fim || o.data_fim)}
+        </div>
+      </div>
+      <div class="grat-actions">
+        <button class="btn-doc gold" onclick='CompiladorDoc.gerarOMIS(${jsonStr})'>📄 Baixar OMIS</button>
+        <button class="btn-doc purple" onclick='abrirModalSiloms(${jsonStr})'>📝 Inserir SILOMS & Disparar E-mail</button>
+      </div>
+    </article>`;
+  }).join('');
 }
 
-function checarAutenticacaoPIN() {
-  const pinOk = sessionStorage.getItem('secretaria_pin_ok') === '1' || sessionStorage.getItem('efetivo_pin_ok') === '1' || sessionStorage.getItem('at_sec_ok') === '1';
-  const gate = document.getElementById('pinGate');
-  const content = document.getElementById('missoesContent');
-  const lockBtn = document.getElementById('lock-btn');
-  if (pinOk) {
-    if (gate) gate.style.display = 'none';
-    if (content) content.style.display = 'block';
-    if (lockBtn) lockBtn.style.display = 'inline-flex';
-  } else {
-    if (gate) gate.style.display = 'flex';
-    if (content) content.style.display = 'none';
-    if (lockBtn) lockBtn.style.display = 'none';
-    const input = document.getElementById('pinInput');
-    if (input) { input.value = ''; input.focus(); }
+function abrirModalSiloms(omisObj) {
+  omisEmEdicaoSiloms = omisObj;
+  const cfg = window.AppConfig ? window.AppConfig.getOsConfig() : {};
+  const mils = Array.isArray(omisObj.militares) ? omisObj.militares : [];
+  const prim = mils[0] || {};
+  const coordStr = `${prim.posto_grad || ''} ${prim.nome_guerra || prim.nome || ''}`.trim();
+  const numOmis = omisObj.num_omis || omisObj.num_os || 'OMIS';
+
+  document.getElementById('fsil-id').value = omisObj.id || '';
+  document.getElementById('fsil-num-txt').textContent = numOmis;
+  document.getElementById('fsil-coord-txt').textContent = coordStr;
+  document.getElementById('fsil-servico-txt').textContent = omisObj.servico_local || 'Missão oficial';
+  document.getElementById('fsil-numero').value = omisObj.siloms_numero || '';
+  document.getElementById('fsil-email-dest').value = cfg.omis_autoridade_email || '';
+  document.getElementById('fsil-email-cc').value = omisObj.coordenador_email || prim.email || '';
+
+  atualizarPreviewEmailSiloms();
+  document.getElementById('backdrop-siloms').classList.add('open');
+}
+
+function fecharModalSiloms() {
+  document.getElementById('backdrop-siloms').classList.remove('open');
+}
+
+function atualizarPreviewEmailSiloms() {
+  if (!omisEmEdicaoSiloms) return;
+  const mils = Array.isArray(omisEmEdicaoSiloms.militares) ? omisEmEdicaoSiloms.militares : [];
+  const prim = mils[0] || {};
+  const coordStr = `${prim.posto_grad || ''} ${prim.nome_guerra || prim.nome || ''}`.trim();
+  const numOmis = omisEmEdicaoSiloms.num_omis || omisEmEdicaoSiloms.num_os || 'OMIS';
+  const silomsNum = document.getElementById('fsil-numero').value.trim() || '[NÚMERO DO SILOMS]';
+  const servico = omisEmEdicaoSiloms.servico_local || 'Objetivo da missão';
+
+  const texto = `Venho por meio deste solicitar a assinatura da OMIS ${numOmis} — (${servico}), ${coordStr}, número SILOMS: ${silomsNum}.`;
+  document.getElementById('fsil-preview-msg').textContent = `"${texto}"`;
+}
+
+async function salvarSilomsApenas() {
+  if (!omisEmEdicaoSiloms) return;
+  const siloms_numero = document.getElementById('fsil-numero').value.trim();
+  const id = document.getElementById('fsil-id').value;
+
+  omisEmEdicaoSiloms.siloms_numero = siloms_numero;
+  const idx = dadosGratificacao.findIndex(x => String(x.id) === String(id));
+  if (idx >= 0) dadosGratificacao[idx].siloms_numero = siloms_numero;
+
+  // Atualiza no controle de esteira também
+  const cIdx = dadosControle.findIndex(c => c.num_os === omisEmEdicaoSiloms.num_os);
+  if (cIdx >= 0) dadosControle[cIdx].siloms_numero = siloms_numero;
+
+  try {
+    if (configurado && !String(id).startsWith('temp_')) {
+      await sb.from('gratificacao_representacao').update({ siloms_numero }).eq('id', id);
+    }
+  } catch(e) {}
+
+  gravarCacheGrat();
+  gravarCacheControle();
+  renderOmis();
+  renderControle();
+  fecharModalSiloms();
+  toast('Número do SILOMS salvo com sucesso!');
+}
+
+async function confirmarDisparoSilomsSMTP() {
+  if (!omisEmEdicaoSiloms) return;
+  const siloms_numero = document.getElementById('fsil-numero').value.trim();
+  const emailDest = document.getElementById('fsil-email-dest').value.trim();
+  const emailCc = document.getElementById('fsil-email-cc').value.trim();
+
+  if (!siloms_numero) {
+    alert('Por favor, informe o número de registro gerado pelo sistema SILOMS antes de disparar o e-mail.');
+    return;
+  }
+  if (!emailDest) {
+    alert('Informe o e-mail da autoridade assinante.');
+    return;
+  }
+
+  omisEmEdicaoSiloms.siloms_numero = siloms_numero;
+  omisEmEdicaoSiloms.omis_enviada = true;
+
+  const btn = document.getElementById('btn-enviar-siloms-smtp');
+  btn.disabled = true;
+
+  try {
+    toast('Enviando solicitação de assinatura por e-mail...');
+    await window.AppConfig.sendOmisSignatureEmail(omisEmEdicaoSiloms, emailDest, emailCc);
+    
+    await salvarSilomsApenas();
+    toast('E-mail disparado com sucesso via SMTP!');
+  } catch(e) {
+    alert('Falha ao disparar e-mail: ' + e.message);
+  } finally {
+    btn.disabled = false;
   }
 }
 
-async function verificarPinMissoes() {
-  const input = document.getElementById('pinInput');
-  const errDiv = document.getElementById('pinErrorMsg');
-  const val = (input?.value || '').trim();
-  if (errDiv) errDiv.style.display = 'none';
-  if (!val) return;
+/* ══════════════════════════════════════════════════════════════
+   6 · GESTÃO DE MILITARES EXTERNOS (MODAL 6)
+   ══════════════════════════════════════════════════════════════ */
+function abrirModalExternos() {
+  limparFormExterno();
+  renderTabelaExternos();
+  document.getElementById('backdrop-externos').classList.add('open');
+}
+
+function fecharModalExternos() {
+  document.getElementById('backdrop-externos').classList.remove('open');
+}
+
+function limparFormExterno() {
+  document.getElementById('fe-id').value = '';
+  document.getElementById('fe-posto').value = '';
+  document.getElementById('fe-esp').value = '';
+  document.getElementById('fe-guerra').value = '';
+  document.getElementById('fe-nome').value = '';
+  document.getElementById('fe-cpf').value = '';
+  document.getElementById('fe-saram').value = '';
+  document.getElementById('fe-om').value = '';
+  document.getElementById('fe-email').value = '';
+  document.getElementById('fe-form-title').textContent = '+ Cadastrar Novo Militar Externo';
+}
+
+function editarMilitarExterno(idx) {
+  const ex = listaExternos[idx];
+  if (!ex) return;
+  document.getElementById('fe-id').value = ex.id || '';
+  document.getElementById('fe-posto').value = ex.posto_grad || '';
+  document.getElementById('fe-esp').value = ex.especialidade || '';
+  document.getElementById('fe-guerra').value = ex.nome_guerra || '';
+  document.getElementById('fe-nome').value = ex.nome_completo || ex.nome || '';
+  document.getElementById('fe-cpf').value = ex.cpf || '';
+  document.getElementById('fe-saram').value = ex.saram || '';
+  document.getElementById('fe-om').value = ex.om || '';
+  document.getElementById('fe-email').value = ex.email || '';
+  document.getElementById('fe-form-title').textContent = `✏️ Editando: ${ex.posto_grad} ${ex.nome_guerra || ex.nome_completo}`;
+}
+
+async function salvarMilitarExterno() {
+  const id = document.getElementById('fe-id').value;
+  const posto_grad = document.getElementById('fe-posto').value.trim();
+  const especialidade = document.getElementById('fe-esp').value.trim();
+  const nome_guerra = document.getElementById('fe-guerra').value.trim();
+  const nome_completo = document.getElementById('fe-nome').value.trim();
+  const cpf = document.getElementById('fe-cpf').value.trim();
+  const saram = document.getElementById('fe-saram').value.trim();
+  const om = document.getElementById('fe-om').value.trim();
+  const email = document.getElementById('fe-email').value.trim();
+
+  if (!posto_grad || !nome_completo || !cpf || !om) {
+    alert('Preencha pelo menos Posto/Graduação, Nome Completo, CPF e OM de Origem.');
+    return;
+  }
+
+  const payload = {
+    posto_grad, especialidade, nome_guerra, nome_completo,
+    cpf: formatarCPF(cpf),
+    saram: formatarSARAM(saram),
+    om, email,
+    ativo: true,
+    updated_at: new Date().toISOString()
+  };
 
   try {
-    const pinServidor = await lerPinServidor();
-    if (val === pinServidor) {
-      sessionStorage.setItem('secretaria_pin_ok', '1');
-      sessionStorage.setItem('efetivo_pin_ok', '1');
-      sessionStorage.setItem('at_sec_ok', '1');
-      checarAutenticacaoPIN();
+    if (id && !id.startsWith('ext_')) {
+      if (configurado) await sb.from('militares_externos').update(payload).eq('id', id);
+      const idx = listaExternos.findIndex(x => String(x.id) === String(id));
+      if (idx >= 0) listaExternos[idx] = { id, ...payload };
     } else {
-      if (errDiv) {
-        errDiv.textContent = 'PIN incorreto. Tente novamente.';
-        errDiv.style.display = 'block';
+      if (configurado) {
+        const { data } = await sb.from('militares_externos').insert([payload]).select().single();
+        listaExternos.unshift(data || payload);
+      } else {
+        payload.id = 'ext_' + Date.now();
+        listaExternos.unshift(payload);
       }
     }
+    localStorage.setItem(CACHE_EXTERNOS_KEY, JSON.stringify(listaExternos));
+    renderTabelaExternos();
+    limparFormExterno();
+    toast('Militar externo salvo com sucesso!');
   } catch(e) {
-    if (errDiv) {
-      errDiv.textContent = 'Erro ao verificar PIN.';
-      errDiv.style.display = 'block';
-    }
+    toast('Erro ao salvar militar: ' + (e.message || 'erro'), true);
   }
 }
 
-function bloquearSessaoMissoes() {
-  sessionStorage.removeItem('secretaria_pin_ok');
-  sessionStorage.removeItem('efetivo_pin_ok');
-  sessionStorage.removeItem('at_sec_ok');
-  checarAutenticacaoPIN();
+async function excluirMilitarExterno(idx) {
+  const ex = listaExternos[idx];
+  if (!ex) return;
+  if (!confirm(`Deseja excluir o militar externo ${ex.posto_grad} ${ex.nome_completo}?`)) return;
+
+  const id = ex.id;
+  listaExternos.splice(idx, 1);
+  localStorage.setItem(CACHE_EXTERNOS_KEY, JSON.stringify(listaExternos));
+  renderTabelaExternos();
+
+  try {
+    if (configurado && id && !String(id).startsWith('ext_')) {
+      await sb.from('militares_externos').delete().eq('id', id);
+    }
+    toast('Militar externo excluído');
+  } catch(e) {}
 }
 
+function renderTabelaExternos() {
+  const tbody = document.getElementById('tbody-externos');
+  if (!tbody) return;
+  if (!listaExternos.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--gray-400)">Nenhum militar externo registrado. Use o formulário acima para cadastrar.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = listaExternos.map((ex, idx) => `
+    <tr>
+      <td><b>${esc(ex.posto_grad)} ${esc(ex.especialidade || '')}</b><br>${esc(ex.nome_completo)}</td>
+      <td><span class="os-badge badge-analise">${esc(ex.om)}</span></td>
+      <td><span style="font-family:var(--f-mono);font-size:.76rem">${esc(ex.cpf)}<br>SARAM: ${esc(ex.saram || '—')}</span></td>
+      <td><small style="color:var(--gray-500)">${esc(ex.email || '—')}</small></td>
+      <td style="text-align:right">
+        <button class="icon-btn" onclick="editarMilitarExterno(${idx})" title="Editar militar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
+        <button class="icon-btn del" onclick="excluirMilitarExterno(${idx})" title="Excluir militar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   7 · SOLICITAÇÕES DE MISSÃO (ABA 4)
+   ══════════════════════════════════════════════════════════════ */
 function renderSolicitacoes() {
   const termo = (document.getElementById('solic-busca') ? document.getElementById('solic-busca').value : '').toLowerCase().trim();
   
@@ -1987,7 +2662,7 @@ function renderSolicitacoes() {
   if (termo) {
     const matchTermo = s => {
       const mils = Array.isArray(s.militares) ? s.militares : [];
-      return [s.protocolo, s.servico_local, s.modalidade, ...mils.map(m => m.nome + ' ' + m.cpf)].some(c => (c || '').toLowerCase().includes(termo));
+      return [s.protocolo, s.servico_local, s.modalidade, ...mils.map(m => (m.nome||'') + ' ' + (m.cpf||''))].some(c => (c || '').toLowerCase().includes(termo));
     };
     pendentes = pendentes.filter(matchTermo);
     historico = historico.filter(matchTermo);
@@ -2018,27 +2693,31 @@ function renderSolicitacoes() {
       alvoPend.innerHTML = pendentes.map(s => {
         const mils = Array.isArray(s.militares) && s.militares.length > 0 ? s.militares : [{ posto_grad: '', nome: 'Militar' }];
         const primMilitar = mils[0] || {};
-        const labelModalidade = s.modalidade === 'gratificacao' ? 'Gratificação' : (s.modalidade === 'diaria' ? 'Diária' : 'Sem Custo');
+        const labelModalidade = s.modalidade === 'gratificacao' ? 'Gratificação' : (s.modalidade === 'diaria' ? 'Diária' : 'OMIS / Sem Custo');
+        const omisTag = s.solicita_omis ? '<span style="background:#fef08a;color:#854d0e;padding:2px 6px;border-radius:4px;font-size:.65rem;font-weight:700;margin-left:4px">⚡ OMIS Solicitada</span>' : '';
 
         return `
         <article class="os st-analise" style="border-top-color:var(--gold-500)">
           <div class="os-head">
             <div class="os-num">${esc(s.protocolo)}<span>${labelModalidade}</span></div>
-            <span class="os-badge badge-analise">${mils.length} ${mils.length === 1 ? 'militar' : 'militares'}</span>
+            <span class="os-badge badge-analise">${mils.length} ${mils.length === 1 ? 'militar' : 'militares'} ${omisTag}</span>
           </div>
           <p class="os-desc">${esc(s.servico_local)}</p>
           <div class="os-meta">
             <div class="os-row">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              <b>${esc(primMilitar.posto_grad)} ${esc(primMilitar.nome)}</b> ${mils.length > 1 ? `(+${mils.length - 1})` : ''}
+              <b>Coord: ${esc(primMilitar.posto_grad)} ${esc(primMilitar.nome)}</b> ${mils.length > 1 ? `(+${mils.length - 1})` : ''}
             </div>
             <div class="os-row">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
               Período: ${fmtData(s.data_inicio)} (${s.hora_inicio || '04:00'}) → ${fmtData(s.data_fim)} (${s.hora_fim || '16:00'})
             </div>
+            <div class="os-row">
+              <span style="font-size:.72rem;color:var(--gray-500)">Apoio: ${esc(s.apoio_recebido || 'Padrão')}</span>
+            </div>
           </div>
           <div class="grat-actions" style="margin-top:.8rem">
-            <button class="btn-doc gold" onclick="aprovarSolicitacao('${s.id}')">✅ Aprovar & Pré-Carregar OS</button>
+            <button class="btn-doc gold" onclick="aprovarSolicitacao('${s.id}')">✅ Homologar & Pré-Carregar OS</button>
             <button class="btn-doc" onclick="rejeitarSolicitacao('${s.id}')" style="color:#ef4444">❌ Rejeitar</button>
           </div>
         </article>`;
@@ -2048,30 +2727,24 @@ function renderSolicitacoes() {
 
   if (alvoHist) {
     if (!historico.length) {
-      alvoHist.innerHTML = `
-        <div class="empty" style="grid-column:1/-1">
-          <p style="font-size:.8rem;color:var(--gray-500)">Nenhuma solicitação no histórico recente.</p>
-        </div>`;
+      alvoHist.innerHTML = `<div class="empty" style="grid-column:1/-1"><p style="font-size:.8rem;color:var(--gray-500)">Nenhuma solicitação no histórico.</p></div>`;
     } else {
       alvoHist.innerHTML = historico.map(s => {
         const mils = Array.isArray(s.militares) && s.militares.length > 0 ? s.militares : [{ posto_grad: '', nome: 'Militar' }];
         const primMilitar = mils[0] || {};
-        const labelModalidade = s.modalidade === 'gratificacao' ? 'Gratificação' : (s.modalidade === 'diaria' ? 'Diária' : 'Sem Custo');
         const stAprov = s.status === 'aprovado';
 
         return `
         <article class="os ${stAprov ? 'st-concluida' : 'st-cancelada'}" style="opacity:.85;border-top-color:${stAprov ? '#22c55e' : '#ef4444'}">
           <div class="os-head">
-            <div class="os-num">${esc(s.protocolo)}<span>${labelModalidade}</span></div>
-            <span class="os-badge ${stAprov ? 'badge-paga' : 'badge-futura'}" style="${stAprov ? 'background:#dcfce7;color:#15803d' : 'background:#fee2e2;color:#b91c1c'}">
-              ${stAprov ? '✅ Aprovada / OS Criada' : '❌ Rejeitada'}
-            </span>
+            <div class="os-num">${esc(s.protocolo)}<span>${s.modalidade}</span></div>
+            <span class="os-badge ${stAprov ? 'badge-paga' : 'badge-futura'}">${stAprov ? '✅ Homologada' : '❌ Rejeitada'}</span>
           </div>
           <p class="os-desc">${esc(s.servico_local)}</p>
           <div class="os-meta">
             <div class="os-row">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              <b>${esc(primMilitar.posto_grad)} ${esc(primMilitar.nome)}</b> ${mils.length > 1 ? `(+${mils.length - 1})` : ''}
+              <b>${esc(primMilitar.posto_grad)} ${esc(primMilitar.nome)}</b>
             </div>
             <div class="os-row">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
@@ -2088,10 +2761,12 @@ async function aprovarSolicitacao(id) {
   const solic = dadosSolicitacoes.find(x => String(x.id) === String(id));
   if (!solic) return;
 
-  if (solic.modalidade === 'gratificacao' || solic.modalidade === 'sem_custo') {
+  if (solic.modalidade === 'gratificacao' || solic.modalidade === 'omis' || solic.modalidade === 'sem_custo') {
     trocarAba('gratificacao');
     abrirModalGratificacao();
     document.getElementById('fg-servico').value = solic.servico_local || '';
+    if (solic.apoio_recebido) document.getElementById('fg-apoio').value = solic.apoio_recebido;
+
     if (solic.fora_prazo) {
       document.getElementById('fg-toggle-prazo').checked = true;
       alternarAccordion('fg-toggle-prazo', 'acc-prazo');
@@ -2116,7 +2791,6 @@ async function aprovarSolicitacao(id) {
     document.getElementById('f-fim').value = solic.data_fim || '';
   }
 
-  // Atualizar status no Supabase
   try {
     if (configurado && !String(id).startsWith('loc_')) {
       await sb.from('solicitacoes_missao').update({ status: 'aprovado' }).eq('id', id);
@@ -2125,7 +2799,7 @@ async function aprovarSolicitacao(id) {
   solic.status = 'aprovado';
   gravarCacheSolicitacoes();
   renderSolicitacoes();
-  toast('Solicitação aprovada e dados pré-carregados no formulário!');
+  toast('Solicitação homologada e pré-carregada!');
 }
 
 async function rejeitarSolicitacao(id) {
@@ -2145,26 +2819,456 @@ async function rejeitarSolicitacao(id) {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   14 · EXECUÇÃO DE INÍCIO
+   8 · CONTROLE OS 2026 (ESTEIRA / SIGADAER / AUDITORIA - ABA 5)
+   ══════════════════════════════════════════════════════════════ */
+function abrirModalControle(id) {
+  if (id) {
+    const c = dadosControle.find(x => String(x.id) === String(id));
+    if (!c) return;
+    document.getElementById('modal-ctrl-title').textContent = 'Editar Processo na Esteira';
+    document.getElementById('fc-id').value = c.id;
+    document.getElementById('fc-num').value = c.num_os || '';
+    document.getElementById('fc-num-omis').value = c.num_omis || '';
+    document.getElementById('fc-modalidade').value = c.modalidade || 'Gratificação';
+    document.getElementById('fc-coord').value = c.coordenador || '';
+    document.getElementById('fc-servico').value = c.servico_local || '';
+    document.getElementById('fc-sigad').value = c.sigad_numero || '';
+    document.getElementById('fc-siloms').value = c.siloms_numero || '';
+    document.getElementById('fc-comgep').value = c.comgep_linha || '';
+    document.getElementById('fc-status').value = c.status || 'Pendente';
+    document.getElementById('fc-auditoria').value = c.auditoria || '';
+    document.getElementById('fc-nup').value = c.nup || '';
+    document.getElementById('fc-bca').value = c.bca_numero || '';
+    document.getElementById('fc-bi').value = c.bi_numero || '';
+    document.getElementById('fc-ano').value = c.ano || 2026;
+  } else {
+    document.getElementById('modal-ctrl-title').textContent = 'Novo Processo na Esteira';
+    document.getElementById('fc-id').value = '';
+    document.getElementById('fc-num').value = '';
+    document.getElementById('fc-num-omis').value = '';
+    document.getElementById('fc-coord').value = '';
+    document.getElementById('fc-servico').value = '';
+    document.getElementById('fc-sigad').value = '';
+    document.getElementById('fc-siloms').value = '';
+    document.getElementById('fc-comgep').value = '';
+    document.getElementById('fc-status').value = 'Pendente';
+    document.getElementById('fc-auditoria').value = '';
+    document.getElementById('fc-nup').value = '';
+    document.getElementById('fc-bca').value = '';
+    document.getElementById('fc-bi').value = '';
+    document.getElementById('fc-ano').value = 2026;
+  }
+  atualizarCamposStatusControle();
+  document.getElementById('backdrop-controle').classList.add('open');
+}
+
+function fecharModalControle() {
+  document.getElementById('backdrop-controle').classList.remove('open');
+}
+
+function atualizarCamposStatusControle() {
+  const st = document.getElementById('fc-status').value;
+  const boxAud = document.getElementById('box-fc-auditoria');
+  if (boxAud) {
+    boxAud.style.display = (st === 'Corrigir') ? 'block' : 'none';
+  }
+}
+
+async function salvarControleProcesso() {
+  const id = document.getElementById('fc-id').value;
+  const num_os = document.getElementById('fc-num').value.trim();
+  const num_omis = document.getElementById('fc-num-omis').value.trim();
+  const coordenador = document.getElementById('fc-coord').value.trim();
+  const status = document.getElementById('fc-status').value;
+
+  if (!num_os || !coordenador) {
+    alert('Informe o número da OS e o Coordenador.');
+    return;
+  }
+
+  const payload = {
+    num_os,
+    num_omis,
+    ano: parseInt(document.getElementById('fc-ano').value) || 2026,
+    modalidade: document.getElementById('fc-modalidade').value,
+    coordenador,
+    servico_local: document.getElementById('fc-servico').value.trim(),
+    sigad_numero: document.getElementById('fc-sigad').value.trim(),
+    siloms_numero: document.getElementById('fc-siloms').value.trim(),
+    comgep_linha: document.getElementById('fc-comgep').value.trim(),
+    status,
+    auditoria: document.getElementById('fc-auditoria').value.trim(),
+    nup: document.getElementById('fc-nup').value.trim(),
+    bca_numero: document.getElementById('fc-bca').value.trim(),
+    bi_numero: document.getElementById('fc-bi').value.trim(),
+    updated_at: new Date().toISOString()
+  };
+
+  try {
+    if (id && !id.startsWith('ctrl_')) {
+      if (configurado) await sb.from('controle_os_processos').update(payload).eq('id', id);
+      const idx = dadosControle.findIndex(x => String(x.id) === String(id));
+      if (idx >= 0) dadosControle[idx] = { id, ...payload };
+    } else {
+      if (configurado) {
+        const { data } = await sb.from('controle_os_processos').insert([payload]).select().single();
+        dadosControle.unshift(data || payload);
+      } else {
+        payload.id = 'ctrl_' + Date.now();
+        dadosControle.unshift(payload);
+      }
+    }
+    gravarCacheControle();
+    renderControle();
+    fecharModalControle();
+    toast('Processo de controle salvo!');
+  } catch(e) {
+    toast('Erro ao salvar controle: ' + (e.message || 'erro'), true);
+  }
+}
+
+async function excluirControleProcesso(id) {
+  const c = dadosControle.find(x => String(x.id) === String(id));
+  if (!c) return;
+  if (!confirm(`Excluir o registro do controle OS ${c.num_os}?`)) return;
+
+  dadosControle = dadosControle.filter(x => String(x.id) !== String(id));
+  try {
+    if (configurado && !String(id).startsWith('ctrl_')) {
+      await sb.from('controle_os_processos').delete().eq('id', id);
+    }
+  } catch(e){}
+  gravarCacheControle();
+  renderControle();
+  toast('Registro excluído');
+}
+
+function renderControle() {
+  const termo = (document.getElementById('ctrl-busca') ? document.getElementById('ctrl-busca').value : '').toLowerCase().trim();
+  const statusFiltro = document.getElementById('ctrl-status-filtro') ? document.getElementById('ctrl-status-filtro').value : 'TODOS';
+
+  let lista = [...dadosControle];
+
+  if (statusFiltro !== 'TODOS') {
+    lista = lista.filter(c => (c.status || 'Pendente') === statusFiltro);
+  }
+
+  if (termo) {
+    lista = lista.filter(c => [c.num_os, c.num_omis, c.coordenador, c.servico_local, c.sigad_numero, c.siloms_numero, c.comgep_linha, c.nup, c.bca_numero, c.auditoria].some(x => (x||'').toLowerCase().includes(termo)));
+  }
+
+  document.getElementById('badge-controle-count').textContent = dadosControle.length;
+  document.getElementById('sc-pend').textContent = dadosControle.filter(c => c.status === 'Pendente' || c.status === 'Em Análise').length;
+  document.getElementById('sc-missao').textContent = dadosControle.filter(c => c.status === 'Missão Aprovada' || c.status === 'Apresentado' || c.status === 'Despachado').length;
+  document.getElementById('sc-corrigir').textContent = dadosControle.filter(c => c.status === 'Corrigir').length;
+  document.getElementById('sc-bca').textContent = dadosControle.filter(c => c.status === 'Aguardando BCA').length;
+  document.getElementById('sc-conf').textContent = dadosControle.filter(c => c.status === 'Confeccionado' || c.status === 'Publicado').length;
+
+  const tbody = document.getElementById('tbody-controle');
+  if (!tbody) return;
+
+  if (!lista.length) {
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:2.5rem;color:var(--gray-400)">Nenhum processo no controle para os filtros selecionados.</td></tr>`;
+    return;
+  }
+
+  const getStatusBadge = st => {
+    switch (st) {
+      case 'Corrigir': return `<span class="badge-st st-corrigir">⚠️ Corrigir</span>`;
+      case 'Em Análise': return `<span class="badge-st st-analise">🔍 Em Análise</span>`;
+      case 'Missão Aprovada': return `<span class="badge-st st-aprovada">✈️ Missão Aprovada</span>`;
+      case 'Apresentado': return `<span class="badge-st st-apresentado">📥 Apresentado</span>`;
+      case 'Despachado': return `<span class="badge-st st-despachado">📤 Despachado</span>`;
+      case 'Aceito': return `<span class="badge-st st-aceito">✅ Aceito (NUP)</span>`;
+      case 'Aguardando BCA': return `<span class="badge-st st-aguardando-bca">⏳ Aguardando BCA</span>`;
+      case 'Confeccionado': return `<span class="badge-st st-confeccionado">📝 Confeccionado</span>`;
+      case 'Publicado': return `<span class="badge-st st-publicado">🎉 Publicado</span>`;
+      default: return `<span class="badge-st st-pendente">🕒 Pendente</span>`;
+    }
+  };
+
+  tbody.innerHTML = lista.map(c => {
+    const sigadOuSiloms = [
+      c.sigad_numero ? `SIGAD: <b>${esc(c.sigad_numero)}</b>` : '',
+      c.siloms_numero ? `SILOMS: <b>${esc(c.siloms_numero)}</b>` : '',
+      c.comgep_linha ? `<small style="color:var(--gold-500);font-weight:700">COMGEP: ${esc(c.comgep_linha)}</small>` : ''
+    ].filter(Boolean).join('<br>') || '—';
+
+    const linkPdfRetorno = c.pdf_retorno_assinado 
+      ? `<br><a href="${urlPdf(c.pdf_retorno_assinado)}" target="_blank" style="display:inline-flex;align-items:center;gap:3px;font-size:.68rem;color:#047857;font-weight:700;margin-top:4px">📄 PDF Gov.br</a>`
+      : '';
+
+    return `
+    <tr>
+      <td><b>OS ${esc(c.num_os)}</b>${c.num_omis ? `<br><small style="color:var(--gold-500);font-weight:700">OMIS: ${esc(c.num_omis)}</small>` : ''}</td>
+      <td><span class="os-badge badge-futura">${esc(c.modalidade || 'Gratificação')}</span></td>
+      <td><b>${esc(c.coordenador)}</b><br><small style="color:var(--gray-400)">${esc(c.militares_resumo || '')}</small></td>
+      <td>${fmtData(c.periodo_inicio)} → ${fmtData(c.periodo_fim)}<br><small style="color:var(--gray-500)">${esc(c.servico_local || '—')}</small></td>
+      <td><span style="font-family:var(--f-mono);font-size:.76rem">${sigadOuSiloms}</span></td>
+      <td>${getStatusBadge(c.status)}${linkPdfRetorno}</td>
+      <td><span style="font-family:var(--f-mono);font-size:.76rem;color:#1e40af">${esc(c.nup || '—')}</span></td>
+      <td><span style="font-family:var(--f-mono);font-size:.76rem;color:#6b21a8">${esc(c.bca_numero || '—')}</span></td>
+      <td><small style="color:${c.status==='Corrigir'?'#991b1b':'var(--gray-500)'};font-weight:${c.status==='Corrigir'?'700':'400'}">${esc(c.auditoria || '—')}</small></td>
+      <td style="text-align:right;white-space:nowrap">
+        <button class="icon-btn" onclick="abrirModalControle('${c.id}')" title="Editar / Corrigir processo na esteira"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
+        <button class="icon-btn del" onclick="excluirControleProcesso('${c.id}')" title="Excluir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>
+      </td>
+    </tr>
+  `;}).join('');
+}
+
+function exportarControleCSV() {
+  const cab = ['Nº OS','Nº OMIS','Ano','Modalidade','Coordenador','Militares','Objeto / Local','Início','Fim','Nº SIGADAER','Nº SILOMS','Linha COMGEP','Status','NUP (Col X)','BCA (Col AB)','BI','Auditoria / Pendências'];
+  const linhas = dadosControle.map(c => [
+    c.num_os,
+    c.num_omis || '',
+    c.ano || 2026,
+    c.modalidade,
+    `"${(c.coordenador||'').replace(/"/g,'""')}"`,
+    `"${(c.militares_resumo||'').replace(/"/g,'""')}"`,
+    `"${(c.servico_local||'').replace(/"/g,'""')}"`,
+    c.periodo_inicio || '',
+    c.periodo_fim || '',
+    c.sigad_numero || '',
+    c.siloms_numero || '',
+    c.comgep_linha || '',
+    c.status || 'Pendente',
+    c.nup || '',
+    c.bca_numero || '',
+    c.bi_numero || '',
+    `"${(c.auditoria||'').replace(/"/g,'""')}"`
+  ]);
+  const csv = [cab.join(';'), ...linhas.map(l => l.join(';'))].join('\n');
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `CONTROLE_OS_${new Date().getFullYear()}_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   9 · CONFIGURAÇÕES DO MÓDULO & ASSINANTES (MODAL 4)
+   ══════════════════════════════════════════════════════════════ */
+function abrirModalConfig() {
+  const cfg = window.AppConfig ? window.AppConfig.getOsConfig() : {};
+  const gmail = window.AppConfig ? window.AppConfig.getGmailConfig() : {};
+
+  document.getElementById('cfg-omis-nome').value = cfg.omis_autoridade_nome || 'Odilor da Silva Lopes Cel Int R1';
+  document.getElementById('cfg-omis-cargo').value = cfg.omis_autoridade_cargo || 'Adjunto da Divisão de Ensino da AFA';
+  document.getElementById('cfg-omis-email').value = cfg.omis_autoridade_email || '';
+  
+  document.getElementById('cfg-grat-os-nome').value = cfg.grat_os_autoridade_nome || 'Cel QOINT WELLINGTON MARCELO FERNANDES';
+  document.getElementById('cfg-grat-os-cargo').value = cfg.grat_os_autoridade_cargo || 'Chefe da Divisão Administrativa';
+  
+  document.getElementById('cfg-grat-aut-nome').value = cfg.grat_aut_autoridade_nome || 'GABRIEL HENRIQUES DE OLIVEIRA FARIAS Cel Av';
+  document.getElementById('cfg-grat-aut-cargo').value = cfg.grat_aut_autoridade_cargo || 'Chefe da 2SC';
+  document.getElementById('cfg-grat-aut-cidade').value = cfg.grat_aut_cidade || 'Brasilia-DF';
+
+  document.getElementById('cfg-gmail-user').value = gmail.user || '';
+  document.getElementById('cfg-gmail-pass').value = gmail.appPassword || '';
+
+  preencherSelectsEfetivo();
+  document.getElementById('backdrop-config').classList.add('open');
+}
+
+function fecharModalConfig() {
+  document.getElementById('backdrop-config').classList.remove('open');
+}
+
+function selecionarAutoridadeOmisEfetivo(idx) {
+  if (idx === '' || !listaEfetivo[idx]) return;
+  const m = listaEfetivo[idx];
+  document.getElementById('cfg-omis-nome').value = `${m.nome_completo || m.nome} ${m.posto} ${m.esp || ''}`.trim();
+  if (m.funcao) document.getElementById('cfg-omis-cargo').value = m.funcao;
+  if (m.email) document.getElementById('cfg-omis-email').value = m.email;
+}
+
+async function salvarConfiguracoesOS() {
+  const osCfg = {
+    omis_autoridade_nome: document.getElementById('cfg-omis-nome').value.trim(),
+    omis_autoridade_cargo: document.getElementById('cfg-omis-cargo').value.trim(),
+    omis_autoridade_email: document.getElementById('cfg-omis-email').value.trim(),
+    grat_os_autoridade_nome: document.getElementById('cfg-grat-os-nome').value.trim(),
+    grat_os_autoridade_cargo: document.getElementById('cfg-grat-os-cargo').value.trim(),
+    grat_aut_autoridade_nome: document.getElementById('cfg-grat-aut-nome').value.trim(),
+    grat_aut_autoridade_cargo: document.getElementById('cfg-grat-aut-cargo').value.trim(),
+    grat_aut_cidade: document.getElementById('cfg-grat-aut-cidade').value.trim()
+  };
+
+  const gUser = document.getElementById('cfg-gmail-user').value.trim();
+  const gPass = document.getElementById('cfg-gmail-pass').value.trim();
+
+  if (window.AppConfig) {
+    await window.AppConfig.setOsConfig(osCfg);
+    if (gUser && gPass) {
+      await window.AppConfig.setGmailConfig({ user: gUser, appPassword: gPass, senderName: 'Secretaria DE · AFA', enabled: true });
+    }
+  }
+
+  fecharModalConfig();
+  toast('Configurações salvas com sucesso!');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   10 · NAVEGAÇÃO ENTRE ABAS
+   ══════════════════════════════════════════════════════════════ */
+function trocarAba(aba) {
+  abaAtual = aba;
+  ['diarias', 'gratificacao', 'omis', 'solicitacoes', 'controle'].forEach(a => {
+    const btn = document.getElementById(`tab-btn-${a}`);
+    const view = document.getElementById(`view-${a}`);
+    if (btn) btn.classList.toggle('active', a === aba);
+    if (view) view.style.display = (a === aba) ? 'block' : 'none';
+  });
+
+  if (aba === 'gratificacao') renderGratificacao();
+  if (aba === 'omis') renderOmis();
+  if (aba === 'solicitacoes') renderSolicitacoes();
+  if (aba === 'controle') renderControle();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   11 · CACHES & SINCRONIZAÇÃO SUPABASE
+   ══════════════════════════════════════════════════════════════ */
+function lerCacheGrat() {
+  try {
+    const raw = localStorage.getItem(CACHE_GRAT_KEY);
+    if (raw) { dadosGratificacao = JSON.parse(raw); return true; }
+  } catch (e) {}
+  return false;
+}
+function gravarCacheGrat() {
+  try { localStorage.setItem(CACHE_GRAT_KEY, JSON.stringify(dadosGratificacao)); } catch (e) {}
+}
+
+function lerCacheSolicitacoes() {
+  try {
+    const raw = localStorage.getItem(CACHE_SOLICITACOES_KEY);
+    if (raw) { dadosSolicitacoes = JSON.parse(raw); return true; }
+  } catch (e) {}
+  return false;
+}
+function gravarCacheSolicitacoes() {
+  try { localStorage.setItem(CACHE_SOLICITACOES_KEY, JSON.stringify(dadosSolicitacoes)); } catch (e) {}
+}
+
+function lerCacheControle() {
+  try {
+    const raw = localStorage.getItem(CACHE_CONTROLE_KEY);
+    if (raw) { dadosControle = JSON.parse(raw); return true; }
+  } catch (e) {}
+  return false;
+}
+function gravarCacheControle() {
+  try { localStorage.setItem(CACHE_CONTROLE_KEY, JSON.stringify(dadosControle)); } catch (e) {}
+}
+
+async function recarregarTudo() {
+  if (!configurado) return;
+  try {
+    const [resGrat, resSolic, resCtrl] = await Promise.all([
+      sb.from('gratificacao_representacao').select('*').order('created_at', { ascending: false }),
+      sb.from('solicitacoes_missao').select('*').order('created_at', { ascending: false }),
+      sb.from('controle_os_processos').select('*').order('created_at', { ascending: false })
+    ]);
+
+    if (resGrat.data) { dadosGratificacao = resGrat.data; gravarCacheGrat(); }
+    if (resSolic.data) { dadosSolicitacoes = resSolic.data; gravarCacheSolicitacoes(); }
+    if (resCtrl.data) { dadosControle = resCtrl.data; gravarCacheControle(); }
+
+    renderGratificacao();
+    renderOmis();
+    renderSolicitacoes();
+    renderControle();
+  } catch (e) {
+    console.error('Falha ao sincronizar:', e);
+  }
+}
+
+function ouvirRealtimeTudo() {
+  if (!configurado) return;
+  sb.channel('os-hub-live-v2')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'gratificacao_representacao' }, () => recarregarTudo())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'solicitacoes_missao' }, () => recarregarTudo())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'controle_os_processos' }, () => recarregarTudo())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'militares_externos' }, () => carregarMilitaresExternos())
+    .subscribe();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   12 · AUTENTICAÇÃO E PIN DO OPERADOR
+   ══════════════════════════════════════════════════════════════ */
+async function lerPinServidor(){
+  if (window.AppConfig) return window.AppConfig.getPin();
+  return localStorage.getItem('secretaria_pin') || '123456';
+}
+
+function checarAutenticacaoPIN() {
+  const pinOk = sessionStorage.getItem('secretaria_pin_ok') === '1' || sessionStorage.getItem('efetivo_pin_ok') === '1';
+  const gate = document.getElementById('pinGate');
+  const content = document.getElementById('missoesContent');
+  const lockBtn = document.getElementById('lock-btn');
+  if (pinOk) {
+    if (gate) gate.style.display = 'none';
+    if (content) content.style.display = 'block';
+    if (lockBtn) lockBtn.style.display = 'inline-flex';
+  } else {
+    if (gate) gate.style.display = 'flex';
+    if (content) content.style.display = 'none';
+    if (lockBtn) lockBtn.style.display = 'none';
+    const input = document.getElementById('pinInput');
+    if (input) { input.value = ''; input.focus(); }
+  }
+}
+
+async function verificarPinMissoes() {
+  const input = document.getElementById('pinInput');
+  const errDiv = document.getElementById('pinErrorMsg');
+  const val = (input?.value || '').trim();
+  if (errDiv) errDiv.style.display = 'none';
+  if (!val) return;
+
+  try {
+    const pinServidor = await lerPinServidor();
+    if (val === pinServidor) {
+      sessionStorage.setItem('secretaria_pin_ok', '1');
+      sessionStorage.setItem('efetivo_pin_ok', '1');
+      checarAutenticacaoPIN();
+    } else {
+      if (errDiv) {
+        errDiv.textContent = 'PIN incorreto. Tente novamente.';
+        errDiv.style.display = 'block';
+      }
+    }
+  } catch(e) {
+    if (errDiv) {
+      errDiv.textContent = 'Erro ao verificar PIN.';
+      errDiv.style.display = 'block';
+    }
+  }
+}
+
+function bloquearSessaoMissoes() {
+  sessionStorage.removeItem('secretaria_pin_ok');
+  sessionStorage.removeItem('efetivo_pin_ok');
+  checarAutenticacaoPIN();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   13 · INICIALIZAÇÃO
    ══════════════════════════════════════════════════════════════ */
 checarAutenticacaoPIN();
 montarGauge();
-if (lerCache()){
-  carregando = false;
-  document.getElementById('in-total').value = dados.dotacao ? fmtM(dados.dotacao) : '';
-  render();
-}
+lerCache();
 lerCacheGrat();
 lerCacheSolicitacoes();
+lerCacheControle();
 carregarEfetivo();
+carregarMilitaresExternos();
 recarregar();
-recarregarGratificacao();
-recarregarSolicitacoes();
-ouvirRealtime();
-ouvirRealtimeGratificacao();
-ouvirRealtimeSolicitacoes();
-addEventListener('online',  ()=>{ recarregar(); recarregarGratificacao(); recarregarSolicitacoes(); });
-addEventListener('offline', ()=>setSync('off','Sem conexão'));
+recarregarTudo();
+ouvirRealtimeTudo();
 </script>
 </body>
 </html>
