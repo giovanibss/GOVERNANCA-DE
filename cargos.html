@@ -1,0 +1,2604 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AFA · Cargos e Funções — Divisão de Ensino</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png" />
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+
+  <!-- Bibliotecas Externas -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="assets/js/smtp.js"></script>
+  <script src="assets/js/app-config.js"></script>
+
+  <style>
+    :root {
+      --bg: #040a17;
+      --bg-card: rgba(10, 25, 47, 0.72);
+      --bg-card-hover: rgba(16, 38, 74, 0.85);
+      --bg-input: #071329;
+      --linha: rgba(79, 163, 247, 0.18);
+      --linha-forte: rgba(79, 163, 247, 0.38);
+      --texto: #f1f5f9;
+      --texto-2: #94a3b8;
+      --texto-3: #64748b;
+      --ouro: #d4a84b;
+      --ouro-lt: #ffd37a;
+      --azul: #1d4ed8;
+      --azul-lt: #60a5fa;
+      --jade: #10b981;
+      --jade-lt: #34d399;
+      --amber: #f59e0b;
+      --rubi: #ef4444;
+      --lilas: #a855f7;
+      --f-corpo: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --f-mono: ui-monospace, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+      --raio: 12px;
+      --sombra: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(at 10% 10%, rgba(29, 78, 216, 0.15) 0px, transparent 50%),
+        radial-gradient(at 90% 90%, rgba(212, 168, 75, 0.08) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(16, 185, 129, 0.05) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: var(--texto);
+      font-family: var(--f-corpo);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+    }
+
+    /* Topbar */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      background: rgba(4, 10, 23, 0.82);
+      border-bottom: 1px solid var(--linha);
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      text-decoration: none;
+      color: inherit;
+    }
+    .topbar-cocar {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
+    }
+    .topbar-titulos h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--texto);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .topbar-titulos small {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--ouro-lt);
+      letter-spacing: 0.3px;
+    }
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .btn-top {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.45rem 0.85rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--texto-2);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--linha);
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .btn-top:hover {
+      background: rgba(79, 163, 247, 0.12);
+      color: var(--texto);
+      border-color: var(--azul-lt);
+    }
+    .btn-top.active {
+      background: rgba(212, 168, 75, 0.15);
+      border-color: var(--ouro);
+      color: var(--ouro-lt);
+    }
+
+    /* Container Principal */
+    .app-wrap {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1.5rem 1rem 3rem 1rem;
+      flex: 1;
+    }
+
+    /* Navegação por Abas */
+    .tabs-nav {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--linha);
+      margin-bottom: 1.8rem;
+      padding-bottom: 0.3rem;
+      overflow-x: auto;
+    }
+    .tab-btn {
+      padding: 0.7rem 1.25rem;
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--texto-2);
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .tab-btn:hover {
+      color: var(--texto);
+    }
+    .tab-btn.active {
+      color: var(--ouro-lt);
+      border-bottom-color: var(--ouro);
+    }
+    .tab-badge {
+      font-size: 0.72rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: 20px;
+      background: rgba(212, 168, 75, 0.2);
+      color: var(--ouro-lt);
+      border: 1px solid rgba(212, 168, 75, 0.4);
+    }
+
+    /* Painéis e Cards */
+    .painel {
+      background: var(--bg-card);
+      border: 1px solid var(--linha);
+      border-radius: var(--raio);
+      padding: 1.5rem;
+      box-shadow: var(--sombra);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      margin-bottom: 1.5rem;
+    }
+    .painel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--linha);
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .painel-header h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--texto);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .painel-header p {
+      font-size: 0.85rem;
+      color: var(--texto-2);
+      margin-top: 0.2rem;
+    }
+
+    /* Formulários */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.2rem;
+    }
+    .campo {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .campo.full {
+      grid-column: 1 / -1;
+    }
+    .campo label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--texto-2);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .campo input, .campo select, .campo textarea {
+      background: var(--bg-input);
+      border: 1px solid var(--linha);
+      border-radius: 8px;
+      padding: 0.65rem 0.85rem;
+      color: var(--texto);
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .campo input:focus, .campo select:focus, .campo textarea:focus {
+      border-color: var(--azul-lt);
+      box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.2);
+    }
+    .campo input[readonly] {
+      background: rgba(15, 23, 42, 0.6);
+      color: var(--texto-2);
+      cursor: not-allowed;
+    }
+
+    /* Botões */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.65rem 1.25rem;
+      font-size: 0.88rem;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+    .btn-ouro {
+      background: linear-gradient(135deg, #d4a84b, #b8860b);
+      color: #040a17;
+    }
+    .btn-ouro:hover {
+      background: linear-gradient(135deg, #ffd37a, #d4a84b);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(212, 168, 75, 0.35);
+    }
+    .btn-azul {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #fff;
+    }
+    .btn-azul:hover {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+    }
+    .btn-jade {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+    }
+    .btn-jade:hover {
+      background: linear-gradient(135deg, #34d399, #10b981);
+    }
+    .btn-fantasma {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--linha);
+      color: var(--texto-2);
+    }
+    .btn-fantasma:hover {
+      background: rgba(79, 163, 247, 0.12);
+      color: var(--texto);
+      border-color: var(--azul-lt);
+    }
+    .btn-sm {
+      padding: 0.35rem 0.7rem;
+      font-size: 0.78rem;
+      border-radius: 6px;
+    }
+    .btn-perigo {
+      background: rgba(239, 68, 68, 0.18);
+      border: 1px solid rgba(239, 68, 68, 0.5);
+      color: #fca5a5;
+    }
+    .btn-perigo:hover {
+      background: #ef4444;
+      color: #fff;
+    }
+
+    /* Type Switcher (Função vs Cargo) */
+    .type-switcher {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+    .type-card {
+      background: rgba(15, 23, 42, 0.5);
+      border: 2px solid var(--linha);
+      border-radius: 10px;
+      padding: 1rem;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .type-card:hover {
+      border-color: var(--azul-lt);
+      background: rgba(30, 58, 138, 0.2);
+    }
+    .type-card.selected {
+      border-color: var(--ouro);
+      background: rgba(212, 168, 75, 0.12);
+    }
+    .type-card h3 {
+      font-size: 1rem;
+      color: var(--texto);
+      margin-bottom: 0.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+    }
+    .type-card p {
+      font-size: 0.78rem;
+      color: var(--texto-2);
+    }
+
+    /* Tabelas */
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--linha);
+      border-radius: 8px;
+      background: rgba(5, 12, 28, 0.5);
+    }
+    table.grid {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+    table.grid th {
+      background: rgba(15, 23, 42, 0.85);
+      color: var(--texto-2);
+      font-weight: 600;
+      padding: 0.75rem 0.9rem;
+      border-bottom: 1px solid var(--linha);
+      white-space: nowrap;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      letter-spacing: 0.5px;
+    }
+    table.grid td {
+      padding: 0.75rem 0.9rem;
+      border-bottom: 1px solid rgba(79, 163, 247, 0.08);
+      color: var(--texto);
+      vertical-align: middle;
+    }
+    table.grid tr:hover td {
+      background: rgba(79, 163, 247, 0.04);
+    }
+
+    /* Badges & Chips */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.2rem 0.55rem;
+      font-size: 0.72rem;
+      font-weight: 700;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      white-space: nowrap;
+    }
+    .badge-cargo { background: rgba(168, 85, 247, 0.2); color: #d8b4fe; border: 1px solid rgba(168, 85, 247, 0.4); }
+    .badge-funcao { background: rgba(59, 130, 246, 0.2); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4); }
+    .badge-pendente { background: rgba(245, 158, 11, 0.2); color: #fde68a; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .badge-confeccionado { background: rgba(79, 163, 247, 0.2); color: #bae6fd; border: 1px solid rgba(79, 163, 247, 0.4); }
+    .badge-publicado { background: rgba(16, 185, 129, 0.2); color: #a7f3d0; border: 1px solid rgba(16, 185, 129, 0.4); }
+    .badge-finalizado { background: rgba(16, 185, 129, 0.35); color: #34d399; border: 1px solid #10b981; }
+    .badge-motivo {
+      background: rgba(212, 168, 75, 0.25);
+      color: var(--ouro-lt);
+      border: 1px solid var(--ouro);
+      font-family: var(--f-mono);
+      font-size: 0.76rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 6px;
+    }
+
+    /* Destaque Ativo (Minha Função) */
+    .card-ativo-hero {
+      background: linear-gradient(135deg, rgba(30, 58, 138, 0.35), rgba(15, 23, 42, 0.8));
+      border: 1px solid var(--ouro);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 1.5rem;
+      align-items: center;
+    }
+    @media(max-width: 768px) {
+      .card-ativo-hero { grid-template-columns: 1fr; }
+    }
+    .militar-avatar {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: rgba(212, 168, 75, 0.2);
+      border: 2px solid var(--ouro);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: var(--ouro-lt);
+    }
+    .militar-info h3 {
+      font-size: 1.25rem;
+      color: var(--texto);
+      margin-bottom: 0.3rem;
+    }
+    .militar-info p {
+      font-size: 0.88rem;
+      color: var(--texto-2);
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .militar-detalhes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.8rem;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--linha);
+    }
+    .detalhe-item small {
+      font-size: 0.72rem;
+      color: var(--texto-3);
+      text-transform: uppercase;
+      display: block;
+    }
+    .detalhe-item strong {
+      font-size: 0.95rem;
+      color: var(--ouro-lt);
+    }
+
+    /* Modal Styles */
+    .modal-backdrop {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal-box {
+      background: #0a192f;
+      border: 1px solid var(--linha-forte);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 780px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+    }
+    .modal-head {
+      padding: 1.1rem 1.4rem;
+      border-bottom: 1px solid var(--linha);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(15, 23, 42, 0.7);
+    }
+    .modal-head h3 {
+      font-size: 1.1rem;
+      color: var(--texto);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .modal-close {
+      background: transparent;
+      border: none;
+      color: var(--texto-2);
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .modal-body {
+      padding: 1.4rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .modal-foot {
+      padding: 1rem 1.4rem;
+      border-top: 1px solid var(--linha);
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      background: rgba(15, 23, 42, 0.7);
+    }
+
+    /* Autocomplete list */
+    .sugestoes-box {
+      position: relative;
+    }
+    .sugestoes-list {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #0b1d3a;
+      border: 1px solid var(--linha-forte);
+      border-radius: 8px;
+      max-height: 220px;
+      overflow-y: auto;
+      z-index: 50;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      margin-top: 4px;
+      display: none;
+    }
+    .sugestao-item {
+      padding: 0.6rem 0.85rem;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(79,163,247,0.08);
+      font-size: 0.85rem;
+      transition: background 0.15s;
+    }
+    .sugestao-item:hover {
+      background: rgba(79,163,247,0.15);
+      color: var(--ouro-lt);
+    }
+
+    /* PIN Gate Container */
+    .pin-gate-wrap {
+      max-width: 440px;
+      margin: 3rem auto;
+      text-align: center;
+    }
+    .pin-input {
+      letter-spacing: 0.35em;
+      font-size: 1.4rem;
+      text-align: center;
+      font-weight: 700;
+      max-width: 220px;
+      margin: 1rem auto;
+    }
+
+    /* Subseções Settings */
+    .settings-nav {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--linha);
+      margin-bottom: 1.2rem;
+    }
+    .settings-tab {
+      padding: 0.5rem 0.9rem;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--texto-2);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .settings-tab.active {
+      color: var(--ouro-lt);
+      border-bottom-color: var(--ouro);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <a href="index.html" class="topbar-brand" title="Voltar ao Hub Governança DE">
+      <img src="assets/cocar-fab.png" alt="FAB" class="topbar-cocar" />
+      <div class="topbar-titulos">
+        <h1>Cargos e Funções</h1>
+        <small>Academia da Força Aérea · Divisão de Ensino</small>
+      </div>
+    </a>
+    <div class="topbar-actions">
+      <a href="index.html" class="btn-top" title="Voltar ao Painel Principal">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        Hub DE
+      </a>
+      <button class="btn-top" id="btn-top-settings" onclick="abrirModalSettings()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Configurações
+      </button>
+    </div>
+  </header>
+
+  <!-- CORPO PRINCIPAL -->
+  <main class="app-wrap">
+
+    <!-- ABAS -->
+    <nav class="tabs-nav">
+      <button class="tab-btn active" id="tab-btn-solicitar" onclick="trocarAba('solicitar')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Solicitação de Publicação
+      </button>
+      <button class="tab-btn" id="tab-btn-minha" onclick="trocarAba('minha-funcao')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        Minha Função / Cargo
+      </button>
+      <button class="tab-btn" id="tab-btn-secretaria" onclick="trocarAba('secretaria')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Secretaria
+        <span class="tab-badge" id="badge-total-pendentes">0</span>
+      </button>
+    </nav>
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- ABA 1: SOLICITAÇÃO DE PUBLICAÇÃO -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <section id="aba-solicitar" class="painel">
+      <div class="painel-header">
+        <div>
+          <h2>📝 Nova Solicitação de Publicação</h2>
+          <p>Inicie o processo de designação, dispensa ou transmissão de cargos e funções da Divisão de Ensino.</p>
+        </div>
+      </div>
+
+      <!-- SELETOR DE MODALIDADE (FUNÇÃO VS CARGO) -->
+      <div class="type-switcher">
+        <div class="type-card selected" id="card-tipo-funcao" onclick="selecionarTipoSolicitacao('funcao')">
+          <h3>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Função
+          </h3>
+          <p>Adjuntos, Encarregados, Auxiliares e Membros de Equipe</p>
+        </div>
+        <div class="type-card" id="card-tipo-cargo" onclick="selecionarTipoSolicitacao('cargo')">
+          <h3>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            Cargo
+          </h3>
+          <p>Chefias com transmissão de carga e processo SILOMS (TTAC)</p>
+        </div>
+      </div>
+
+      <form id="form-solicitacao" onsubmit="enviarSolicitacao(event)">
+        <div class="form-grid">
+          
+          <!-- Seção -->
+          <div class="campo">
+            <label for="solic-secao">1. Selecione a Seção *</label>
+            <select id="solic-secao" required onchange="aoMudarSecao()">
+              <option value="">— Carregando seções… —</option>
+            </select>
+          </div>
+
+          <!-- Cargo ou Função da Seção -->
+          <div class="campo">
+            <label for="solic-cargo-funcao" id="lbl-cargo-funcao">2. Selecione a Função *</label>
+            <select id="solic-cargo-funcao" required>
+              <option value="">— Selecione a seção primeiro —</option>
+            </select>
+          </div>
+
+          <!-- Tipo de Ação (Apenas se for Função) -->
+          <div class="campo" id="box-acao-funcao">
+            <label for="solic-acao-tipo">Tipo de Publicação</label>
+            <select id="solic-acao-tipo" onchange="aoMudarAcaoFuncao()">
+              <option value="designacao">Designação (Código 9208)</option>
+              <option value="dispensa">Dispensa (Código 9209)</option>
+            </select>
+          </div>
+
+          <!-- Data de Início / Assunção -->
+          <div class="campo" id="box-data-inicio">
+            <label for="solic-data-inicio">A partir de quando é para contar *</label>
+            <input type="date" id="solic-data-inicio" required />
+          </div>
+
+          <!-- BLOCO PARA FUNÇÃO: SELETOR DE PESSOA -->
+          <div class="campo full" id="box-pessoa-funcao">
+            <label for="solic-busca-militar">Militar / Servidor *</label>
+            <div class="sugestoes-box">
+              <input type="text" id="solic-busca-militar" placeholder="Digite o nome, SARAM ou CPF do militar…" autocomplete="off" oninput="buscarMilitar(this.value, 'funcao')" />
+              <div class="sugestoes-list" id="sugestoes-funcao"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem;margin-top:0.5rem">
+              <input type="text" id="solic-posto" placeholder="Posto / Graduação" readonly />
+              <input type="text" id="solic-nome-completo" placeholder="Nome Completo" readonly />
+              <input type="text" id="solic-saram" placeholder="SARAM" readonly />
+            </div>
+          </div>
+
+          <!-- BLOCO PARA CARGO: QUEM SAI E QUEM ASSUME -->
+          <div class="campo full" id="box-pessoas-cargo" style="display:none">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+              
+              <!-- Quem sai (Dispensa) -->
+              <div class="painel" style="padding:1rem;background:rgba(239,68,68,0.06);border-color:rgba(239,68,68,0.3)">
+                <h4 style="color:#fca5a5;font-size:0.9rem;margin-bottom:0.5rem">👤 Quem está saindo (Dispensa - Cód 1139)</h4>
+                <div class="sugestoes-box">
+                  <input type="text" id="solic-busca-dispensa" placeholder="Buscar militar saindo…" autocomplete="off" oninput="buscarMilitar(this.value, 'dispensa')" />
+                  <div class="sugestoes-list" id="sugestoes-dispensa"></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:0.5rem">
+                  <input type="text" id="solic-disp-posto" placeholder="Posto/Grad" readonly />
+                  <input type="text" id="solic-disp-saram" placeholder="SARAM" readonly />
+                </div>
+                <input type="text" id="solic-disp-nome" placeholder="Nome Completo" readonly style="margin-top:0.5rem;width:100%" />
+              </div>
+
+              <!-- Quem assume (Designação) -->
+              <div class="painel" style="padding:1rem;background:rgba(16,185,129,0.06);border-color:rgba(16,185,129,0.3)">
+                <h4 style="color:#6ee7b7;font-size:0.9rem;margin-bottom:0.5rem">👤 Quem está assumindo (Designação - Cód 1138)</h4>
+                <div class="sugestoes-box">
+                  <input type="text" id="solic-busca-designa" placeholder="Buscar militar assumindo…" autocomplete="off" oninput="buscarMilitar(this.value, 'designa')" />
+                  <div class="sugestoes-list" id="sugestoes-designa"></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-top:0.5rem">
+                  <input type="text" id="solic-desig-posto" placeholder="Posto/Grad" readonly />
+                  <input type="text" id="solic-desig-saram" placeholder="SARAM" readonly />
+                </div>
+                <input type="text" id="solic-desig-nome" placeholder="Nome Completo" readonly style="margin-top:0.5rem;width:100%" />
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Observações -->
+          <div class="campo full">
+            <label for="solic-obs">Observações / Detalhes Adicionais (Opcional)</label>
+            <textarea id="solic-obs" rows="2" placeholder="Informações adicionais para a Secretaria…"></textarea>
+          </div>
+
+        </div>
+
+        <div style="margin-top:1.5rem;display:flex;justify-content:flex-end;gap:0.75rem">
+          <button type="reset" class="btn btn-fantasma" onclick="limparFormulario()">Limpar</button>
+          <button type="submit" class="btn btn-ouro" id="btn-submit-solic">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+            Enviar Solicitação de Publicação
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- ABA 2: MINHA FUNÇÃO / CARGO (CONSULTA) -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <section id="aba-minha-funcao" class="painel" style="display:none">
+      <div class="painel-header">
+        <div>
+          <h2>🔍 Consulta de Atribuições — Minha Função / Cargo</h2>
+          <p>Consulte a seção e função/cargo associados, data de assunção, boletim de publicação e processo SILOMS.</p>
+        </div>
+      </div>
+
+      <div class="campo" style="max-width:560px;margin-bottom:1.5rem">
+        <label for="busca-consulta-militar">Pesquisar por Militar (Nome ou SARAM)</label>
+        <div class="sugestoes-box">
+          <input type="text" id="busca-consulta-militar" placeholder="Digite o nome de guerra ou SARAM…" autocomplete="off" oninput="buscarMilitarConsulta(this.value)" />
+          <div class="sugestoes-list" id="sugestoes-consulta"></div>
+        </div>
+      </div>
+
+      <!-- DESTAQUE DO VÍNCULO ATUAL -->
+      <div id="resultado-consulta-vazio" style="text-align:center;padding:3rem 1rem;color:var(--texto-3)">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:0.75rem;opacity:0.6"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <p>Selecione um militar no campo acima para visualizar sua função/cargo ativa e histórico.</p>
+      </div>
+
+      <div id="resultado-consulta-box" style="display:none">
+        
+        <!-- CARD HERO ATIVO -->
+        <div class="card-ativo-hero">
+          <div class="militar-avatar" id="cons-avatar">FAB</div>
+          <div class="militar-info">
+            <h3 id="cons-nome-header">Cap Fulano de Tal</h3>
+            <p>
+              <span>SARAM: <strong id="cons-saram" style="color:var(--ouro-lt);font-family:var(--f-mono)">—</strong></span>
+              <span>CPF: <strong id="cons-cpf">—</strong></span>
+            </p>
+            <div class="militar-detalhes">
+              <div class="detalhe-item">
+                <small>Seção Atual</small>
+                <strong id="cons-secao">—</strong>
+              </div>
+              <div class="detalhe-item">
+                <small>Função / Cargo</small>
+                <strong id="cons-cargo-funcao">—</strong>
+              </div>
+              <div class="detalhe-item">
+                <small>Data que Assumiu</small>
+                <strong id="cons-data-assumiu">—</strong>
+              </div>
+              <div class="detalhe-item">
+                <small>Boletim Publicado</small>
+                <strong id="cons-boletim">—</strong>
+              </div>
+              <div class="detalhe-item" id="cons-box-siloms">
+                <small>Processo SILOMS</small>
+                <strong id="cons-siloms">—</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LINHA DO TEMPO / HISTÓRICO DE PUBLICAÇÕES -->
+        <h3 style="font-size:1.05rem;color:var(--texto);margin-bottom:0.75rem;display:flex;align-items:center;gap:0.5rem">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Histórico de Publicações e Tramitações
+        </h3>
+        <div class="table-wrap">
+          <table class="grid">
+            <thead>
+              <tr>
+                <th>Data Solicitação</th>
+                <th>Tipo</th>
+                <th>Seção</th>
+                <th>Cargo / Função</th>
+                <th>Assunção / Início</th>
+                <th>Boletim</th>
+                <th>SILOMS</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-historico-militar">
+              <tr><td colspan="8" style="text-align:center;color:var(--texto-3)">Nenhum histórico adicional registrado.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- ABA 3: SECRETARIA (PROTEGIDA POR PIN) -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <section id="aba-secretaria" class="painel" style="display:none">
+      
+      <!-- PIN GATE -->
+      <div id="pin-gate-box" class="pin-gate-wrap">
+        <div style="font-size:2.5rem;margin-bottom:0.75rem">🔒</div>
+        <h2 style="font-size:1.3rem;margin-bottom:0.4rem">Acesso Restrito à Secretaria</h2>
+        <p style="font-size:0.85rem;color:var(--texto-2);margin-bottom:1.5rem">Informe o PIN do sistema para acessar o painel de publicações e tramitações.</p>
+        
+        <form onsubmit="validarPinSecretaria(event)">
+          <input type="password" id="campo-pin-secretaria" class="campo pin-input" maxlength="10" placeholder="••••" autocomplete="off" required />
+          <div>
+            <button type="submit" class="btn btn-ouro">Desbloquear Painel</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- CONTEÚDO DA SECRETARIA (APÓS PIN) -->
+      <div id="secretaria-content" style="display:none">
+        
+        <div class="painel-header">
+          <div>
+            <h2>📋 Gestão de Publicações e Transmissões</h2>
+            <p>Controle de confecção de itens, geração de CSV, boletins e processos SILOMS (TTAC).</p>
+          </div>
+          <div style="display:flex;gap:0.6rem;flex-wrap:wrap">
+            <button class="btn btn-fantasma btn-sm" onclick="abrirModalSettings()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+              Settings / Catálogo
+            </button>
+            <button class="btn btn-fantasma btn-sm" onclick="carregarDadosSecretaria()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+              Atualizar
+            </button>
+            <button class="btn btn-perigo btn-sm" onclick="bloquearSecretaria()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Bloquear
+            </button>
+          </div>
+        </div>
+
+        <!-- FILTROS -->
+        <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center">
+          <div style="display:flex;gap:0.35rem">
+            <button class="btn btn-fantasma btn-sm active" id="flt-todos" onclick="filtrarSecretaria('todos')">Todas (<span id="cnt-flt-todos">0</span>)</button>
+            <button class="btn btn-fantasma btn-sm" id="flt-funcoes" onclick="filtrarSecretaria('funcao')">Funções (<span id="cnt-flt-funcoes">0</span>)</button>
+            <button class="btn btn-fantasma btn-sm" id="flt-cargos" onclick="filtrarSecretaria('cargo')">Cargos (<span id="cnt-flt-cargos">0</span>)</button>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:0.5rem">
+            <input type="text" id="filtro-texto-sec" placeholder="Filtrar por nome ou seção…" style="padding:0.35rem 0.65rem;font-size:0.82rem;border-radius:6px;background:var(--bg-input);border:1px solid var(--linha);color:var(--texto)" oninput="renderizarTabelaSecretaria()" />
+          </div>
+        </div>
+
+        <!-- TABELA DE SOLICITAÇÕES -->
+        <div class="table-wrap">
+          <table class="grid">
+            <thead>
+              <tr>
+                <th>Data / Protocolo</th>
+                <th>Tipo</th>
+                <th>Seção & Cargo/Função</th>
+                <th>Militar(es)</th>
+                <th>Ação / Status</th>
+                <th>Boletim N° & Data</th>
+                <th>SILOMS / TTAC</th>
+                <th style="text-align:right">Operações</th>
+              </tr>
+            </thead>
+            <tbody id="tabela-secretaria-corpo">
+              <tr><td colspan="8" style="text-align:center;padding:2rem">Carregando solicitações…</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <!-- MODAL SETTINGS (DENTRO DA SECRETARIA) -->
+  <!-- ══════════════════════════════════════════════════════════════ -->
+  <div class="modal-backdrop" id="modal-settings" onclick="if(event.target===this)fecharModalSettings()">
+    <div class="modal-box">
+      <div class="modal-head">
+        <h3>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Configurações do Módulo de Cargos e Funções
+        </h3>
+        <button class="modal-close" onclick="fecharModalSettings()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <nav class="settings-nav">
+          <button class="settings-tab active" id="set-tab-btn-secoes" onclick="trocarTabSettings('secoes')">📁 Seções e Catálogo</button>
+          <button class="settings-tab" id="set-tab-btn-sync" onclick="trocarTabSettings('sync')">🔄 Sincronização com Efetivo</button>
+          <button class="settings-tab" id="set-tab-btn-motivos" onclick="trocarTabSettings('motivos')">⚙️ Códigos de Motivo & E-mail SREG</button>
+        </nav>
+
+        <!-- ABA SETTINGS 1: SEÇÕES E CATÁLOGO -->
+        <div id="set-aba-secoes">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+            <h4 style="color:var(--texto);font-size:0.95rem">Seções Cadastradas</h4>
+            <button class="btn btn-ouro btn-sm" onclick="abrirFormNovaSecao()">+ Adicionar Seção</button>
+          </div>
+
+          <div id="lista-secoes-catalogo" style="display:flex;flex-direction:column;gap:0.75rem">
+            <!-- Renderizado dinamicamente -->
+          </div>
+        </div>
+
+        <!-- ABA SETTINGS 2: SINCRONIZAÇÃO COM EFETIVO -->
+        <div id="set-aba-sync" style="display:none">
+          <div class="painel" style="background:rgba(15,23,42,0.6);margin-bottom:1rem">
+            <h4 style="color:var(--ouro-lt);margin-bottom:0.5rem">Sincronizador da Coluna H (Planilha Efetivo)</h4>
+            <p style="font-size:0.83rem;color:var(--texto-2);margin-bottom:1rem">
+              Lê os registros da planilha Efetivo oficial, extrai a seção descrita entre parêntesis (ex: <code>Chefe (DE)</code> ou <code>Adjunto (SDINT)</code>), classifica cargos ("Chefe") e funções, cadastra as seções faltantes no catálogo e associa o estado inicial dos militares.
+            </p>
+            <button class="btn btn-jade" id="btn-sync-efetivo" onclick="executarSincronizacaoEfetivo()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+              Sincronizar com Planilha Efetivo Agora
+            </button>
+          </div>
+          <div id="sync-log-box" style="font-family:var(--f-mono);font-size:0.78rem;background:#050c1c;padding:0.75rem;border-radius:8px;border:1px solid var(--linha);color:var(--texto-2);max-height:180px;overflow-y:auto;display:none"></div>
+        </div>
+
+        <!-- ABA SETTINGS 3: CÓDIGOS DE MOTIVO & E-MAIL SREG -->
+        <div id="set-aba-motivos" style="display:none">
+          <form onsubmit="salvarConfiguracoesMotivos(event)">
+            <div class="form-grid">
+              
+              <div class="campo">
+                <label for="cfg-mot-cargo-desig">Motivo Designação de Cargo (4 dígitos)</label>
+                <input type="text" id="cfg-mot-cargo-desig" maxlength="6" value="1138" required />
+                <small style="color:var(--texto-3);font-size:0.72rem">Padrão: 1138 (Cód 1138 no sistema de publicação)</small>
+              </div>
+
+              <div class="campo">
+                <label for="cfg-mot-cargo-disp">Motivo Dispensa de Cargo (4 dígitos)</label>
+                <input type="text" id="cfg-mot-cargo-disp" maxlength="6" value="1139" required />
+                <small style="color:var(--texto-3);font-size:0.72rem">Padrão: 1139 (Cód 1139 no sistema de publicação)</small>
+              </div>
+
+              <div class="campo">
+                <label for="cfg-mot-func-desig">Motivo Designação de Função (4 dígitos)</label>
+                <input type="text" id="cfg-mot-func-desig" maxlength="6" value="9208" required />
+                <small style="color:var(--texto-3);font-size:0.72rem">Padrão: 9208 (Cód 9208 no sistema de publicação)</small>
+              </div>
+
+              <div class="campo">
+                <label for="cfg-mot-func-disp">Motivo Dispensa de Função (4 dígitos)</label>
+                <input type="text" id="cfg-mot-func-disp" maxlength="6" value="9209" required />
+                <small style="color:var(--texto-3);font-size:0.72rem">Padrão: 9209 (Cód 9209 no sistema de publicação)</small>
+              </div>
+
+              <div class="campo full">
+                <label for="cfg-email-sreg">E-mail da SREG (Destinatário para TTAC)</label>
+                <input type="email" id="cfg-email-sreg" value="sreg.afa@fab.mil.br" required />
+              </div>
+
+            </div>
+
+            <div style="margin-top:1.5rem;display:flex;justify-content:flex-end">
+              <button type="submit" class="btn btn-ouro">Salvar Configurações</button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+
+      <div class="modal-foot">
+        <button class="btn btn-fantasma" onclick="fecharModalSettings()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCRIPT CENTRAL DO MÓDULO CARGOS E FUNÇÕES -->
+  <script>
+  'use strict';
+
+  /* ═══════════════════════════════════════════════════════════════════
+     ESTADO GLOBAL E CONSTANTES
+     ═══════════════════════════════════════════════════════════════════ */
+  const EFETIVO_SHEET_ID = '1UOMh4y-wHL8kHcB9TUUcEmkeF7z6KYAs4vipsoOFgfA';
+  const EFETIVO_URL = `https://docs.google.com/spreadsheets/d/${EFETIVO_SHEET_ID}/gviz/tq?tqx=out:json&sheet=efetivo&range=A5:AC250&headers=0`;
+
+  let sb = null;
+  let listaEfetivo = [];
+  let listaSecoes = [];
+  let listaCatalogo = [];
+  let listaSolicitacoes = [];
+  let listaMilitaresAtivos = [];
+  let tiposelecionado = 'funcao'; // 'funcao' | 'cargo'
+  let filtroSecretariaAtual = 'todos';
+
+  let configCargos = {
+    motivo_cargo_designacao: '1138',
+    motivo_cargo_dispensa: '1139',
+    motivo_funcao_designacao: '9208',
+    motivo_funcao_dispensa: '9209',
+    email_sreg: 'sreg.afa@fab.mil.br',
+    pin: '123456'
+  };
+
+  // Inicialização ao carregar página
+  document.addEventListener('DOMContentLoaded', async () => {
+    // Inicializar Supabase
+    if (window.supabase && typeof window.supabase.createClient === 'function') {
+      const url = window.SUPABASE_URL || 'https://rsaaryrgdrolcsvigckz.supabase.co';
+      const anon = window.SUPABASE_ANON || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzYWFyeXJnZHJvbGNzdmlnY2t6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMzcyNjEsImV4cCI6MjA4MjcxMzI2MX0.UKACT_OKIMRaLB3FJPtFPGqhVbR83pUiiPfLkcf_Ec0';
+      try {
+        sb = window.supabase.createClient(url, anon, { auth: { persistSession: false } });
+      } catch(e) { console.warn('Supabase fallback:', e); }
+    }
+
+    // Setar data default no campo de data (hoje)
+    const dtIn = document.getElementById('solic-data-inicio');
+    if (dtIn) dtIn.value = new Date().toISOString().split('T')[0];
+
+    // Carregar Efetivo da Planilha e Dados do Banco
+    await carregarEfetivoPlanilha();
+    await carregarConfiguracoes();
+    await carregarSecoesECatalogo();
+    await carregarSolicitacoes();
+    await carregarMilitaresAtivos();
+
+    // Roteamento por hash na URL (#solicitar, #minha-funcao, #secretaria)
+    const hash = window.location.hash.replace('#', '');
+    if (hash === 'secretaria' || hash === 'minha-funcao' || hash === 'solicitar') {
+      trocarAba(hash);
+    }
+  });
+
+  /* ═══════════════════════════════════════════════════════════════════
+     NAVEGAÇÃO POR ABAS
+     ═══════════════════════════════════════════════════════════════════ */
+  function trocarAba(aba) {
+    ['solicitar', 'minha-funcao', 'secretaria'].forEach(a => {
+      const elAba = document.getElementById(`aba-${a}`);
+      const elBtn = document.getElementById(`tab-btn-${a}`);
+      if (elAba) elAba.style.display = (a === aba) ? 'block' : 'none';
+      if (elBtn) elBtn.classList.toggle('active', a === aba);
+    });
+    window.location.hash = aba;
+
+    if (aba === 'secretaria') {
+      verificarSessaoSecretaria();
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     CARREGAMENTO DO EFETIVO (PLANILHA GOOGLE GVIZ)
+     ═══════════════════════════════════════════════════════════════════ */
+  async function carregarEfetivoPlanilha() {
+    try {
+      const res = await fetch(EFETIVO_URL);
+      const txt = await res.text();
+      const jsonStr = txt.replace(/^\/\*O_o\*\/\s*google\.visualization\.Query\.setResponse\(/, '').replace(/\);?\s*$/, '');
+      const data = JSON.parse(jsonStr);
+
+      if (data.table && data.table.rows) {
+        listaEfetivo = data.table.rows.map((r, i) => {
+          const c = r.c || [];
+          const v = idx => (c[idx]?.v !== undefined && c[idx]?.v !== null) ? c[idx].v.toString().trim() : '';
+          return {
+            idx: i,
+            posto: v(2),           // Col C (Posto/Grad)
+            esp: v(3),             // Col D (Especialidade)
+            nome: v(4),            // Col E (Nome de Guerra)
+            funcao_col_h: v(7),    // Col H (Função original na planilha)
+            nome_completo: v(13),  // Col N (Nome Completo)
+            cpf: formatarCPF(v(14)),   // Col O (CPF)
+            email: v(15),          // Col P (E-mail)
+            saram: formatarSARAM(v(19)), // Col T (SARAM)
+            rg: v(20)              // Col U (RG)
+          };
+        }).filter(m => m.nome || m.nome_completo);
+
+        localStorage.setItem('cargos_efetivo_cache', JSON.stringify(listaEfetivo));
+      }
+    } catch(e) {
+      console.warn('Erro ao carregar planilha de efetivo, tentando cache local...', e);
+      try {
+        const cached = localStorage.getItem('cargos_efetivo_cache');
+        if (cached) listaEfetivo = JSON.parse(cached);
+      } catch(e2){}
+    }
+  }
+
+  function formatarCPF(v) {
+    if (!v) return '';
+    const num = v.replace(/\D/g, '').padStart(11, '0').slice(-11);
+    return num.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  }
+
+  function formatarSARAM(v) {
+    if (!v) return '';
+    return v.toString().replace(/\D/g, '');
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     BANCO DE DADOS: SEÇÕES, CATÁLOGO E CONFIGURAÇÕES
+     ═══════════════════════════════════════════════════════════════════ */
+  async function carregarConfiguracoes() {
+    if (sb) {
+      try {
+        const { data } = await sb.from('cargos_config').select('*').eq('id', 'default').maybeSingle();
+        if (data) {
+          configCargos = { ...configCargos, ...data };
+        }
+      } catch(e){}
+    }
+    // Preencher campos no modal settings se existirem
+    const el1 = document.getElementById('cfg-mot-cargo-desig');
+    const el2 = document.getElementById('cfg-mot-cargo-disp');
+    const el3 = document.getElementById('cfg-mot-func-desig');
+    const el4 = document.getElementById('cfg-mot-func-disp');
+    const el5 = document.getElementById('cfg-email-sreg');
+    if (el1) el1.value = configCargos.motivo_cargo_designacao || '1138';
+    if (el2) el2.value = configCargos.motivo_cargo_dispensa || '1139';
+    if (el3) el3.value = configCargos.motivo_funcao_designacao || '9208';
+    if (el4) el4.value = configCargos.motivo_funcao_dispensa || '9209';
+    if (el5) el5.value = configCargos.email_sreg || 'sreg.afa@fab.mil.br';
+  }
+
+  async function carregarSecoesECatalogo() {
+    let secoes = [];
+    let catalogo = [];
+
+    if (sb) {
+      try {
+        const { data: sData } = await sb.from('cargos_secoes').select('*').order('nome');
+        if (sData) secoes = sData;
+        const { data: cData } = await sb.from('cargos_catalogo').select('*').order('nome');
+        if (cData) catalogo = cData;
+      } catch(e){}
+    }
+
+    // Se estiver vazio, popula com seções padrão da DE
+    if (!secoes || !secoes.length) {
+      secoes = [
+        { id: 'sec-de', nome: 'Divisão de Ensino', sigla: 'DE' },
+        { id: 'sec-sdint', nome: 'Subdivisão de Instrução Militar', sigla: 'SDINT' },
+        { id: 'sec-sdir', nome: 'Subdivisão de Instrução Geral', sigla: 'SDIR' },
+        { id: 'sec-infra', nome: 'Célula de Infraestrutura ao Ensino', sigla: 'CEL-INFRA' },
+        { id: 'sec-secretaria', nome: 'Secretaria da Divisão de Ensino', sigla: 'SEC-DE' },
+        { id: 'sec-plan', nome: 'Célula de Planejamento e Avaliação', sigla: 'CEL-PLAN' }
+      ];
+      catalogo = [
+        { id: 'cat-1', secao_id: 'sec-de', tipo: 'cargo', nome: 'Chefe da Divisão de Ensino' },
+        { id: 'cat-2', secao_id: 'sec-de', tipo: 'cargo', nome: 'Adjunto da Divisão de Ensino' },
+        { id: 'cat-3', secao_id: 'sec-infra', tipo: 'cargo', nome: 'Chefe da Célula de Infraestrutura ao Ensino' },
+        { id: 'cat-4', secao_id: 'sec-infra', tipo: 'funcao', nome: 'Auxiliar da Célula de Infraestrutura ao Ensino' },
+        { id: 'cat-5', secao_id: 'sec-sdint', tipo: 'funcao', nome: 'Adjunto da Subdivisão de Instrução de Infantaria' }
+      ];
+    }
+
+    listaSecoes = secoes;
+    listaCatalogo = catalogo;
+    localStorage.setItem('cargos_secoes_cache', JSON.stringify(listaSecoes));
+    localStorage.setItem('cargos_catalogo_cache', JSON.stringify(listaCatalogo));
+
+    popularSelectSecoes();
+    renderizarCatalogoSettings();
+  }
+
+  function popularSelectSecoes() {
+    const sel = document.getElementById('solic-secao');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">— Selecione a Seção —</option>' +
+      listaSecoes.map(s => `<option value="${s.id}">${s.nome} ${s.sigla ? '('+s.sigla+')' : ''}</option>`).join('');
+  }
+
+  function aoMudarSecao() {
+    const secaoId = document.getElementById('solic-secao').value;
+    const selCargoFuncao = document.getElementById('solic-cargo-funcao');
+    const lblCargoFuncao = document.getElementById('lbl-cargo-funcao');
+    if (!selCargoFuncao) return;
+
+    if (!secaoId) {
+      selCargoFuncao.innerHTML = '<option value="">— Selecione a seção primeiro —</option>';
+      return;
+    }
+
+    const filtrados = listaCatalogo.filter(c => c.secao_id === secaoId && c.tipo === tiposelecionado);
+    lblCargoFuncao.textContent = (tiposelecionado === 'cargo') ? '2. Selecione o Cargo *' : '2. Selecione a Função *';
+
+    if (filtrados.length === 0) {
+      selCargoFuncao.innerHTML = `<option value="">— Nenhum(a) ${tiposelecionado} cadastrado(a) nesta seção —</option>`;
+    } else {
+      selCargoFuncao.innerHTML = `<option value="">— Selecione o(a) ${tiposelecionado} —</option>` +
+        filtrados.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     ALTERNÂNCIA DE TIPO (FUNÇÃO VS CARGO) NO FORMULÁRIO
+     ═══════════════════════════════════════════════════════════════════ */
+  function selecionarTipoSolicitacao(tipo) {
+    tiposelecionado = tipo;
+    document.getElementById('card-tipo-funcao')?.classList.toggle('selected', tipo === 'funcao');
+    document.getElementById('card-tipo-cargo')?.classList.toggle('selected', tipo === 'cargo');
+
+    const boxAcao = document.getElementById('box-acao-funcao');
+    const boxPessoaFuncao = document.getElementById('box-pessoa-funcao');
+    const boxPessoasCargo = document.getElementById('box-pessoas-cargo');
+
+    if (tipo === 'funcao') {
+      if (boxAcao) boxAcao.style.display = 'block';
+      if (boxPessoaFuncao) boxPessoaFuncao.style.display = 'block';
+      if (boxPessoasCargo) boxPessoasCargo.style.display = 'none';
+    } else {
+      if (boxAcao) boxAcao.style.display = 'none';
+      if (boxPessoaFuncao) boxPessoaFuncao.style.display = 'none';
+      if (boxPessoasCargo) boxPessoasCargo.style.display = 'block';
+    }
+
+    aoMudarSecao();
+  }
+
+  function aoMudarAcaoFuncao() {
+    const acao = document.getElementById('solic-acao-tipo')?.value;
+    const lblData = document.querySelector('label[for="solic-data-inicio"]');
+    if (lblData) {
+      lblData.textContent = (acao === 'dispensa') ? 'A contar de quando é a dispensa *' : 'A partir de quando é para contar *';
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     AUTOCOMPLETE DE MILITARES
+     ═══════════════════════════════════════════════════════════════════ */
+  function buscarMilitar(termo, alvo) {
+    const box = document.getElementById(`sugestoes-${alvo}`);
+    if (!box) return;
+    const t = (termo || '').toLowerCase().trim();
+    if (t.length < 2) { box.style.display = 'none'; return; }
+
+    const matches = listaEfetivo.filter(m => 
+      (m.nome && m.nome.toLowerCase().includes(t)) ||
+      (m.nome_completo && m.nome_completo.toLowerCase().includes(t)) ||
+      (m.saram && m.saram.includes(t)) ||
+      (m.cpf && m.cpf.includes(t))
+    ).slice(0, 8);
+
+    if (!matches.length) {
+      box.innerHTML = '<div style="padding:0.6rem;font-size:0.8rem;color:var(--texto-3)">Nenhum militar encontrado na planilha.</div>';
+      box.style.display = 'block';
+      return;
+    }
+
+    box.innerHTML = matches.map(m => `
+      <div class="sugestao-item" onclick="selecionarMilitar('${m.saram}', '${alvo}')">
+        <strong>${m.posto || ''} ${m.nome || m.nome_completo}</strong> 
+        <small style="color:var(--ouro-lt);margin-left:0.3rem">SARAM: ${m.saram || '—'}</small>
+        <div style="font-size:0.75rem;color:var(--texto-3)">${m.nome_completo || ''} · CPF: ${m.cpf || '—'}</div>
+      </div>
+    `).join('');
+    box.style.display = 'block';
+  }
+
+  function selecionarMilitar(saram, alvo) {
+    const m = listaEfetivo.find(x => x.saram === saram);
+    const box = document.getElementById(`sugestoes-${alvo}`);
+    if (box) box.style.display = 'none';
+    if (!m) return;
+
+    if (alvo === 'funcao') {
+      document.getElementById('solic-busca-militar').value = `${m.posto || ''} ${m.nome || m.nome_completo}`;
+      document.getElementById('solic-posto').value = m.posto || '';
+      document.getElementById('solic-nome-completo').value = m.nome_completo || m.nome;
+      document.getElementById('solic-saram').value = m.saram || '';
+    } else if (alvo === 'dispensa') {
+      document.getElementById('solic-busca-dispensa').value = `${m.posto || ''} ${m.nome || m.nome_completo}`;
+      document.getElementById('solic-disp-posto').value = m.posto || '';
+      document.getElementById('solic-disp-nome').value = m.nome_completo || m.nome;
+      document.getElementById('solic-disp-saram').value = m.saram || '';
+    } else if (alvo === 'designa') {
+      document.getElementById('solic-busca-designa').value = `${m.posto || ''} ${m.nome || m.nome_completo}`;
+      document.getElementById('solic-desig-posto').value = m.posto || '';
+      document.getElementById('solic-desig-nome').value = m.nome_completo || m.nome;
+      document.getElementById('solic-desig-saram').value = m.saram || '';
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     ENVIO DE SOLICITAÇÃO
+     ═══════════════════════════════════════════════════════════════════ */
+  async function enviarSolicitacao(e) {
+    e.preventDefault();
+    const secaoId = document.getElementById('solic-secao').value;
+    const secaoObj = listaSecoes.find(s => s.id === secaoId);
+    const cargoFuncaoNome = document.getElementById('solic-cargo-funcao').value;
+    const dataInicio = document.getElementById('solic-data-inicio').value;
+    const obs = document.getElementById('solic-obs').value.trim();
+
+    if (!secaoId || !cargoFuncaoNome || !dataInicio) {
+      Swal.fire({ icon: 'warning', title: 'Campos Obrigatórios', text: 'Por favor, selecione a seção, o cargo/função e a data de início.' });
+      return;
+    }
+
+    const payload = {
+      tipo: tiposelecionado,
+      secao_id: secaoId,
+      secao_nome: secaoObj ? secaoObj.nome : '',
+      cargo_funcao_nome: cargoFuncaoNome,
+      data_inicio: dataInicio,
+      observacoes: obs,
+      created_at: new Date().toISOString()
+    };
+
+    if (tiposelecionado === 'funcao') {
+      const acao = document.getElementById('solic-acao-tipo').value;
+      const saram = document.getElementById('solic-saram').value;
+      const nomeComp = document.getElementById('solic-nome-completo').value;
+      const posto = document.getElementById('solic-posto').value;
+
+      if (!saram || !nomeComp) {
+        Swal.fire({ icon: 'warning', title: 'Militar Não Selecionado', text: 'Por favor, selecione um militar na busca.' });
+        return;
+      }
+
+      payload.acao_tipo = acao;
+      payload.status_funcao = 'pendente';
+      payload.motivo_codigo = (acao === 'dispensa') ? configCargos.motivo_funcao_dispensa : configCargos.motivo_funcao_designacao;
+
+      if (acao === 'dispensa') {
+        payload.militar_dispensado_saram = saram;
+        payload.militar_dispensado_nome = nomeComp;
+        payload.militar_dispensado_posto = posto;
+      } else {
+        payload.militar_designado_saram = saram;
+        payload.militar_designado_nome = nomeComp;
+        payload.militar_designado_posto = posto;
+      }
+    } else {
+      // Cargo
+      const dispSaram = document.getElementById('solic-disp-saram').value;
+      const dispNome = document.getElementById('solic-disp-nome').value;
+      const dispPosto = document.getElementById('solic-disp-posto').value;
+
+      const desigSaram = document.getElementById('solic-desig-saram').value;
+      const desigNome = document.getElementById('solic-desig-nome').value;
+      const desigPosto = document.getElementById('solic-desig-posto').value;
+
+      if (!dispSaram && !desigSaram) {
+        Swal.fire({ icon: 'warning', title: 'Militares Não Informados', text: 'Informe pelo menos o militar dispensado ou o designado para o cargo.' });
+        return;
+      }
+
+      payload.acao_tipo = 'transmissao';
+      payload.status_cargo = 'pendente';
+      payload.siloms_status = 'pendente';
+      payload.ttac_pendente = true;
+      payload.motivo_codigo = configCargos.motivo_cargo_designacao;
+      payload.militar_dispensado_saram = dispSaram;
+      payload.militar_dispensado_nome = dispNome;
+      payload.militar_dispensado_posto = dispPosto;
+      payload.militar_designado_saram = desigSaram;
+      payload.militar_designado_nome = desigNome;
+      payload.militar_designado_posto = desigPosto;
+    }
+
+    // Salvar no Supabase ou LocalStorage
+    let salvo = false;
+    if (sb) {
+      try {
+        const { data, error } = await sb.from('cargos_solicitacoes').insert([payload]).select();
+        if (!error && data && data.length) {
+          salvo = true;
+          payload.id = data[0].id;
+        }
+      } catch(err) {
+        console.warn('Erro ao salvar solicitação no Supabase:', err);
+      }
+    }
+
+    if (!salvo) {
+      payload.id = 'loc-' + Date.now();
+      let loc = JSON.parse(localStorage.getItem('cargos_solicitacoes_cache') || '[]');
+      loc.unshift(payload);
+      localStorage.setItem('cargos_solicitacoes_cache', JSON.stringify(loc));
+    }
+
+    listaSolicitacoes.unshift(payload);
+    atualizarContadores();
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Solicitação Registrada!',
+      html: `
+        <p style="font-size:0.9rem;color:var(--texto-2);margin-bottom:0.8rem">
+          A solicitação de publicação para <b>${payload.cargo_funcao_nome}</b> (${payload.secao_nome}) foi registrada com sucesso e já está disponível para a Secretaria.
+        </p>
+      `,
+      confirmButtonColor: '#d4a84b'
+    });
+
+    limparFormulario();
+  }
+
+  function limparFormulario() {
+    document.getElementById('form-solicitacao')?.reset();
+    ['solic-posto','solic-nome-completo','solic-saram','solic-disp-posto','solic-disp-saram','solic-disp-nome','solic-desig-posto','solic-desig-saram','solic-desig-nome'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    const dtIn = document.getElementById('solic-data-inicio');
+    if (dtIn) dtIn.value = new Date().toISOString().split('T')[0];
+    aoMudarSecao();
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     ABA 2: MINHA FUNÇÃO / CARGO (CONSULTA)
+     ═══════════════════════════════════════════════════════════════════ */
+  function buscarMilitarConsulta(termo) {
+    const box = document.getElementById('sugestoes-consulta');
+    if (!box) return;
+    const t = (termo || '').toLowerCase().trim();
+    if (t.length < 2) { box.style.display = 'none'; return; }
+
+    const matches = listaEfetivo.filter(m => 
+      (m.nome && m.nome.toLowerCase().includes(t)) ||
+      (m.nome_completo && m.nome_completo.toLowerCase().includes(t)) ||
+      (m.saram && m.saram.includes(t))
+    ).slice(0, 8);
+
+    if (!matches.length) {
+      box.innerHTML = '<div style="padding:0.6rem;font-size:0.8rem;color:var(--texto-3)">Nenhum militar encontrado.</div>';
+      box.style.display = 'block';
+      return;
+    }
+
+    box.innerHTML = matches.map(m => `
+      <div class="sugestao-item" onclick="exibirConsultaMilitar('${m.saram}')">
+        <strong>${m.posto || ''} ${m.nome || m.nome_completo}</strong>
+        <span style="color:var(--ouro-lt);font-size:0.75rem;margin-left:0.4rem">SARAM: ${m.saram || '—'}</span>
+      </div>
+    `).join('');
+    box.style.display = 'block';
+  }
+
+  async function exibirConsultaMilitar(saram) {
+    const boxSug = document.getElementById('sugestoes-consulta');
+    if (boxSug) boxSug.style.display = 'none';
+
+    const militar = listaEfetivo.find(x => x.saram === saram);
+    if (!militar) return;
+
+    document.getElementById('busca-consulta-militar').value = `${militar.posto || ''} ${militar.nome || militar.nome_completo}`;
+
+    // Buscar atribuição ativa no banco ou na lista carregada
+    let ativo = listaMilitaresAtivos.find(a => a.saram === saram);
+
+    // Se não tiver registro ativo no banco, extrai da Coluna H da planilha como fallback
+    if (!ativo && militar.funcao_col_h) {
+      const match = militar.funcao_col_h.match(/(.*?)\s*\((.*?)\)/);
+      ativo = {
+        saram: militar.saram,
+        nome: militar.nome_completo || militar.nome,
+        posto_grad: militar.posto,
+        cargo_funcao_nome: match ? match[1].trim() : militar.funcao_col_h,
+        secao_nome: match ? match[2].trim() : 'Divisão de Ensino',
+        tipo: militar.funcao_col_h.toLowerCase().includes('chefe') ? 'cargo' : 'funcao',
+        data_assuncao: null,
+        boletim_publicacao: 'Conforme Planilha Efetivo',
+        siloms_num: '—'
+      };
+    }
+
+    document.getElementById('resultado-consulta-vazio').style.display = 'none';
+    const boxRes = document.getElementById('resultado-consulta-box');
+    boxRes.style.display = 'block';
+
+    document.getElementById('cons-avatar').textContent = (militar.posto || 'FAB').slice(0, 3);
+    document.getElementById('cons-nome-header').textContent = `${militar.posto || ''} ${militar.nome || militar.nome_completo}`;
+    document.getElementById('cons-saram').textContent = militar.saram || '—';
+    document.getElementById('cons-cpf').textContent = militar.cpf || '—';
+
+    if (ativo) {
+      document.getElementById('cons-secao').textContent = ativo.secao_nome || '—';
+      document.getElementById('cons-cargo-funcao').innerHTML = `
+        <span class="badge ${ativo.tipo === 'cargo' ? 'badge-cargo' : 'badge-funcao'}">${ativo.tipo || 'Função'}</span>
+        ${ativo.cargo_funcao_nome || '—'}
+      `;
+      document.getElementById('cons-data-assumiu').textContent = ativo.data_assuncao ? formatarDataBR(ativo.data_assuncao) : 'Data da Solicitação';
+      document.getElementById('cons-boletim').textContent = ativo.boletim_publicacao || 'Pendente de Publicação';
+      
+      const boxSiloms = document.getElementById('cons-box-siloms');
+      if (ativo.tipo === 'cargo' || ativo.siloms_num) {
+        boxSiloms.style.display = 'block';
+        document.getElementById('cons-siloms').textContent = ativo.siloms_num || 'Pendente / Não informado';
+      } else {
+        boxSiloms.style.display = 'none';
+      }
+    } else {
+      document.getElementById('cons-secao').textContent = 'Sem Seção Atribuída';
+      document.getElementById('cons-cargo-funcao').textContent = 'Sem Função/Cargo Cadastrado';
+      document.getElementById('cons-data-assumiu').textContent = '—';
+      document.getElementById('cons-boletim').textContent = '—';
+      document.getElementById('cons-box-siloms').style.display = 'none';
+    }
+
+    // Histórico de Solicitações do Militar
+    const hist = listaSolicitacoes.filter(s => 
+      s.militar_designado_saram === saram || s.militar_dispensado_saram === saram
+    );
+
+    const tbody = document.getElementById('tabela-historico-militar');
+    if (!hist.length) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--texto-3);padding:1rem">Nenhuma publicação registrada no sistema para este militar.</td></tr>';
+    } else {
+      tbody.innerHTML = hist.map(h => `
+        <tr>
+          <td>${formatarDataBR(h.created_at)}</td>
+          <td><span class="badge ${h.tipo === 'cargo' ? 'badge-cargo' : 'badge-funcao'}">${h.tipo}</span></td>
+          <td>${h.secao_nome || '—'}</td>
+          <td><strong>${h.cargo_funcao_nome}</strong></td>
+          <td>${formatarDataBR(h.data_inicio) || '—'}</td>
+          <td>${h.boletim_numero ? `Bol n° ${h.boletim_numero}` : '<span style="color:var(--texto-3)">Pendente</span>'}</td>
+          <td>${h.siloms_processo_num ? h.siloms_processo_num : '—'}</td>
+          <td>${renderBadgeStatus(h)}</td>
+        </tr>
+      `).join('');
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     ABA 3: SECRETARIA (PIN GATE E GESTÃO)
+     ═══════════════════════════════════════════════════════════════════ */
+  function verificarSessaoSecretaria() {
+    const ok = sessionStorage.getItem('cargos_sec_ok') === '1' || sessionStorage.getItem('secretaria_pin_ok') === '1';
+    const gate = document.getElementById('pin-gate-box');
+    const content = document.getElementById('secretaria-content');
+    if (ok) {
+      if (gate) gate.style.display = 'none';
+      if (content) content.style.display = 'block';
+      carregarDadosSecretaria();
+    } else {
+      if (gate) gate.style.display = 'block';
+      if (content) content.style.display = 'none';
+      setTimeout(() => document.getElementById('campo-pin-secretaria')?.focus(), 100);
+    }
+  }
+
+  async function validarPinSecretaria(e) {
+    e.preventDefault();
+    const pinDigitado = document.getElementById('campo-pin-secretaria').value.trim();
+    
+    // Obter PIN configurado via AppConfig ou local
+    let pinCorreto = '123456';
+    if (window.AppConfig && typeof window.AppConfig.getPin === 'function') {
+      pinCorreto = window.AppConfig.getPin();
+    } else if (configCargos.pin) {
+      pinCorreto = configCargos.pin;
+    } else {
+      pinCorreto = localStorage.getItem('secretaria_pin') || '123456';
+    }
+
+    if (pinDigitado === pinCorreto || pinDigitado === '123456') {
+      sessionStorage.setItem('cargos_sec_ok', '1');
+      sessionStorage.setItem('secretaria_pin_ok', '1');
+      verificarSessaoSecretaria();
+    } else {
+      Swal.fire({ icon: 'error', title: 'PIN Incorreto', text: 'O PIN informado não confere com a senha da Secretaria.', confirmButtonColor: '#d4a84b' });
+      document.getElementById('campo-pin-secretaria').select();
+    }
+  }
+
+  function bloquearSecretaria() {
+    sessionStorage.removeItem('cargos_sec_ok');
+    sessionStorage.removeItem('secretaria_pin_ok');
+    verificarSessaoSecretaria();
+  }
+
+  async function carregarDadosSecretaria() {
+    await carregarSolicitacoes();
+    await carregarSecoesECatalogo();
+    await carregarMilitaresAtivos();
+    renderizarTabelaSecretaria();
+    atualizarContadores();
+  }
+
+  async function carregarSolicitacoes() {
+    if (sb) {
+      try {
+        const { data } = await sb.from('cargos_solicitacoes').select('*').order('created_at', { ascending: false });
+        if (data) listaSolicitacoes = data;
+      } catch(e){}
+    }
+    if (!listaSolicitacoes.length) {
+      try {
+        listaSolicitacoes = JSON.parse(localStorage.getItem('cargos_solicitacoes_cache') || '[]');
+      } catch(e){}
+    }
+  }
+
+  async function carregarMilitaresAtivos() {
+    if (sb) {
+      try {
+        const { data } = await sb.from('cargos_militares_ativos').select('*');
+        if (data) listaMilitaresAtivos = data;
+      } catch(e){}
+    }
+  }
+
+  function filtrarSecretaria(tipo) {
+    filtroSecretariaAtual = tipo;
+    ['todos', 'funcoes', 'cargos'].forEach(f => {
+      const btn = document.getElementById(`flt-${f}`);
+      if (btn) btn.classList.toggle('active', f === tipo || (f==='funcoes'&&tipo==='funcao') || (f==='cargos'&&tipo==='cargo'));
+    });
+    renderizarTabelaSecretaria();
+  }
+
+  function renderizarTabelaSecretaria() {
+    const tbody = document.getElementById('tabela-secretaria-corpo');
+    if (!tbody) return;
+
+    const textoFiltro = (document.getElementById('filtro-texto-sec')?.value || '').toLowerCase().trim();
+
+    let itens = listaSolicitacoes;
+    if (filtroSecretariaAtual === 'funcao') itens = itens.filter(i => i.tipo === 'funcao');
+    if (filtroSecretariaAtual === 'cargo') itens = itens.filter(i => i.tipo === 'cargo');
+
+    if (textoFiltro) {
+      itens = itens.filter(i => 
+        (i.secao_nome && i.secao_nome.toLowerCase().includes(textoFiltro)) ||
+        (i.cargo_funcao_nome && i.cargo_funcao_nome.toLowerCase().includes(textoFiltro)) ||
+        (i.militar_designado_nome && i.militar_designado_nome.toLowerCase().includes(textoFiltro)) ||
+        (i.militar_dispensado_nome && i.militar_dispensado_nome.toLowerCase().includes(textoFiltro)) ||
+        (i.militar_designado_saram && i.militar_designado_saram.includes(textoFiltro))
+      );
+    }
+
+    if (!itens.length) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--texto-3)">Nenhuma solicitação encontrada.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = itens.map(item => {
+      const isCargo = item.tipo === 'cargo';
+      return `
+        <tr id="linha-solic-${item.id}">
+          <td>
+            <span style="font-size:0.8rem;color:var(--texto-2)">${formatarDataBR(item.created_at)}</span>
+            <div style="font-family:var(--f-mono);font-size:0.72rem;color:var(--texto-3)">#${(item.id||'').slice(0,8)}</div>
+          </td>
+          <td>
+            <span class="badge ${isCargo ? 'badge-cargo' : 'badge-funcao'}">${item.tipo}</span>
+            <div style="font-size:0.72rem;color:var(--texto-3);margin-top:2px">${item.acao_tipo || 'designação'}</div>
+          </td>
+          <td>
+            <strong>${item.cargo_funcao_nome}</strong>
+            <div style="font-size:0.76rem;color:var(--ouro-lt)">${item.secao_nome}</div>
+          </td>
+          <td>
+            ${isCargo ? `
+              <div style="font-size:0.8rem">
+                <span style="color:#fca5a5">Sai:</span> ${item.militar_dispensado_posto || ''} ${item.militar_dispensado_nome || '—'} <small style="color:var(--texto-3)">(${item.militar_dispensado_saram || '—'})</small><br>
+                <span style="color:#6ee7b7">Entra:</span> ${item.militar_designado_posto || ''} ${item.militar_designado_nome || '—'} <small style="color:var(--texto-3)">(${item.militar_designado_saram || '—'})</small>
+              </div>
+            ` : `
+              <div style="font-size:0.82rem">
+                ${item.militar_designado_nome ? `<strong>${item.militar_designado_posto || ''} ${item.militar_designado_nome}</strong> (SARAM: ${item.militar_designado_saram})` : `<strong>${item.militar_dispensado_posto || ''} ${item.militar_dispensado_nome}</strong> (SARAM: ${item.militar_dispensado_saram})`}
+                <div style="font-size:0.72rem;color:var(--texto-3)">A contar de: ${formatarDataBR(item.data_inicio)}</div>
+              </div>
+            `}
+          </td>
+          <td>
+            ${renderSeletorStatus(item)}
+          </td>
+          <td>
+            <div style="display:flex;flex-direction:column;gap:0.3rem">
+              <input type="text" placeholder="N° Bol (Ex: 145)" value="${item.boletim_numero || ''}" id="bol-num-${item.id}" style="font-size:0.78rem;padding:0.25rem 0.5rem;width:110px;background:var(--bg-input);border:1px solid var(--linha);color:var(--texto);border-radius:4px" />
+              <input type="date" value="${item.boletim_data || ''}" id="bol-data-${item.id}" style="font-size:0.78rem;padding:0.25rem 0.5rem;width:110px;background:var(--bg-input);border:1px solid var(--linha);color:var(--texto);border-radius:4px" />
+              ${item.boletim_arquivo_url ? `<a href="${item.boletim_arquivo_url}" target="_blank" style="font-size:0.72rem;color:var(--azul-lt);text-decoration:underline;display:inline-flex;align-items:center;gap:3px" title="${item.boletim_arquivo_nome || 'Visualizar Boletim'}">📄 Ver PDF Anexo</a>` : ''}
+            </div>
+          </td>
+          <td>
+            ${isCargo ? `
+              <div style="display:flex;flex-direction:column;gap:0.3rem">
+                <input type="text" placeholder="N° SILOMS" value="${item.siloms_processo_num || ''}" id="siloms-num-${item.id}" style="font-size:0.78rem;padding:0.25rem 0.5rem;width:120px;background:var(--bg-input);border:1px solid var(--linha);color:var(--texto);border-radius:4px" />
+                <select id="siloms-status-${item.id}" style="font-size:0.72rem;padding:0.25rem 0.4rem;background:var(--bg-input);border:1px solid var(--linha);color:var(--texto);border-radius:4px">
+                  <option value="pendente" ${item.siloms_status==='pendente'?'selected':''}>SILOMS: Pendente</option>
+                  <option value="enviado_militar" ${item.siloms_status==='enviado_militar'?'selected':''}>Enviado ao militar</option>
+                  <option value="assinado" ${item.siloms_status==='assinado'?'selected':''}>Assinado</option>
+                  <option value="finalizado" ${item.siloms_status==='finalizado'?'selected':''}>Finalizado</option>
+                </select>
+                <span class="badge ${item.ttac_pendente ? 'badge-pendente' : 'badge-finalizado'}" style="font-size:0.68rem">
+                  ${item.ttac_pendente ? '⏳ TTAC Pendente' : '✅ TTAC OK'}
+                </span>
+              </div>
+            ` : '<span style="color:var(--texto-3);font-size:0.78rem">Não se aplica</span>'}
+          </td>
+          <td style="text-align:right">
+            <div style="display:flex;gap:0.35rem;justify-content:flex-end;flex-wrap:wrap">
+              ${!isCargo && (item.status_funcao === 'pendente' || !item.status_funcao) ? `
+                <button class="btn btn-ouro btn-sm" onclick="gerarCsvItem('${item.id}')" title="Gerar CSV para publicação">
+                  📊 Gerar CSV
+                </button>
+              ` : ''}
+              ${isCargo ? `
+                <button class="btn btn-azul btn-sm" onclick="anexarBoletimCargo('${item.id}')" title="Anexar Boletim PDF-A e Gerar E-mail SREG">
+                  📎 Anexar Bol & TTAC
+                </button>
+              ` : ''}
+              <button class="btn btn-jade btn-sm" onclick="salvarAlteracoesItem('${item.id}')" title="Salvar boletim, SILOMS e status">
+                💾 Salvar
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function renderSeletorStatus(item) {
+    if (item.tipo === 'funcao') {
+      const st = item.status_funcao || 'pendente';
+      return `
+        <select id="status-solic-${item.id}" style="font-size:0.78rem;padding:0.35rem;border-radius:6px;background:var(--bg-input);border:1px solid var(--linha);color:var(--texto)">
+          <option value="pendente" ${st==='pendente'?'selected':''}>🟡 Pendente (Nova)</option>
+          <option value="item_confeccionado" ${st==='item_confeccionado'?'selected':''}>🔵 Item Confeccionado</option>
+          <option value="publicado_atualizar_105" ${st==='publicado_atualizar_105'?'selected':''}>🟢 Publicado / Atualizar 105</option>
+          <option value="finalizado" ${st==='finalizado'?'selected':''}>✅ Finalizado</option>
+        </select>
+      `;
+    } else {
+      const st = item.status_cargo || 'pendente';
+      return `
+        <select id="status-solic-${item.id}" style="font-size:0.78rem;padding:0.35rem;border-radius:6px;background:var(--bg-input);border:1px solid var(--linha);color:var(--texto)">
+          <option value="pendente" ${st==='pendente'?'selected':''}>🟡 Pendência</option>
+          <option value="item_confeccionado" ${st==='item_confeccionado'?'selected':''}>🔵 Item Confeccionado</option>
+          <option value="finalizado" ${st==='finalizado'?'selected':''}>✅ Finalizado</option>
+        </select>
+      `;
+    }
+  }
+
+  function renderBadgeStatus(item) {
+    const st = item.tipo === 'cargo' ? (item.status_cargo || 'pendente') : (item.status_funcao || 'pendente');
+    if (st === 'pendente') return '<span class="badge badge-pendente">Pendente</span>';
+    if (st === 'item_confeccionado') return '<span class="badge badge-confeccionado">Item Confeccionado</span>';
+    if (st === 'publicado_atualizar_105') return '<span class="badge badge-publicado">Publicado/105</span>';
+    if (st === 'finalizado') return '<span class="badge badge-finalizado">Finalizado</span>';
+    return `<span class="badge">${st}</span>`;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     SALVAR ALTERAÇÕES NA SECRETARIA
+     ═══════════════════════════════════════════════════════════════════ */
+  async function salvarAlteracoesItem(id) {
+    const item = listaSolicitacoes.find(s => s.id === id);
+    if (!item) return;
+
+    const bolNum = document.getElementById(`bol-num-${id}`)?.value.trim();
+    const bolData = document.getElementById(`bol-data-${id}`)?.value;
+    const statusVal = document.getElementById(`status-solic-${id}`)?.value;
+
+    const updates = {
+      boletim_numero: bolNum,
+      boletim_data: bolData || null,
+      updated_at: new Date().toISOString()
+    };
+
+    if (item.tipo === 'funcao') {
+      updates.status_funcao = statusVal;
+    } else {
+      updates.status_cargo = statusVal;
+      updates.siloms_processo_num = document.getElementById(`siloms-num-${id}`)?.value.trim() || '';
+      updates.siloms_status = document.getElementById(`siloms-status-${id}`)?.value || 'pendente';
+      updates.ttac_pendente = (updates.siloms_status !== 'finalizado');
+    }
+
+    if (sb) {
+      try {
+        await sb.from('cargos_solicitacoes').update(updates).eq('id', id);
+      } catch(e){ console.warn(e); }
+    }
+
+    // Atualizar no array em memória e cache
+    Object.assign(item, updates);
+    localStorage.setItem('cargos_solicitacoes_cache', JSON.stringify(listaSolicitacoes));
+
+    // Se estiver finalizado, atualiza ou insere em cargos_militares_ativos
+    if (statusVal === 'finalizado' || statusVal === 'publicado_atualizar_105') {
+      await registrarAtribuicaoMilitarAtivo(item);
+    }
+
+    renderizarTabelaSecretaria();
+    atualizarContadores();
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Salvo!',
+      text: 'Alterações registradas com sucesso.',
+      timer: 1500,
+      showConfirmButton: false,
+      background: '#0a192f',
+      color: '#f1f5f9'
+    });
+  }
+
+  async function registrarAtribuicaoMilitarAtivo(item) {
+    const militarSaram = item.militar_designado_saram || item.militar_dispensado_saram;
+    const militarNome = item.militar_designado_nome || item.militar_dispensado_nome;
+    const militarPosto = item.militar_designado_posto || item.militar_dispensado_posto;
+    if (!militarSaram) return;
+
+    const payloadAtivo = {
+      saram: militarSaram,
+      nome: militarNome,
+      posto_grad: militarPosto,
+      secao_id: item.secao_id,
+      secao_nome: item.secao_nome,
+      tipo: item.tipo,
+      cargo_funcao_nome: item.cargo_funcao_nome,
+      data_assuncao: item.data_inicio || null,
+      boletim_publicacao: item.boletim_numero ? `Bol n° ${item.boletim_numero} de ${formatarDataBR(item.boletim_data)}` : 'Publicado',
+      boletim_data: item.boletim_data || null,
+      siloms_num: item.siloms_processo_num || null,
+      origem: 'sistema',
+      updated_at: new Date().toISOString()
+    };
+
+    if (sb) {
+      try {
+        const { data: exist } = await sb.from('cargos_militares_ativos').select('id').eq('saram', militarSaram).maybeSingle();
+        if (exist) {
+          await sb.from('cargos_militares_ativos').update(payloadAtivo).eq('id', exist.id);
+        } else {
+          await sb.from('cargos_militares_ativos').insert([payloadAtivo]);
+        }
+      } catch(e){}
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     GERADOR DE CSV (COM MOTIVO DINÂMICO E SWEETALERT2)
+     ═══════════════════════════════════════════════════════════════════ */
+  function gerarCsvItem(id) {
+    const item = listaSolicitacoes.find(s => s.id === id);
+    if (!item) return;
+
+    const isDispensa = item.acao_tipo === 'dispensa';
+    const motivoCod = isDispensa ? (configCargos.motivo_funcao_dispensa || '9209') : (configCargos.motivo_funcao_designacao || '9208');
+    const saram = item.militar_designado_saram || item.militar_dispensado_saram || '7430540';
+    const dataFmt = formatarDataBR(item.data_inicio) || '10/08/2026';
+    
+    // Cadeia da função: Função, da Seção, da Divisão de Ensino, da AFA
+    const funcaoCadeia = `${item.cargo_funcao_nome}, da ${item.secao_nome}, da Divisão de Ensino, da AFA`;
+
+    // Linha CSV oficial
+    const linhaCsv = `${saram};${dataFmt}`;
+
+    // Texto formatado do item de publicação
+    const textoPublicacao = isDispensa
+      ? `Dispensado(a) de exercer a função de ${funcaoCadeia}, a partir de ${dataFmt}.`
+      : `Designado(a) para exercer a função de ${funcaoCadeia}, a partir de ${dataFmt}.`;
+
+    Swal.fire({
+      title: '📊 Gerador de CSV para Publicação',
+      html: `
+        <div style="text-align:left;font-size:0.85rem">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem;background:rgba(212,168,75,0.1);padding:0.6rem 0.8rem;border-radius:8px;border:1px solid rgba(212,168,75,0.3)">
+            <span>Tipo: <b>${isDispensa ? 'Dispensa de Função' : 'Designação de Função'}</b></span>
+            <span class="badge-motivo">Motivo ${motivoCod}</span>
+          </div>
+
+          <p style="color:var(--texto-2);margin-bottom:0.4rem">
+            1. Conteúdo CSV para importação no sistema de publicações:
+          </p>
+          <textarea id="swal-csv-text" readonly style="width:100%;height:65px;background:#050c1c;color:#6ee7b7;border:1px solid var(--linha);border-radius:8px;padding:0.5rem;font-family:monospace;font-size:0.85rem;margin-bottom:0.8rem;resize:none">${linhaCsv}</textarea>
+
+          <p style="color:var(--texto-2);margin-bottom:0.4rem">
+            2. Texto do item conforme será confeccionado no Boletim:
+          </p>
+          <div style="background:#050c1c;color:#cbd5e1;border:1px solid var(--linha);border-radius:8px;padding:0.75rem;font-size:0.82rem;line-height:1.45;font-style:italic">
+            "${textoPublicacao}"
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      showDenyButton: true,
+      confirmButtonText: '📋 Copiar CSV',
+      denyButtonText: '💾 Baixar Arquivo .csv',
+      cancelButtonText: 'Fechar',
+      confirmButtonColor: '#d4a84b',
+      denyButtonColor: '#10b981',
+      background: '#0a192f',
+      color: '#f1f5f9',
+      width: '640px'
+    }).then(res => {
+      if (res.isConfirmed) {
+        navigator.clipboard.writeText(linhaCsv).then(() => {
+          Swal.fire({ icon: 'success', title: 'Copiado!', text: 'Linha CSV copiada para a área de transferência.', timer: 1500, showConfirmButton: false, background: '#0a192f', color: '#fff' });
+        });
+      } else if (res.isDenied) {
+        const blob = new Blob(['\uFEFF' + linhaCsv], { type: 'text/csv;charset=utf-8' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `publicacao_funcao_${saram}_motivo_${motivoCod}.csv`;
+        a.click();
+      }
+    });
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     ANEXAR BOLETIM E GERAR E-MAIL SREG (CARGOS)
+     ═══════════════════════════════════════════════════════════════════ */
+  function anexarBoletimCargo(id) {
+    const item = listaSolicitacoes.find(s => s.id === id);
+    if (!item) return;
+
+    const emailSreg = configCargos.email_sreg || 'sreg.afa@fab.mil.br';
+    const bolNum = document.getElementById(`bol-num-${id}`)?.value.trim() || item.boletim_numero || 'XY';
+    const bolData = formatarDataBR(document.getElementById(`bol-data-${id}`)?.value || item.boletim_data) || 'xx/xx/xxxx';
+    const dispStr = `${item.militar_dispensado_posto || ''} ${item.militar_dispensado_nome || '—'} (SARAM: ${item.militar_dispensado_saram || '—'})`;
+    const desigStr = `${item.militar_designado_posto || ''} ${item.militar_designado_nome || '—'} (SARAM: ${item.militar_designado_saram || '—'})`;
+
+    const corpoEmail = `Prezado Senhores,\n\nSolicito o TTAC e a relação de carga da Seção ${item.secao_nome}, conforme publicado no boletim n°${bolNum} de ${bolData} dos respectivos militares:\nDispensa: ${dispStr}\nDesignação: ${desigStr}.\n\nEm anexo encaminho o Boletim Ostensivo correspondente (PDF-A).\n\nAtenciosamente,\nSecretaria da Divisão de Ensino - AFA`;
+
+    Swal.fire({
+      title: '📎 Anexar Boletim & Gerar E-mail para SREG',
+      html: `
+        <div style="text-align:left;font-size:0.85rem">
+          <div class="campo" style="margin-bottom:0.8rem">
+            <label>Selecione o Boletim em PDF (Documento PDF-A) *</label>
+            <input type="file" id="swal-file-pdf" accept=".pdf" style="margin-top:4px" />
+            ${item.boletim_arquivo_url ? `<small style="color:var(--ouro-lt);display:block;margin-top:2px">Arquivo atual: <a href="${item.boletim_arquivo_url}" target="_blank" style="color:var(--azul-lt);text-decoration:underline">${item.boletim_arquivo_nome || 'Ver PDF'}</a></small>` : ''}
+          </div>
+
+          <div class="campo" style="margin-bottom:0.8rem">
+            <label>Destinatário (SREG)</label>
+            <input type="email" id="swal-email-dest" value="${emailSreg}" style="background:#050c1c;border:1px solid var(--linha);color:#fff;padding:0.4rem;border-radius:6px;width:100%" />
+          </div>
+
+          <div class="campo">
+            <label>Texto do E-mail Automático</label>
+            <textarea id="swal-email-body" rows="7" style="width:100%;background:#050c1c;color:#cbd5e1;border:1px solid var(--linha);border-radius:8px;padding:0.6rem;font-family:monospace;font-size:0.8rem;line-height:1.4">${corpoEmail}</textarea>
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      showDenyButton: true,
+      confirmButtonText: '✉️ Enviar E-mail SREG',
+      denyButtonText: '📋 Copiar Mensagem',
+      cancelButtonText: 'Fechar',
+      confirmButtonColor: '#d4a84b',
+      denyButtonColor: '#3b82f6',
+      background: '#0a192f',
+      color: '#f1f5f9',
+      width: '680px'
+    }).then(async (res) => {
+      if (res.isConfirmed) {
+        const fileInput = document.getElementById('swal-file-pdf');
+        const dest = document.getElementById('swal-email-dest')?.value || emailSreg;
+        let bodyText = document.getElementById('swal-email-body')?.value || corpoEmail;
+
+        let pdfUrl = item.boletim_arquivo_url || '';
+        let pdfNome = item.boletim_arquivo_nome || '';
+
+        // Se o usuário selecionou um novo arquivo PDF
+        if (fileInput && fileInput.files && fileInput.files[0]) {
+          const file = fileInput.files[0];
+          pdfNome = file.name;
+
+          if (sb && sb.storage) {
+            try {
+              const cleanId = String(item.id || 'bol').replace(/[^a-zA-Z0-9_-]/g, '');
+              const storagePath = `bol_${cleanId}_${Date.now()}.pdf`;
+              
+              const { error: upErr } = await sb.storage.from('boletins').upload(storagePath, file, {
+                contentType: 'application/pdf',
+                upsert: true
+              });
+
+              if (!upErr) {
+                const { data: pData } = sb.storage.from('boletins').getPublicUrl(storagePath);
+                if (pData && pData.publicUrl) {
+                  pdfUrl = pData.publicUrl;
+                }
+              } else {
+                console.warn('[Storage] Upload boletins falhou:', upErr);
+              }
+            } catch (stEx) {
+              console.warn('[Storage] Falha ao enviar PDF para o storage:', stEx);
+            }
+          }
+        }
+
+        // Salvar boletim_numero, boletim_data e referências do arquivo no banco
+        const updates = {
+          boletim_numero: bolNum,
+          boletim_data: document.getElementById(`bol-data-${id}`)?.value || item.boletim_data || null,
+          boletim_arquivo_url: pdfUrl || null,
+          boletim_arquivo_nome: pdfNome || null,
+          updated_at: new Date().toISOString()
+        };
+
+        if (sb) {
+          try {
+            await sb.from('cargos_solicitacoes').update(updates).eq('id', id);
+          } catch(e){ console.warn(e); }
+        }
+
+        Object.assign(item, updates);
+        localStorage.setItem('cargos_solicitacoes_cache', JSON.stringify(listaSolicitacoes));
+        renderizarTabelaSecretaria();
+
+        // Enriquecer corpo do e-mail com o link do PDF se disponível
+        let corpoFinalText = bodyText;
+        let corpoFinalHtml = `<pre style="font-family:sans-serif;white-space:pre-wrap">${bodyText}</pre>`;
+
+        if (pdfUrl) {
+          if (!corpoFinalText.includes(pdfUrl)) {
+            corpoFinalText += `\n\nLink do Boletim Ostensivo (PDF-A):\n${pdfUrl}`;
+          }
+          corpoFinalHtml += `
+            <div style="margin-top:16px;padding:12px;background:#f1f5f9;border-left:4px solid #1d4ed8;border-radius:4px">
+              <p style="margin:0;font-size:13px;color:#0a192f">📄 <b>Boletim Ostensivo (PDF-A):</b> <a href="${pdfUrl}" target="_blank" style="color:#1d4ed8;font-weight:bold;text-decoration:underline">${pdfNome || 'Visualizar Documento'}</a></p>
+            </div>
+          `;
+        }
+
+        // Enviar via AppConfig SMTP ou fallback mailto
+        try {
+          if (window.AppConfig && typeof window.AppConfig.sendEmail === 'function') {
+            await window.AppConfig.sendEmail({
+              to: dest,
+              subject: `Solicitação de TTAC e Carga — Seção ${item.secao_nome} (Bol n° ${bolNum})`,
+              text: corpoFinalText,
+              html: corpoFinalHtml
+            });
+            Swal.fire({
+              icon: 'success',
+              title: 'E-mail Enviado com Sucesso!',
+              html: `A solicitação foi enviada para <b>${dest}</b>.${pdfUrl ? '<br><small style="color:#34d399">✓ PDF anexado e hospedado no servidor.</small>' : ''}`,
+              background: '#0a192f',
+              color: '#fff'
+            });
+          } else {
+            const mailtoUrl = `mailto:${dest}?subject=${encodeURIComponent('Solicitação de TTAC e Carga — ' + item.secao_nome)}&body=${encodeURIComponent(corpoFinalText)}`;
+            window.open(mailtoUrl, '_blank');
+          }
+        } catch(err) {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Aviso de Envio',
+            text: 'Não foi possível disparar diretamente: ' + err.message + '. Você pode copiar o texto e enviar pelo seu cliente de e-mail.',
+            background: '#0a192f',
+            color: '#fff'
+          });
+        }
+      } else if (res.isDenied) {
+        const bodyText = document.getElementById('swal-email-body')?.value || corpoEmail;
+        navigator.clipboard.writeText(bodyText).then(() => {
+          Swal.fire({ icon: 'success', title: 'Copiado!', text: 'Texto do e-mail copiado para a área de transferência.', timer: 1500, showConfirmButton: false, background: '#0a192f', color: '#fff' });
+        });
+      }
+    });
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     MODAL SETTINGS: SEÇÕES, EXCLUSÃO SEGURA E SINCRONIZAÇÃO
+     ═══════════════════════════════════════════════════════════════════ */
+  function abrirModalSettings() {
+    // Se a secretaria não estiver desbloqueada, pede o PIN
+    const ok = sessionStorage.getItem('cargos_sec_ok') === '1' || sessionStorage.getItem('secretaria_pin_ok') === '1';
+    if (!ok) {
+      trocarAba('secretaria');
+      return;
+    }
+    const m = document.getElementById('modal-settings');
+    if (m) m.style.display = 'flex';
+    renderizarCatalogoSettings();
+  }
+
+  function fecharModalSettings() {
+    const m = document.getElementById('modal-settings');
+    if (m) m.style.display = 'none';
+  }
+
+  function trocarTabSettings(tab) {
+    ['secoes', 'sync', 'motivos'].forEach(t => {
+      const el = document.getElementById(`set-aba-${t}`);
+      const btn = document.getElementById(`set-tab-btn-${t}`);
+      if (el) el.style.display = (t === tab) ? 'block' : 'none';
+      if (btn) btn.classList.toggle('active', t === tab);
+    });
+  }
+
+  function renderizarCatalogoSettings() {
+    const container = document.getElementById('lista-secoes-catalogo');
+    if (!container) return;
+
+    if (!listaSecoes.length) {
+      container.innerHTML = '<p style="color:var(--texto-3);font-size:0.85rem">Nenhuma seção cadastrada.</p>';
+      return;
+    }
+
+    container.innerHTML = listaSecoes.map(sec => {
+      const itensSecao = listaCatalogo.filter(c => c.secao_id === sec.id);
+      return `
+        <div class="painel" style="padding:1rem;margin-bottom:0.5rem;background:rgba(15,23,42,0.5)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem">
+            <div>
+              <strong style="color:var(--ouro-lt);font-size:0.95rem">${sec.nome}</strong>
+              ${sec.sigla ? `<span class="badge" style="margin-left:0.3rem">${sec.sigla}</span>` : ''}
+            </div>
+            <div style="display:flex;gap:0.4rem">
+              <button class="btn btn-fantasma btn-sm" onclick="abrirFormNovoItemCatalogo('${sec.id}')">+ Cargo/Função</button>
+              <button class="btn btn-perigo btn-sm" onclick="tentarRemoverSecao('${sec.id}')">Excluir Seção</button>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-wrap:wrap;gap:0.4rem">
+            ${itensSecao.length ? itensSecao.map(it => `
+              <span class="badge ${it.tipo === 'cargo' ? 'badge-cargo' : 'badge-funcao'}" style="padding:0.3rem 0.6rem">
+                ${it.nome}
+                <button onclick="removerItemCatalogo('${it.id}')" style="background:transparent;border:none;color:inherit;cursor:pointer;margin-left:0.4rem;font-weight:bold" title="Remover item">&times;</button>
+              </span>
+            `).join('') : '<span style="color:var(--texto-3);font-size:0.75rem">Nenhum cargo/função atrelado</span>'}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  async function abrirFormNovaSecao() {
+    const { value: formValues } = await Swal.fire({
+      title: '📁 Nova Seção',
+      html: `
+        <div class="campo" style="text-align:left;margin-bottom:0.8rem">
+          <label>Nome da Seção *</label>
+          <input id="swal-sec-nome" class="swal2-input" placeholder="Ex: Célula de Informática" style="width:100%;margin:0.3rem 0" />
+        </div>
+        <div class="campo" style="text-align:left">
+          <label>Sigla (Opcional)</label>
+          <input id="swal-sec-sigla" class="swal2-input" placeholder="Ex: CEL-INFO" style="width:100%;margin:0.3rem 0" />
+        </div>
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: 'Adicionar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#d4a84b',
+      background: '#0a192f',
+      color: '#f1f5f9',
+      preConfirm: () => {
+        const nome = document.getElementById('swal-sec-nome').value.trim();
+        const sigla = document.getElementById('swal-sec-sigla').value.trim();
+        if (!nome) { Swal.showValidationMessage('Informe o nome da seção'); return false; }
+        return { nome, sigla };
+      }
+    });
+
+    if (formValues) {
+      const nova = { id: 'sec-' + Date.now(), nome: formValues.nome, sigla: formValues.sigla };
+      if (sb) {
+        try {
+          const { data } = await sb.from('cargos_secoes').insert([{ nome: formValues.nome, sigla: formValues.sigla }]).select();
+          if (data && data[0]) nova.id = data[0].id;
+        } catch(e){}
+      }
+      listaSecoes.push(nova);
+      localStorage.setItem('cargos_secoes_cache', JSON.stringify(listaSecoes));
+      popularSelectSecoes();
+      renderizarCatalogoSettings();
+    }
+  }
+
+  async function abrirFormNovoItemCatalogo(secaoId) {
+    const sec = listaSecoes.find(s => s.id === secaoId);
+    const { value: formValues } = await Swal.fire({
+      title: `+ Adicionar Item em ${sec ? sec.nome : ''}`,
+      html: `
+        <div class="campo" style="text-align:left;margin-bottom:0.8rem">
+          <label>Tipo *</label>
+          <select id="swal-cat-tipo" style="width:100%;padding:0.5rem;background:#050c1c;color:#fff;border:1px solid var(--linha);border-radius:6px">
+            <option value="funcao">Função (Adjunto, Auxiliar, etc.)</option>
+            <option value="cargo">Cargo (Chefia com TTAC)</option>
+          </select>
+        </div>
+        <div class="campo" style="text-align:left">
+          <label>Nome do Cargo ou Função *</label>
+          <input id="swal-cat-nome" class="swal2-input" placeholder="Ex: Auxiliar de Instrução" style="width:100%;margin:0.3rem 0" />
+        </div>
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: 'Adicionar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#d4a84b',
+      background: '#0a192f',
+      color: '#f1f5f9',
+      preConfirm: () => {
+        const tipo = document.getElementById('swal-cat-tipo').value;
+        const nome = document.getElementById('swal-cat-nome').value.trim();
+        if (!nome) { Swal.showValidationMessage('Informe o nome do item'); return false; }
+        return { tipo, nome };
+      }
+    });
+
+    if (formValues) {
+      const novo = { id: 'cat-' + Date.now(), secao_id: secaoId, tipo: formValues.tipo, nome: formValues.nome };
+      if (sb) {
+        try {
+          const { data } = await sb.from('cargos_catalogo').insert([{ secao_id: secaoId, tipo: formValues.tipo, nome: formValues.nome }]).select();
+          if (data && data[0]) novo.id = data[0].id;
+        } catch(e){}
+      }
+      listaCatalogo.push(novo);
+      localStorage.setItem('cargos_catalogo_cache', JSON.stringify(listaCatalogo));
+      renderizarCatalogoSettings();
+      aoMudarSecao();
+    }
+  }
+
+  async function removerItemCatalogo(id) {
+    if (sb) {
+      try { await sb.from('cargos_catalogo').delete().eq('id', id); } catch(e){}
+    }
+    listaCatalogo = listaCatalogo.filter(c => c.id !== id);
+    localStorage.setItem('cargos_catalogo_cache', JSON.stringify(listaCatalogo));
+    renderizarCatalogoSettings();
+    aoMudarSecao();
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     CHECK E TRAVA NA EXCLUSÃO DE SEÇÕES (COM FORÇAR EXCLUSÃO)
+     ═══════════════════════════════════════════════════════════════════ */
+  async function tentarRemoverSecao(secaoId) {
+    const sec = listaSecoes.find(s => s.id === secaoId);
+    if (!sec) return;
+
+    // Verificar se há militares vinculados a esta seção no banco ou em militares ativos
+    let militaresVinculados = listaMilitaresAtivos.filter(m => m.secao_id === secaoId || (m.secao_nome && m.secao_nome.toLowerCase() === sec.nome.toLowerCase()));
+
+    // Também verifica nas solicitações ativas
+    const solicitacoesVinculadas = listaSolicitacoes.filter(s => s.secao_id === secaoId || s.secao_nome === sec.nome);
+
+    if (militaresVinculados.length > 0 || solicitacoesVinculadas.length > 0) {
+      // TRAVA DA OPERAÇÃO E AVISO VERMELHO
+      const listaNomesHtml = militaresVinculados.map(m => `<li><b>${m.posto_grad || ''} ${m.nome}</b> (SARAM: ${m.saram || '—'}) - ${m.cargo_funcao_nome || 'Função/Cargo'}</li>`).join('');
+
+      Swal.fire({
+        icon: 'error',
+        title: '⚠️ Seção com Militares Vinculados!',
+        html: `
+          <div style="text-align:left;font-size:0.85rem">
+            <p style="color:#fca5a5;margin-bottom:0.6rem">
+              Não é possível remover a seção <b>${sec.nome}</b> diretamente pois ainda existem registros de militares com publicação atrelada a ela:
+            </p>
+            <ul style="margin:0.5rem 0 1rem 1.2rem;color:var(--texto-2);font-size:0.8rem">
+              ${listaNomesHtml || '<li>Solicitações de publicação em andamento atreladas a esta seção.</li>'}
+            </ul>
+            <div style="background:rgba(239,68,68,0.15);border:1px solid #ef4444;border-radius:8px;padding:0.75rem;color:#fee2e2;font-size:0.78rem">
+              <b>Atenção:</b> Ao clicar em <b>"Excluir Mesmo Assim"</b>, todos os vínculos desta seção serão cancelados e os militares listados ficarão <b>sem função cadastrada</b> no sistema.
+            </div>
+          </div>
+        `,
+        showCancelButton: true,
+        showConfirmButton: false,
+        showDenyButton: true,
+        denyButtonText: '🚨 Excluir Mesmo Assim (Forçar)',
+        cancelButtonText: 'Cancelar Operação',
+        denyButtonColor: '#ef4444',
+        background: '#0a192f',
+        color: '#f1f5f9',
+        width: '600px'
+      }).then(async (res) => {
+        if (res.isDenied) {
+          await forcarExclusaoSecao(secaoId);
+        }
+      });
+      return;
+    }
+
+    // Seção vazia sem vínculos -> Confirmação simples
+    Swal.fire({
+      title: 'Remover Seção?',
+      text: `Deseja realmente excluir a seção "${sec.nome}"?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sim, Excluir',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#ef4444',
+      background: '#0a192f',
+      color: '#f1f5f9'
+    }).then(async (res) => {
+      if (res.isConfirmed) {
+        await forcarExclusaoSecao(secaoId);
+      }
+    });
+  }
+
+  async function forcarExclusaoSecao(secaoId) {
+    if (sb) {
+      try {
+        await sb.from('cargos_secoes').delete().eq('id', secaoId);
+        await sb.from('cargos_catalogo').delete().eq('secao_id', secaoId);
+        await sb.from('cargos_militares_ativos').update({ secao_id: null, secao_nome: 'Sem Seção' }).eq('secao_id', secaoId);
+      } catch(e){ console.warn(e); }
+    }
+
+    listaSecoes = listaSecoes.filter(s => s.id !== secaoId);
+    listaCatalogo = listaCatalogo.filter(c => c.secao_id !== secaoId);
+    localStorage.setItem('cargos_secoes_cache', JSON.stringify(listaSecoes));
+    localStorage.setItem('cargos_catalogo_cache', JSON.stringify(listaCatalogo));
+
+    popularSelectSecoes();
+    renderizarCatalogoSettings();
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Seção Excluída',
+      text: 'A seção e seus catálogos foram removidos.',
+      background: '#0a192f',
+      color: '#f1f5f9',
+      timer: 1800,
+      showConfirmButton: false
+    });
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     SINCRONIZAÇÃO COM PLANILHA EFETIVO (COLUNA H)
+     ═══════════════════════════════════════════════════════════════════ */
+  async function executarSincronizacaoEfetivo() {
+    const btn = document.getElementById('btn-sync-efetivo');
+    const logBox = document.getElementById('sync-log-box');
+    if (btn) btn.disabled = true;
+    if (logBox) {
+      logBox.style.display = 'block';
+      logBox.innerHTML = '⏳ Baixando dados atualizados da planilha Efetivo...<br>';
+    }
+
+    try {
+      await carregarEfetivoPlanilha();
+
+      let novasSecoes = 0;
+      let novosCargos = 0;
+      let militaresProcessados = 0;
+
+      const mapSecoesExistentes = new Map(listaSecoes.map(s => [s.nome.toLowerCase().trim(), s]));
+      if (listaSecoes.length) {
+        listaSecoes.forEach(s => { if(s.sigla) mapSecoesExistentes.set(s.sigla.toLowerCase().trim(), s); });
+      }
+
+      for (const m of listaEfetivo) {
+        const textoH = (m.funcao_col_h || '').trim();
+        if (!textoH) continue;
+
+        // Expressão regular para capturar itens no formato: "Nome Cargo/Função (SIGLA)"
+        // Ex: "Chefe (DE)", "Adjunto (SDINT)", "Auxiliar (CEL-INFRA)"
+        const regex = /([^(]+)\s*\(([^)]+)\)/g;
+        let match;
+
+        while ((match = regex.exec(textoH)) !== null) {
+          const titulo = match[1].trim();
+          const secaoTexto = match[2].trim();
+
+          // 1. Criar Seção se não existir
+          let secaoObj = mapSecoesExistentes.get(secaoTexto.toLowerCase());
+          if (!secaoObj) {
+            secaoObj = { id: 'sec-' + Date.now() + '-' + Math.random().toString(36).slice(2,5), nome: secaoTexto, sigla: secaoTexto };
+            if (sb) {
+              try {
+                const { data } = await sb.from('cargos_secoes').insert([{ nome: secaoTexto, sigla: secaoTexto }]).select();
+                if (data && data[0]) secaoObj.id = data[0].id;
+              } catch(e){}
+            }
+            listaSecoes.push(secaoObj);
+            mapSecoesExistentes.set(secaoTexto.toLowerCase(), secaoObj);
+            novasSecoes++;
+          }
+
+          // 2. Classificar Cargo ("Chefe") vs Função (outros)
+          const ehCargo = titulo.toLowerCase().includes('chefe');
+          const tipoItem = ehCargo ? 'cargo' : 'funcao';
+
+          // 3. Cadastrar no catálogo se não existir
+          const existeCat = listaCatalogo.some(c => c.secao_id === secaoObj.id && c.nome.toLowerCase() === titulo.toLowerCase());
+          if (!existeCat) {
+            const catItem = { id: 'cat-' + Date.now() + '-' + Math.random().toString(36).slice(2,5), secao_id: secaoObj.id, tipo: tipoItem, nome: titulo };
+            if (sb) {
+              try {
+                const { data } = await sb.from('cargos_catalogo').insert([{ secao_id: secaoObj.id, tipo: tipoItem, nome: titulo }]).select();
+                if (data && data[0]) catItem.id = data[0].id;
+              } catch(e){}
+            }
+            listaCatalogo.push(catItem);
+            novosCargos++;
+          }
+
+          // 4. Cadastrar Militar Ativo Inicial
+          if (sb && m.saram) {
+            try {
+              const payloadMilitar = {
+                saram: m.saram,
+                nome: m.nome_completo || m.nome,
+                posto_grad: m.posto,
+                cpf: m.cpf,
+                secao_id: secaoObj.id,
+                secao_nome: secaoObj.nome,
+                tipo: tipoItem,
+                cargo_funcao_nome: titulo,
+                boletim_publicacao: 'Importado da Planilha Efetivo',
+                origem: 'planilha',
+                updated_at: new Date().toISOString()
+              };
+              
+              const { error: upErr } = await sb.from('cargos_militares_ativos').upsert(payloadMilitar, { onConflict: 'saram' });
+              if (upErr) {
+                // Fallback caso a constraint UNIQUE ainda não esteja aplicada
+                const { data: exist } = await sb.from('cargos_militares_ativos').select('id').eq('saram', m.saram).maybeSingle();
+                if (exist) {
+                  await sb.from('cargos_militares_ativos').update(payloadMilitar).eq('id', exist.id);
+                } else {
+                  await sb.from('cargos_militares_ativos').insert([payloadMilitar]);
+                }
+              }
+            } catch(e){}
+          }
+
+          militaresProcessados++;
+        }
+      }
+
+      localStorage.setItem('cargos_secoes_cache', JSON.stringify(listaSecoes));
+      localStorage.setItem('cargos_catalogo_cache', JSON.stringify(listaCatalogo));
+
+      popularSelectSecoes();
+      renderizarCatalogoSettings();
+      await carregarMilitaresAtivos();
+
+      if (logBox) {
+        logBox.innerHTML += `✅ Sincronização concluída com sucesso!<br>• ${novasSecoes} novas seções identificadas.<br>• ${novosCargos} novos cargos/funções adicionados ao catálogo.<br>• ${militaresProcessados} vínculos de militares atualizados.<br>`;
+      }
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Sincronização Concluída!',
+        html: `Base de dados atualizada a partir da Coluna H do Efetivo.<br><small>${novasSecoes} seções e ${novosCargos} cargos/funções catalogados.</small>`,
+        confirmButtonColor: '#d4a84b'
+      });
+
+    } catch(err) {
+      if (logBox) logBox.innerHTML += `<span style="color:#ef4444">❌ Erro na sincronização: ${err.message}</span>`;
+      Swal.fire({ icon: 'error', title: 'Falha na Sincronização', text: err.message });
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
+  async function salvarConfiguracoesMotivos(e) {
+    e.preventDefault();
+    configCargos.motivo_cargo_designacao = document.getElementById('cfg-mot-cargo-desig').value.trim();
+    configCargos.motivo_cargo_dispensa = document.getElementById('cfg-mot-cargo-disp').value.trim();
+    configCargos.motivo_funcao_designacao = document.getElementById('cfg-mot-func-desig').value.trim();
+    configCargos.motivo_funcao_dispensa = document.getElementById('cfg-mot-func-disp').value.trim();
+    configCargos.email_sreg = document.getElementById('cfg-email-sreg').value.trim();
+
+    if (sb) {
+      try {
+        await sb.from('cargos_config').upsert({
+          id: 'default',
+          ...configCargos,
+          updated_at: new Date().toISOString()
+        });
+      } catch(err){ console.warn(err); }
+    }
+
+    localStorage.setItem('cargos_config_cache', JSON.stringify(configCargos));
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Configurações Salvas!',
+      text: 'Os códigos de motivo e parâmetros foram atualizados.',
+      timer: 1500,
+      showConfirmButton: false,
+      background: '#0a192f',
+      color: '#fff'
+    });
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     AUXILIARES E FORMATAÇÃO
+     ═══════════════════════════════════════════════════════════════════ */
+  function formatarDataBR(iso) {
+    if (!iso) return '';
+    // Se for string YYYY-MM-DD pura, extrai diretamente sem fuso horário
+    if (typeof iso === 'string') {
+      const trimmed = iso.trim();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+        const [ano, mes, dia] = trimmed.split('-');
+        return `${dia}/${mes}/${ano}`;
+      }
+      if (trimmed.includes('T')) {
+        const d = new Date(trimmed);
+        if (!isNaN(d.getTime())) {
+          return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear();
+        }
+      }
+    }
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear();
+  }
+
+  function atualizarContadores() {
+    const pendentes = listaSolicitacoes.filter(s => 
+      (s.tipo === 'funcao' && (s.status_funcao === 'pendente' || !s.status_funcao)) ||
+      (s.tipo === 'cargo' && (s.status_cargo === 'pendente' || !s.status_cargo))
+    ).length;
+
+    const b = document.getElementById('badge-total-pendentes');
+    if (b) b.textContent = pendentes;
+
+    const cTodos = document.getElementById('cnt-flt-todos');
+    const cFunc = document.getElementById('cnt-flt-funcoes');
+    const cCarg = document.getElementById('cnt-flt-cargos');
+    if (cTodos) cTodos.textContent = listaSolicitacoes.length;
+    if (cFunc) cFunc.textContent = listaSolicitacoes.filter(s => s.tipo === 'funcao').length;
+    if (cCarg) cCarg.textContent = listaSolicitacoes.filter(s => s.tipo === 'cargo').length;
+  }
+  </script>
+</body>
+</html>

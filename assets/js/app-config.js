@@ -156,6 +156,9 @@
         try {
           await sb.from('cur_config').upsert({ id: 'default', pin: pinLimpo });
         } catch(e) {}
+        try {
+          await sb.from('cargos_config').upsert({ id: 'default', pin: pinLimpo });
+        } catch(e) {}
 
         if (this.isRemoteDbReady) {
           try {
