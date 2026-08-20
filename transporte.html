@@ -270,6 +270,20 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
   .impRodape .linhaAss{border-top:.7pt solid #0a1730;margin-top:20mm;padding-top:1.2mm;
     width:110mm;font-size:6.2pt;letter-spacing:.13em;text-transform:uppercase;color:#5f7699}
 }
+.badge-motivo {
+  background: rgba(212, 168, 75, 0.22);
+  color: var(--ouro-2);
+  border: 1px solid rgba(212, 168, 75, 0.5);
+  font-family: monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 0.22rem 0.65rem;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
 @media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
@@ -402,7 +416,7 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
         <button class="acao fantasma" id="btnSyncPlanilha" onclick="sincronizarMilitaresComPlanilhaCentral()">🔄 Sincronizar Planilha Central</button>
         <button class="acao fantasma" id="btnAtualizarSec">Atualizar</button>
         <button class="acao fantasma" id="btnVerCad">Cadastrar militares</button>
-        <button class="acao fantasma" id="btnPinNovo">Alterar PIN</button>
+        <button class="acao fantasma" id="btnPinNovo">⚙️ Configurações</button>
       </div>
 
       <div class="docsBar">
@@ -712,16 +726,101 @@ async function verificarPin(){
     faixa($('pinMsg'), 'erro', '⚠️ Não consegui validar o PIN: ' + e.message);
   }
 }
+function getMotivoCodigo(){
+  return localStorage.getItem('at_motivo_codigo') || '1063';
+}
+async function setMotivoCodigo(val){
+  const cod = String(val || '1063').trim() || '1063';
+  localStorage.setItem('at_motivo_codigo', cod);
+  if (_atOficiosSupabaseAvailable !== false) {
+    try {
+      await sbPatch('at_config?id=eq.default', { motivo_codigo: cod });
+    } catch(e){}
+  }
+  return cod;
+}
+
 $('btnPin').addEventListener('click', verificarPin);
 $('pinCampo').addEventListener('keydown', e => { if (e.key === 'Enter') verificarPin(); });
 $('btnPinNovo').addEventListener('click', async () => {
-  const novo = prompt('Novo PIN da secretaria (mínimo 4 caracteres):');
-  if (novo === null) return;
-  if (novo.trim().length < 4){ alert('PIN muito curto — use pelo menos 4 caracteres.'); return; }
-  try {
-    await sbPatch('at_config?id=eq.default', { pin: novo.trim() });
-    alert('PIN alterado. Comunique o novo PIN à equipe por secde.afa@fab.mil.br.');
-  } catch (e){ alert('Não consegui alterar o PIN: ' + e.message); }
+  const motivoAtual = getMotivoCodigo();
+
+  Swal.fire({
+    title: '⚙️ Configurações do Módulo',
+    html: `
+      <div style="text-align:left;font-size:0.85rem">
+        <div style="margin-bottom:1rem;background:rgba(212,168,75,0.08);padding:0.75rem 0.9rem;border-radius:8px;border:1px solid rgba(212,168,75,0.3)">
+          <label style="display:block;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--ouro-2);font-weight:700;margin-bottom:0.4rem">
+            Código do Motivo (Auxílio Transporte)
+          </label>
+          <div style="display:flex;align-items:center;gap:0.8rem">
+            <input type="text" id="cfg-motivo-codigo" value="${motivoAtual}" placeholder="1063" style="max-width:140px;font-size:1rem;font-weight:700;letter-spacing:0.05em;text-align:center" />
+            <span class="badge-motivo" id="cfg-motivo-preview">Motivo ${motivoAtual}</span>
+          </div>
+          <small style="display:block;font-size:0.7rem;color:var(--texto-3);margin-top:0.4rem">
+            Código numérico de publicação do motivo (pré-configurado: <b>1063</b>).
+          </small>
+        </div>
+
+        <div style="background:rgba(6,13,29,0.5);padding:0.75rem 0.9rem;border-radius:8px;border:1px solid var(--linha)">
+          <label style="display:block;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--texto-3);font-weight:700;margin-bottom:0.4rem">
+            Alterar PIN da Secretaria
+          </label>
+          <input type="password" id="cfg-pin-novo" placeholder="Deixe em branco para não alterar" style="width:100%;font-size:0.9rem;letter-spacing:0.2em" />
+          <small style="display:block;font-size:0.7rem;color:var(--texto-3);margin-top:0.4rem">
+            PIN para liberar a área restrita da secretaria (mínimo 4 caracteres).
+          </small>
+        </div>
+      </div>
+    `,
+    showCancelButton: true,
+    confirmButtonText: '💾 Salvar Configurações',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#d4a84b',
+    background: '#101f3e',
+    color: '#cfe4ff',
+    width: '520px',
+    didOpen: () => {
+      const inp = document.getElementById('cfg-motivo-codigo');
+      const prev = document.getElementById('cfg-motivo-preview');
+      if (inp && prev) {
+        inp.addEventListener('input', () => {
+          const val = inp.value.trim() || '1063';
+          prev.textContent = `Motivo ${val}`;
+        });
+      }
+    }
+  }).then(async (res) => {
+    if (!res.isConfirmed) return;
+    const novoMotivo = (document.getElementById('cfg-motivo-codigo').value.trim()) || '1063';
+    const novoPin = (document.getElementById('cfg-pin-novo').value.trim());
+
+    await setMotivoCodigo(novoMotivo);
+
+    if (novoPin) {
+      if (novoPin.length < 4) {
+        Swal.fire({ icon: 'warning', title: 'PIN Curto', text: 'O PIN deve conter pelo menos 4 caracteres.', background: '#101f3e', color: '#cfe4ff' });
+        return;
+      }
+      try {
+        if (window.AppConfig && typeof window.AppConfig.setPin === 'function') {
+          await window.AppConfig.setPin(novoPin);
+        } else {
+          await sbPatch('at_config?id=eq.default', { pin: novoPin });
+        }
+      } catch(e){}
+    }
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Configurações Salvas!',
+      html: `Código do Motivo atualizado para <span class="badge-motivo">Motivo ${novoMotivo}</span>.${novoPin ? '<br>Novo PIN da secretaria salvo.' : ''}`,
+      timer: 2000,
+      showConfirmButton: false,
+      background: '#101f3e',
+      color: '#cfe4ff'
+    });
+  });
 });
 function abrirCadastro(){
   pintarCadastro();
@@ -1336,6 +1435,7 @@ $('btnCsv').addEventListener('click', () => {
   const [ano, mes] = comp.split('-').map(Number);
   const mesExtenso = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'][mes - 1];
   const mesAno = `${mesExtenso} de ${ano}`;
+  const motivoCod = getMotivoCodigo();
 
   const num = v => v.toFixed(2).replace('.', ',');
   const linhas = [];
@@ -1359,15 +1459,19 @@ $('btnCsv').addEventListener('click', () => {
         icon: 'info',
         title: 'Gerador CSV',
         html: `
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem;background:rgba(212,168,75,0.08);padding:0.6rem 0.85rem;border-radius:8px;border:1px solid rgba(212,168,75,0.3);text-align:left">
+            <span>Competência: <b>${rotuloComp(comp)}</b></span>
+            <span class="badge-motivo">Motivo ${motivoCod}</span>
+          </div>
           <p style="font-size:.85rem;color:var(--texto-2);margin-bottom:.8rem;text-align:left">
             Nenhum militar possui desconto a ser publicado na competência <b>${rotuloComp(comp)}</b> (todos utilizaram o auxílio em todos os dias úteis ou estão em fruição de férias).
           </p>
           <p style="font-size:.78rem;color:var(--texto-3);text-align:left">
-            O arquivo CSV de publicação foi ocultado pois não há lançamentos de desconto. A situação está detalhada no <b>Template de E-mail</b>.
+            O arquivo CSV de publicação foi ocultado pois não há lançamentos de desconto. A situação está detalhada no <b>E-mail</b>.
           </p>
         `,
         showCancelButton: true,
-        confirmButtonText: '✉️ Ver Template de E-mail',
+        confirmButtonText: '✉️ Ver E-mail',
         cancelButtonText: 'Fechar',
         confirmButtonColor: '#d4a84b',
         background: '#101f3e',
@@ -1382,6 +1486,10 @@ $('btnCsv').addEventListener('click', () => {
     Swal.fire({
       title: 'Gerador CSV',
       html: `
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem;background:rgba(212,168,75,0.08);padding:0.6rem 0.85rem;border-radius:8px;border:1px solid rgba(212,168,75,0.3);text-align:left">
+          <span>Competência: <b>${rotuloComp(comp)}</b></span>
+          <span class="badge-motivo">Motivo ${motivoCod}</span>
+        </div>
         <p style="font-size:.82rem;color:var(--texto-2);margin-bottom:.8rem;text-align:left">
           Dados em formato CSV (separados por ponto e vírgula) referentes aos descontos a publicar em <b>${rotuloComp(comp)}</b>:
         </p>
