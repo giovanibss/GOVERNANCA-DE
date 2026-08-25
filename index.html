@@ -1288,8 +1288,37 @@ a.card-go{text-decoration:none}
       </div>
     </details>
 
-    <!-- ══ MISSÕES ══ -->
+    <!-- ══ MANUTENÇÃO PREDIAL ══ -->
     <details class="card rv" data-d="5">
+      <summary>
+        <img class="card-cocar" src="assets/cocar-fab.png" alt="" />
+        <div class="card-id">
+          <h2>Manutenção Predial</h2>
+          <small>Chamados por ambiente na planta 3D do bloco de salas de aula</small>
+        </div>
+        <span class="card-tag">Ativo</span>
+        <span class="card-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+      </summary>
+      <div class="card-body">
+        <dl class="trio">
+          <div><dt><i style="background:var(--amber)"></i> Chamados abertos</dt><dd id="mn-abertos">—</dd></div>
+          <div><dt><i style="background:var(--magenta)"></i> Críticos</dt><dd id="mn-crit">—</dd></div>
+          <div><dt><i style="background:var(--jade)"></i> Sem pendência</dt><dd id="mn-ok">—</dd></div>
+        </dl>
+        <div class="bar" id="mn-bar" role="img" aria-label="Situação de manutenção dos locais">
+          <span style="width:100%;background:rgba(207,228,255,.14)"></span>
+        </div>
+        <p class="note" id="mn-note">50 locais · Corredores 2, 4, 6 e 8</p>
+        <div class="card-acoes">
+          <a class="card-go" href="manutencao.html">Abrir módulo
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
+          </a>
+        </div>
+      </div>
+    </details>
+
+    <!-- ══ MISSÕES ══ -->
+    <details class="card rv" data-d="6">
       <summary>
         <img class="card-cocar" src="assets/cocar-fab.png" alt="" />
         <div class="card-id">
@@ -1331,7 +1360,7 @@ a.card-go{text-decoration:none}
     </details>
 
     <!-- ══ TACF ══ -->
-    <details class="card rv" data-d="6">
+    <details class="card rv" data-d="7">
       <summary>
         <img class="card-cocar" src="assets/cocar-fab.png" alt="" />
         <div class="card-id">
@@ -1360,7 +1389,7 @@ a.card-go{text-decoration:none}
     </details>
 
     <!-- ══ CARGOS E FUNÇÕES ══ -->
-    <details class="card rv" data-d="7">
+    <details class="card rv" data-d="8">
       <summary>
         <img class="card-cocar" src="assets/cocar-fab.png" alt="" />
         <div class="card-id">
@@ -3048,6 +3077,68 @@ async function carregarCargosHub() {
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   DADOS · MANUTENÇÃO PREDIAL
+   Lê mnt_chamados e resume a situação dos 50 locais do bloco de
+   salas de aula. Sem Supabase, cai no espelho local do módulo.
+   ═══════════════════════════════════════════════════════════════════ */
+const MN_TOTAL_LOCAIS = 50;
+const MN_EM_ABERTO = ['aberto','triagem','execucao'];
+
+async function carregarManutencaoHub(){
+  const elAb   = document.getElementById('mn-abertos');
+  const elCr   = document.getElementById('mn-crit');
+  const elOk   = document.getElementById('mn-ok');
+  const elBar  = document.getElementById('mn-bar');
+  const elNote = document.getElementById('mn-note');
+
+  try {
+    let chamados = [];
+
+    if (sbCli) {
+      const { data, error } = await sbCli
+        .from('mnt_chamados')
+        .select('local_id, status, prioridade, prazo');
+      if (!error && data) chamados = data;
+    }
+    if (!chamados.length) {
+      try { chamados = JSON.parse(localStorage.getItem('mnt_chamados_v1') || '[]'); } catch(e){}
+    }
+
+    const abertos  = chamados.filter(c => MN_EM_ABERTO.includes(c.status));
+    const criticos = abertos.filter(c => c.prioridade === 'critica').length;
+    const comPend  = new Set(abertos.map(c => c.local_id)).size;
+    const semPend  = Math.max(0, MN_TOTAL_LOCAIS - comPend);
+
+    countTo(elAb, abertos.length);
+    countTo(elCr, criticos);
+    countTo(elOk, semPend);
+
+    if (elBar) {
+      const pctOk = Math.round((semPend / MN_TOTAL_LOCAIS) * 100);
+      const pctCr = Math.min(100 - pctOk, Math.round((criticos / MN_TOTAL_LOCAIS) * 100));
+      const pctAt = Math.max(0, 100 - pctOk - pctCr);
+      elBar.innerHTML = `
+        <span style="width:${pctOk}%;background:var(--jade)"></span>
+        <span style="width:${pctAt}%;background:var(--amber)"></span>
+        <span style="width:${pctCr}%;background:var(--magenta)"></span>
+      `;
+    }
+
+    if (elNote) {
+      const hoje = new Date();
+      const venc = abertos.filter(c => c.prazo && new Date(c.prazo + 'T23:59:59') < hoje).length;
+      elNote.textContent = venc
+        ? `${MN_TOTAL_LOCAIS} locais · ${venc} com prazo vencido`
+        : `${MN_TOTAL_LOCAIS} locais · Corredores 2, 4, 6 e 8`;
+    }
+
+  } catch(err) {
+    console.warn('Manutenção Predial · card do hub:', err);
+    if (elNote) elNote.textContent = `${MN_TOTAL_LOCAIS} locais · clique em Abrir para gerenciar`;
+  }
+}
+
 /* ═══ carga inicial + atualização periódica ═══ */
 /* ═══════════════════════════════════════════════════════════════════
    12 · CONTAGEM REGRESSIVA · AUXÍLIO TRANSPORTE
@@ -3106,7 +3197,7 @@ document.getElementById('btn-expandir')?.addEventListener('click', function(){
   this.setAttribute('aria-expanded', String(abrir));
 });
 
-function atualizar(){ carregarLimpeza(); carregarEfetivo(); carregarDiarias(); carregarTransporte(); carregarCursos(); carregarTacfHub(); carregarCargosHub(); }
+function atualizar(){ carregarLimpeza(); carregarEfetivo(); carregarDiarias(); carregarTransporte(); carregarCursos(); carregarTacfHub(); carregarCargosHub(); carregarManutencaoHub(); }
 montarGaugeIdx();
 montarGaugeMini();
 atualizar();
