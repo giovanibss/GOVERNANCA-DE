@@ -357,6 +357,21 @@
       color: var(--texto-2);
     }
 
+    /* Badge Informativo de Vigência para Cargo */
+    .badge-aviso-cargo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.65rem 0.9rem;
+      background: rgba(212, 168, 75, 0.12);
+      border: 1px solid rgba(212, 168, 75, 0.45);
+      color: var(--ouro-lt);
+      border-radius: 8px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      line-height: 1.35;
+    }
+
     /* Tabelas */
     .table-wrap {
       overflow-x: auto;
@@ -708,10 +723,19 @@
             </select>
           </div>
 
-          <!-- Data de Início / Assunção -->
+          <!-- Data de Início / Assunção (Apenas para Função) -->
           <div class="campo" id="box-data-inicio">
             <label for="solic-data-inicio">A partir de quando é para contar *</label>
             <input type="date" id="solic-data-inicio" required />
+          </div>
+
+          <!-- Informativo de Vigência para Cargo (Substitui o campo de data) -->
+          <div class="campo" id="box-data-cargo-info" style="display:none">
+            <label>Vigência da Publicação</label>
+            <div class="badge-aviso-cargo">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+              <span>A contar da data de publicação no Boletim Interno Ostensivo</span>
+            </div>
           </div>
 
           <!-- BLOCO PARA FUNÇÃO: SELETOR DE PESSOA -->
@@ -855,7 +879,7 @@
                 <th>Tipo</th>
                 <th>Seção</th>
                 <th>Cargo / Função</th>
-                <th>Assunção / Início</th>
+                <th>Assunção / Vigência</th>
                 <th>Boletim</th>
                 <th>SILOMS</th>
                 <th>Status</th>
@@ -974,8 +998,8 @@
 
         <!-- ABA SETTINGS 1: SEÇÕES E CATÁLOGO -->
         <div id="set-aba-secoes">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
-            <h4 style="color:var(--texto);font-size:0.95rem">Seções Cadastradas</h4>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem">
+            <h4 style="color:var(--texto);font-size:0.95rem">Seções e Catálogo Cadastrados</h4>
             <button class="btn btn-ouro btn-sm" onclick="abrirFormNovaSecao()">+ Adicionar Seção</button>
           </div>
 
@@ -1279,15 +1303,24 @@
     const boxAcao = document.getElementById('box-acao-funcao');
     const boxPessoaFuncao = document.getElementById('box-pessoa-funcao');
     const boxPessoasCargo = document.getElementById('box-pessoas-cargo');
+    const boxDataInicio = document.getElementById('box-data-inicio');
+    const boxDataCargoInfo = document.getElementById('box-data-cargo-info');
+    const inputDataInicio = document.getElementById('solic-data-inicio');
 
     if (tipo === 'funcao') {
       if (boxAcao) boxAcao.style.display = 'block';
       if (boxPessoaFuncao) boxPessoaFuncao.style.display = 'block';
       if (boxPessoasCargo) boxPessoasCargo.style.display = 'none';
+      if (boxDataInicio) boxDataInicio.style.display = 'block';
+      if (boxDataCargoInfo) boxDataCargoInfo.style.display = 'none';
+      if (inputDataInicio) inputDataInicio.required = true;
     } else {
       if (boxAcao) boxAcao.style.display = 'none';
       if (boxPessoaFuncao) boxPessoaFuncao.style.display = 'none';
       if (boxPessoasCargo) boxPessoasCargo.style.display = 'block';
+      if (boxDataInicio) boxDataInicio.style.display = 'none';
+      if (boxDataCargoInfo) boxDataCargoInfo.style.display = 'block';
+      if (inputDataInicio) inputDataInicio.required = false;
     }
 
     aoMudarSecao();
@@ -1368,8 +1401,13 @@
     const dataInicio = document.getElementById('solic-data-inicio').value;
     const obs = document.getElementById('solic-obs').value.trim();
 
-    if (!secaoId || !cargoFuncaoNome || !dataInicio) {
-      Swal.fire({ icon: 'warning', title: 'Campos Obrigatórios', text: 'Por favor, selecione a seção, o cargo/função e a data de início.' });
+    if (!secaoId || !cargoFuncaoNome) {
+      Swal.fire({ icon: 'warning', title: 'Campos Obrigatórios', text: 'Por favor, selecione a seção e o cargo/função.' });
+      return;
+    }
+
+    if (tiposelecionado === 'funcao' && !dataInicio) {
+      Swal.fire({ icon: 'warning', title: 'Data Obrigatória', text: 'Por favor, informe a data a partir de quando é para contar.' });
       return;
     }
 
@@ -1378,7 +1416,8 @@
       secao_id: secaoId,
       secao_nome: secaoObj ? secaoObj.nome : '',
       cargo_funcao_nome: cargoFuncaoNome,
-      data_inicio: dataInicio,
+      data_inicio: (tiposelecionado === 'cargo') ? null : dataInicio,
+      texto_vigencia: (tiposelecionado === 'cargo') ? 'A contar da data de publicação no Boletim Interno Ostensivo' : null,
       observacoes: obs,
       created_at: new Date().toISOString()
     };
@@ -1557,7 +1596,11 @@
         <span class="badge ${ativo.tipo === 'cargo' ? 'badge-cargo' : 'badge-funcao'}">${ativo.tipo || 'Função'}</span>
         ${ativo.cargo_funcao_nome || '—'}
       `;
-      document.getElementById('cons-data-assumiu').textContent = ativo.data_assuncao ? formatarDataBR(ativo.data_assuncao) : 'Data da Solicitação';
+      if (ativo.tipo === 'cargo') {
+        document.getElementById('cons-data-assumiu').innerHTML = '<span style="font-size:0.85rem;color:var(--ouro-lt)">A contar da publicação no Boletim Interno Ostensivo</span>';
+      } else {
+        document.getElementById('cons-data-assumiu').textContent = ativo.data_assuncao ? formatarDataBR(ativo.data_assuncao) : 'Data da Solicitação';
+      }
       document.getElementById('cons-boletim').textContent = ativo.boletim_publicacao || 'Pendente de Publicação';
       
       const boxSiloms = document.getElementById('cons-box-siloms');
@@ -1590,7 +1633,7 @@
           <td><span class="badge ${h.tipo === 'cargo' ? 'badge-cargo' : 'badge-funcao'}">${h.tipo}</span></td>
           <td>${h.secao_nome || '—'}</td>
           <td><strong>${h.cargo_funcao_nome}</strong></td>
-          <td>${formatarDataBR(h.data_inicio) || '—'}</td>
+          <td>${h.tipo === 'cargo' ? '<span style="font-size:0.75rem;color:var(--ouro-lt)">Data de publicação no Boletim</span>' : (formatarDataBR(h.data_inicio) || '—')}</td>
           <td>${h.boletim_numero ? `Bol n° ${h.boletim_numero}` : '<span style="color:var(--texto-3)">Pendente</span>'}</td>
           <td>${h.siloms_processo_num ? h.siloms_processo_num : '—'}</td>
           <td>${renderBadgeStatus(h)}</td>
@@ -1733,6 +1776,11 @@
               <div style="font-size:0.8rem">
                 <span style="color:#fca5a5">Sai:</span> ${item.militar_dispensado_posto || ''} ${item.militar_dispensado_nome || '—'} <small style="color:var(--texto-3)">(${item.militar_dispensado_saram || '—'})</small><br>
                 <span style="color:#6ee7b7">Entra:</span> ${item.militar_designado_posto || ''} ${item.militar_designado_nome || '—'} <small style="color:var(--texto-3)">(${item.militar_designado_saram || '—'})</small>
+                <div style="margin-top:4px">
+                  <span class="badge" style="background:rgba(212,168,75,0.15);color:var(--ouro-lt);border:1px solid rgba(212,168,75,0.35);font-size:0.68rem;text-transform:none">
+                    📅 A contar da data de publicação no Boletim Interno Ostensivo
+                  </span>
+                </div>
               </div>
             ` : `
               <div style="font-size:0.82rem">
@@ -2000,9 +2048,8 @@
       html: `
         <div style="text-align:left;font-size:0.85rem">
           <div class="campo" style="margin-bottom:0.8rem">
-            <label>Selecione o Boletim em PDF (Documento PDF-A) *</label>
+            <label>Selecione o Boletim em PDF (Documento PDF-A)</label>
             <input type="file" id="swal-file-pdf" accept=".pdf" style="margin-top:4px" />
-            ${item.boletim_arquivo_url ? `<small style="color:var(--ouro-lt);display:block;margin-top:2px">Arquivo atual: <a href="${item.boletim_arquivo_url}" target="_blank" style="color:var(--azul-lt);text-decoration:underline">${item.boletim_arquivo_nome || 'Ver PDF'}</a></small>` : ''}
           </div>
 
           <div class="campo" style="margin-bottom:0.8rem">
@@ -2030,53 +2077,42 @@
       if (res.isConfirmed) {
         const fileInput = document.getElementById('swal-file-pdf');
         const dest = document.getElementById('swal-email-dest')?.value || emailSreg;
-        let bodyText = document.getElementById('swal-email-body')?.value || corpoEmail;
+        const bodyText = document.getElementById('swal-email-body')?.value || corpoEmail;
 
-        let pdfUrl = item.boletim_arquivo_url || '';
-        let pdfNome = item.boletim_arquivo_nome || '';
+        let pdfUrl = null;
+        let pdfNome = null;
 
-        // Se o usuário selecionou um novo arquivo PDF
+        // Se selecionou arquivo PDF, tenta subir para o Storage do Supabase se configurado
         if (fileInput && fileInput.files && fileInput.files[0]) {
           const file = fileInput.files[0];
           pdfNome = file.name;
-
           if (sb && sb.storage) {
             try {
-              const cleanId = String(item.id || 'bol').replace(/[^a-zA-Z0-9_-]/g, '');
-              const storagePath = `bol_${cleanId}_${Date.now()}.pdf`;
-              
-              const { error: upErr } = await sb.storage.from('boletins').upload(storagePath, file, {
-                contentType: 'application/pdf',
-                upsert: true
-              });
-
-              if (!upErr) {
-                const { data: pData } = sb.storage.from('boletins').getPublicUrl(storagePath);
-                if (pData && pData.publicUrl) {
-                  pdfUrl = pData.publicUrl;
-                }
-              } else {
-                console.warn('[Storage] Upload boletins falhou:', upErr);
+              const fileExt = file.name.split('.').pop();
+              const fileName = `boletim_${id}_${Date.now()}.${fileExt}`;
+              const { data: stData, error: stErr } = await sb.storage.from('boletins').upload(fileName, file);
+              if (!stErr && stData) {
+                const { data: pubUrl } = sb.storage.from('boletins').getPublicUrl(fileName);
+                if (pubUrl) pdfUrl = pubUrl.publicUrl;
               }
-            } catch (stEx) {
-              console.warn('[Storage] Falha ao enviar PDF para o storage:', stEx);
+            } catch(stExc) {
+              console.warn('Storage upload fallback:', stExc);
             }
           }
         }
 
-        // Salvar boletim_numero, boletim_data e referências do arquivo no banco
         const updates = {
           boletim_numero: bolNum,
           boletim_data: document.getElementById(`bol-data-${id}`)?.value || item.boletim_data || null,
-          boletim_arquivo_url: pdfUrl || null,
-          boletim_arquivo_nome: pdfNome || null,
+          boletim_arquivo_url: pdfUrl || item.boletim_arquivo_url || null,
+          boletim_arquivo_nome: pdfNome || item.boletim_arquivo_nome || null,
           updated_at: new Date().toISOString()
         };
 
         if (sb) {
           try {
             await sb.from('cargos_solicitacoes').update(updates).eq('id', id);
-          } catch(e){ console.warn(e); }
+          } catch(e){}
         }
 
         Object.assign(item, updates);
@@ -2137,7 +2173,7 @@
   }
 
   /* ═══════════════════════════════════════════════════════════════════
-     MODAL SETTINGS: SEÇÕES, EXCLUSÃO SEGURA E SINCRONIZAÇÃO
+     MODAL SETTINGS: SEÇÕES, EXCLUSÃO SEGURA, EDIÇÃO E SINCRONIZAÇÃO
      ═══════════════════════════════════════════════════════════════════ */
   function abrirModalSettings() {
     // Se a secretaria não estiver desbloqueada, pede o PIN
@@ -2178,22 +2214,24 @@
       const itensSecao = listaCatalogo.filter(c => c.secao_id === sec.id);
       return `
         <div class="painel" style="padding:1rem;margin-bottom:0.5rem;background:rgba(15,23,42,0.5)">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;flex-wrap:wrap;gap:0.5rem">
             <div>
               <strong style="color:var(--ouro-lt);font-size:0.95rem">${sec.nome}</strong>
               ${sec.sigla ? `<span class="badge" style="margin-left:0.3rem">${sec.sigla}</span>` : ''}
             </div>
-            <div style="display:flex;gap:0.4rem">
+            <div style="display:flex;gap:0.4rem;align-items:center">
+              <button class="btn btn-fantasma btn-sm" onclick="abrirFormEditarSecao('${sec.id}')" title="Editar nome e sigla da seção">✏️ Editar Seção</button>
               <button class="btn btn-fantasma btn-sm" onclick="abrirFormNovoItemCatalogo('${sec.id}')">+ Cargo/Função</button>
               <button class="btn btn-perigo btn-sm" onclick="tentarRemoverSecao('${sec.id}')">Excluir Seção</button>
             </div>
           </div>
 
-          <div style="display:flex;flex-wrap:wrap;gap:0.4rem">
+          <div style="display:flex;flex-wrap:wrap;gap:0.45rem">
             ${itensSecao.length ? itensSecao.map(it => `
-              <span class="badge ${it.tipo === 'cargo' ? 'badge-cargo' : 'badge-funcao'}" style="padding:0.3rem 0.6rem">
-                ${it.nome}
-                <button onclick="removerItemCatalogo('${it.id}')" style="background:transparent;border:none;color:inherit;cursor:pointer;margin-left:0.4rem;font-weight:bold" title="Remover item">&times;</button>
+              <span class="badge ${it.tipo === 'cargo' ? 'badge-cargo' : 'badge-funcao'}" style="padding:0.3rem 0.6rem;display:inline-flex;align-items:center;gap:0.35rem">
+                <span>${it.nome}</span>
+                <button onclick="abrirFormEditarItemCatalogo('${it.id}')" style="background:transparent;border:none;color:inherit;cursor:pointer;opacity:0.8;font-size:0.8rem;padding:0 2px" title="Editar este item">✏️</button>
+                <button onclick="removerItemCatalogo('${it.id}')" style="background:transparent;border:none;color:inherit;cursor:pointer;opacity:0.8;font-weight:bold;font-size:1.05rem;line-height:1;padding:0 2px" title="Remover item">&times;</button>
               </span>
             `).join('') : '<span style="color:var(--texto-3);font-size:0.75rem">Nenhum cargo/função atrelado</span>'}
           </div>
@@ -2245,6 +2283,66 @@
     }
   }
 
+  async function abrirFormEditarSecao(secaoId) {
+    const sec = listaSecoes.find(s => s.id === secaoId);
+    if (!sec) return;
+
+    const { value: formValues } = await Swal.fire({
+      title: '✏️ Editar Seção',
+      html: `
+        <div class="campo" style="text-align:left;margin-bottom:0.8rem">
+          <label>Nome da Seção *</label>
+          <input id="swal-edit-sec-nome" class="swal2-input" value="${sec.nome || ''}" placeholder="Ex: Célula de Informática" style="width:100%;margin:0.3rem 0" />
+        </div>
+        <div class="campo" style="text-align:left">
+          <label>Sigla (Opcional)</label>
+          <input id="swal-edit-sec-sigla" class="swal2-input" value="${sec.sigla || ''}" placeholder="Ex: CEL-INFO" style="width:100%;margin:0.3rem 0" />
+        </div>
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: 'Salvar Alterações',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#d4a84b',
+      background: '#0a192f',
+      color: '#f1f5f9',
+      preConfirm: () => {
+        const nome = document.getElementById('swal-edit-sec-nome').value.trim();
+        const sigla = document.getElementById('swal-edit-sec-sigla').value.trim();
+        if (!nome) { Swal.showValidationMessage('Informe o nome da seção'); return false; }
+        return { nome, sigla };
+      }
+    });
+
+    if (formValues) {
+      sec.nome = formValues.nome;
+      sec.sigla = formValues.sigla;
+
+      if (sb) {
+        try {
+          await sb.from('cargos_secoes').update({ nome: formValues.nome, sigla: formValues.sigla }).eq('id', secaoId);
+          await sb.from('cargos_solicitacoes').update({ secao_nome: formValues.nome }).eq('secao_id', secaoId);
+          await sb.from('cargos_militares_ativos').update({ secao_nome: formValues.nome }).eq('secao_id', secaoId);
+        } catch(e){ console.warn('Erro ao atualizar seção no Supabase:', e); }
+      }
+
+      localStorage.setItem('cargos_secoes_cache', JSON.stringify(listaSecoes));
+      popularSelectSecoes();
+      renderizarCatalogoSettings();
+      renderizarTabelaSecretaria();
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Seção Atualizada!',
+        text: 'Os dados da seção foram salvos com sucesso.',
+        timer: 1500,
+        showConfirmButton: false,
+        background: '#0a192f',
+        color: '#fff'
+      });
+    }
+  }
+
   async function abrirFormNovoItemCatalogo(secaoId) {
     const sec = listaSecoes.find(s => s.id === secaoId);
     const { value: formValues } = await Swal.fire({
@@ -2252,7 +2350,7 @@
       html: `
         <div class="campo" style="text-align:left;margin-bottom:0.8rem">
           <label>Tipo *</label>
-          <select id="swal-cat-tipo" style="width:100%;padding:0.5rem;background:#050c1c;color:#fff;border:1px solid var(--linha);border-radius:6px">
+          <select id="swal-cat-tipo" style="width:100%;padding:0.5rem;background:#050c1c;color:#fff;border:1px solid var(--linha);border-radius:6px;margin-top:0.3rem">
             <option value="funcao">Função (Adjunto, Auxiliar, etc.)</option>
             <option value="cargo">Cargo (Chefia com TTAC)</option>
           </select>
@@ -2289,6 +2387,82 @@
       localStorage.setItem('cargos_catalogo_cache', JSON.stringify(listaCatalogo));
       renderizarCatalogoSettings();
       aoMudarSecao();
+    }
+  }
+
+  async function abrirFormEditarItemCatalogo(itemId) {
+    const item = listaCatalogo.find(c => c.id === itemId);
+    if (!item) return;
+
+    const opcoesSecoes = listaSecoes.map(s => 
+      `<option value="${s.id}" ${s.id === item.secao_id ? 'selected' : ''}>${s.nome} ${s.sigla ? '('+s.sigla+')' : ''}</option>`
+    ).join('');
+
+    const { value: formValues } = await Swal.fire({
+      title: '✏️ Editar Cargo / Função',
+      html: `
+        <div class="campo" style="text-align:left;margin-bottom:0.8rem">
+          <label>Seção Pertencente *</label>
+          <select id="swal-edit-cat-secao" style="width:100%;padding:0.5rem;background:#050c1c;color:#fff;border:1px solid var(--linha);border-radius:6px;margin-top:0.3rem">
+            ${opcoesSecoes}
+          </select>
+        </div>
+        <div class="campo" style="text-align:left;margin-bottom:0.8rem">
+          <label>Tipo *</label>
+          <select id="swal-edit-cat-tipo" style="width:100%;padding:0.5rem;background:#050c1c;color:#fff;border:1px solid var(--linha);border-radius:6px;margin-top:0.3rem">
+            <option value="funcao" ${item.tipo === 'funcao' ? 'selected' : ''}>Função (Adjunto, Auxiliar, etc.)</option>
+            <option value="cargo" ${item.tipo === 'cargo' ? 'selected' : ''}>Cargo (Chefia com TTAC)</option>
+          </select>
+        </div>
+        <div class="campo" style="text-align:left">
+          <label>Nome do Cargo ou Função *</label>
+          <input id="swal-edit-cat-nome" class="swal2-input" value="${item.nome || ''}" placeholder="Ex: Auxiliar de Instrução" style="width:100%;margin:0.3rem 0" />
+        </div>
+      `,
+      focusConfirm: false,
+      showCancelButton: true,
+      confirmButtonText: 'Salvar Alterações',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#d4a84b',
+      background: '#0a192f',
+      color: '#f1f5f9',
+      preConfirm: () => {
+        const secao_id = document.getElementById('swal-edit-cat-secao').value;
+        const tipo = document.getElementById('swal-edit-cat-tipo').value;
+        const nome = document.getElementById('swal-edit-cat-nome').value.trim();
+        if (!nome) { Swal.showValidationMessage('Informe o nome do cargo ou função'); return false; }
+        return { secao_id, tipo, nome };
+      }
+    });
+
+    if (formValues) {
+      item.secao_id = formValues.secao_id;
+      item.tipo = formValues.tipo;
+      item.nome = formValues.nome;
+
+      if (sb) {
+        try {
+          await sb.from('cargos_catalogo').update({
+            secao_id: formValues.secao_id,
+            tipo: formValues.tipo,
+            nome: formValues.nome
+          }).eq('id', itemId);
+        } catch(e){ console.warn('Erro ao atualizar item no Supabase:', e); }
+      }
+
+      localStorage.setItem('cargos_catalogo_cache', JSON.stringify(listaCatalogo));
+      renderizarCatalogoSettings();
+      aoMudarSecao();
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Item Atualizado!',
+        text: 'O cargo/função foi atualizado com sucesso.',
+        timer: 1500,
+        showConfirmButton: false,
+        background: '#0a192f',
+        color: '#fff'
+      });
     }
   }
 
@@ -2471,7 +2645,7 @@
           // 4. Cadastrar Militar Ativo Inicial
           if (sb && m.saram) {
             try {
-              const payloadMilitar = {
+              await sb.from('cargos_militares_ativos').upsert({
                 saram: m.saram,
                 nome: m.nome_completo || m.nome,
                 posto_grad: m.posto,
@@ -2483,18 +2657,7 @@
                 boletim_publicacao: 'Importado da Planilha Efetivo',
                 origem: 'planilha',
                 updated_at: new Date().toISOString()
-              };
-              
-              const { error: upErr } = await sb.from('cargos_militares_ativos').upsert(payloadMilitar, { onConflict: 'saram' });
-              if (upErr) {
-                // Fallback caso a constraint UNIQUE ainda não esteja aplicada
-                const { data: exist } = await sb.from('cargos_militares_ativos').select('id').eq('saram', m.saram).maybeSingle();
-                if (exist) {
-                  await sb.from('cargos_militares_ativos').update(payloadMilitar).eq('id', exist.id);
-                } else {
-                  await sb.from('cargos_militares_ativos').insert([payloadMilitar]);
-                }
-              }
+              }, { onConflict: 'saram' });
             } catch(e){}
           }
 
@@ -2564,23 +2727,9 @@
      ═══════════════════════════════════════════════════════════════════ */
   function formatarDataBR(iso) {
     if (!iso) return '';
-    // Se for string YYYY-MM-DD pura, extrai diretamente sem fuso horário
-    if (typeof iso === 'string') {
-      const trimmed = iso.trim();
-      if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
-        const [ano, mes, dia] = trimmed.split('-');
-        return `${dia}/${mes}/${ano}`;
-      }
-      if (trimmed.includes('T')) {
-        const d = new Date(trimmed);
-        if (!isNaN(d.getTime())) {
-          return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear();
-        }
-      }
-    }
     const d = new Date(iso);
     if (isNaN(d.getTime())) return iso;
-    return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear();
+    return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + d.getFullYear();
   }
 
   function atualizarContadores() {
