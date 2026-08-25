@@ -3095,8 +3095,13 @@ async function carregarManutencaoHub(){
   try {
     let chamados = [];
 
-    if (sbCli) {
-      const { data, error } = await sbCli
+    // projeto atual da Governança DE — o mesmo usado por manutencao.html
+    const MN_URL  = 'https://sovrgsbdhdpxsaomspsp.supabase.co';
+    const MN_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg';
+
+    if (window.supabase && typeof window.supabase.createClient === 'function') {
+      const cli = window.supabase.createClient(MN_URL, MN_ANON, { auth: { persistSession: false } });
+      const { data, error } = await cli
         .from('mnt_chamados')
         .select('local_id, status, prioridade, prazo');
       if (!error && data) chamados = data;
