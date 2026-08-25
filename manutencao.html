@@ -469,7 +469,7 @@ footer{padding:2.2rem clamp(1rem,4vw,2.4rem);border-top:1px solid var(--linha);
 </aside>
 
 <footer>
-  Governança DE · Academia da Força Aérea — Manutenção Predial v1.0<br />
+  Governança DE · Academia da Força Aérea — Manutenção Predial v1.1<br />
   Geometria derivada da planta baixa DE (ampliação, jan/2023) · escala real 1 m = 1 unidade
 </footer>
 
@@ -627,12 +627,38 @@ function vencido(c){
 
 /* ─── 3. PERSISTÊNCIA ───────────────────────────────────────── */
 
-var SB_URL  = 'https://rsaaryrgdrolcsvigckz.supabase.co';
-var SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzYWFyeXJnZHJvbGNzdmlnY2t6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMzcyNjEsImV4cCI6MjA4MjcxMzI2MX0.UKACT_OKIMRaLB3FJPtFPGqhVbR83pUiiPfLkcf_Ec0';
+/* Existem DOIS projetos Supabase no ecossistema da Governança DE.
+   O módulo tenta o primeiro; se a tabela não estiver lá, tenta o
+   segundo automaticamente e avisa no console qual respondeu.       */
+var PROJETOS = [
+  { ref:'rsaaryrgdrolcsvigckz',
+    apelido:'diárias · TACF · cargos · solicitar · retorno',
+    url:'https://rsaaryrgdrolcsvigckz.supabase.co',
+    anon:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzYWFyeXJnZHJvbGNzdmlnY2t6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMzcyNjEsImV4cCI6MjA4MjcxMzI2MX0.UKACT_OKIMRaLB3FJPtFPGqhVbR83pUiiPfLkcf_Ec0' },
+  { ref:'sovrgsbdhdpxsaomspsp',
+    apelido:'cursos · transporte · efetivo',
+    url:'https://sovrgsbdhdpxsaomspsp.supabase.co',
+    anon:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg' }
+];
 var TABELA = 'mnt_chamados';
 var LS = 'mnt_chamados_v1';
 
-var MNT = { chamados: [], online:false, sb:null };
+var MNT = { chamados: [], online:false, sb:null, projeto:null, diagnostico:[] };
+
+/* traduz o erro do PostgREST em causa provável */
+function lerErro(e){
+  if(!e) return null;
+  var cod = e.code || '';
+  var msg = (e.message || '') + ' ' + (e.details || '') + ' ' + (e.hint || '');
+  if(cod === '42P01' || cod === 'PGRST205' || /does not exist|could not find the table|schema cache/i.test(msg))
+    return {tipo:'ausente', txt:'a tabela ' + TABELA + ' não existe neste projeto'};
+  if(cod === '42501' || /row-level security|permission denied/i.test(msg))
+    return {tipo:'rls', txt:'a tabela existe, mas a policy de acesso bloqueou a chave anon'};
+  if(cod === '42703' || /column .* does not exist/i.test(msg))
+    return {tipo:'coluna', txt:'a tabela existe com colunas diferentes das esperadas'};
+  return {tipo:'outro', txt:(e.message || 'erro desconhecido') + (cod ? ' (' + cod + ')' : '')};
+}
+
 
 function novoId(){
   // sempre no formato UUID v4 — a coluna id do Supabase é uuid
@@ -654,25 +680,55 @@ function leLocal(){
   try{ return JSON.parse(localStorage.getItem(LS) || '[]'); }catch(e){ return []; }
 }
 
-MNT.iniciar = function(){
-  try{
-    if(window.supabase && typeof window.supabase.createClient === 'function'){
-      MNT.sb = window.supabase.createClient(SB_URL, SB_ANON, {auth:{persistSession:false}});
-    }
-  }catch(e){ MNT.sb = null; }
-};
+MNT.iniciar = function(){ /* a conexão é resolvida em MNT.carregar */ };
 
+/* Sonda os projetos em ordem. Vence o primeiro que devolver a tabela. */
 MNT.carregar = function(){
-  if(!MNT.sb){ MNT.chamados = leLocal(); return Promise.resolve(false); }
-  return MNT.sb.from(TABELA).select('*').order('aberto_em', {ascending:false})
-    .then(function(res){
-      if(res.error || !res.data){ MNT.chamados = leLocal(); return false; }
-      MNT.online = true;
-      MNT.chamados = res.data;
-      salvaLocal();
-      return true;
-    })
-    .catch(function(){ MNT.chamados = leLocal(); return false; });
+  MNT.diagnostico = [];
+
+  if(!(window.supabase && typeof window.supabase.createClient === 'function')){
+    MNT.diagnostico.push({ref:'—', txt:'a biblioteca supabase-js não carregou (CDN bloqueada?)'});
+    MNT.chamados = leLocal();
+    return Promise.resolve(false);
+  }
+
+  var fila = PROJETOS.slice();
+
+  function tentar(){
+    if(!fila.length){
+      MNT.chamados = leLocal();
+      return Promise.resolve(false);
+    }
+    var p = fila.shift();
+    var cli;
+    try{
+      cli = window.supabase.createClient(p.url, p.anon, {auth:{persistSession:false}});
+    }catch(e){
+      MNT.diagnostico.push({ref:p.ref, txt:'não foi possível criar o cliente'});
+      return tentar();
+    }
+
+    return cli.from(TABELA).select('*').order('aberto_em', {ascending:false})
+      .then(function(res){
+        if(res.error){
+          var d = lerErro(res.error);
+          MNT.diagnostico.push({ref:p.ref, tipo:d.tipo, txt:d.txt});
+          return tentar();
+        }
+        MNT.sb = cli;
+        MNT.projeto = p;
+        MNT.online = true;
+        MNT.chamados = res.data || [];
+        salvaLocal();
+        return true;
+      })
+      .catch(function(err){
+        MNT.diagnostico.push({ref:p.ref, tipo:'rede', txt:'sem resposta do servidor (' + (err && err.message ? err.message : 'rede') + ')'});
+        return tentar();
+      });
+  }
+
+  return tentar();
 };
 
 MNT.criar = function(obj){
@@ -1524,14 +1580,32 @@ function iniciar(){
 
   MNT.iniciar();
   Promise.resolve(MNT.carregar()).then(function(online){
-    if(!online){
-      avisar('Trabalhando <b>fora do Supabase</b>: os chamados estão salvos apenas neste navegador. ' +
-             'Crie a tabela <code>mnt_chamados</code> para sincronizar entre os computadores da Secretaria.', 'alerta');
+    if(online){
+      var p = MNT.projeto;
+      // se respondeu um projeto que não é o primeiro da lista, avisa para acertar a constante
+      if(p.ref !== PROJETOS[0].ref){
+        avisar('Conectado ao projeto <b>' + p.ref + '</b> (' + p.apelido + '). ' +
+               'A tabela <code>' + TABELA + '</code> foi criada nesse projeto, não no principal. ' +
+               'Funciona normalmente — mas vale mover a tabela para <b>' + PROJETOS[0].ref + '</b> ' +
+               'para manter tudo num lugar só.', 'info');
+      }else{
+        $('#aviso').style.display = 'none';
+      }
+    }else{
+      var linhas = MNT.diagnostico.map(function(d){
+        return '<li><code>' + esc(d.ref) + '</code> — ' + esc(d.txt) + '</li>';
+      }).join('');
+      avisar('<b>Sem sincronização:</b> os chamados estão salvos apenas neste navegador. ' +
+             'Foi o que aconteceu ao procurar a tabela <code>' + TABELA + '</code>:' +
+             '<ul style="margin:.5rem 0 .35rem 1.1rem;line-height:1.7">' + linhas + '</ul>' +
+             'Rode o <code>manutencao.sql</code> em um desses projetos e recarregue a página.', 'alerta');
     }
     repintar();
     $('#carregando').classList.add('fim');
-    console.log('%cManutenção Predial v1.0', 'color:#d4a84b;font-weight:700',
-                '· ' + LOCAIS.length + ' locais · ' + (online ? 'Supabase' : 'localStorage'));
+    console.log('%cManutenção Predial v1.1', 'color:#d4a84b;font-weight:700',
+                '· ' + LOCAIS.length + ' locais · ' +
+                (online ? 'Supabase ' + MNT.projeto.ref : 'localStorage'));
+    if(!online && MNT.diagnostico.length) console.table(MNT.diagnostico);
   });
 }
 
