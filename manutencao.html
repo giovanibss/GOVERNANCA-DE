@@ -470,7 +470,7 @@ footer{padding:2.2rem clamp(1rem,4vw,2.4rem);border-top:1px solid var(--linha);
 </aside>
 
 <footer>
-  Governança DE · Academia da Força Aérea — Manutenção Predial v1.2<br />
+  Governança DE · Academia da Força Aérea — Manutenção Predial v1.3<br />
   Geometria derivada da planta baixa DE (ampliação, jan/2023) · escala real 1 m = 1 unidade
 </footer>
 
@@ -633,18 +633,18 @@ function vencido(c){
 
 /* ─── 3. PERSISTÊNCIA ───────────────────────────────────────── */
 
-/* Existem DOIS projetos Supabase no ecossistema da Governança DE.
-   O módulo tenta o primeiro; se a tabela não estiver lá, tenta o
-   segundo automaticamente e avisa no console qual respondeu.       */
+/* Projeto ativo da Governança DE. O segundo endereço é de uma
+   encarnação anterior do projeto, mantido apenas como rede de
+   segurança: só é consultado se a tabela não estiver no primeiro. */
 var PROJETOS = [
-  { ref:'rsaaryrgdrolcsvigckz',
-    apelido:'diárias · TACF · cargos · solicitar · retorno',
-    url:'https://rsaaryrgdrolcsvigckz.supabase.co',
-    anon:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzYWFyeXJnZHJvbGNzdmlnY2t6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMzcyNjEsImV4cCI6MjA4MjcxMzI2MX0.UKACT_OKIMRaLB3FJPtFPGqhVbR83pUiiPfLkcf_Ec0' },
   { ref:'sovrgsbdhdpxsaomspsp',
-    apelido:'cursos · transporte · efetivo',
+    apelido:'projeto atual — cursos, transporte, efetivo',
     url:'https://sovrgsbdhdpxsaomspsp.supabase.co',
-    anon:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg' }
+    anon:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg' },
+  { ref:'rsaaryrgdrolcsvigckz',
+    apelido:'projeto antigo — pode não existir mais',
+    url:'https://rsaaryrgdrolcsvigckz.supabase.co',
+    anon:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzYWFyeXJnZHJvbGNzdmlnY2t6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMzcyNjEsImV4cCI6MjA4MjcxMzI2MX0.UKACT_OKIMRaLB3FJPtFPGqhVbR83pUiiPfLkcf_Ec0' }
 ];
 var TABELA = 'mnt_chamados';
 var LS = 'mnt_chamados_v1';
@@ -1630,10 +1630,9 @@ function iniciar(){
       var p = MNT.projeto;
       // se respondeu um projeto que não é o primeiro da lista, avisa para acertar a constante
       if(p.ref !== PROJETOS[0].ref){
-        avisar('Conectado ao projeto <b>' + p.ref + '</b> (' + p.apelido + '). ' +
-               'A tabela <code>' + TABELA + '</code> foi criada nesse projeto, não no principal. ' +
-               'Funciona normalmente — mas vale mover a tabela para <b>' + PROJETOS[0].ref + '</b> ' +
-               'para manter tudo num lugar só.', 'info');
+        avisar('A tabela <code>' + TABELA + '</code> foi encontrada em <b>' + p.ref + '</b>, ' +
+               'não no projeto atual (<b>' + PROJETOS[0].ref + '</b>). Funciona, mas o certo é ' +
+               'recriá-la no projeto atual e apagar esta.', 'info');
       }else{
         $('#aviso').style.display = 'none';
       }
@@ -1648,7 +1647,7 @@ function iniciar(){
     }
     repintar();
     $('#carregando').classList.add('fim');
-    console.log('%cManutenção Predial v1.2', 'color:#d4a84b;font-weight:700',
+    console.log('%cManutenção Predial v1.3', 'color:#d4a84b;font-weight:700',
                 '· ' + LOCAIS.length + ' locais · ' +
                 (online ? 'Supabase ' + MNT.projeto.ref : 'localStorage'));
     if(!online && MNT.diagnostico.length) console.table(MNT.diagnostico);
