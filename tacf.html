@@ -487,6 +487,8 @@ table.sec tr:hover td { background: rgba(207, 228, 255, 0.03); }
 .badge.r1 { background: rgba(107, 114, 128, 0.2); color: #9ca3af; border: 1px solid rgba(107, 114, 128, 0.3); }
 .badge.baixa { background: rgba(239, 68, 68, 0.15); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); }
 .badge.dispensa { background: rgba(245, 158, 11, 0.15); color: #fde68a; border: 1px solid rgba(245, 158, 11, 0.3); }
+.badge.missao { background: rgba(59, 130, 246, 0.18); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.35); }
+.badge.rubi { background: rgba(239, 68, 68, 0.18); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.35); }
 
 /* TEMPLATE DE EMAIL ESTILIZADO */
 .emailPreviewBox {
@@ -676,7 +678,7 @@ footer {
       <div class="linhaCtl" style="margin-bottom:0">
         <div class="campo">
           <label for="pinCampo">PIN</label>
-          <input type="password" id="pinCampo" placeholder="Secretaria" autocomplete="off" style="letter-spacing:0.15em; font-size:1.05rem; max-width:180px" />
+          <input type="password" id="pinCampo" placeholder="Secretaria" autocomplete="off" onkeyup="if(event.key==='Enter') validarPinSecretaria()" style="letter-spacing:0.15em; font-size:1.05rem; max-width:180px" />
         </div>
         <button class="acao" id="btnPin" onclick="validarPinSecretaria()">Entrar</button>
       </div>
@@ -689,9 +691,16 @@ footer {
       <!-- PAINEL DE CONFIGURAÇÃO DA TEMPORADA -->
       <div class="painel" style="margin-bottom:1.5rem;">
         <h3>Controle da Temporada & Datas de Aplicação</h3>
+        <div class="linhaCtl" style="border-bottom:1px solid var(--hair); padding-bottom:1rem; margin-bottom:1rem; align-items:flex-end;">
+          <div class="campo" style="max-width:340px;">
+            <label for="selTemporadaAtiva">Ciclo / Temporada Ativa</label>
+            <select id="selTemporadaAtiva" onchange="aoTrocarTemporada(this.value)"></select>
+          </div>
+          <button type="button" class="acao fantasma mini" onclick="criarNovaTemporada()" style="margin-bottom:2px;">➕ Novo Ciclo</button>
+        </div>
         <div class="linhaCtl">
           <div class="campo">
-            <label for="txtTituloTemp">Título da Temporada</label>
+            <label for="txtTituloTemp">Título do Ciclo</label>
             <input type="text" id="txtTituloTemp" placeholder="1º/2026" />
           </div>
           <div class="campo" style="max-width:130px;">
@@ -834,9 +843,11 @@ const EFETIVO_URL = `https://docs.google.com/spreadsheets/d/${EFETIVO_SHEET_ID}/
    ESTADO GLOBAL
    ══════════════════════════════════════════════════════════════ */
 let listaEfetivo = [];               // Array de militares vindos da planilha Efetivo
+let listaTemporadas = [];            // Array com todos os ciclos/temporadas cadastrados no Supabase
 let temporadaAtual = null;           // Objeto da temporada ativa
 let solicitacoesMap = {};            // Mapa de solicitações por SARAM { saram: {...solicitacao} }
 let indisponibilidadesAdicionadasForm = []; // Array temporário do formulário do militar
+let saramMilitarSelecionadoMover = null;    // SARAM do militar selecionado no remanejamento visual
 
 /* ══════════════════════════════════════════════════════════════
    INICIALIZAÇÃO DA PÁGINA
@@ -902,7 +913,7 @@ async function carregarEfetivoPlanilha() {
           const nomeGuerra = v(4);
           const nomeCompleto = v(13);
           
-          if (!nomeGuerra && !saram) return null;
+          if (!nomeGuerra || !saram) return null;
 
           const rowText = c.map(col => (col?.v || '').toString()).join(' ').toUpperCase();
           const isR1 = /R\s*1|RESERVA|\bR1\b/i.test(esp) || /R\s*1|RESERVA|\bR1\b/i.test(posto) || /\bR1\b|RESERVA/i.test(rowText);
@@ -925,7 +936,7 @@ async function carregarEfetivoPlanilha() {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   PERSISTÊNCIA SUPABASE (TÍTULO PRÉ-PREENCHIDO E VAGAS DEFAULT 4)
+   PERSISTÊNCIA SUPABASE (GESTÃO DE CICLOS / TEMPORADAS)
    ══════════════════════════════════════════════════════════════ */
 function obterTituloTemporadaPadrao() {
   const agora = new Date();
@@ -937,25 +948,25 @@ function obterTituloTemporadaPadrao() {
 async function carregarOuCriarTemporada() {
   if (!sb) return;
   try {
-    const anoAtual = new Date().getFullYear();
-    const semestreAtual = new Date().getMonth() < 6 ? 1 : 2;
-    const tituloPadrao = obterTituloTemporadaPadrao();
-
     const { data, error } = await sb
       .from('tacf_temporadas')
       .select('*')
-      .order('created_at', { ascending: false })
-      .limit(1);
+      .order('created_at', { ascending: false });
 
     if (error) throw error;
 
     if (data && data.length > 0) {
-      temporadaAtual = data[0];
+      listaTemporadas = data;
+      if (!temporadaAtual || !listaTemporadas.some(t => t.id === temporadaAtual.id)) {
+        temporadaAtual = listaTemporadas[0];
+      } else {
+        temporadaAtual = listaTemporadas.find(t => t.id === temporadaAtual.id);
+      }
     } else {
       const novaTemp = {
-        ano: anoAtual,
-        semestre: semestreAtual,
-        titulo: tituloPadrao,
+        ano: 2026,
+        semestre: 1,
+        titulo: '1º/2026',
         status: 'agendamento_fechado', // Default OFF
         datas_aplicacao: [],
         vagas_por_dia: 4,               // Padronizado em 4 vagas por dia
@@ -965,10 +976,84 @@ async function carregarOuCriarTemporada() {
         .from('tacf_temporadas')
         .insert([novaTemp])
         .select();
-      if (!errCreate && created) temporadaAtual = created[0];
+      if (!errCreate && created && created[0]) {
+        temporadaAtual = created[0];
+        listaTemporadas = [created[0]];
+      }
     }
+    renderizarSeletorTemporadas();
   } catch (e) {
     console.error('Erro ao carregar/criar temporada Supabase:', e);
+  }
+}
+
+function renderizarSeletorTemporadas() {
+  const sel = document.getElementById('selTemporadaAtiva');
+  if (!sel) return;
+  sel.innerHTML = '';
+  listaTemporadas.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.id;
+    const rotuloStatus = t.status === 'agendamento_aberto' ? '🟢 Aberto' : (t.status === 'escala_gerada' ? '⚡ Escala Gerada' : '🔴 Fechado');
+    opt.textContent = `${t.titulo} (${rotuloStatus})`;
+    if (temporadaAtual && t.id === temporadaAtual.id) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+async function aoTrocarTemporada(id) {
+  const temp = listaTemporadas.find(t => t.id === id);
+  if (!temp) return;
+  temporadaAtual = temp;
+  saramMilitarSelecionadoMover = null;
+  await carregarSolicitacoes();
+  atualizarKpisEContadores();
+  renderizarFormularioMilitar();
+  renderizarPainelSecretaria();
+  renderizarSeletorTemporadas();
+}
+
+async function criarNovaTemporada() {
+  const { value: titulo } = await Swal.fire({
+    title: '➕ Novo Ciclo / Temporada TACF',
+    text: 'Informe o título para o novo ciclo (Ex: 1º/2026 ou 2º/2026):',
+    input: 'text',
+    inputValue: '2º/' + new Date().getFullYear(),
+    showCancelButton: true,
+    confirmButtonText: 'Criar Ciclo',
+    cancelButtonText: 'Cancelar'
+  });
+
+  if (!titulo || !titulo.trim()) return;
+
+  const ano = parseInt(titulo.split('/')[1]) || new Date().getFullYear();
+  const semestre = parseInt(titulo.split('º')[0]) || 1;
+
+  const nova = {
+    ano: ano,
+    semestre: semestre,
+    titulo: titulo.trim(),
+    status: 'agendamento_fechado',
+    datas_aplicacao: [],
+    vagas_por_dia: 4,
+    vagas_livres_reserva: 3
+  };
+
+  try {
+    const { data, error } = await sb.from('tacf_temporadas').insert([nova]).select();
+    if (error) throw error;
+    if (data && data[0]) {
+      listaTemporadas.unshift(data[0]);
+      temporadaAtual = data[0];
+      await carregarSolicitacoes();
+      atualizarKpisEContadores();
+      renderizarFormularioMilitar();
+      renderizarPainelSecretaria();
+      renderizarSeletorTemporadas();
+      Swal.fire('Sucesso', `Ciclo "${data[0].titulo}" criado com sucesso!`, 'success');
+    }
+  } catch (e) {
+    Swal.fire('Erro', 'Falha ao criar ciclo: ' + e.message, 'error');
   }
 }
 
@@ -1000,14 +1085,24 @@ function atualizarKpisEContadores() {
   const elegiveis = listaEfetivo.filter(m => {
     const sol = solicitacoesMap[m.saram];
     if (m.isR1) return false;
-    if (sol && (sol.status_elegibilidade === 'baixa' || sol.status_elegibilidade === 'dispensa' || sol.status_elegibilidade === 'r1_reserva' || sol.status_solicitacao === 'nao_realizou')) return false;
+    if (sol && (
+      sol.status_elegibilidade === 'baixa' || 
+      sol.status_elegibilidade === 'dispensa' || 
+      sol.status_elegibilidade === 'missao' || 
+      sol.status_elegibilidade === 'r1_reserva' || 
+      sol.status_solicitacao === 'nao_realizou'
+    )) return false;
     return true;
   });
 
   const solicitadosCount = Object.values(solicitacoesMap).filter(s => s.prio1_data).length;
   const realizadosCount = Object.values(solicitacoesMap).filter(s => s.status_solicitacao === 'realizou').length;
   const naoEfetuaramCount = Object.values(solicitacoesMap).filter(s =>
-    s.status_elegibilidade === 'baixa' || s.status_elegibilidade === 'dispensa' || s.status_solicitacao === 'nao_realizou'
+    s.status_elegibilidade === 'baixa' || 
+    s.status_elegibilidade === 'dispensa' || 
+    s.status_elegibilidade === 'missao' || 
+    s.status_elegibilidade === 'r1_reserva' || 
+    s.status_solicitacao === 'nao_realizou'
   ).length;
 
   document.getElementById('kElegiveis').textContent = elegiveis.length;
@@ -1193,9 +1288,12 @@ async function salvarSolicitacaoMilitar() {
   if (p1 === p2 || p1 === p3 || p2 === p3) return Swal.fire('Atenção', 'As 3 datas de prioridade devem ser diferentes entre si.', 'warning');
 
   const m = listaEfetivo.find(x => x.saram === saram);
-  if (!m) return;
+  if (!m || !temporadaAtual) return;
+
+  const existente = solicitacoesMap[saram] || {};
 
   const payload = {
+    ...existente,
     temporada_id: temporadaAtual.id,
     saram: m.saram,
     posto_grad: m.posto,
@@ -1207,7 +1305,8 @@ async function salvarSolicitacaoMilitar() {
     prio2_data: p2,
     prio3_data: p3,
     indisponibilidades: indisponibilidadesAdicionadasForm,
-    status_solicitacao: 'pendente'
+    status_solicitacao: (existente.status_solicitacao === 'escalado' || existente.status_solicitacao === 'realizou') ? existente.status_solicitacao : 'pendente',
+    status_elegibilidade: existente.status_elegibilidade || 'elegivel'
   };
 
   try {
@@ -1270,6 +1369,7 @@ function renderizarPainelSecretaria() {
   document.getElementById('numVagasDia').value = temporadaAtual.vagas_por_dia || 4;
   document.getElementById('selStatusTemp').value = temporadaAtual.status || 'agendamento_fechado';
 
+  renderizarSeletorTemporadas();
   renderizarBadgesDatas();
   renderizarEscalaHorizontal();
   renderizarTabelaSecretaria();
@@ -1311,12 +1411,19 @@ async function adicionarDataAplicacao() {
   datas.sort();
   temporadaAtual.datas_aplicacao = datas;
   document.getElementById('inputNovaData').value = '';
+
+  try {
+    await sb.from('tacf_temporadas').update({ datas_aplicacao: datas }).eq('id', temporadaAtual.id);
+  } catch (e) {
+    console.error('Erro ao persistir datas:', e);
+  }
+
   renderizarBadgesDatas();
   renderizarFormularioMilitar();
   renderizarEscalaHorizontal();
 }
 
-function removerDataAplicacao(dStr) {
+async function removerDataAplicacao(dStr) {
   if (temporadaAtual?.status === 'escala_gerada') {
     return Swal.fire({
       title: 'Ação Bloqueada',
@@ -1327,6 +1434,13 @@ function removerDataAplicacao(dStr) {
 
   temporadaAtual.datas_aplicacao = (temporadaAtual.datas_aplicacao || []).filter(x => x !== dStr);
   temporadaAtual.datas_aplicacao.sort();
+
+  try {
+    await sb.from('tacf_temporadas').update({ datas_aplicacao: temporadaAtual.datas_aplicacao }).eq('id', temporadaAtual.id);
+  } catch (e) {
+    console.error('Erro ao persistir remoção de data:', e);
+  }
+
   renderizarBadgesDatas();
   renderizarFormularioMilitar();
   renderizarEscalaHorizontal();
@@ -1371,7 +1485,7 @@ async function limparTodasAsDatasAplicacao() {
   }
 }
 
-function gerarDatasSegQuaSexPadrao() {
+async function gerarDatasSegQuaSexPadrao() {
   if (temporadaAtual?.status === 'escala_gerada') {
     return Swal.fire('Ação Bloqueada', 'Primeiro exclua a escala gerada antes de regerar as datas.', 'warning');
   }
@@ -1402,9 +1516,17 @@ function gerarDatasSegQuaSexPadrao() {
   }
 
   temporadaAtual.datas_aplicacao = datas;
+
+  try {
+    await sb.from('tacf_temporadas').update({ datas_aplicacao: datas }).eq('id', temporadaAtual.id);
+  } catch (e) {
+    console.error('Erro ao persistir datas geradas:', e);
+  }
+
   renderizarBadgesDatas();
   renderizarFormularioMilitar();
   renderizarEscalaHorizontal();
+  Swal.fire('Datas Geradas!', `Foram adicionadas ${datas.length} datas e salvas no banco de dados.`, 'success');
 }
 
 async function excluirEscalaGerada() {
@@ -1467,7 +1589,8 @@ async function excluirEscalaGerada() {
 
 async function salvarConfigTemporada() {
   if (!sb || !temporadaAtual) return;
-  temporadaAtual.titulo = document.getElementById('txtTituloTemp').value;
+  const novoTitulo = (document.getElementById('txtTituloTemp').value || '').trim() || obterTituloTemporadaPadrao();
+  temporadaAtual.titulo = novoTitulo;
   temporadaAtual.vagas_por_dia = parseInt(document.getElementById('numVagasDia').value) || 4;
   temporadaAtual.status = document.getElementById('selStatusTemp').value;
 
@@ -1478,12 +1601,13 @@ async function salvarConfigTemporada() {
         titulo: temporadaAtual.titulo,
         vagas_por_dia: temporadaAtual.vagas_por_dia,
         status: temporadaAtual.status,
-        datas_aplicacao: temporadaAtual.datas_aplicacao
+        datas_aplicacao: temporadaAtual.datas_aplicacao || []
       })
       .eq('id', temporadaAtual.id);
 
     if (error) throw error;
     renderizarFormularioMilitar();
+    renderizarSeletorTemporadas();
     Swal.fire('Sucesso', 'Configurações da Secretaria salvas.', 'success');
   } catch (e) {
     Swal.fire('Erro', 'Falha ao salvar: ' + e.message, 'error');
@@ -1751,9 +1875,24 @@ async function selecionarOuMoverMilitarVisual(saram, novaDataStr) {
 }
 
 async function remanejarMilitarVisualParaDia(saram, novaData) {
-  const sol = solicitacoesMap[saram];
   const m = listaEfetivo.find(x => x.saram === saram);
-  if (!sol || !m) return;
+  if (!m || !temporadaAtual) return;
+
+  let sol = solicitacoesMap[saram];
+  if (!sol) {
+    sol = {
+      temporada_id: temporadaAtual.id,
+      saram: m.saram,
+      posto_grad: m.posto,
+      especialidade: m.esp,
+      nome_guerra: m.nomeGuerra,
+      nome_completo: m.nomeCompleto,
+      antiguidade_index: m.antiguidade,
+      status_solicitacao: 'pendente',
+      status_elegibilidade: 'elegivel'
+    };
+    solicitacoesMap[saram] = sol;
+  }
 
   if (sol.dia_escalado === novaData) {
     return; // Mesma data, ignora
@@ -1807,8 +1946,25 @@ async function remanejarMilitarVisualParaDia(saram, novaData) {
 }
 
 async function alternarPresencaMilitar(saram, dataStr) {
-  const sol = solicitacoesMap[saram];
-  if (!sol) return;
+  const m = listaEfetivo.find(x => x.saram === saram);
+  if (!m || !temporadaAtual) return;
+
+  let sol = solicitacoesMap[saram];
+  if (!sol) {
+    sol = {
+      temporada_id: temporadaAtual.id,
+      saram: m.saram,
+      posto_grad: m.posto,
+      especialidade: m.esp,
+      nome_guerra: m.nomeGuerra,
+      nome_completo: m.nomeCompleto,
+      antiguidade_index: m.antiguidade,
+      dia_escalado: dataStr,
+      status_solicitacao: 'pendente',
+      status_elegibilidade: 'elegivel'
+    };
+    solicitacoesMap[saram] = sol;
+  }
 
   if (sol.status_solicitacao === 'realizou') {
     sol.status_solicitacao = 'escalado';
@@ -2051,92 +2207,9 @@ function renderizarEscalaHorizontal() {
   });
 }
 
-/* ══════════════════════════════════════════════════════════════
-   VISUALIZAÇÃO HORIZONTAL DA ESCALA (COLUNAS)
-   ══════════════════════════════════════════════════════════════ */
-function renderizarEscalaHorizontal() {
-  const container = document.getElementById('escalaHorizontal');
-  container.innerHTML = '';
-  const datas = temporadaAtual?.datas_aplicacao || [];
-  const vagasMax = temporadaAtual?.vagas_por_dia || 4;
-
-  if (!datas.length) {
-    container.innerHTML = '<div style="color:var(--texto-3); padding:1rem;">Nenhuma data cadastrada para exibir a escala.</div>';
-    return;
-  }
-
-  datas.forEach(dStr => {
-    const escaladosNoDia = Object.values(solicitacoesMap)
-      .filter(s => s.dia_escalado === dStr && s.status_solicitacao === 'escalado')
-      .sort((a, b) => a.antiguidade_index - b.antiguidade_index);
-
-    const col = document.createElement('div');
-    col.className = 'colunaDia';
-
-    const count = escaladosNoDia.length;
-    const pct = Math.round((count / vagasMax) * 100);
-
-    let htmlMilitares = '';
-    escaladosNoDia.forEach(s => {
-      const rotuloMetodo = {
-        'prio1': '1ª Opção',
-        'prio2': '2ª Opção',
-        'prio3': '3ª Opção',
-        'regra_secundaria_velhos': 'Antiguidade',
-        'regra_secundaria_novos': 'Modernidade',
-        'manual': 'Manual'
-      }[s.metodo_alocacao] || 'Auto';
-
-      htmlMilitares += `
-        <div class="cartaoMilitarEscalado" title="Clique para remanejar este militar" onclick="remanejarMilitarManual('${s.saram}')" style="cursor:pointer;">
-          <span>${s.posto_grad} ${s.nome_guerra} (${s.saram})</span>
-          <span class="badgeMetodo">${rotuloMetodo}</span>
-        </div>
-      `;
-    });
-
-    if (!escaladosNoDia.length) {
-      htmlMilitares = '<div style="font-size:0.8rem; color:var(--texto-3); text-align:center; padding:1.5rem 0;">Vagas disponíveis</div>';
-    }
-
-    col.innerHTML = `
-      <div class="colunaDiaCab">
-        <h4>📅 ${formatarDataBR(dStr)} <span>${count}/${vagasMax}</span></h4>
-        <div class="subInfo">
-          <span>Ocupação: ${pct}%</span>
-          <span>${count < vagasMax ? 'Disponível' : 'Lotado'}</span>
-        </div>
-      </div>
-      <div class="colunaDiaCorpo">
-        ${htmlMilitares}
-        
-        <!-- 3 VAGAS LIVRES RESERVADAS -->
-        <div class="blocoVagasLivres">
-          <div class="tituloVagasLivres">
-            <span>🛡️ 3 Vagas Livres (Casos Atípicos)</span>
-          </div>
-          <div class="vagaLivreItem">Vaga Reservada #1</div>
-          <div class="vagaLivreItem">Vaga Reservada #2</div>
-          <div class="vagaLivreItem">Vaga Reservada #3</div>
-        </div>
-      </div>
-      <div class="colunaDiaRodape">
-        <button class="acao fantasma mini" style="width:100%; justify-content:center;" onclick="copiarColunaDia('${dStr}')">
-          📋 Copiar Coluna (Cole na Planilha)
-        </button>
-        <button class="acao fantasma mini" style="width:100%; justify-content:center; border-color:rgba(212,168,75,0.4);" onclick="exibirModalEmailDia('${dStr}')">
-          ✉️ E-mail Formatado do Dia
-        </button>
-      </div>
-    `;
-
-    container.appendChild(col);
-  });
-}
-
 function copiarColunaDia(dStr) {
   const escaladosNoDia = Object.values(solicitacoesMap)
-    .filter(s => s.dia_escalado === dStr && s.status_solicitacao === 'escalado')
+    .filter(s => s.dia_escalado === dStr && (s.status_solicitacao === 'escalado' || s.status_solicitacao === 'realizou'))
     .sort((a, b) => a.antiguidade_index - b.antiguidade_index);
 
   if (!escaladosNoDia.length) return Swal.fire('Aviso', 'Nenhum militar escalado nesta data.', 'info');
@@ -2188,7 +2261,7 @@ function gerarTemplateEmailSemanal() {
 
 function exibirModalEmailDia(dStr) {
   const escaladosNoDia = Object.values(solicitacoesMap)
-    .filter(s => s.dia_escalado === dStr && s.status_solicitacao === 'escalado')
+    .filter(s => s.dia_escalado === dStr && (s.status_solicitacao === 'escalado' || s.status_solicitacao === 'realizou'))
     .sort((a, b) => a.antiguidade_index - b.antiguidade_index);
 
   const dFmtBR = formatarDataBR(dStr);
@@ -2293,11 +2366,12 @@ function abrirDocumentoSigadaerFechamento() {
     const statusSol = sol?.status_solicitacao || 'pendente';
     const justif = sol?.justificativa || '';
 
-    if (statusEleg === 'baixa' || statusEleg === 'dispensa' || statusSol === 'nao_realizou' || justif) {
+    if (statusEleg === 'baixa' || statusEleg === 'dispensa' || statusEleg === 'missao' || statusSol === 'nao_realizou' || justif) {
       let motDef = justif;
       if (!motDef) {
         if (statusEleg === 'baixa') motDef = 'Em processo de baixa';
         else if (statusEleg === 'dispensa') motDef = 'Em dispensa médica (anexada à ficha de anamnese no próprio Portal do Militar)';
+        else if (statusEleg === 'missao') motDef = 'Em missão fora da sede';
         else motDef = 'Sem justificativa regulamentar até a presente data';
       }
 
@@ -2382,23 +2456,38 @@ function renderizarTabelaSecretaria() {
   const filtroEleg = document.getElementById('filtroStatusEleg')?.value || '';
 
   const filtrados = listaEfetivo.filter(m => {
+    const sol = solicitacoesMap[m.saram];
+    const isMilitarR1 = m.isR1 || sol?.status_elegibilidade === 'r1_reserva';
+
     // Por padrão, esconde militares R1 de qualquer filtro, a menos que o filtro seja especificamente 'r1_reserva'
-    if (m.isR1 && filtroEleg !== 'r1_reserva') return false;
+    if (isMilitarR1 && filtroEleg !== 'r1_reserva') return false;
 
     const matchBusca = m.nomeGuerra.toLowerCase().includes(termoBusca) || m.posto.toLowerCase().includes(termoBusca) || m.saram.includes(termoBusca);
     if (!matchBusca) return false;
 
-    const sol = solicitacoesMap[m.saram];
-    const statusEleg = (m.isR1 || sol?.status_elegibilidade === 'r1_reserva') ? 'r1_reserva' : (sol ? sol.status_elegibilidade : 'elegivel');
-    const statusSol = sol ? sol.status_solicitacao : 'pendente';
+    const statusEleg = sol?.status_elegibilidade || (isMilitarR1 ? 'r1_reserva' : 'elegivel');
+    const statusSol = sol?.status_solicitacao || 'pendente';
 
     if (filtroEleg) {
-      if (filtroEleg === 'elegivel' && (m.isR1 || statusEleg !== 'elegivel')) return false;
-      if (filtroEleg === 'r1_reserva' && !m.isR1 && statusEleg !== 'r1_reserva') return false;
-      if (filtroEleg === 'solicitado' && (m.isR1 || statusSol !== 'pendente' || !sol?.prio1_data)) return false;
-      if (filtroEleg === 'escalado' && (m.isR1 || statusSol !== 'escalado')) return false;
-      if (filtroEleg === 'realizou' && statusSol !== 'realizou') return false;
-      if (['baixa', 'dispensa', 'nao_realizou'].includes(filtroEleg) && (statusEleg !== filtroEleg && statusSol !== filtroEleg)) return false;
+      if (filtroEleg === 'elegivel') {
+        if (isMilitarR1 || statusEleg !== 'elegivel') return false;
+      } else if (filtroEleg === 'r1_reserva') {
+        if (!isMilitarR1 && statusEleg !== 'r1_reserva') return false;
+      } else if (filtroEleg === 'solicitado') {
+        if (isMilitarR1 || statusSol !== 'pendente' || !sol?.prio1_data) return false;
+      } else if (filtroEleg === 'escalado') {
+        if (isMilitarR1 || statusSol !== 'escalado') return false;
+      } else if (filtroEleg === 'realizou') {
+        if (statusSol !== 'realizou') return false;
+      } else if (filtroEleg === 'missao') {
+        if (statusEleg !== 'missao') return false;
+      } else if (filtroEleg === 'baixa') {
+        if (statusEleg !== 'baixa') return false;
+      } else if (filtroEleg === 'dispensa') {
+        if (statusEleg !== 'dispensa') return false;
+      } else if (filtroEleg === 'nao_realizou') {
+        if (statusSol !== 'nao_realizou' && statusEleg !== 'nao_realizou') return false;
+      }
     }
     return true;
   });
@@ -2412,13 +2501,31 @@ function renderizarTabelaSecretaria() {
     const tr = document.createElement('tr');
     const sol = solicitacoesMap[m.saram];
 
+    // Determina o valor único e mutuamente exclusivo do select
+    let valorSelect = 'elegivel';
+    if (m.isR1 || sol?.status_elegibilidade === 'r1_reserva') {
+      valorSelect = 'r1_reserva';
+    } else if (sol?.status_elegibilidade === 'baixa') {
+      valorSelect = 'baixa';
+    } else if (sol?.status_elegibilidade === 'dispensa') {
+      valorSelect = 'dispensa';
+    } else if (sol?.status_elegibilidade === 'missao') {
+      valorSelect = 'missao';
+    } else if (sol?.status_solicitacao === 'realizou') {
+      valorSelect = 'realizou';
+    } else if (sol?.status_solicitacao === 'nao_realizou') {
+      valorSelect = 'nao_realizou';
+    }
+
     let badgeEleg = '<span class="badge elegivel">Elegível</span>';
-    if (m.isR1 || (sol && sol.status_elegibilidade === 'r1_reserva')) badgeEleg = '<span class="badge r1">Reserva (R1)</span>';
-    if (sol && sol.status_elegibilidade === 'baixa') badgeEleg = '<span class="badge baixa">Processo de Baixa</span>';
-    if (sol && sol.status_elegibilidade === 'dispensa') badgeEleg = '<span class="badge dispensa">Dispensa Médica</span>';
-    if (sol && sol.status_elegibilidade === 'missao') badgeEleg = '<span class="badge" style="background:rgba(59,130,246,0.2); border:1px solid #3b82f6; color:#93c5fd; padding:0.2rem 0.5rem; border-radius:4px;">Missão Fora da Sede</span>';
-    if (sol && sol.status_solicitacao === 'nao_realizou') badgeEleg = '<span class="badge rubi">Não Realizou</span>';
-    if (sol && sol.status_solicitacao === 'realizou') badgeEleg = '<span class="badge realizou">Concluído</span>';
+    if (valorSelect === 'r1_reserva') badgeEleg = '<span class="badge r1">Reserva (R1)</span>';
+    else if (valorSelect === 'baixa') badgeEleg = '<span class="badge baixa">Processo de Baixa</span>';
+    else if (valorSelect === 'dispensa') badgeEleg = '<span class="badge dispensa">Dispensa Médica</span>';
+    else if (valorSelect === 'missao') badgeEleg = '<span class="badge missao">Missão Fora da Sede</span>';
+    else if (valorSelect === 'realizou') badgeEleg = '<span class="badge realizou">Concluído</span>';
+    else if (valorSelect === 'nao_realizou') badgeEleg = '<span class="badge rubi">Não Realizou</span>';
+    else if (sol?.status_solicitacao === 'escalado') badgeEleg = '<span class="badge escalado">Escalado</span>';
+    else if (sol?.prio1_data) badgeEleg = '<span class="badge solicitado">Solicitado</span>';
 
     const opcStr = sol?.prio1_data
       ? `1ª: ${formatarDataBR(sol.prio1_data)}<br/>2ª: ${formatarDataBR(sol.prio2_data)}<br/>3ª: ${formatarDataBR(sol.prio3_data)}`
@@ -2438,7 +2545,10 @@ function renderizarTabelaSecretaria() {
     tr.innerHTML = `
       <td style="font-family:var(--f-data);">${m.antiguidade}º</td>
       <td>${m.posto} ${m.esp ? '(' + m.esp + ')' : ''}</td>
-      <td><b>${m.nomeGuerra}</b></td>
+      <td>
+        <b>${m.nomeGuerra}</b>
+        <div style="margin-top:0.25rem;">${badgeEleg}</div>
+      </td>
       <td style="font-family:var(--f-data);">${m.saram}</td>
       <td style="font-size:0.78rem;">${opcStr}</td>
       <td style="font-size:0.75rem;">${indispStr}</td>
@@ -2448,13 +2558,13 @@ function renderizarTabelaSecretaria() {
       </td>
       <td>
         <select onchange="alterarElegibilidadeMilitar('${m.saram}', this.value)" style="font-size:0.75rem; padding:0.25rem 0.4rem;">
-          <option value="elegivel" ${(sol?.status_elegibilidade === 'elegivel' || !sol) && !m.isR1 ? 'selected' : ''}>Elegível / Normal</option>
-          <option value="missao" ${sol?.status_elegibilidade === 'missao' ? 'selected' : ''}>Missão Fora da Sede</option>
-          <option value="nao_realizou" ${sol?.status_solicitacao === 'nao_realizou' ? 'selected' : ''}>Não Realizou / Remover</option>
-          <option value="baixa" ${sol?.status_elegibilidade === 'baixa' ? 'selected' : ''}>Em Processo de Baixa</option>
-          <option value="dispensa" ${sol?.status_elegibilidade === 'dispensa' ? 'selected' : ''}>Dispensa Médica</option>
-          <option value="realizou" ${sol?.status_solicitacao === 'realizou' ? 'selected' : ''}>TACF Concluído</option>
-          <option value="r1_reserva" ${sol?.status_elegibilidade === 'r1_reserva' || m.isR1 ? 'selected' : ''}>Reserva (R1)</option>
+          <option value="elegivel" ${valorSelect === 'elegivel' ? 'selected' : ''}>Elegível / Normal</option>
+          <option value="missao" ${valorSelect === 'missao' ? 'selected' : ''}>Missão Fora da Sede</option>
+          <option value="nao_realizou" ${valorSelect === 'nao_realizou' ? 'selected' : ''}>Não Realizou / Remover</option>
+          <option value="baixa" ${valorSelect === 'baixa' ? 'selected' : ''}>Em Processo de Baixa</option>
+          <option value="dispensa" ${valorSelect === 'dispensa' ? 'selected' : ''}>Dispensa Médica</option>
+          <option value="realizou" ${valorSelect === 'realizou' ? 'selected' : ''}>TACF Concluído</option>
+          <option value="r1_reserva" ${valorSelect === 'r1_reserva' ? 'selected' : ''}>Reserva (R1)</option>
         </select>
       </td>
     `;
@@ -2464,7 +2574,7 @@ function renderizarTabelaSecretaria() {
 
 async function salvarJustificativaMilitar(saram, textoJustificativa) {
   const m = listaEfetivo.find(x => x.saram === saram);
-  if (!m) return;
+  if (!m || !temporadaAtual) return;
 
   const sol = solicitacoesMap[saram] || {
     temporada_id: temporadaAtual.id,
@@ -2474,7 +2584,8 @@ async function salvarJustificativaMilitar(saram, textoJustificativa) {
     nome_guerra: m.nomeGuerra,
     nome_completo: m.nomeCompleto,
     antiguidade_index: m.antiguidade,
-    status_solicitacao: 'pendente'
+    status_solicitacao: 'pendente',
+    status_elegibilidade: m.isR1 ? 'r1_reserva' : 'elegivel'
   };
 
   sol.justificativa = textoJustificativa;
@@ -2486,17 +2597,29 @@ async function salvarJustificativaMilitar(saram, textoJustificativa) {
       .select();
 
     if (error) throw error;
-    if (data) {
+    if (data && data[0]) {
       solicitacoesMap[saram] = data[0];
+      const toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 1500,
+        timerProgressBar: true
+      });
+      toast.fire({
+        icon: 'success',
+        title: 'Justificativa salva!'
+      });
     }
   } catch (e) {
     console.error('Erro ao salvar justificativa:', e);
+    Swal.fire('Erro', 'Falha ao salvar justificativa: ' + e.message, 'error');
   }
 }
 
 async function alterarElegibilidadeMilitar(saram, novoStatus) {
   const m = listaEfetivo.find(x => x.saram === saram);
-  if (!m) return;
+  if (!m || !temporadaAtual) return;
 
   const sol = solicitacoesMap[saram] || {
     temporada_id: temporadaAtual.id,
@@ -2506,7 +2629,8 @@ async function alterarElegibilidadeMilitar(saram, novoStatus) {
     nome_guerra: m.nomeGuerra,
     nome_completo: m.nomeCompleto,
     antiguidade_index: m.antiguidade,
-    status_solicitacao: 'pendente'
+    status_solicitacao: 'pendente',
+    status_elegibilidade: 'elegivel'
   };
 
   if (novoStatus === 'baixa' || novoStatus === 'dispensa' || novoStatus === 'r1_reserva') {
@@ -2516,16 +2640,30 @@ async function alterarElegibilidadeMilitar(saram, novoStatus) {
     if (!sol.justificativa) {
       if (novoStatus === 'baixa') sol.justificativa = 'Em processo de baixa';
       if (novoStatus === 'dispensa') sol.justificativa = 'Em dispensa médica (anexada à ficha de anamnese no próprio Portal do Militar)';
+      if (novoStatus === 'r1_reserva') sol.justificativa = 'Transferido para a Reserva (R1)';
     }
-  } else if (novoStatus === 'nao_realizou') {
+  } else if (novoStatus === 'missao') {
+    sol.status_elegibilidade = 'missao';
     sol.status_solicitacao = 'nao_realizou';
     sol.dia_escalado = null;
-    if (!sol.justificativa) sol.justificativa = 'Sem justificativa regulamentar até a presente data';
+    if (!sol.justificativa) {
+      sol.justificativa = 'Em missão fora da sede';
+    }
+  } else if (novoStatus === 'nao_realizou') {
+    sol.status_elegibilidade = 'elegivel';
+    sol.status_solicitacao = 'nao_realizou';
+    sol.dia_escalado = null;
+    if (!sol.justificativa) {
+      sol.justificativa = 'Sem justificativa regulamentar até a presente data';
+    }
   } else if (novoStatus === 'realizou') {
+    sol.status_elegibilidade = 'elegivel';
     sol.status_solicitacao = 'realizou';
   } else if (novoStatus === 'elegivel') {
     sol.status_elegibilidade = 'elegivel';
-    if (sol.status_solicitacao === 'nao_realizou') sol.status_solicitacao = 'pendente';
+    if (sol.status_solicitacao === 'nao_realizou') {
+      sol.status_solicitacao = 'pendente';
+    }
   }
 
   try {
@@ -2535,11 +2673,23 @@ async function alterarElegibilidadeMilitar(saram, novoStatus) {
       .select();
 
     if (error) throw error;
-    if (data) {
+    if (data && data[0]) {
       solicitacoesMap[saram] = data[0];
       atualizarKpisEContadores();
       renderizarTabelaSecretaria();
       renderizarEscalaHorizontal();
+
+      const toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 1800,
+        timerProgressBar: true
+      });
+      toast.fire({
+        icon: 'success',
+        title: `Status de ${m.posto} ${m.nomeGuerra} atualizado com sucesso!`
+      });
     }
   } catch (e) {
     Swal.fire('Erro', 'Falha ao atualizar status: ' + e.message, 'error');

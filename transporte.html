@@ -343,6 +343,8 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
       <div class="gradeDias" id="gradeDias"></div>
 
       <dl class="resumo" id="resumo" style="display:none">
+        <div class="resCel"><dt>Soldo Base</dt><dd class="ouro" id="rSoldo">—</dd></div>
+        <div class="resCel"><dt>Cota-Parte (6%)</dt><dd class="rubi" id="rCotaParte" title="Desconto mensal de 6% do soldo proporcional a 22 dias">—</dd></div>
         <div class="resCel"><dt>Auxílio em vigência</dt><dd class="ouro" id="rVig">—</dd></div>
         <div class="resCel"><dt>Valor diário</dt><dd id="rDia">—</dd></div>
         <div class="resCel"><dt>Dias descontados</dt><dd class="ambar" id="rDesc">—</dd></div>
@@ -458,12 +460,14 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
       </p>
       <div class="tabScroll modalCorpo">
         <table class="cad">
-          <thead><tr><th>Grad.</th><th>Nome</th><th>SARAM</th><th>Auxílio mensal (R$)</th><th>Valor diário (R$)</th><th>Ativo</th><th></th></tr></thead>
+          <thead><tr><th>Grad.</th><th>Nome</th><th>SARAM</th><th>Soldo (R$)</th><th>Cota-Parte (R$)</th><th>Auxílio mensal (R$)</th><th>Valor diário (R$)</th><th>Ativo</th><th></th></tr></thead>
           <tbody id="corpoCad"></tbody>
           <tfoot><tr>
             <td><input id="nGrad" class="curto" placeholder="1S" /></td>
             <td><input id="nNome" placeholder="Nome de guerra" /></td>
             <td><input id="nSaram" class="curto" placeholder="0000000" /></td>
+            <td><input id="nSoldo" class="curto" type="number" step="0.01" placeholder="5988,00" /></td>
+            <td><input id="nCota" class="curto" type="number" step="0.01" placeholder="263,47" readonly style="opacity:.85" /></td>
             <td><input id="nVig" class="curto" type="number" step="0.01" placeholder="639,76" /></td>
             <td><input id="nDia" class="curto" type="number" step="0.01" placeholder="29,08" /></td>
             <td>—</td>
@@ -559,6 +563,46 @@ function faseDoCiclo(){
   return d <= 5 ? 1 : d <= 10 ? 2 : 3;
 }
 
+/* ══════════════ TABELA OFICIAL DE SOLDOS E COTA-PARTE ══════════════ */
+const TABELA_SOLDOS = {
+  'CEL': 12505.00, 'CORONEL': 12505.00,
+  'TC': 12285.00, 'TEN CORONEL': 12285.00, 'TENENTE CORONEL': 12285.00,
+  'MJ': 12108.00, 'MAJOR': 12108.00,
+  'CAP': 9976.00, 'CAPITAO': 9976.00, 'CAPITÃO': 9976.00, 'CP': 9976.00,
+  '1T': 9004.00, '1º TENENTE': 9004.00, '1TEN': 9004.00, '1º TEN': 9004.00, '1° TEN': 9004.00,
+  '2T': 8179.00, '2º TENENTE': 8179.00, '2TEN': 8179.00, '2º TEN': 8179.00, '2° TEN': 8179.00,
+  'ASP': 7988.00, 'ASPIRANTE': 7988.00,
+  'SO': 6737.00, 'SUB OFICIAL': 6737.00, 'SUBOFICIAL': 6737.00,
+  '1S': 5988.00, '1º SARGENTO': 5988.00, '1SGT': 5988.00, '1º SGT': 5988.00, '1° SGT': 5988.00,
+  '2S': 5209.00, '2º SARGENTO': 5209.00, '2SGT': 5209.00, '2º SGT': 5209.00, '2° SGT': 5209.00,
+  '3S': 4177.00, '3º SARGENTO': 4177.00, '3SGT': 4177.00, '3º SGT': 4177.00, '3° SGT': 4177.00,
+  'CB': 2869.00, 'CABO': 2869.00,
+  'S1': 2103.00, 'SD 1ª CLASSE': 2103.00, 'SD 1CL': 2103.00, 'SD 1ª CL': 2103.00, 'SD 1° CL': 2103.00, '1CL': 2103.00,
+  'S2': 1927.00, 'SD 2ª CLASSE': 1927.00, 'SD 2CL': 1927.00, 'SD 2ª CL': 1927.00, 'SD 2° CL': 1927.00, '2CL': 1927.00,
+  'REC': 1177.00, 'RECRUTA': 1177.00
+};
+
+function obterSoldoPorGrad(grad){
+  if (!grad) return 0;
+  const p = grad.trim().toUpperCase().split(/\s+/)[0].replace(/[^A-Z0-9º°]/g, '');
+  return TABELA_SOLDOS[p] || TABELA_SOLDOS[grad.trim().toUpperCase()] || 0;
+}
+
+function calcularCotaParte(soldo){
+  if (!soldo || Number(soldo) <= 0) return 0;
+  // Cota-parte legal: 6% do soldo proporcional a 22 dias -> (Soldo * 0.06 / 30) * 22
+  return Number(((Number(soldo) * 0.06 / 30) * 22).toFixed(2));
+}
+
+function obterSoldoMilitar(m){
+  if (m && m.soldo && Number(m.soldo) > 0) return Number(m.soldo);
+  try {
+    const cacheMap = JSON.parse(localStorage.getItem('at_soldos_map') || '{}');
+    if (m && m.saram && cacheMap[m.saram]) return Number(cacheMap[m.saram]);
+  } catch(e){}
+  return obterSoldoPorGrad(m?.grad);
+}
+
 /* ══════════════ MOTOR DE CÁLCULO ══════════════ */
 function calcularDecl(comp, diasObj, mil, zeradoPorMesAnterior){
   const grade = diasDoMes(comp);
@@ -605,12 +649,14 @@ function calcularDecl(comp, diasObj, mil, zeradoPorMesAnterior){
   if (zeraProx)
     log.push('<b>Férias Restantes</b> declaradas: o auxílio do <b>mês seguinte</b> não será pago.');
 
+  const soldo = obterSoldoMilitar(mil);
+  const cotaParte = mil?.cota_parte && Number(mil.cota_parte) > 0 ? Number(mil.cota_parte) : calcularCotaParte(soldo);
   const vig = Number(mil?.valor_mensal || 0);
   const vDia = Number(mil?.valor_diario || (vig > 0 ? Number((vig / 22).toFixed(2)) : 0));
   const desconto = zerado ? vig : diasDesc * vDia;
   const final = zerado ? 0 : Math.max(0, vig - desconto);
 
-  return { vig, vDia, diasDesc: zerado ? '—' : diasDesc, diasDescNum: diasDesc,
+  return { soldo, cotaParte, vig, vDia, diasDesc: zerado ? '—' : diasDesc, diasDescNum: diasDesc,
            desconto: zerado ? vig : Math.min(desconto, vig), final, zerado, zeraProx, vazios, log };
 }
 
@@ -842,6 +888,10 @@ document.addEventListener('keydown', e => {
 /* ══════════════ VISÃO DO MILITAR ══════════════ */
 async function carregarMilitares(){
   militares = await sbGet('at_militares?select=*&order=nome');
+  militares.forEach(m => {
+    if (!m.soldo || Number(m.soldo) <= 0) m.soldo = obterSoldoMilitar(m);
+    if (!m.cota_parte || Number(m.cota_parte) <= 0) m.cota_parte = calcularCotaParte(m.soldo);
+  });
   const sel = $('selMilitar');
   sel.innerHTML = '<option value="">— selecione —</option>' +
     militares.filter(m => m.ativo).map(m => '<option value="' + m.id + '">' + m.grad + ' ' + m.nome + '</option>').join('');
@@ -860,8 +910,12 @@ async function abrirDeclaracao(){
   declAtual = null; diasAtual = {}; zeradoAnterior = false;
   if (!mil || !comp) return;
 
+  const sld = obterSoldoMilitar(mil);
+  const cota = mil.cota_parte ? Number(mil.cota_parte) : calcularCotaParte(sld);
+
   faixa($('cabMilitar'), 'info',
     '<b>' + mil.grad + ' ' + mil.nome + '</b> · SARAM ' + mil.saram +
+    (sld > 0 ? ' · Soldo: <b>' + fmtBRL(sld) + '</b> · Cota-Parte (6%): <b>' + fmtBRL(cota) + '</b>' : '') +
     ' · Auxílio em vigência: <b>' + fmtBRL(Number(mil.valor_mensal)) + '</b>' +
     ' · Valor diário: <b>' + fmtBRL(Number(mil.valor_diario)) + '</b>');
 
@@ -973,6 +1027,8 @@ function recomputar(){
   if (!mil || !comp) return;
   const r = calcularDecl(comp, diasAtual, mil, zeradoAnterior);
   $('resumo').style.display = '';
+  $('rSoldo').textContent = r.soldo > 0 ? fmtBRL(r.soldo) : '—';
+  $('rCotaParte').textContent = r.cotaParte > 0 ? fmtBRL(r.cotaParte) : '—';
   $('rVig').textContent = fmtBRL(r.vig);
   $('rDia').textContent = fmtBRL(r.vDia);
   $('rDesc').textContent = r.zerado ? '—' : r.diasDesc;
@@ -1113,7 +1169,10 @@ async function carregarSecretaria(){
       (d && d.status !== 'rascunho' && !d.pdf_assinado) ? '<span class="chip rubi">SEM PDF ⚠</span>' : '',
       (d && r.vazios > 0) ? '<span class="chip ambar">' + r.vazios + ' dia(s) vazio(s)</span>' : ''
     ].filter(Boolean).join(' ') || '<span style="color:var(--texto-3)">—</span>';
-    return '<tr><td><b>' + m.grad + ' ' + m.nome + '</b><br><small style="color:var(--texto-3)">SARAM ' + m.saram + '</small></td>' +
+    const sld = r.soldo || obterSoldoMilitar(m);
+    const cota = r.cotaParte || (sld > 0 ? calcularCotaParte(sld) : 0);
+    const infoSld = sld > 0 ? ' · Soldo ' + fmtBRL(sld) + ' · Cota ' + fmtBRL(cota) : '';
+    return '<tr><td><b>' + m.grad + ' ' + m.nome + '</b><br><small style="color:var(--texto-3)">SARAM ' + m.saram + infoSld + '</small></td>' +
       '<td>' + chip + '</td>' +
       '<td>' + (d ? r.diasDesc : '—') + '</td>' +
       '<td>' + (d ? fmtBRL(r.desconto) : '—') + '</td>' +
@@ -1166,6 +1225,7 @@ async function sincronizarMilitaresComPlanilhaCentral() {
 
     const rows = json?.table?.rows || [];
     let importados = 0;
+    const soldosMap = JSON.parse(localStorage.getItem('at_soldos_map') || '{}');
     
     for (const row of rows) {
       const c = row.c || [];
@@ -1179,6 +1239,23 @@ async function sincronizarMilitaresComPlanilhaCentral() {
       // Filtra apenas quem utiliza Auxílio (Coluna AB = "Sim")
       if (!usaAux.includes('sim')) continue;
 
+      const gradFormatada = [posto, esp].filter(Boolean).join(' ') || posto;
+
+      // Parsing do Soldo (Coluna W - índice 22)
+      let soldo = 0;
+      if (c[22]) {
+        if (typeof c[22].v === 'number') {
+          soldo = c[22].v;
+        } else {
+          const rawW = (c[22].v ?? c[22].f ?? '').toString().replace(/[^\d.,]/g, '').replace(',', '.');
+          soldo = parseFloat(rawW) || 0;
+        }
+      }
+      if (!soldo || soldo <= 0) soldo = obterSoldoPorGrad(posto) || obterSoldoPorGrad(gradFormatada);
+      const cotaParte = calcularCotaParte(soldo);
+
+      if (saram) soldosMap[saram] = soldo;
+
       // Parsing do valor do auxílio (Coluna AC - índice 28)
       let valorMensal = 0;
       if (c[28]) {
@@ -1191,23 +1268,36 @@ async function sincronizarMilitaresComPlanilhaCentral() {
       }
       const valorDiario = valorMensal > 0 ? Number((valorMensal / 22).toFixed(2)) : 0;
 
-      const gradFormatada = [posto, esp].filter(Boolean).join(' ') || posto;
-      
       try {
-        const payload = {
+        const payloadCompleto = {
           nome: nomeGuerra.toUpperCase(),
           grad: gradFormatada,
           saram: saram || '0000000',
+          soldo: soldo,
+          cota_parte: cotaParte,
           valor_mensal: valorMensal,
           valor_diario: valorDiario,
           ativo: true
         };
-        await sbUpsert('at_militares', payload, 'saram');
+        try {
+          await sbUpsert('at_militares', payloadCompleto, 'saram');
+        } catch(errSb) {
+          const payloadBase = {
+            nome: nomeGuerra.toUpperCase(),
+            grad: gradFormatada,
+            saram: saram || '0000000',
+            valor_mensal: valorMensal,
+            valor_diario: valorDiario,
+            ativo: true
+          };
+          await sbUpsert('at_militares', payloadBase, 'saram');
+        }
         importados++;
       } catch(e) {
         console.warn('Falha ao upsert militar:', nomeGuerra, e);
       }
     }
+    try { localStorage.setItem('at_soldos_map', JSON.stringify(soldosMap)); } catch(e){}
 
     await carregarMilitares();
     if (typeof carregarSecretaria === 'function') await carregarSecretaria();
@@ -1535,16 +1625,20 @@ $('btnCsv').addEventListener('click', () => {
 
 /* ══════════════ CADASTRO ══════════════ */
 function pintarCadastro(){
-  $('corpoCad').innerHTML = militares.map(m =>
-    '<tr data-id="' + m.id + '">' +
-    '<td><input class="curto" data-c="grad" value="' + m.grad + '" /></td>' +
-    '<td><input data-c="nome" value="' + m.nome + '" /></td>' +
-    '<td><input class="curto" data-c="saram" value="' + m.saram + '" /></td>' +
-    '<td><input class="curto" data-c="valor_mensal" type="number" step="0.01" value="' + m.valor_mensal + '" /></td>' +
-    '<td><input class="curto" data-c="valor_diario" type="number" step="0.01" value="' + m.valor_diario + '" /></td>' +
-    '<td><button class="acao mini ' + (m.ativo ? 'verde' : 'fantasma') + '" data-tog>' + (m.ativo ? 'Ativo' : 'Inativo') + '</button></td>' +
-    '<td><button class="acao vermelho mini" data-del>Remover</button></td></tr>'
-  ).join('') || '<tr><td colspan="7" style="color:var(--texto-3)">Nenhum militar cadastrado ainda.</td></tr>';
+  $('corpoCad').innerHTML = militares.map(m => {
+    const sld = obterSoldoMilitar(m);
+    const cot = m.cota_parte ? Number(m.cota_parte) : calcularCotaParte(sld);
+    return '<tr data-id="' + m.id + '">' +
+      '<td><input class="curto" data-c="grad" value="' + m.grad + '" /></td>' +
+      '<td><input data-c="nome" value="' + m.nome + '" /></td>' +
+      '<td><input class="curto" data-c="saram" value="' + m.saram + '" /></td>' +
+      '<td><input class="curto" data-c="soldo" type="number" step="0.01" value="' + (sld || '') + '" placeholder="0,00" /></td>' +
+      '<td><input class="curto" data-c="cota_parte" type="number" step="0.01" value="' + (cot || '') + '" placeholder="0,00" readonly style="opacity:.85" /></td>' +
+      '<td><input class="curto" data-c="valor_mensal" type="number" step="0.01" value="' + m.valor_mensal + '" /></td>' +
+      '<td><input class="curto" data-c="valor_diario" type="number" step="0.01" value="' + m.valor_diario + '" /></td>' +
+      '<td><button class="acao mini ' + (m.ativo ? 'verde' : 'fantasma') + '" data-tog>' + (m.ativo ? 'Ativo' : 'Inativo') + '</button></td>' +
+      '<td><button class="acao vermelho mini" data-del>Remover</button></td></tr>';
+  }).join('') || '<tr><td colspan="9" style="color:var(--texto-3)">Nenhum militar cadastrado ainda.</td></tr>';
 
   $('corpoCad').querySelectorAll('tr[data-id]').forEach(tr => {
     const id = tr.dataset.id;
@@ -1552,13 +1646,39 @@ function pintarCadastro(){
       const corpo = {};
       const val = inp.type === 'number' ? Number(inp.value || 0) : inp.value.trim();
       corpo[inp.dataset.c] = val;
+      if (inp.dataset.c === 'soldo') {
+        const cota = calcularCotaParte(val);
+        corpo['cota_parte'] = cota;
+        const inCota = tr.querySelector('input[data-c="cota_parte"]');
+        if (inCota) inCota.value = cota;
+      }
+      if (inp.dataset.c === 'grad') {
+        const sldAuto = obterSoldoPorGrad(val);
+        if (sldAuto > 0) {
+          corpo['soldo'] = sldAuto;
+          const cotaAuto = calcularCotaParte(sldAuto);
+          corpo['cota_parte'] = cotaAuto;
+          const inSld = tr.querySelector('input[data-c="soldo"]');
+          if (inSld) inSld.value = sldAuto;
+          const inCota = tr.querySelector('input[data-c="cota_parte"]');
+          if (inCota) inCota.value = cotaAuto;
+        }
+      }
       if (inp.dataset.c === 'valor_mensal') {
         const vDia = val > 0 ? Number((val / 22).toFixed(2)) : 0;
         corpo['valor_diario'] = vDia;
         const inDia = tr.querySelector('input[data-c="valor_diario"]');
         if (inDia) inDia.value = vDia;
       }
-      try { await sbPatch('at_militares?id=eq.' + id, corpo); await carregarMilitares(); }
+      try {
+        try {
+          await sbPatch('at_militares?id=eq.' + id, corpo);
+        } catch(e1) {
+          delete corpo.soldo; delete corpo.cota_parte;
+          if (Object.keys(corpo).length) await sbPatch('at_militares?id=eq.' + id, corpo);
+        }
+        await carregarMilitares();
+      }
       catch (e){ faixa($('faixaGeral'), 'erro', '⚠️ ' + e.message); }
     }));
     tr.querySelector('[data-tog]').addEventListener('click', async () => {
@@ -1574,6 +1694,17 @@ function pintarCadastro(){
     });
   });
 }
+$('nGrad').addEventListener('input', () => {
+  const sld = obterSoldoPorGrad($('nGrad').value);
+  if (sld > 0) {
+    $('nSoldo').value = sld.toFixed(2);
+    $('nCota').value = calcularCotaParte(sld).toFixed(2);
+  }
+});
+$('nSoldo').addEventListener('input', () => {
+  const v = Number($('nSoldo').value || 0);
+  $('nCota').value = v > 0 ? calcularCotaParte(v).toFixed(2) : '';
+});
 $('nVig').addEventListener('input', () => {
   const v = Number($('nVig').value || 0);
   if (v > 0) $('nDia').value = (v / 22).toFixed(2);
@@ -1582,15 +1713,23 @@ $('nVig').addEventListener('input', () => {
 $('btnAddMil').addEventListener('click', async () => {
   const vMensal = Number($('nVig').value || 0);
   const vDiaCalculado = Number($('nDia').value || (vMensal > 0 ? (vMensal / 22).toFixed(2) : 0));
+  const sld = Number($('nSoldo').value || obterSoldoPorGrad($('nGrad').value) || 0);
+  const cota = sld > 0 ? calcularCotaParte(sld) : 0;
   const corpo = {
     grad: $('nGrad').value.trim(), nome: $('nNome').value.trim().toUpperCase(),
     saram: $('nSaram').value.trim(),
+    soldo: sld, cota_parte: cota,
     valor_mensal: vMensal, valor_diario: vDiaCalculado
   };
   if (!corpo.nome || !corpo.saram){ faixa($('faixaGeral'), 'alerta', 'Preencha ao menos nome e SARAM.'); return; }
   try {
-    await sbUpsert('at_militares', corpo, 'saram');
-    ['nGrad','nNome','nSaram','nVig','nDia'].forEach(i => $(i).value = '');
+    try {
+      await sbUpsert('at_militares', corpo, 'saram');
+    } catch(e1) {
+      delete corpo.soldo; delete corpo.cota_parte;
+      await sbUpsert('at_militares', corpo, 'saram');
+    }
+    ['nGrad','nNome','nSaram','nSoldo','nCota','nVig','nDia'].forEach(i => $(i).value = '');
     await carregarMilitares(); pintarCadastro();
   } catch (e){ faixa($('faixaGeral'), 'erro', '⚠️ ' + e.message); }
 });
@@ -1635,6 +1774,8 @@ function imprimirDeclaracaoNavegador(){
     '<div class="impIdent">' +
       '<div class="bloco" style="flex:2"><b>Grad. / Nome do militar</b><span>' + mil.grad + ' ' + mil.nome + '</span></div>' +
       '<div class="bloco"><b>SARAM</b><span>' + mil.saram + '</span></div>' +
+      (r.soldo > 0 ? '<div class="bloco"><b>Soldo Base</b><span>' + fmtBRL(r.soldo) + '</span></div>' : '') +
+      (r.cotaParte > 0 ? '<div class="bloco"><b>Cota-Parte (6%)</b><span>' + fmtBRL(r.cotaParte) + '</span></div>' : '') +
       '<div class="bloco ouro"><b>Auxílio em vigência</b><span>' + fmtBRL(r.vig) + '</span></div>' +
       '<div class="bloco ouro"><b>Valor diário</b><span>' + fmtBRL(r.vDia) + '</span></div>' +
     '</div>' +
@@ -2273,12 +2414,18 @@ async function gerarPdfDeclaracao(){
     let p = novaPagina(ctx);
     let y = cabecalho(ctx, p);
 
-    y = blocos(ctx, p, y, [
-      { rot:'Grad. / Nome do militar', val:mil.grad + ' ' + mil.nome, peso:2 },
-      { rot:'SARAM',                   val:String(mil.saram) },
+    const blocosInfo = [
+      { rot:'Grad. / Nome do militar', val:mil.grad + ' ' + mil.nome, peso:1.8 },
+      { rot:'SARAM',                   val:String(mil.saram) }
+    ];
+    if (r.soldo > 0) blocosInfo.push({ rot:'Soldo Base', val:fmtBRL(r.soldo) });
+    if (r.cotaParte > 0) blocosInfo.push({ rot:'Cota-Parte (6%)', val:fmtBRL(r.cotaParte), cor:'rubi' });
+    blocosInfo.push(
       { rot:'Auxílio em vigência',     val:fmtBRL(r.vig), cor:'ouroE' },
       { rot:'Valor diário',            val:fmtBRL(r.vDia), cor:'ouroE' }
-    ]) - 11;
+    );
+
+    y = blocos(ctx, p, y, blocosInfo) - 11;
 
     /* cabeçalho agrupado: Dia | Manhã (Sim/Não) | Tarde (Sim/Não) | Motivo | Observações */
     const colunas = [

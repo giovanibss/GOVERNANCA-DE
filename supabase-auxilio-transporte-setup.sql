@@ -69,3 +69,24 @@ BEGIN
     ON public.at_oficios FOR DELETE USING (true);
   END IF;
 END $$;
+
+-- ============================================================
+-- ATUALIZAÇÃO DA TABELA at_militares (Soldo e Cota Parte)
+-- ============================================================
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' AND table_name = 'at_militares' AND column_name = 'soldo'
+  ) THEN
+    ALTER TABLE public.at_militares ADD COLUMN soldo NUMERIC(10,2);
+  END IF;
+  
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_schema = 'public' AND table_name = 'at_militares' AND column_name = 'cota_parte'
+  ) THEN
+    ALTER TABLE public.at_militares ADD COLUMN cota_parte NUMERIC(10,2);
+  END IF;
+END $$;
+

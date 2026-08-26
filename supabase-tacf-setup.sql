@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS public.tacf_solicitacoes (
   status_solicitacao TEXT NOT NULL DEFAULT 'pendente', -- 'pendente', 'escalado', 'nao_realizou', 'realizou'
   
   -- Classificação de Elegibilidade (Gerida pela Secretaria)
-  status_elegibilidade TEXT NOT NULL DEFAULT 'elegivel', -- 'elegivel', 'r1_reserva', 'baixa', 'dispensa'
+  status_elegibilidade TEXT NOT NULL DEFAULT 'elegivel', -- 'elegivel', 'missao', 'r1_reserva', 'baixa', 'dispensa'
   justificativa TEXT,
   data_realizacao DATE,
 
