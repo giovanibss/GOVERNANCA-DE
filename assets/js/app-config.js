@@ -39,8 +39,8 @@
     if (_sbInstance) return _sbInstance;
 
     if (window.supabase && typeof window.supabase.createClient === 'function') {
-      const url = window.SUPABASE_URL || window.SB?.url || 'https://rsaaryrgdrolcsvigckz.supabase.co';
-      const anon = window.SUPABASE_ANON || window.SB?.key || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzYWFyeXJnZHJvbGNzdmlnY2t6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMzcyNjEsImV4cCI6MjA4MjcxMzI2MX0.UKACT_OKIMRaLB3FJPtFPGqhVbR83pUiiPfLkcf_Ec0';
+      const url = window.SUPABASE_URL || window.SB?.url || 'https://sovrgsbdhdpxsaomspsp.supabase.co';
+      const anon = window.SUPABASE_ANON || window.SB?.key || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg';
       if (url && anon && !url.startsWith('COLE_')) {
         try {
           _sbInstance = window.supabase.createClient(url, anon, { auth: { persistSession: false } });

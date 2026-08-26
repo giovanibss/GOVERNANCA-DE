@@ -1562,6 +1562,14 @@ a.card-go{text-decoration:none}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  window.SUPABASE_URL = 'https://sovrgsbdhdpxsaomspsp.supabase.co';
+  window.SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg';
+  if (window.supabase && typeof window.supabase.createClient === 'function') {
+    window.sbCli = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON, { auth: { persistSession: false } });
+    window.sb = window.sbCli;
+  }
+</script>
 <script src="assets/js/smtp.js"></script>
 <script src="assets/js/app-config.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -2476,8 +2484,8 @@ async function baixarListaEfetivo(){
    9 · DADOS · DIÁRIAS  +  INSTRUMENTO ANALÓGICO
    Lê do Supabase — mesmo projeto usado em diarias.html.
    ═══════════════════════════════════════════════════════════════════ */
-const SUPABASE_URL  = 'https://rsaaryrgdrolcsvigckz.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzYWFyeXJnZHJvbGNzdmlnY2t6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMzcyNjEsImV4cCI6MjA4MjcxMzI2MX0.UKACT_OKIMRaLB3FJPtFPGqhVbR83pUiiPfLkcf_Ec0';
+const SUPABASE_URL  = 'https://sovrgsbdhdpxsaomspsp.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg';
 const CONFIG_ID     = 'default';
 const CACHE_KEY     = 'afa_diarias_cache_v2';
 
@@ -2771,8 +2779,10 @@ async function carregarTransporte(){
 
   // leitura direta via REST, imune a cache (mesma base/chave do transporte.html)
   const atGet = async (caminho) => {
-    const r = await fetch(CUR_URL + '/rest/v1/' + caminho, {
-      headers: { apikey: CUR_ANON, Authorization: 'Bearer ' + CUR_ANON },
+    const url = window.SUPABASE_URL || 'https://sovrgsbdhdpxsaomspsp.supabase.co';
+    const anon = window.SUPABASE_ANON || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg';
+    const r = await fetch(url + '/rest/v1/' + caminho, {
+      headers: { apikey: anon, Authorization: 'Bearer ' + anon },
       cache: 'no-store'
     });
     if (!r.ok) throw new Error('HTTP ' + r.status);
@@ -2840,9 +2850,6 @@ async function carregarTransporte(){
    O vínculo manifestação → curso é cur_manifestacoes.curso_chave,
    que guarda o id da linha em cur_cursos.
    ═══════════════════════════════════════════════════════════════════ */
-const CUR_URL  = 'https://sovrgsbdhdpxsaomspsp.supabase.co';
-const CUR_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg';
-
 const cuEl    = id => document.getElementById(id);
 const cuEsc   = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const cuHoje  = () => { const d = new Date(); d.setHours(0,0,0,0); return d; };
@@ -2851,8 +2858,10 @@ const cuDias  = d => d ? Math.ceil((d - cuHoje()) / 86400000) : null;
 const cuIso   = s => { if(!s) return null; const m = String(s).match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? new Date(+m[1], +m[2]-1, +m[3]) : null; };
 
 async function cuGet(caminho){
-  const r = await fetch(CUR_URL + '/rest/v1/' + caminho, {
-    headers: { apikey: CUR_ANON, Authorization: 'Bearer ' + CUR_ANON }, cache:'no-store'
+  const url = window.SUPABASE_URL || 'https://sovrgsbdhdpxsaomspsp.supabase.co';
+  const anon = window.SUPABASE_ANON || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg';
+  const r = await fetch(url + '/rest/v1/' + caminho, {
+    headers: { apikey: anon, Authorization: 'Bearer ' + anon }, cache:'no-store'
   });
   if (!r.ok) throw new Error('HTTP ' + r.status);
   return r.json();
@@ -3030,18 +3039,14 @@ async function carregarCargosHub() {
     let solics = [];
     let secoes = [];
 
-    if (window.supabase && typeof window.supabase.createClient === 'function') {
-      const url = window.SUPABASE_URL || 'https://rsaaryrgdrolcsvigckz.supabase.co';
-      const anon = window.SUPABASE_ANON || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzYWFyeXJnZHJvbGNzdmlnY2t6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMzcyNjEsImV4cCI6MjA4MjcxMzI2MX0.UKACT_OKIMRaLB3FJPtFPGqhVbR83pUiiPfLkcf_Ec0';
-      const sbCli = window.supabase.createClient(url, anon, { auth: { persistSession: false } });
-
+    if (window.sbCli) {
       const [rSolic, rSec] = await Promise.all([
-        sbCli.from('cargos_solicitacoes').select('id, tipo, status_funcao, status_cargo, ttac_pendente').catch(() => ({ data: [] })),
-        sbCli.from('cargos_secoes').select('id').catch(() => ({ data: [] }))
+        window.sbCli.from('cargos_solicitacoes').select('id, tipo, status_funcao, status_cargo, ttac_pendente').catch(() => ({ data: [] })),
+        window.sbCli.from('cargos_secoes').select('id').catch(() => ({ data: [] }))
       ]);
 
-      if (rSolic.data) solics = rSolic.data;
-      if (rSec.data) secoes = rSec.data;
+      if (rSolic && rSolic.data) solics = rSolic.data;
+      if (rSec && rSec.data) secoes = rSec.data;
     }
 
     if (!solics.length) {
@@ -3095,13 +3100,8 @@ async function carregarManutencaoHub(){
   try {
     let chamados = [];
 
-    // projeto atual da Governança DE — o mesmo usado por manutencao.html
-    const MN_URL  = 'https://sovrgsbdhdpxsaomspsp.supabase.co';
-    const MN_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg';
-
-    if (window.supabase && typeof window.supabase.createClient === 'function') {
-      const cli = window.supabase.createClient(MN_URL, MN_ANON, { auth: { persistSession: false } });
-      const { data, error } = await cli
+    if (window.sbCli) {
+      const { data, error } = await window.sbCli
         .from('mnt_chamados')
         .select('local_id, status, prioridade, prazo');
       if (!error && data) chamados = data;
