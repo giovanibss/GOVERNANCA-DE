@@ -380,6 +380,40 @@ body.cortina .cue{animation-play-state:paused}
   padding:.2rem .5rem;border:1px solid rgba(212,168,75,.32);border-radius:3px;
   margin-left:auto;white-space:nowrap;
 }
+.card-tag.alerta{
+  color:#fff;border-color:rgba(239,68,68,.65);background:rgba(239,68,68,.2);
+  animation:hgBlink 1.1s steps(1,end) infinite;
+}
+
+/* ═══ HIGIENIZAÇÃO — aviso de reporte emergencial ═══ */
+.hg-alerta-wrap{max-width:var(--shell);margin:1.5rem auto 0;padding:0 var(--gutter)}
+.hg-alerta-wrap[hidden]{display:none}
+.hg-alerta{
+  display:flex;align-items:center;gap:.95rem;border-radius:10px;padding:.9rem 1.1rem;
+  text-decoration:none;border:1px solid rgba(239,68,68,.5);background:rgba(239,68,68,.09);
+  color:#fecaca;animation:hgPulse 1.9s ease-in-out infinite;transition:background .22s;
+}
+.hg-alerta:hover{background:rgba(239,68,68,.17)}
+@keyframes hgPulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}50%{box-shadow:0 0 0 5px rgba(239,68,68,.13)}}
+@keyframes hgBlink{0%,49%{opacity:1}50%,100%{opacity:.4}}
+.hg-alerta-ico{font-size:1.3rem;line-height:1;flex-shrink:0;animation:hgBlink 1s steps(1,end) infinite}
+.hg-alerta-txt{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0}
+.hg-alerta-txt b{
+  font-family:var(--f-display);font-size:.92rem;font-weight:700;
+  letter-spacing:.05em;text-transform:uppercase;color:#fff;line-height:1.15;
+}
+.hg-alerta-txt span{font-size:.72rem;line-height:1.5;color:#fecaca}
+.hg-alerta-cta{
+  flex-shrink:0;font-family:var(--f-display);font-size:.68rem;font-weight:600;
+  text-transform:uppercase;letter-spacing:.08em;color:#fff;
+  border:1px solid rgba(255,255,255,.32);border-radius:6px;padding:.45rem .85rem;
+}
+@media(max-width:640px){
+  .hg-alerta{flex-wrap:wrap;gap:.6rem}
+  .hg-alerta-cta{width:100%;text-align:center}
+}
+.cu-alerta.crit{border-color:rgba(239,68,68,.5);background:rgba(239,68,68,.1);color:#fecaca}
+
 .card h2{
   font-family:var(--f-display);font-weight:500;
   font-size:clamp(1.15rem,2.4vw,1.5rem);letter-spacing:.03em;
@@ -1133,6 +1167,17 @@ a.card-go{text-decoration:none}
     </div>
   </section>
 
+  <section class="hg-alerta-wrap" id="hg-alerta-wrap" hidden aria-live="polite">
+    <a class="hg-alerta" href="limpeza.html">
+      <span class="hg-alerta-ico" aria-hidden="true">🚨</span>
+      <span class="hg-alerta-txt">
+        <b id="hg-alerta-tit">Higienização emergencial solicitada</b>
+        <span id="hg-alerta-sub">—</span>
+      </span>
+      <span class="hg-alerta-cta">Abrir módulo →</span>
+    </a>
+  </section>
+
   <section class="modules">
     <div class="sect-label rv">
       <span>Módulos</span>
@@ -1230,10 +1275,11 @@ a.card-go{text-decoration:none}
           <h2>Higienização</h2>
           <small>Monitoramento de limpeza dos banheiros</small>
         </div>
-        <span class="card-tag">Ativo</span>
+        <span class="card-tag" id="lp-tag">Ativo</span>
         <span class="card-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
       </summary>
       <div class="card-body">
+        <div class="cu-alerta crit" id="lp-alerta" style="display:none"></div>
         <dl class="trio">
           <div><dt><i style="background:var(--jade)"></i> Operacionais</dt><dd id="lp-ok">—</dd></div>
           <div><dt><i style="background:var(--amber)"></i> Atenção</dt><dd id="lp-warn">—</dd></div>
@@ -2057,6 +2103,8 @@ async function carregarLimpeza(){
     if (!ultimo[id] || quando > ultimo[id].quando) ultimo[id] = { quando, tipo };
   });
 
+  HG_ULTIMA_LIMPEZA = ultimo;   // usado pelo aviso de reporte emergencial
+
   const n = { ok:0, atencao:0, vencido:0, sem:0 };
   IDS.forEach(id=>{
     const u = ultimo[id];
@@ -2076,6 +2124,91 @@ async function carregarLimpeza(){
     <span style="width:${pct(n.atencao)};background:var(--amber)"></span>
     <span style="width:${pct(n.vencido)};background:var(--magenta)"></span>
     <span style="width:${pct(n.sem)};background:rgba(207,228,255,.16)"></span>`;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   5b · DADOS · HIGIENIZAÇÃO — REPORTES EMERGENCIAIS (QR Code)
+   Lê hg_reportes e acende o aviso no dashboard. Um reporte deixa de
+   contar quando é resolvido manualmente OU quando existe registro de
+   limpeza do ambiente posterior ao horário do reporte.
+   ═══════════════════════════════════════════════════════════════════ */
+let HG_ULTIMA_LIMPEZA = {};
+
+const HG_NOMES = {
+  B01:'Cantina Fem',  B02:'Cantina Masc', B03:'Cinema Fem',  B04:'Cinema Masc',
+  B05:'Hall DE Fem',  B06:'Hall Of Sup',  B07:'Hall Prof Fem', B08:'Hall Prof Masc',
+  B09:'Corredor Of Masc', B10:'Corredor Grad Masc',
+  B11:'Corredor Of Fem',  B12:'Corredor Grad Fem',
+};
+
+async function carregarReportesHigiene(){
+  const wrap  = document.getElementById('hg-alerta-wrap');
+  const tit   = document.getElementById('hg-alerta-tit');
+  const sub   = document.getElementById('hg-alerta-sub');
+  const tag   = document.getElementById('lp-tag');
+  const faixa = document.getElementById('lp-alerta');
+  if (!wrap) return;
+
+  let reportes = [];
+  try {
+    if (window.sbCli) {
+      const { data, error } = await window.sbCli
+        .from('hg_reportes')
+        .select('id, ambiente_id, ambiente_nome, problemas, criado_em')
+        .eq('resolvido', false)
+        .order('criado_em', { ascending:false });
+      if (!error && Array.isArray(data)) reportes = data;
+    }
+    if (!reportes.length) {
+      try {
+        reportes = (JSON.parse(localStorage.getItem('hg_reportes_v1') || '[]'))
+          .filter(r => !r.resolvido);
+      } catch(e) {}
+    }
+  } catch(e) { console.warn('Reportes de higiene indisponíveis:', e); }
+
+  // descarta o que já foi limpo depois do reporte
+  const abertos = reportes.filter(r => {
+    const u = HG_ULTIMA_LIMPEZA[r.ambiente_id];
+    return !(u && u.quando && u.quando > new Date(r.criado_em));
+  });
+
+  if (!abertos.length) {
+    wrap.hidden = true;
+    if (tag)   { tag.textContent = 'Ativo'; tag.classList.remove('alerta'); }
+    if (faixa) { faixa.style.display = 'none'; }
+    return;
+  }
+
+  const ambientes = [...new Set(abertos.map(r => r.ambiente_id))];
+  const nomes = ambientes
+    .map(id => HG_NOMES[id] || (abertos.find(r => r.ambiente_id === id)?.ambiente_nome) || id)
+    .join(' · ');
+
+  const maisAntigo = abertos.reduce((a, r) =>
+    new Date(r.criado_em) < new Date(a.criado_em) ? r : a, abertos[0]);
+  const min = Math.round((Date.now() - new Date(maisAntigo.criado_em)) / 60000);
+  const espera = min < 1 ? 'agora mesmo'
+               : min < 60 ? `há ${min} min`
+               : `há ${Math.floor(min/60)}h ${min%60}min`;
+
+  const itens = [...new Set(abertos.flatMap(r => r.problemas || []))].slice(0, 4).join(', ');
+  const plural = abertos.length > 1;
+
+  wrap.hidden = false;
+  tit.textContent = plural
+    ? `${abertos.length} higienizações emergenciais solicitadas`
+    : 'Higienização emergencial solicitada';
+  sub.textContent = `${ambientes.length} ambiente${ambientes.length > 1 ? 's' : ''}: ${nomes}` +
+                    `${itens ? ' — ' + itens : ''} · reporte mais antigo ${espera}`;
+
+  if (tag) { tag.textContent = '⚠ Emergencial'; tag.classList.add('alerta'); }
+  if (faixa) {
+    faixa.style.display = 'block';
+    faixa.innerHTML = `🚨 <b>${abertos.length} reporte${plural ? 's' : ''} em aberto</b> — ${nomes}. ` +
+                      `Aberto ${espera}. Resolva pelo módulo de Higienização.`;
+  }
 }
 
 
@@ -3202,7 +3335,7 @@ document.getElementById('btn-expandir')?.addEventListener('click', function(){
   this.setAttribute('aria-expanded', String(abrir));
 });
 
-function atualizar(){ carregarLimpeza(); carregarEfetivo(); carregarDiarias(); carregarTransporte(); carregarCursos(); carregarTacfHub(); carregarCargosHub(); carregarManutencaoHub(); }
+function atualizar(){ Promise.resolve(carregarLimpeza()).catch(()=>{}).then(carregarReportesHigiene); carregarEfetivo(); carregarDiarias(); carregarTransporte(); carregarCursos(); carregarTacfHub(); carregarCargosHub(); carregarManutencaoHub(); }
 montarGaugeIdx();
 montarGaugeMini();
 atualizar();
