@@ -540,7 +540,7 @@ footer{padding:2.2rem clamp(1rem,4vw,2.4rem);border-top:1px solid var(--linha);
 </aside>
 
 <footer>
-  Governança DE · Academia da Força Aérea — Manutenção Predial v1.4<br />
+  Governança DE · Academia da Força Aérea — Manutenção Predial v1.5<br />
   Geometria derivada da planta baixa DE (ampliação, jan/2023) · escala real 1 m = 1 unidade
 </footer>
 
@@ -564,7 +564,7 @@ footer{padding:2.2rem clamp(1rem,4vw,2.4rem);border-top:1px solid var(--linha);
    bloco. x cresce para leste, z cresce para o sul.
    Extraídas do DE.pdf por detecção de malha (escala 32 px/m).  */
 
-var LARG = 65.7, PROF = 98.2;      // envoltória do bloco
+var LARG = 64.8, PROF = 98.2;      // envoltória (a faixa norte avança além das salas)
 var CX = LARG/2, CZ = PROF/2;      // centro (para centralizar no mundo)
 var H_PAREDE = 3.2, ESP = 0.28;    // altura e espessura das paredes
 
@@ -619,28 +619,28 @@ var BRUTO = [
   ['D', 45.70,11.40,'602','Sala 602','sala','Setor 16'],
 
   ['E',  0.00, 8.40,'609','Sala 609','sala','Setor 20'],
-  ['E',  8.40, 4.95,'JE1','Jardim interno','jardim',''],
-  ['E', 13.35, 8.40,'607','Sala 607','sala','Setor 19'],
-  ['E', 21.75, 4.95,'JE2','Jardim interno','jardim',''],
-  ['E', 26.70, 8.40,'605 DEP','Sala 605 DEP','apoio','',  '605'],
-  ['E', 35.10, 4.95,'JE3','Jardim interno','jardim',''],
-  ['E', 40.05, 4.20,'603A','Sala 603A','sala',''],
-  ['E', 44.25, 4.20,'603B','Sala 603B','sala',''],
-  ['E', 48.45, 4.95,'JE4','Jardim interno','jardim',''],
-  ['E', 53.40, 4.20,'601A','Sala 601A','sala',''],
-  ['E', 57.60, 4.20,'601B','Sala 601B','sala',''],
-  ['E', 61.80, 3.90,'JE5','Jardim interno','jardim',''],
+  ['E',  8.40, 3.02,'JE1','Jardim interno','jardim',''],
+  ['E', 11.42, 8.40,'607','Sala 607','sala','Setor 19'],
+  ['E', 19.82, 3.02,'JE2','Jardim interno','jardim',''],
+  ['E', 22.84, 8.40,'605 DEP','Sala 605 DEP','apoio','',  '605'],
+  ['E', 31.24, 3.02,'JE3','Jardim interno','jardim',''],
+  ['E', 34.26, 4.20,'603A','Sala 603A','sala',''],
+  ['E', 38.46, 4.20,'603B','Sala 603B','sala',''],
+  ['E', 42.66, 3.02,'JE4','Jardim interno','jardim',''],
+  ['E', 45.68, 4.20,'601A','Sala 601A','sala',''],
+  ['E', 49.88, 4.20,'601B','Sala 601B','sala',''],
+  ['E', 54.08, 3.02,'JE5','Jardim interno','jardim',''],
 
   ['F',  0.00, 8.40,'810','Sala 810','sala',''],
-  ['F',  8.40, 4.95,'JF1','Jardim interno','jardim',''],
-  ['F', 13.35, 8.40,'808','Sala 808','sala',''],
-  ['F', 21.75, 4.95,'JF2','Jardim interno','jardim',''],
-  ['F', 26.70, 8.40,'LQ','Laboratório de Química','lab',''],
-  ['F', 35.10, 4.95,'JF3','Jardim interno','jardim',''],
-  ['F', 40.05, 8.40,'804','Sala 804','sala',''],
-  ['F', 48.45, 4.95,'JF4','Jardim interno','jardim',''],
-  ['F', 53.40, 8.40,'LAB INF LÍNGUAS','Laboratório de Informática de Línguas','lab','',  'INF'],
-  ['F', 61.80, 3.90,'JF5','Jardim interno','jardim','']
+  ['F',  8.40, 3.02,'JF1','Jardim interno','jardim',''],
+  ['F', 11.42, 8.40,'808','Sala 808','sala',''],
+  ['F', 19.82, 3.02,'JF2','Jardim interno','jardim',''],
+  ['F', 22.84, 8.40,'LQ','Laboratório de Química','lab',''],
+  ['F', 31.24, 3.02,'JF3','Jardim interno','jardim',''],
+  ['F', 34.26, 8.40,'804','Sala 804','sala',''],
+  ['F', 42.66, 3.02,'JF4','Jardim interno','jardim',''],
+  ['F', 45.68, 8.40,'LAB INF LÍNGUAS','Laboratório de Informática de Línguas','lab','',  'INF'],
+  ['F', 54.08, 3.02,'JF5','Jardim interno','jardim','']
 ];
 
 var LOCAIS = [];
@@ -660,14 +660,6 @@ Object.keys(CORREDORES).forEach(function(k){
     faixa:'*', faixaRot:'Circulação', corredor:k,
     x:c.x, z:c.z, w:c.w, d:c.d
   });
-  // os corredores 6 e 8 terminam na parede externa da 602; o que sobra é jardim
-  if((k === 'C6' || k === 'C8') && c.x + c.w < LARG - 0.1){
-    LOCAIS.push({
-      id:'LJ'+k, cod:'J'+k, curto:'', nome:'Jardim interno', tipo:'jardim', setor:'',
-      faixa:'*', faixaRot:'Circulação', corredor:k,
-      x:c.x + c.w, z:c.z, w:LARG - (c.x + c.w), d:c.d
-    });
-  }
 });
 
 var PORID = {};
@@ -1935,7 +1927,7 @@ function iniciar(){
           .subscribe();
       }catch(e){ console.warn('Realtime indisponível:', e); }
     }
-    console.log('%cManutenção Predial v1.4', 'color:#d4a84b;font-weight:700',
+    console.log('%cManutenção Predial v1.5', 'color:#d4a84b;font-weight:700',
                 '· ' + LOCAIS.length + ' locais · ' +
                 (online ? 'Supabase ' + MNT.projeto.ref : 'localStorage'));
     if(!online && MNT.diagnostico.length) console.table(MNT.diagnostico);
