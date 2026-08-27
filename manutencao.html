@@ -217,6 +217,53 @@ table.op td.acao{white-space:nowrap}
 footer{padding:2.2rem clamp(1rem,4vw,2.4rem);border-top:1px solid var(--linha);
   font-size:.7rem;color:var(--texto-3);text-align:center;margin-top:2rem}
 
+/* ═══ FOLHA DE QR CODES ═══ */
+.qrOver{display:none;position:fixed;inset:0;z-index:400;overflow-y:auto;
+  padding:2rem 1rem;background:rgba(6,16,33,.82);backdrop-filter:blur(4px)}
+.qrOver.aberta{display:block}
+.qrFolha{max-width:940px;margin:0 auto;background:#fff;border-radius:10px;padding:1.8rem}
+.qrTopo{display:flex;align-items:center;gap:.9rem;border-bottom:2px solid #d4a84b;
+  padding-bottom:.9rem;margin-bottom:1.3rem;flex-wrap:wrap}
+.qrTopo img{width:44px;height:44px;object-fit:contain;flex-shrink:0}
+.qrTit{flex:1;min-width:170px;font-family:'Rajdhani';font-size:1.05rem;font-weight:700;
+  text-transform:uppercase;letter-spacing:.05em;color:#0a1730;line-height:1.2}
+.qrTit small{display:block;font-family:'Inter';font-size:.68rem;font-weight:400;
+  text-transform:none;letter-spacing:.02em;color:#64748b;margin-top:3px}
+.qrAcoes{display:flex;gap:.5rem}
+.qrB{font-family:'Inter';font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;
+  color:#1e3a63;background:#eef3fa;border:1px solid #cbd8e8;border-radius:5px;padding:.5rem .9rem;cursor:pointer}
+.qrB:hover{background:#dde7f4}
+.qrB.pri{background:#0a1730;color:#e9c877;border-color:#0a1730}
+.qrGrade{display:grid;grid-template-columns:repeat(2,1fr);gap:.9rem}
+@media(max-width:620px){.qrGrade{grid-template-columns:1fr}.qrOver{padding:.75rem .5rem}.qrFolha{padding:1rem}}
+.qrCard{border:1.5px dashed #94a3b8;border-radius:8px;padding:.95rem .75rem;text-align:center;
+  break-inside:avoid;page-break-inside:avoid}
+.qrMarca{display:flex;align-items:center;justify-content:center;gap:.4rem;font-family:'Rajdhani';
+  font-size:.56rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#334f7a;margin-bottom:.55rem}
+.qrMarca img{width:14px;height:14px;object-fit:contain}
+.qrBox{display:flex;justify-content:center;align-items:center;min-height:136px;margin-bottom:.55rem}
+.qrBox canvas,.qrBox img{width:132px !important;height:132px !important}
+.qrNome{font-family:'Rajdhani';font-size:.95rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:.03em;color:#0a1730;line-height:1.15}
+.qrLoc{font-size:.6rem;color:#64748b;text-transform:uppercase;letter-spacing:.05em;margin-top:3px}
+.qrCta{font-size:.62rem;font-weight:600;color:#86198f;line-height:1.35;margin-top:.5rem}
+.qrUrl{font-family:'JetBrains Mono';font-size:.5rem;color:#94a3b8;line-height:1.35;margin-top:.4rem;word-break:break-all}
+
+@media print{
+  body > *:not(.qrOver){display:none !important}
+  body{background:#fff}
+  .qrOver{position:static;display:block !important;padding:0;background:none;backdrop-filter:none;overflow:visible}
+  .qrFolha{max-width:none;padding:0;border-radius:0}
+  .qrAcoes{display:none !important}
+  .qrGrade{gap:.45rem}
+}
+
+/* ═══ TARJA DO DEEP LINK ═══ */
+.viaQR{border:1px solid rgba(192,38,211,.45);border-left:3px solid var(--magenta);
+  background:rgba(192,38,211,.09);border-radius:9px;padding:.65rem .8rem;margin-bottom:.9rem}
+.viaQR b{display:block;font-family:'Rajdhani';font-size:1rem;font-weight:700;text-transform:uppercase;color:#efb3f7}
+.viaQR span{display:block;font-size:.68rem;color:var(--texto-3);margin-top:2px}
+
 /* ═══ RESPONSIVO ═══ */
 @media (max-width:820px){
   .sub{display:none}
@@ -276,6 +323,7 @@ footer{padding:2.2rem clamp(1rem,4vw,2.4rem);border-top:1px solid var(--linha);
     <div class="ferramentas">
       <button class="fbtn" id="btnLivre" type="button">Explorar planta</button>
       <button class="fbtn" id="btnTopo" type="button">Reiniciar voo</button>
+      <button class="fbtn" id="btnQR" type="button" title="Folha de QR Codes para impressão">QR Codes</button>
     </div>
 
     <div class="narrativa" id="narrativa">
@@ -410,10 +458,32 @@ footer{padding:2.2rem clamp(1rem,4vw,2.4rem);border-top:1px solid var(--linha);
   </div>
 </main>
 
+<!-- ═══ FOLHA DE QR CODES ═══ -->
+<div class="qrOver" id="qrOver">
+  <div class="qrFolha">
+    <div class="qrTopo">
+      <img src="assets/brasao-afa.jpg" alt="Brasão da AFA" />
+      <div class="qrTit">
+        QR Codes · Chamados de Manutenção
+        <small>Imprima, recorte e fixe um cartão em cada ambiente</small>
+      </div>
+      <div class="qrAcoes">
+        <button class="qrB pri" type="button" onclick="window.print()">Imprimir</button>
+        <button class="qrB" type="button" id="btnQRfechar">Fechar</button>
+      </div>
+    </div>
+    <div class="qrGrade" id="qrGrade"></div>
+  </div>
+</div>
+
 <!-- ═══ GAVETA DO LOCAL ═══ -->
 <aside class="gaveta" id="gaveta" aria-hidden="true" aria-label="Detalhe do local">
   <header>
     <button class="fechar" id="btnFechar" type="button" aria-label="Fechar">×</button>
+    <div class="viaQR" id="gViaQR" style="display:none">
+      <b id="gViaQRnome">—</b>
+      <span>Você escaneou o QR Code deste ambiente. Descreva abaixo o que precisa de manutenção.</span>
+    </div>
     <span class="cod mono" id="gCod">—</span>
     <h2 id="gNome">—</h2>
     <p class="meta" id="gMeta">—</p>
@@ -470,7 +540,7 @@ footer{padding:2.2rem clamp(1rem,4vw,2.4rem);border-top:1px solid var(--linha);
 </aside>
 
 <footer>
-  Governança DE · Academia da Força Aérea — Manutenção Predial v1.3<br />
+  Governança DE · Academia da Força Aérea — Manutenção Predial v1.4<br />
   Geometria derivada da planta baixa DE (ampliação, jan/2023) · escala real 1 m = 1 unidade
 </footer>
 
@@ -478,6 +548,7 @@ footer{padding:2.2rem clamp(1rem,4vw,2.4rem);border-top:1px solid var(--linha);
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
 /* ══════════════════════════════════════════════════════════════
@@ -510,8 +581,8 @@ var FAIXAS = {
 var CORREDORES = {
   C2:{nome:'Corredor 2', z:11.8, d:3.9, x:0, w:57.2},
   C4:{nome:'Corredor 4', z:39.4, d:3.9, x:0, w:57.2},
-  C6:{nome:'Corredor 6', z:66.8, d:3.9, x:0, w:65.7},
-  C8:{nome:'Corredor 8', z:94.3, d:3.9, x:0, w:65.7}
+  C6:{nome:'Corredor 6', z:66.8, d:3.9, x:0, w:57.1},
+  C8:{nome:'Corredor 8', z:94.3, d:3.9, x:0, w:57.1}
 };
 
 /* [faixa, x, largura, código, nome, tipo, setor] */
@@ -526,8 +597,8 @@ var BRUTO = [
   ['A', 11.40,11.50,'207','Sala 207','sala','Setor 3'],
   ['A', 22.90,11.40,'205','Sala 205','sala','Setor 2'],
   ['A', 34.30,11.40,'203','Sala 203','sala','Setor 1'],
-  ['A', 45.70, 5.80,'SUS','SUSAE','apoio',''],
-  ['A', 51.50, 5.70,'VID','Sala de Vídeo','apoio',''],
+  ['A', 45.70, 5.80,'201','Sala 201','apoio','SUSAE'],
+  ['A', 51.50, 5.70,'200','Sala 200','apoio','Sala de Vídeo'],
 
   ['B',  0.00,11.40,'410','Sala 410','sala','Setor 14'],
   ['B', 11.40,11.50,'408','Sala 408','sala','Setor 12'],
@@ -547,26 +618,28 @@ var BRUTO = [
   ['D', 34.30,11.40,'604','Sala 604','sala','Setor 17'],
   ['D', 45.70,11.40,'602','Sala 602','sala','Setor 16'],
 
-  ['E',  0.00, 8.40,'809','Sala 809','sala','Setor 20'],
+  ['E',  0.00, 8.40,'609','Sala 609','sala','Setor 20'],
   ['E',  8.40, 4.95,'JE1','Jardim interno','jardim',''],
-  ['E', 13.35, 8.40,'807','Sala 807','sala','Setor 19'],
+  ['E', 13.35, 8.40,'607','Sala 607','sala','Setor 19'],
   ['E', 21.75, 4.95,'JE2','Jardim interno','jardim',''],
-  ['E', 26.70, 8.40,'LQ1','Laboratório de Química I','lab',''],
+  ['E', 26.70, 8.40,'605 DEP','Sala 605 DEP','apoio','',  '605'],
   ['E', 35.10, 4.95,'JE3','Jardim interno','jardim',''],
-  ['E', 40.05, 8.40,'803','Sala 803 · Coordenação','apoio',''],
+  ['E', 40.05, 4.20,'603A','Sala 603A','sala',''],
+  ['E', 44.25, 4.20,'603B','Sala 603B','sala',''],
   ['E', 48.45, 4.95,'JE4','Jardim interno','jardim',''],
-  ['E', 53.40, 8.40,'801','Sala 801','sala','Setor 15'],
+  ['E', 53.40, 4.20,'601A','Sala 601A','sala',''],
+  ['E', 57.60, 4.20,'601B','Sala 601B','sala',''],
   ['E', 61.80, 3.90,'JE5','Jardim interno','jardim',''],
 
   ['F',  0.00, 8.40,'810','Sala 810','sala',''],
   ['F',  8.40, 4.95,'JF1','Jardim interno','jardim',''],
   ['F', 13.35, 8.40,'808','Sala 808','sala',''],
   ['F', 21.75, 4.95,'JF2','Jardim interno','jardim',''],
-  ['F', 26.70, 8.40,'LQ2','Laboratório de Química II','lab',''],
+  ['F', 26.70, 8.40,'LQ','Laboratório de Química','lab',''],
   ['F', 35.10, 4.95,'JF3','Jardim interno','jardim',''],
   ['F', 40.05, 8.40,'804','Sala 804','sala',''],
   ['F', 48.45, 4.95,'JF4','Jardim interno','jardim',''],
-  ['F', 53.40, 8.40,'LEL','Laboratório de Eletrônica','lab',''],
+  ['F', 53.40, 8.40,'LAB INF LÍNGUAS','Laboratório de Informática de Línguas','lab','',  'INF'],
   ['F', 61.80, 3.90,'JF5','Jardim interno','jardim','']
 ];
 
@@ -574,7 +647,8 @@ var LOCAIS = [];
 BRUTO.forEach(function(r, i){
   var f = FAIXAS[r[0]];
   LOCAIS.push({
-    id:'L'+r[3], cod:r[3], nome:r[4], tipo:r[5], setor:r[6],
+    id:'L' + r[3].replace(/\s+/g,''), cod:r[3], curto:r[7] || r[3],
+    nome:r[4], tipo:r[5], setor:r[6],
     faixa:r[0], faixaRot:f.rot, corredor:f.corredor,
     x:r[1], z:f.z, w:r[2], d:f.d
   });
@@ -582,10 +656,18 @@ BRUTO.forEach(function(r, i){
 Object.keys(CORREDORES).forEach(function(k){
   var c = CORREDORES[k];
   LOCAIS.push({
-    id:'L'+k, cod:k, nome:c.nome, tipo:'circulacao', setor:'',
+    id:'L'+k, cod:k, curto:k, nome:c.nome, tipo:'circulacao', setor:'',
     faixa:'*', faixaRot:'Circulação', corredor:k,
     x:c.x, z:c.z, w:c.w, d:c.d
   });
+  // os corredores 6 e 8 terminam na parede externa da 602; o que sobra é jardim
+  if((k === 'C6' || k === 'C8') && c.x + c.w < LARG - 0.1){
+    LOCAIS.push({
+      id:'LJ'+k, cod:'J'+k, curto:'', nome:'Jardim interno', tipo:'jardim', setor:'',
+      faixa:'*', faixaRot:'Circulação', corredor:k,
+      x:c.x + c.w, z:c.z, w:LARG - (c.x + c.w), d:c.d
+    });
+  }
 });
 
 var PORID = {};
@@ -633,12 +715,18 @@ function vencido(c){
 
 /* ─── 3. PERSISTÊNCIA ───────────────────────────────────────── */
 
-/* Projeto unificado oficial da Governança DE. */
+/* Projeto ativo da Governança DE. O segundo endereço é de uma
+   encarnação anterior do projeto, mantido apenas como rede de
+   segurança: só é consultado se a tabela não estiver no primeiro. */
 var PROJETOS = [
   { ref:'sovrgsbdhdpxsaomspsp',
-    apelido:'Governança DE Oficial',
+    apelido:'projeto atual — cursos, transporte, efetivo',
     url:'https://sovrgsbdhdpxsaomspsp.supabase.co',
-    anon:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg' }
+    anon:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg' },
+  { ref:'rsaaryrgdrolcsvigckz',
+    apelido:'projeto antigo — pode não existir mais',
+    url:'https://rsaaryrgdrolcsvigckz.supabase.co',
+    anon:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzYWFyeXJnZHJvbGNzdmlnY2t6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcxMzcyNjEsImV4cCI6MjA4MjcxMzI2MX0.UKACT_OKIMRaLB3FJPtFPGqhVbR83pUiiPfLkcf_Ec0' }
 ];
 var TABELA = 'mnt_chamados';
 var LS = 'mnt_chamados_v1';
@@ -818,7 +906,7 @@ function texLonge(loc){
   g.textAlign = 'center'; g.textBaseline = 'middle';
   g.fillStyle = 'rgba(233,200,119,.95)';
   g.font = '700 78px Rajdhani, Arial, sans-serif';
-  g.fillText(loc.cod, 128, 68);
+  g.fillText(loc.curto || loc.cod, 128, 68);
   return new THREE.CanvasTexture(c);
 }
 
@@ -873,6 +961,7 @@ function montarCena(){
   construirLocais();
   construirParedes();
   construirContornos();
+  construirSirenes();
 
   // caixa de seleção
   var mat = new THREE.LineBasicMaterial({color:0xe9c877, transparent:true, opacity:0.9});
@@ -983,6 +1072,114 @@ function construirParedes(){
   });
   inst.instanceMatrix.needsUpdate = true;
   cena.add(inst);
+}
+
+/* ─── SIRENE ────────────────────────────────────────────────────
+   Mesma leitura visual da sirene do módulo de Higienização, agora
+   em 3D: cúpula piscando em dois tons, dois halos concêntricos
+   defasados em 0,8 s e emblema numerado quando há mais de um
+   chamado em aberto no ambiente.                                  */
+var sirenes = [], matLampada, matHalo = [], matBase;
+
+function texHalo(){
+  var c = document.createElement('canvas');
+  c.width = c.height = 128;
+  var g = c.getContext('2d');
+  var grad = g.createRadialGradient(64,64,26, 64,64,62);
+  grad.addColorStop(0.00,'rgba(192,38,211,0)');
+  grad.addColorStop(0.62,'rgba(192,38,211,0)');
+  grad.addColorStop(0.80,'rgba(232,120,247,.95)');
+  grad.addColorStop(1.00,'rgba(192,38,211,0)');
+  g.fillStyle = grad; g.fillRect(0,0,128,128);
+  return new THREE.CanvasTexture(c);
+}
+
+function texEmblema(n){
+  var c = document.createElement('canvas');
+  c.width = c.height = 64;
+  var g = c.getContext('2d');
+  g.beginPath(); g.arc(32,32,30,0,Math.PI*2);
+  g.fillStyle = '#c026d3'; g.fill();
+  g.lineWidth = 4; g.strokeStyle = '#fff'; g.stroke();
+  g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = '700 36px Rajdhani, Arial, sans-serif';
+  g.fillText(String(n), 32, 34);
+  return new THREE.CanvasTexture(c);
+}
+
+function construirSirenes(){
+  matLampada = new THREE.MeshBasicMaterial({color:0xc026d3});
+  matBase    = new THREE.MeshStandardMaterial({color:0x4a1050, roughness:.7});
+  matHalo    = [
+    new THREE.SpriteMaterial({map:texHalo(), transparent:true, opacity:0, depthTest:false, fog:false}),
+    new THREE.SpriteMaterial({map:texHalo(), transparent:true, opacity:0, depthTest:false, fog:false})
+  ];
+  var geoBase = new THREE.CylinderGeometry(0.60, 0.66, 0.24, 14);
+  var geoCup  = new THREE.SphereGeometry(0.54, 14, 9, 0, Math.PI*2, 0, Math.PI/2);
+
+  LOCAIS.forEach(function(loc){
+    if(loc.tipo === 'jardim') return;
+    var c = centro(loc);
+    var y = (loc._alto || 0) + 0.5;
+    var px = c.x + Math.min(loc.w * 0.30, 3.4);
+    var pz = c.z - Math.min(loc.d * 0.28, 3.4);
+
+    var g = new THREE.Group();
+    g.position.set(px, y, pz);
+    g.visible = false;
+
+    var b = new THREE.Mesh(geoBase, matBase); b.position.y = 0.12; g.add(b);
+    var l = new THREE.Mesh(geoCup, matLampada); l.position.y = 0.24; g.add(l);
+
+    var h1 = new THREE.Sprite(matHalo[0]); h1.position.y = 0.35; h1.renderOrder = 7;
+    var h2 = new THREE.Sprite(matHalo[1]); h2.position.y = 0.35; h2.renderOrder = 7;
+    g.add(h1); g.add(h2);
+
+    var emb = new THREE.Sprite(new THREE.SpriteMaterial({
+      transparent:true, opacity:0, depthTest:false, fog:false
+    }));
+    emb.position.set(0.85, 0.95, 0); emb.scale.set(1.5, 1.5, 1); emb.renderOrder = 8;
+    g.add(emb);
+
+    cena.add(g);
+    loc._sirene = {grupo:g, h1:h1, h2:h2, emblema:emb, n:-1};
+    sirenes.push(loc._sirene);
+  });
+}
+
+/* acende, apaga e numera conforme os chamados em aberto */
+function atualizarSirenes(){
+  LOCAIS.forEach(function(loc){
+    var S = loc._sirene;
+    if(!S) return;
+    var n = MNT.chamados.filter(function(c){
+      return c.local_id === loc.id && ABERTOS.indexOf(c.status) >= 0;
+    }).length;
+    S.grupo.visible = n > 0;
+    if(n === S.n) return;
+    S.n = n;
+    if(n > 1){
+      if(S.emblema.material.map) S.emblema.material.map.dispose();
+      S.emblema.material.map = texEmblema(n);
+      S.emblema.material.opacity = 1;
+    }else{
+      S.emblema.material.opacity = 0;
+    }
+  });
+}
+
+/* animação compartilhada — todas as sirenes pulsam em fase */
+function animarSirenes(t){
+  matLampada.color.setHex((t % 1) < 0.5 ? 0xc026d3 : 0xf6c8fb);
+  for(var i = 0; i < 2; i++){
+    var f = ((t + i * 0.8) % 1.6) / 1.6;
+    matHalo[i].opacity = 0.55 * (1 - f);
+    var e = 1.6 + f * 5.2;
+    for(var j = 0; j < sirenes.length; j++){
+      if(!sirenes[j].grupo.visible) continue;
+      (i ? sirenes[j].h2 : sirenes[j].h1).scale.set(e, e, 1);
+    }
+  }
 }
 
 function construirContornos(){
@@ -1269,6 +1466,8 @@ function laco(){
     R.perto.visible = R.perto.material.opacity > 0.02;
   }
 
+  animarSirenes(performance.now() / 1000);
+
   if(selecao.visible) selecao.material.opacity = 0.55 + Math.sin(performance.now() / 320) * 0.35;
 
   render3d.render(cena, camera);
@@ -1414,6 +1613,7 @@ function pintarGaveta(){
 }
 
 function abrirLocal(id, focar){
+  if(idSelecionado !== id) $('#gViaQR').style.display = 'none';
   destacar(id);
   var g = $('#gaveta');
   g.classList.add('aberta');
@@ -1433,9 +1633,88 @@ function fecharGaveta(){
 
 function repintar(){
   pintarStatus();
+  atualizarSirenes();
   pintarKPIs();
   pintarTabela();
   pintarGaveta();
+}
+
+/* ─── 11b. FOLHA DE QR CODES E DEEP LINK ────────────────────── */
+
+/* Ambientes que recebem cartão: todos menos os jardins internos. */
+function locaisComQR(){
+  return LOCAIS.filter(function(l){ return l.tipo !== 'jardim'; });
+}
+
+function urlQR(loc){
+  var base = (location.origin && location.origin !== 'null')
+    ? location.origin + location.pathname
+    : 'https://giovanibss.github.io/GOVERNANCA-DE/manutencao.html';
+  return base + '?local=' + encodeURIComponent(loc.cod);
+}
+
+function ondeFica(loc){
+  var c = CORREDORES[loc.corredor];
+  if(loc.tipo === 'circulacao') return 'Bloco de Salas de Aula';
+  return (c ? c.nome : '') + (loc.faixaRot ? ' · ' + loc.faixaRot : '');
+}
+
+function abrirQR(){
+  var ov = $('#qrOver');
+  ov.classList.add('aberta');
+  document.body.style.overflow = 'hidden';
+  if(ov.dataset.pronto === '1') return;
+
+  var lista = locaisComQR();
+  $('#qrGrade').innerHTML = lista.map(function(l){
+    return '<div class="qrCard">' +
+      '<div class="qrMarca"><img src="assets/cocar-fab.png" alt="" /> Academia da Força Aérea · Divisão de Ensino</div>' +
+      '<div class="qrBox" id="qrbox-' + esc(l.id) + '"></div>' +
+      '<div class="qrNome">' + esc(l.nome) + '</div>' +
+      '<div class="qrLoc">' + esc(ondeFica(l)) + (l.setor ? ' · ' + esc(l.setor) : '') + '</div>' +
+      '<div class="qrCta">Algo precisa de manutenção? Aponte a câmera e registre o chamado.</div>' +
+      '<div class="qrUrl">' + esc(urlQR(l)) + '</div>' +
+    '</div>';
+  }).join('');
+
+  if(typeof QRCode === 'function'){
+    lista.forEach(function(l){
+      new QRCode(document.getElementById('qrbox-' + l.id), {
+        text: urlQR(l), width:264, height:264,
+        colorDark:'#061021', colorLight:'#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+    });
+    ov.dataset.pronto = '1';
+  }else{
+    $('#qrGrade').insertAdjacentHTML('afterbegin',
+      '<div style="grid-column:1/-1;color:#86198f;font-size:.8rem;padding:.6rem">' +
+      'Não foi possível carregar o gerador de QR Code. Verifique a conexão e recarregue a página.</div>');
+  }
+}
+
+function fecharQR(){
+  $('#qrOver').classList.remove('aberta');
+  document.body.style.overflow = estado.livre ? 'hidden' : '';
+}
+
+/* manutencao.html?local=401 — abre a gaveta já no formulário */
+function aplicarDeepLink(){
+  var p = new URLSearchParams(location.search);
+  var alvo = (p.get('local') || p.get('sala') || '').trim();
+  if(!alvo) return;
+  var chave = alvo.toUpperCase().replace(/\s+/g, '');
+  var loc = LOCAIS.find(function(l){
+    return l.cod.toUpperCase().replace(/\s+/g,'') === chave ||
+           l.id.toUpperCase() === chave || l.id.toUpperCase() === 'L' + chave;
+  });
+  if(!loc) return;
+
+  abrirLocal(loc.id, true);
+  $('#gViaQR').style.display = 'block';
+  $('#gViaQRnome').textContent = loc.nome;
+  $('#gForm').open = true;
+  setTimeout(function(){ $('#cTitulo').focus({preventScroll:true}); }, 700);
 }
 
 /* ─── 12. AÇÕES ─────────────────────────────────────────────── */
@@ -1522,6 +1801,8 @@ function ligarEventos(){
   $('#btnCsv').addEventListener('click', exportarCsv);
   $('#btnFechar').addEventListener('click', fecharGaveta);
   $('#btnLivre').addEventListener('click', alternarLivre);
+  $('#btnQR').addEventListener('click', abrirQR);
+  $('#btnQRfechar').addEventListener('click', fecharQR);
   $('#btnTopo').addEventListener('click', function(){
     if(estado.livre) alternarLivre();
     soltarFoco();
@@ -1544,7 +1825,8 @@ function ligarEventos(){
 
   document.addEventListener('keydown', function(e){
     if(e.key !== 'Escape') return;
-    if(estado.livre) alternarLivre();
+    if($('#qrOver').classList.contains('aberta')) fecharQR();
+    else if(estado.livre) alternarLivre();
     else fecharGaveta();
   });
 
@@ -1640,8 +1922,20 @@ function iniciar(){
              'Rode o <code>manutencao.sql</code> em um desses projetos e recarregue a página.', 'alerta');
     }
     repintar();
+    aplicarDeepLink();
     $('#carregando').classList.add('fim');
-    console.log('%cManutenção Predial v1.3', 'color:#d4a84b;font-weight:700',
+
+    /* Realtime: a sirene acende e apaga em todos os aparelhos abertos */
+    if(online && MNT.sb){
+      try{
+        MNT.sb.channel('mnt_chamados_rt')
+          .on('postgres_changes', {event:'*', schema:'public', table:TABELA}, function(){
+            Promise.resolve(MNT.carregar()).then(repintar);
+          })
+          .subscribe();
+      }catch(e){ console.warn('Realtime indisponível:', e); }
+    }
+    console.log('%cManutenção Predial v1.4', 'color:#d4a84b;font-weight:700',
                 '· ' + LOCAIS.length + ' locais · ' +
                 (online ? 'Supabase ' + MNT.projeto.ref : 'localStorage'));
     if(!online && MNT.diagnostico.length) console.table(MNT.diagnostico);
