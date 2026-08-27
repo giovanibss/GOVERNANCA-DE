@@ -154,56 +154,11 @@
     .legend-dot { width:9px; height:9px; border-radius:50%; box-shadow: 0 0 6px currentColor; }
 
     .sidebar { display:flex; flex-direction:column; gap:1rem; }
-    .detail-panel, .bath-list, .team-panel { background:white; border:1px solid var(--navy-100); border-radius:8px; padding:1.25rem; border-top:3px solid var(--navy-600); }
+    .detail-panel, .bath-list, .report-panel { background:white; border:1px solid var(--navy-100); border-radius:8px; padding:1.25rem; border-top:3px solid var(--navy-600); }
     .bath-list { border-top-color: var(--gold-500); }
-    .team-panel { border-top-color: var(--green-500); }
+    .report-panel { border-top-color: var(--red-500); }
     .detail-empty { text-align:center; padding:2rem 1rem; color:var(--gray-400); font-size:.83rem; }
 
-    /* TEAM PANEL */
-    .team-members { display: flex; flex-direction: column; gap: .5rem; }
-    .team-member {
-      display: flex; align-items: center; gap: .7rem;
-      padding: .5rem .65rem;
-      background: var(--navy-50);
-      border: 1px solid var(--navy-100);
-      border-left: 3px solid var(--green-500);
-      border-radius: 4px;
-      transition: all .2s;
-    }
-    .team-member.absent {
-      border-left-color: var(--gray-300);
-      background: var(--gray-100);
-      opacity: 0.55;
-    }
-    .team-member-avatar {
-      width: 32px; height: 32px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, var(--navy-600), var(--navy-800));
-      color: white;
-      display: flex; align-items: center; justify-content: center;
-      font-family: var(--font-display);
-      font-size: .75rem; font-weight: 700;
-      flex-shrink: 0;
-    }
-    .team-member.absent .team-member-avatar {
-      background: linear-gradient(135deg, var(--gray-400), var(--gray-500));
-    }
-    .team-member-info { flex: 1; min-width: 0; }
-    .team-member-name {
-      font-size: .78rem; font-weight: 600;
-      color: var(--navy-900);
-      text-transform: uppercase;
-      letter-spacing: .03em;
-      line-height: 1.1;
-    }
-    .team-member.absent .team-member-name { color: var(--gray-500); text-decoration: line-through; }
-    .team-member-status {
-      font-size: .62rem; color: var(--gray-500);
-      margin-top: 2px;
-      letter-spacing: .04em;
-      text-transform: uppercase;
-    }
-    .team-member.present .team-member-status { color: var(--green-500); font-weight: 600; }
 
     .detail-header { display:flex; align-items:center; gap:.75rem; margin-bottom:1rem; }
     .detail-icon-wrap { width:48px; height:48px; border-radius:6px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; border:2px solid; }
@@ -326,7 +281,118 @@
 
     footer { text-align: center; padding: 2rem 1rem; font-size: .7rem; color: var(--gray-500); letter-spacing: .04em; position: relative; z-index: 5; }
     footer .cocar-icon { display: inline-block; vertical-align: middle; margin: 0 .5rem; opacity: .5; }
-  </style>
+  
+    /* ══════════════════════════════════════════════════
+       REPORTE EMERGENCIAL
+       ══════════════════════════════════════════════════ */
+    .report-panel { position: relative; }
+    .report-panel.destaque { box-shadow: 0 0 0 3px rgba(239,68,68,.22); }
+    .report-panel .section-title { color: #b91c1c; }
+    .report-panel .section-title::before { background: var(--red-500); }
+    .rep-hint { font-size:.7rem; color: var(--gray-500); line-height:1.5; margin-bottom:.9rem; }
+    .rep-field { margin-bottom:.85rem; }
+    .rep-label { display:block; font-size:.6rem; color: var(--navy-500); font-weight:700; text-transform:uppercase; letter-spacing:.08em; margin-bottom:.35rem; }
+    .rep-select, .rep-input, .rep-textarea {
+      width:100%; font-family: var(--font-body); font-size:.8rem; color: var(--navy-900);
+      background: var(--navy-50); border:1px solid var(--navy-100); border-radius:5px;
+      padding:.55rem .6rem; transition: border-color .15s, box-shadow .15s;
+    }
+    .rep-select:focus, .rep-input:focus, .rep-textarea:focus {
+      outline:none; border-color: var(--red-400); box-shadow: 0 0 0 3px rgba(239,68,68,.12);
+    }
+    .rep-textarea { resize:vertical; min-height:54px; line-height:1.45; }
+    .rep-locked { background:#fef2f2; border:1px solid rgba(239,68,68,.35); border-left:3px solid var(--red-500); border-radius:5px; padding:.6rem .7rem; }
+    .rep-locked-name { font-family: var(--font-display); font-size:.92rem; font-weight:600; text-transform:uppercase; letter-spacing:.03em; color:#991b1b; line-height:1.15; }
+    .rep-locked-loc { font-size:.62rem; color: var(--gray-500); text-transform:uppercase; letter-spacing:.05em; margin-top:3px; }
+    .rep-locked-change { display:inline-block; margin-top:.4rem; font-family: var(--font-body); font-size:.63rem; color: var(--navy-500); background:none; border:none; padding:0; cursor:pointer; text-decoration:underline; }
+    .rep-chips { display:flex; flex-wrap:wrap; gap:.35rem; }
+    .rep-chip { display:inline-flex; align-items:center; gap:.4rem; font-size:.68rem; font-weight:500; color: var(--navy-800); background: var(--navy-50); border:1px solid var(--navy-100); border-radius:20px; padding:.35rem .7rem; cursor:pointer; transition: all .15s; user-select:none; }
+    .rep-chip:hover { border-color: var(--navy-300); }
+    .rep-chip-mark { width:12px; height:12px; border-radius:50%; border:1.5px solid var(--gray-300); flex-shrink:0; transition: all .15s; }
+    .rep-chip.on { background:#fef2f2; border-color: var(--red-400); color:#991b1b; }
+    .rep-chip.on .rep-chip-mark { background: var(--red-500); border-color: var(--red-500); box-shadow: inset 0 0 0 2px white; }
+    .rep-send { width:100%; display:flex; align-items:center; justify-content:center; gap:.5rem; font-family: var(--font-display); font-size:.82rem; font-weight:600; text-transform:uppercase; letter-spacing:.08em; color:white; background: linear-gradient(135deg, var(--red-500), #dc2626); border:none; border-radius:6px; padding:.75rem; cursor:pointer; transition: all .2s; box-shadow: 0 4px 12px rgba(239,68,68,.28); }
+    .rep-send:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(239,68,68,.36); }
+    .rep-send:disabled { opacity:.45; cursor:not-allowed; box-shadow:none; transform:none; }
+    .rep-msg { display:none; font-size:.72rem; line-height:1.5; border-radius:5px; padding:.6rem .7rem; margin-top:.7rem; }
+    .rep-msg.ok  { display:block; background: rgba(16,185,129,.1); color:#047857; border:1px solid rgba(16,185,129,.3); }
+    .rep-msg.err { display:block; background:#fef2f2; color:#991b1b; border:1px solid rgba(239,68,68,.3); }
+    .rep-offline { font-size:.62rem; color: var(--gray-400); margin-top:.55rem; text-align:center; letter-spacing:.03em; }
+
+    /* reportes abertos dentro do painel de detalhes */
+    .rep-open-wrap { margin-top:1rem; }
+    .rep-open { background:#fef2f2; border:1px solid rgba(239,68,68,.28); border-left:3px solid var(--red-500); border-radius:6px; padding:.65rem .7rem; margin-bottom:.5rem; }
+    .rep-open-head { display:flex; align-items:baseline; gap:.5rem; margin-bottom:.4rem; }
+    .rep-open-time { font-family: var(--font-mono); font-size:.63rem; color:#991b1b; font-weight:500; }
+    .rep-open-by { font-size:.62rem; color: var(--gray-500); margin-left:auto; text-align:right; }
+    .rep-open-tags span { display:inline-block; background:white; border:1px solid rgba(239,68,68,.25); color:#991b1b; font-size:.65rem; padding:2px 7px; margin:2px 3px 2px 0; border-radius:3px; }
+    .rep-open-obs { font-size:.68rem; color: var(--gray-700); font-style:italic; line-height:1.45; margin-top:.4rem; }
+    .rep-resolve { width:100%; margin-top:.55rem; font-family: var(--font-display); font-size:.68rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:#047857; background:white; border:1px solid rgba(16,185,129,.45); border-radius:4px; padding:.42rem; cursor:pointer; transition: all .15s; }
+    .rep-resolve:hover { background: rgba(16,185,129,.1); }
+    .rep-resolve:disabled { opacity:.5; cursor:wait; }
+
+    .summary-card.alert { border-left-color: var(--red-500); background:#fef2f2; animation: alertaCard 1.6s ease-in-out infinite; }
+    @keyframes alertaCard { 0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); } 50% { box-shadow: 0 0 0 4px rgba(239,68,68,.14); } }
+    .summary-card.alert .summary-count { color:#b91c1c; }
+
+    .bath-row-siren { font-size:.72rem; line-height:1; animation: sireneGlow 1s ease-in-out infinite; }
+
+    /* ══════════════════════════════════════════════════
+       SIRENE NO CUBO
+       ══════════════════════════════════════════════════ */
+    .block-scene svg .cube.alerta .cube-top,
+    .block-scene svg .cube.alerta .cube-left,
+    .block-scene svg .cube.alerta .cube-right,
+    .block-scene svg .cube.alerta.selected .cube-top,
+    .block-scene svg .cube.alerta.selected .cube-left,
+    .block-scene svg .cube.alerta.selected .cube-right { stroke:#ef4444 !important; stroke-width:2.4 !important; }
+    .sirene-halo { transform-box: fill-box; transform-origin: center; animation: sireneHalo 1.6s ease-out infinite; }
+    .sirene-halo.d2 { animation-delay: .8s; }
+    @keyframes sireneHalo { 0% { transform: scale(.4); opacity:.5; } 100% { transform: scale(1.8); opacity:0; } }
+    .sirene-lamp { animation: sireneLamp 1s steps(1, end) infinite; }
+    @keyframes sireneLamp { 0%,49% { fill:#ef4444; } 50%,100% { fill:#fecaca; } }
+    .sirene-glow { transform-box: fill-box; transform-origin: center; animation: sireneGlow 1s ease-in-out infinite; }
+    @keyframes sireneGlow { 0%,100% { opacity:.2; } 50% { opacity:.65; } }
+
+    /* ══════════════════════════════════════════════════
+       FOLHA DE QR CODES
+       ══════════════════════════════════════════════════ */
+    .qr-overlay { display:none; position:fixed; inset:0; z-index:500; overflow-y:auto; padding:2rem 1rem; background: rgba(10,22,40,.78); backdrop-filter: blur(3px); }
+    .qr-overlay.open { display:block; }
+    .qr-sheet { max-width:920px; margin:0 auto; background:white; border-radius:10px; padding:1.75rem; }
+    @media(max-width:600px){ .qr-overlay { padding:.75rem .5rem; } .qr-sheet { padding:1rem; } }
+    .qr-sheet-head { display:flex; align-items:center; gap:.9rem; border-bottom:2px solid var(--gold-500); padding-bottom:.9rem; margin-bottom:1.3rem; flex-wrap:wrap; }
+    .qr-sheet-crest { width:44px; height:44px; object-fit:contain; flex-shrink:0; }
+    .qr-sheet-title { flex:1; min-width:160px; font-family: var(--font-display); font-size:1.02rem; font-weight:600; text-transform:uppercase; letter-spacing:.05em; color: var(--navy-900); line-height:1.2; }
+    .qr-sheet-sub { font-family: var(--font-body); font-size:.68rem; font-weight:400; text-transform:none; letter-spacing:.02em; color: var(--gray-500); margin-top:3px; }
+    .qr-sheet-actions { display:flex; gap:.5rem; }
+    .qr-btn { font-family: var(--font-body); font-size:.7rem; font-weight:500; text-transform:uppercase; letter-spacing:.06em; color: var(--navy-700); background: var(--navy-50); border:1px solid var(--navy-100); border-radius:5px; padding:.5rem .9rem; cursor:pointer; transition: all .15s; }
+    .qr-btn:hover { background: var(--navy-100); }
+    .qr-btn.primary { background: var(--navy-900); color: var(--gold-400); border-color: var(--navy-900); font-weight:600; }
+    .qr-btn.primary:hover { background: var(--navy-800); }
+    .qr-grid { display:grid; grid-template-columns: repeat(2, 1fr); gap:.9rem; }
+    @media(max-width:600px){ .qr-grid { grid-template-columns: 1fr; } }
+    .qr-card { border:1.5px dashed var(--navy-300); border-radius:8px; padding:.95rem .75rem; text-align:center; break-inside:avoid; page-break-inside:avoid; }
+    .qr-card-brand { display:flex; align-items:center; justify-content:center; gap:.4rem; font-family: var(--font-display); font-size:.56rem; font-weight:600; text-transform:uppercase; letter-spacing:.1em; color: var(--navy-600); margin-bottom:.55rem; }
+    .qr-card-brand img { width:14px; height:14px; object-fit:contain; }
+    .qr-code-box { display:flex; justify-content:center; align-items:center; min-height:136px; margin-bottom:.55rem; }
+    .qr-code-box canvas, .qr-code-box img { width:132px !important; height:132px !important; }
+    .qr-card-name { font-family: var(--font-display); font-size:.9rem; font-weight:600; text-transform:uppercase; letter-spacing:.03em; color: var(--navy-900); line-height:1.15; }
+    .qr-card-loc { font-size:.6rem; color: var(--gray-500); text-transform:uppercase; letter-spacing:.05em; margin-top:3px; }
+    .qr-card-cta { font-size:.62rem; font-weight:600; color:#991b1b; line-height:1.35; margin-top:.5rem; }
+    .qr-card-url { font-family: var(--font-mono); font-size:.5rem; color: var(--gray-400); line-height:1.35; margin-top:.4rem; word-break: break-all; }
+
+    @media print {
+      body > *:not(.qr-overlay) { display:none !important; }
+      body::after { display:none !important; }
+      body { background:white; }
+      .qr-overlay { position:static; display:block !important; padding:0; background:none; backdrop-filter:none; overflow:visible; }
+      .qr-sheet { max-width:none; padding:0; border-radius:0; }
+      .qr-sheet-actions { display:none !important; }
+      .qr-grid { gap:.45rem; }
+      .qr-card { border-color:#94a3b8; }
+    }
+</style>
 </head>
 <body>
 
@@ -349,6 +415,13 @@
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
       Registrar Limpeza
     </a>
+    <button class="nav-btn" id="qr-btn" onclick="abrirQR()" title="Gerar folha de QR Codes para impressão">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM21 14v3M18 21h3M14 21h1"/>
+      </svg>
+      <span>QR Codes</span>
+    </button>
     <button class="refresh-btn" id="refresh-btn" onclick="fetchAll()">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <path d="M23 4v6h-6"/><path d="M1 20v-6h6"/>
@@ -374,6 +447,7 @@
       <div class="legend-item"><div class="legend-dot" style="background:#f59e0b;color:#f59e0b"></div>Atenção (vencido)</div>
       <div class="legend-item"><div class="legend-dot" style="background:#c026d3;color:#c026d3"></div>Vencido &gt; 8h</div>
       <div class="legend-item"><div class="legend-dot" style="background:#94a3b8;color:#94a3b8"></div>Sem Registro</div>
+      <div class="legend-item"><span style="font-size:.8rem;line-height:1">🚨</span>Reporte Emergencial</div>
     </div>
 
     <div class="blocks-wrap">
@@ -419,12 +493,44 @@
       <svg class="register-cta-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M7 17L17 7M17 7H9M17 7V15"/></svg>
     </a>
 
-    <!-- EQUIPE DE LIMPEZA -->
-    <div class="team-panel">
-      <div class="section-title">Equipe de Limpeza — Hoje</div>
-      <div class="team-members" id="team-members">
-        <!-- injetado pelo JS -->
+    <!-- REPORTE EMERGENCIAL -->
+    <div class="report-panel" id="report-panel">
+      <div class="section-title">Reporte Emergencial</div>
+      <p class="rep-hint" id="rep-hint">Encontrou algo fora do padrão? Informe o ambiente e o que está deficitário — o aviso chega imediatamente à Secretaria da DE.</p>
+
+      <div class="rep-field">
+        <label class="rep-label" for="rep-amb">Ambiente</label>
+        <select class="rep-select" id="rep-amb"></select>
+        <div class="rep-locked" id="rep-locked" style="display:none">
+          <div class="rep-locked-name" id="rep-locked-name">—</div>
+          <div class="rep-locked-loc" id="rep-locked-loc">—</div>
+          <button type="button" class="rep-locked-change" onclick="destravarAmbiente()">Não é este ambiente? Trocar</button>
+        </div>
       </div>
+
+      <div class="rep-field">
+        <span class="rep-label">O que está deficitário? (marque todos)</span>
+        <div class="rep-chips" id="rep-chips"></div>
+      </div>
+
+      <div class="rep-field">
+        <label class="rep-label" for="rep-obs">Observação (opcional)</label>
+        <textarea class="rep-textarea" id="rep-obs" maxlength="280" placeholder="Detalhe o problema, se necessário."></textarea>
+      </div>
+
+      <div class="rep-field">
+        <label class="rep-label" for="rep-quem">Quem reporta (opcional)</label>
+        <input class="rep-input" id="rep-quem" maxlength="60" placeholder="Posto/Graduação e nome de guerra" />
+      </div>
+
+      <button class="rep-send" id="rep-send" onclick="enviarReporte()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/>
+        </svg>
+        Enviar reporte
+      </button>
+      <div class="rep-msg" id="rep-msg"></div>
+      <div class="rep-offline" id="rep-offline"></div>
     </div>
 
     <div class="detail-panel" id="detail-panel">
@@ -452,13 +558,35 @@
 
 <footer>
   <img src="assets/cocar-fab.png" class="cocar-icon" alt="" />
-  Academia da Força Aérea · Divisão de Ensino
+  Academia da Força Aérea · Divisão de Ensino · Higienização v2.0
   <img src="assets/cocar-fab.png" class="cocar-icon" alt="" />
 </footer>
 
 <div class="tooltip" id="tooltip"></div>
 
+<div class="qr-overlay" id="qr-overlay">
+  <div class="qr-sheet">
+    <div class="qr-sheet-head">
+      <img class="qr-sheet-crest" src="assets/brasao-afa.jpg" alt="Brasão da AFA" />
+      <div class="qr-sheet-title">
+        QR Codes · Reporte de Limpeza
+        <div class="qr-sheet-sub">Imprima, recorte e fixe um cartão em cada ambiente</div>
+      </div>
+      <div class="qr-sheet-actions">
+        <button class="qr-btn primary" onclick="window.print()">Imprimir</button>
+        <button class="qr-btn" onclick="fecharQR()">Fechar</button>
+      </div>
+    </div>
+    <div class="qr-grid" id="qr-grid"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
 <script>
+console.log('%c[Higienização] limpeza.html v2.0 — reporte emergencial + sirene + QR', 'color:#d4a84b;font-weight:700');
+
 /* ══════════════════════════════════════════════════════════════
    CONFIG
    ══════════════════════════════════════════════════════════════ */
@@ -466,19 +594,30 @@ const SHEET_ID  = '1wFKX6eVRi1VOtcQH4Bb0xJ32saXAUw2FihIiHdw_-yc';
 const SHEET_URL = name => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(name)}`;
 const REFRESH_MS = 60000;
 
-// Agenda pública da equipe de limpeza
-const CALENDAR_ID = 'afa.siede@gmail.com';
-// Feed JSON público (API v3 sem autenticação funciona se a agenda for pública)
-const CALENDAR_URL = (timeMin, timeMax) =>
-  `https://clients6.google.com/calendar/v3/calendars/${encodeURIComponent(CALENDAR_ID)}/events` +
-  `?key=AIzaSyBNlYH01_9Hc5S1J9vuFmu2nUqBZJNAXxs&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`;
+// Supabase — mesma base dos demais módulos da Governança DE
+const SUPABASE_URL  = 'https://sovrgsbdhdpxsaomspsp.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg';
+const sbCli = (window.supabase && typeof window.supabase.createClient === 'function')
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, { auth: { persistSession: false } })
+  : null;
 
 /* ══════════════════════════════════════════════════════════════
-   EQUIPE DE LIMPEZA
+   REPORTE EMERGENCIAL — catálogo de deficiências
    ══════════════════════════════════════════════════════════════ */
-const TEAM = [
-  { name: 'V SANTOS',    initials: 'VS' },
-  { name: 'KAUÃ XAVES',  initials: 'KX' },
+const REP_LOCAL_KEY = 'hg_reportes_v1';
+const PROBLEMAS = [
+  'Falta papel higiênico',
+  'Falta papel toalha',
+  'Falta sabonete',
+  'Vaso sanitário sujo',
+  'Mictório sujo',
+  'Pia / bancada suja',
+  'Piso sujo ou molhado',
+  'Lixeira cheia',
+  'Espelho sujo',
+  'Mau odor',
+  'Vazamento / entupimento',
+  'Lâmpada queimada',
 ];
 
 /* ══════════════════════════════════════════════════════════════
@@ -536,8 +675,10 @@ const BATHROOMS_DEF = [
 ];
 
 let bathrooms = BATHROOMS_DEF.map(b => ({ ...b, status:'no-data', lastClean:null, cleaner:'—', history:[], nextClean:null, nextType:null }));
-let teamAbsences = new Set(); // nomes ausentes hoje
-let selected = null;
+let reportes    = [];    // reportes emergenciais em aberto
+let repTravado  = null;  // ambiente fixado pelo QR Code
+let deepLinkOk  = false;
+let selected    = null;
 
 function computeStatus(lastClean, lastType) {
   if (!lastClean) return 'no-data';
@@ -573,7 +714,25 @@ function buildBlockSVG(blockKey, bathroomsData) {
   function iso(gx, gy) { return { x: ox + (gx - gy) * 0.866 * CELL, y: oy + (gx + gy) * 0.5 * CELL }; }
   const g0 = iso(0,0), g1 = iso(W,0), g2 = iso(W,H), g3 = iso(0,H);
 
-  function cubeSVG(gx, gy, status, icon, name, id) {
+  function sireneSVG(cx, topY, count) {
+    if (!count) return '';
+    const y = topY - 13;
+    const badge = count > 1
+      ? `<circle cx="9" cy="-6" r="5.2" fill="#dc2626"/>
+         <text x="9" y="-6" font-family="Oswald" font-size="7" font-weight="700" fill="#fff" text-anchor="middle" dominant-baseline="central">${count}</text>`
+      : '';
+    return `
+      <g class="sirene" transform="translate(${cx},${y})">
+        <circle class="sirene-halo" cx="0" cy="0" r="11" fill="#ef4444" opacity="0"/>
+        <circle class="sirene-halo d2" cx="0" cy="0" r="11" fill="#ef4444" opacity="0"/>
+        <ellipse class="sirene-glow" cx="0" cy="-1.5" rx="10" ry="7.5" fill="#ef4444"/>
+        <rect x="-6.6" y="1.4" width="13.2" height="3.4" rx="1.5" fill="#7f1d1d"/>
+        <path class="sirene-lamp" d="M-5,1.6 A5,5.8 0 0 1 5,1.6 Z" fill="#ef4444" stroke="#7f1d1d" stroke-width="1"/>
+        ${badge}
+      </g>`;
+  }
+
+  function cubeSVG(gx, gy, status, icon, name, id, alertas) {
     const A=iso(gx,gy), B=iso(gx+CUBE_W,gy), C=iso(gx+CUBE_W,gy+CUBE_H), D=iso(gx,gy+CUBE_H);
     const At={x:A.x,y:A.y-CUBE_Z}, Bt={x:B.x,y:B.y-CUBE_Z}, Ct={x:C.x,y:C.y-CUBE_Z}, Dt={x:D.x,y:D.y-CUBE_Z};
     const colors = {
@@ -591,15 +750,16 @@ function buildBlockSVG(blockKey, bathroomsData) {
         <circle cx="${At.x + 8}" cy="${At.y - 2}" r="4" fill="${colors.stroke}" opacity="0.95"/>
         <text x="${cx}" y="${cy + 3}" font-size="14" text-anchor="middle" dominant-baseline="middle">${icon}</text>
         <text x="${cx}" y="${cy + 17}" font-family="Oswald" font-size="7" font-weight="600" fill="#0a1628" text-anchor="middle">${name.toUpperCase()}</text>
+        ${sireneSVG(cx, At.y, alertas)}
       </g>
     `;
   }
 
   const sorted = [...bathroomsData].sort((a,b) => (a.gx + a.gy) - (b.gx + b.gy));
-  const cubesHTML = sorted.map(b => cubeSVG(b.gx, b.gy, b.status, b.icon, b.shortName, b.id)).join('');
+  const cubesHTML = sorted.map(b => cubeSVG(b.gx, b.gy, b.status, b.icon, b.shortName, b.id, b.alertas || 0)).join('');
 
   return `
-    <svg viewBox="0 0 ${totalW + 20} ${totalH}" xmlns="http://www.w3.org/2000/svg">
+    <svg viewBox="0 -12 ${totalW + 20} ${totalH + 12}" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <pattern id="grid-${blockKey}" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="matrix(0.866 0.5 -0.866 0.5 0 0)">
           <path d="M 18 0 L 0 0 0 18" fill="none" stroke="rgba(45,90,158,.12)" stroke-width="1"/>
@@ -818,42 +978,285 @@ function parseRespostas(json) {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   FETCH AGENDA PÚBLICA (AUSÊNCIAS)
+   REPORTES EMERGENCIAIS — leitura, gravação e encerramento
+   Fonte primária: Supabase (hg_reportes). Espelho local para o
+   caso de o dispositivo estar sem rede no momento do envio.
    ══════════════════════════════════════════════════════════════ */
-async function fetchAbsences() {
-  const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-  const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+function repLocalGet() {
+  try { return JSON.parse(localStorage.getItem(REP_LOCAL_KEY) || '[]'); } catch(e) { return []; }
+}
+function repLocalSet(arr) {
+  try { localStorage.setItem(REP_LOCAL_KEY, JSON.stringify(arr.slice(-200))); } catch(e) {}
+}
 
-  const timeMin = encodeURIComponent(todayStart.toISOString());
-  const timeMax = encodeURIComponent(todayEnd.toISOString());
+async function fetchReportes() {
+  let remotos = null;
+  if (sbCli) {
+    try {
+      const { data, error } = await sbCli
+        .from('hg_reportes')
+        .select('*')
+        .eq('resolvido', false)
+        .order('criado_em', { ascending: false });
+      if (!error && Array.isArray(data)) remotos = data;
+    } catch(e) { console.warn('Supabase indisponível para reportes:', e); }
+  }
 
-  try {
-    const res = await fetch(CALENDAR_URL(timeMin, timeMax));
-    if (!res.ok) {
-      console.warn('Calendar fetch falhou:', res.status);
-      return new Set();
+  // pendências gravadas apenas localmente (envio sem rede)
+  const locais = repLocalGet().filter(r => !r.resolvido && String(r.id).startsWith('loc-'));
+  const todos  = [...(remotos || repLocalGet().filter(r => !r.resolvido)), ...(remotos ? locais : [])];
+
+  const vistos = new Set();
+  return todos
+    .filter(r => { const k = String(r.id); if (vistos.has(k)) return false; vistos.add(k); return true; })
+    .map(r => ({ ...r, criado_em: new Date(r.criado_em), problemas: r.problemas || [] }))
+    .sort((a, b) => b.criado_em - a.criado_em);
+}
+
+/* Encerramento automático: qualquer registro de limpeza posterior ao
+   reporte resolve o chamado daquele ambiente. */
+async function autoResolver() {
+  const fechar = reportes.filter(r => {
+    const b = bathrooms.find(x => x.id === r.ambiente_id);
+    return b && b.lastClean && b.lastClean > r.criado_em;
+  });
+  if (!fechar.length) return;
+
+  const ids     = fechar.map(r => r.id);
+  const remotos = ids.filter(id => !String(id).startsWith('loc-'));
+  const agora   = new Date().toISOString();
+
+  if (sbCli && remotos.length) {
+    try {
+      await sbCli.from('hg_reportes')
+        .update({ resolvido: true, resolvido_em: agora, resolucao: 'auto', resolvido_por: 'Registro de limpeza' })
+        .in('id', remotos);
+    } catch(e) { console.warn('Falha ao encerrar reportes automaticamente:', e); }
+  }
+
+  const loc = repLocalGet();
+  loc.forEach(r => { if (ids.includes(r.id)) { r.resolvido = true; r.resolucao = 'auto'; } });
+  repLocalSet(loc);
+
+  reportes = reportes.filter(r => !ids.includes(r.id));
+}
+
+/* Encerramento manual pela Secretaria */
+async function resolverReporte(id, btn) {
+  const alvo = reportes.find(r => String(r.id) === String(id));
+  if (!alvo) return;
+  if (btn) { btn.disabled = true; btn.textContent = 'Encerrando…'; }
+
+  const agora = new Date().toISOString();
+  if (sbCli && !String(id).startsWith('loc-')) {
+    try {
+      const { error } = await sbCli.from('hg_reportes')
+        .update({ resolvido: true, resolvido_em: agora, resolucao: 'manual', resolvido_por: 'Secretaria DE' })
+        .eq('id', alvo.id);
+      if (error) throw error;
+    } catch(e) {
+      if (btn) { btn.disabled = false; btn.textContent = 'Marcar como resolvido'; }
+      alert('Não foi possível encerrar o reporte: ' + (e.message || e));
+      return;
     }
-    const data = await res.json();
-    const items = data.items || [];
-    const absent = new Set();
+  }
 
-    items.forEach(item => {
-      const summary = (item.summary || '').toUpperCase();
-      // Verificar se o nome de algum soldado aparece no evento
-      TEAM.forEach(member => {
-        if (summary.includes(member.name.toUpperCase())) {
-          absent.add(member.name);
-        }
+  const loc = repLocalGet();
+  loc.forEach(r => { if (String(r.id) === String(id)) { r.resolvido = true; r.resolucao = 'manual'; } });
+  repLocalSet(loc);
+
+  reportes = reportes.filter(r => String(r.id) !== String(id));
+  aplicarReportes();
+  renderAll();
+}
+
+/* Distribui a contagem de reportes abertos sobre os ambientes */
+function aplicarReportes() {
+  bathrooms.forEach(b => {
+    b.alertas  = reportes.filter(r => r.ambiente_id === b.id).length;
+    b.reportes = reportes.filter(r => r.ambiente_id === b.id);
+  });
+}
+
+async function recarregarReportes() {
+  reportes = await fetchReportes();
+  await autoResolver();
+  aplicarReportes();
+  renderAll();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FORMULÁRIO DE REPORTE
+   ══════════════════════════════════════════════════════════════ */
+function montarFormReporte() {
+  const sel = document.getElementById('rep-amb');
+  sel.innerHTML = '<option value="">— Selecione o ambiente —</option>' +
+    ['cantina', 'cinema', 'admin'].map(bk => {
+      const rotulo = bk === 'cantina' ? 'Bloco A · Cantina'
+                   : bk === 'cinema'  ? 'Bloco B · Cinema'
+                   : 'Bloco C · Prédio Administrativo DE';
+      const opts = BATHROOMS_DEF.filter(b => b.block === bk)
+        .map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+      return `<optgroup label="${rotulo}">${opts}</optgroup>`;
+    }).join('');
+
+  document.getElementById('rep-chips').innerHTML = PROBLEMAS.map((p, i) => `
+    <label class="rep-chip" data-p="${p}" id="chip-${i}">
+      <span class="rep-chip-mark"></span>${p}
+    </label>
+  `).join('');
+
+  document.querySelectorAll('#rep-chips .rep-chip').forEach(el => {
+    el.addEventListener('click', () => el.classList.toggle('on'));
+  });
+
+  document.getElementById('rep-offline').textContent = sbCli
+    ? '' : '⚠️ Sem conexão com o Supabase — o reporte ficará salvo apenas neste aparelho.';
+}
+
+function travarAmbiente(def) {
+  repTravado = def.id;
+  document.getElementById('rep-amb').style.display = 'none';
+  document.getElementById('rep-locked').style.display = 'block';
+  document.getElementById('rep-locked-name').textContent = def.name;
+  document.getElementById('rep-locked-loc').textContent  = def.location + ' · ' + def.id;
+  document.getElementById('rep-hint').textContent =
+    'Você escaneou o QR Code deste ambiente. Marque abaixo o que está deficitário.';
+  document.getElementById('report-panel').classList.add('destaque');
+}
+
+function destravarAmbiente() {
+  repTravado = null;
+  document.getElementById('rep-amb').style.display = 'block';
+  document.getElementById('rep-amb').value = '';
+  document.getElementById('rep-locked').style.display = 'none';
+  document.getElementById('report-panel').classList.remove('destaque');
+  document.getElementById('rep-hint').textContent =
+    'Encontrou algo fora do padrão? Informe o ambiente e o que está deficitário — o aviso chega imediatamente à Secretaria da DE.';
+}
+
+function repMsg(tipo, texto) {
+  const el = document.getElementById('rep-msg');
+  el.className = 'rep-msg ' + tipo;
+  el.textContent = texto;
+}
+
+async function enviarReporte() {
+  const amb  = repTravado || document.getElementById('rep-amb').value;
+  const def  = BATHROOMS_DEF.find(b => b.id === amb);
+  const itens = [...document.querySelectorAll('#rep-chips .rep-chip.on')].map(el => el.dataset.p);
+  const obs  = document.getElementById('rep-obs').value.trim();
+  const quem = document.getElementById('rep-quem').value.trim();
+  const btn  = document.getElementById('rep-send');
+
+  if (!def)  { repMsg('err', 'Selecione o ambiente antes de enviar.'); return; }
+  if (!itens.length && !obs) {
+    repMsg('err', 'Marque ao menos um item ou descreva o problema no campo de observação.');
+    return;
+  }
+
+  btn.disabled = true;
+  const payload = {
+    ambiente_id:   def.id,
+    ambiente_nome: def.name,
+    problemas:     itens,
+    observacao:    obs  || null,
+    reportado_por: quem || null,
+  };
+
+  let salvo = null, viaLocal = false;
+  if (sbCli) {
+    try {
+      const { data, error } = await sbCli.from('hg_reportes').insert(payload).select().single();
+      if (!error && data) salvo = data;
+    } catch(e) { console.warn('Insert falhou:', e); }
+  }
+  if (!salvo) {
+    salvo = { ...payload, id: 'loc-' + Date.now(), criado_em: new Date().toISOString(), resolvido: false };
+    const loc = repLocalGet(); loc.push(salvo); repLocalSet(loc);
+    viaLocal = true;
+  }
+
+  reportes.unshift({ ...salvo, criado_em: new Date(salvo.criado_em), problemas: salvo.problemas || [] });
+  aplicarReportes();
+  renderAll();
+
+  repMsg('ok', viaLocal
+    ? '✓ Reporte registrado neste aparelho. Será necessário reenviar quando houver conexão.'
+    : '✓ Reporte enviado. A Secretaria da DE já foi avisada — obrigado!');
+
+  document.querySelectorAll('#rep-chips .rep-chip.on').forEach(el => el.classList.remove('on'));
+  document.getElementById('rep-obs').value = '';
+  setTimeout(() => { btn.disabled = false; }, 4000);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DEEP LINK DO QR CODE  ·  limpeza.html?amb=B05
+   ══════════════════════════════════════════════════════════════ */
+function aplicarDeepLink() {
+  const p  = new URLSearchParams(location.search);
+  const id = (p.get('amb') || p.get('rep') || '').toUpperCase().trim();
+  const def = BATHROOMS_DEF.find(b => b.id === id);
+  if (!def) { deepLinkOk = true; return; }
+  travarAmbiente(def);
+}
+
+function finalizarDeepLink() {
+  if (deepLinkOk || !repTravado) return;
+  deepLinkOk = true;
+  selectBath(repTravado);
+  document.getElementById('report-panel')
+    ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FOLHA DE QR CODES PARA IMPRESSÃO
+   ══════════════════════════════════════════════════════════════ */
+function qrUrl(id) {
+  const base = location.origin && location.origin !== 'null'
+    ? location.origin + location.pathname
+    : 'https://giovanibss.github.io/GOVERNANCA-DE/limpeza.html';
+  return `${base}?amb=${id}`;
+}
+
+function abrirQR() {
+  const ov = document.getElementById('qr-overlay');
+  ov.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  if (ov.dataset.pronto === '1') return;
+
+  const grid = document.getElementById('qr-grid');
+  grid.innerHTML = BATHROOMS_DEF.map(b => `
+    <div class="qr-card">
+      <div class="qr-card-brand"><img src="assets/cocar-fab.png" alt="" /> Academia da Força Aérea · Divisão de Ensino</div>
+      <div class="qr-code-box" id="qrbox-${b.id}"></div>
+      <div class="qr-card-name">${b.name}</div>
+      <div class="qr-card-loc">${b.location} · ${b.id}</div>
+      <div class="qr-card-cta">Limpeza fora do padrão? Aponte a câmera e reporte.</div>
+      <div class="qr-card-url">${qrUrl(b.id)}</div>
+    </div>
+  `).join('');
+
+  if (typeof QRCode === 'function') {
+    BATHROOMS_DEF.forEach(b => {
+      new QRCode(document.getElementById('qrbox-' + b.id), {
+        text: qrUrl(b.id), width: 264, height: 264,
+        colorDark: '#0a1628', colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M,
       });
     });
-
-    return absent;
-  } catch(e) {
-    console.warn('Erro ao buscar agenda:', e);
-    return new Set();
+    ov.dataset.pronto = '1';
+  } else {
+    grid.insertAdjacentHTML('afterbegin',
+      '<div style="grid-column:1/-1;color:#991b1b;font-size:.78rem;padding:.5rem">Não foi possível carregar o gerador de QR Code. Verifique a conexão e recarregue a página.</div>');
   }
 }
+
+function fecharQR() {
+  document.getElementById('qr-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharQR(); });
 
 /* ══════════════════════════════════════════════════════════════
    FETCH TUDO
@@ -862,17 +1265,18 @@ async function fetchAll() {
   setBanner('loading', 'Sincronizando dados…');
   setRefreshSpinning(true);
 
-  const [respJson, absences] = await Promise.all([
+  const [respJson, reps] = await Promise.all([
     fetchSheetTab(['Respostas', 'Respostas do formulário 1', 'Form Responses 1']),
-    fetchAbsences(),
+    fetchReportes(),
   ]);
 
-  teamAbsences = absences;
+  reportes = reps;
 
   if (!respJson) {
     setBanner('error', '⚠️ Não foi possível ler a planilha. Verifique o compartilhamento.');
     setRefreshSpinning(false);
-    renderTeam();
+    aplicarReportes();
+    renderAll();
     return;
   }
 
@@ -896,6 +1300,8 @@ async function fetchAll() {
         nextTime: next?.time,
       };
     });
+    await autoResolver();
+    aplicarReportes();
     renderAll();
     setBanner('');
   } catch(e) {
@@ -914,29 +1320,17 @@ function renderAll() {
   buildSummary();
   buildAllBlocks();
   buildList();
-  renderTeam();
   if (selected) renderDetail(bathrooms.find(b => b.id === selected));
-}
-
-function renderTeam() {
-  document.getElementById('team-members').innerHTML = TEAM.map(m => {
-    const absent = teamAbsences.has(m.name);
-    return `
-      <div class="team-member ${absent ? 'absent' : 'present'}">
-        <div class="team-member-avatar">${m.initials}</div>
-        <div class="team-member-info">
-          <div class="team-member-name">${m.name}</div>
-          <div class="team-member-status">${absent ? 'Ausente' : '✓ Presente'}</div>
-        </div>
-      </div>
-    `;
-  }).join('');
+  finalizarDeepLink();
 }
 
 function buildSummary() {
   const c = { clean:0, warning:0, overdue:0, 'no-data':0 };
   bathrooms.forEach(b => c[b.status]++);
-  document.getElementById('summary-bar').innerHTML = `
+  const alertaHTML = reportes.length ? `
+    <div class="summary-card alert"><div><div class="summary-count">${reportes.length}</div><div class="summary-label">🚨 Reportes Abertos</div></div></div>
+  ` : '';
+  document.getElementById('summary-bar').innerHTML = alertaHTML + `
     <div class="summary-card green"><div><div class="summary-count">${c.clean}</div><div class="summary-label">Operacionais</div></div></div>
     <div class="summary-card yellow"><div><div class="summary-count">${c.warning}</div><div class="summary-label">Atenção</div></div></div>
     <div class="summary-card magenta"><div><div class="summary-count">${c.overdue}</div><div class="summary-label">Vencidos (&gt;8h)</div></div></div>
@@ -955,6 +1349,7 @@ function buildAllBlocks() {
     baths.forEach(b => {
       const el = document.getElementById(`cube-${b.id}`);
       if (!el) return;
+      if (b.alertas) el.classList.add('alerta');
       if (selected === b.id) el.classList.add('selected');
       el.addEventListener('click', () => selectBath(b.id));
       el.addEventListener('mouseenter', e => showTip(e, b));
@@ -976,6 +1371,7 @@ function buildList() {
         <img src="assets/cocar-fab.png" class="bath-row-cocar" alt="" />
         <span class="bath-row-dot" style="background:${statusColor(b.status)}; color:${statusColor(b.status)}"></span>
         <span class="bath-row-name">${b.name}</span>
+        ${b.alertas ? `<span class="bath-row-siren" title="${b.alertas} reporte(s) em aberto">🚨</span>` : ''}
         <span class="bath-row-time">${b.lastClean ? fmt(b.lastClean) : '—'}</span>
       </div>
     `).join('');
@@ -1036,6 +1432,23 @@ function renderDetail(b) {
     `;
   }
 
+  const abertos = b.reportes || [];
+  const repHtml = abertos.length ? `
+    <div class="rep-open-wrap">
+      <div class="tl-title">🚨 Reportes em Aberto (${abertos.length})</div>
+      ${abertos.map(r => `
+        <div class="rep-open">
+          <div class="rep-open-head">
+            <span class="rep-open-time">${fmt(r.criado_em)} · ${fmtAgo(r.criado_em)}</span>
+            <span class="rep-open-by">${r.reportado_por ? esc(r.reportado_por) : 'anônimo'}</span>
+          </div>
+          <div class="rep-open-tags">${(r.problemas || []).map(p => `<span>${esc(p)}</span>`).join('') || '<span>Sem itens marcados</span>'}</div>
+          ${r.observacao ? `<div class="rep-open-obs">"${esc(r.observacao)}"</div>` : ''}
+          <button class="rep-resolve" onclick="resolverReporte('${r.id}', this)">Marcar como resolvido</button>
+        </div>
+      `).join('')}
+    </div>` : '';
+
   cont.innerHTML = `
     <div class="detail-header">
       <div class="detail-icon-wrap ${b.status}">${b.icon}</div>
@@ -1060,6 +1473,7 @@ function renderDetail(b) {
         <div class="info-item-value">${b.cleaner}</div>
       </div>
     </div>
+    ${repHtml}
     ${cleaningCard}
     <div class="timeline">
       <div class="tl-title">Histórico de Operações</div>
@@ -1071,6 +1485,7 @@ function renderDetail(b) {
 /* ══════════════════════════════════════════════════════════════
    HELPERS
    ══════════════════════════════════════════════════════════════ */
+const esc = s => (s == null ? '' : String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])));
 const statusLabel = s => ({ clean:'Operacional', warning:'Atenção', overdue:'Vencido +8h', 'no-data':'Sem Registro' }[s] || '—');
 const statusColor = s => ({ clean:'#10b981', warning:'#f59e0b', overdue:'#c026d3', 'no-data':'#94a3b8' }[s] || '#94a3b8');
 const fmt     = d => d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
@@ -1098,13 +1513,28 @@ function updateClock() {
 }
 
 const tip = document.getElementById('tooltip');
-function showTip(e,b){ tip.textContent = `${b.name} · ${statusLabel(b.status)}${b.lastClean?' · '+fmtAgo(b.lastClean):''}`; tip.classList.add('show'); }
+function showTip(e,b){
+  const sirene = b.alertas ? ` · 🚨 ${b.alertas} reporte(s)` : '';
+  tip.textContent = `${b.name} · ${statusLabel(b.status)}${b.lastClean?' · '+fmtAgo(b.lastClean):''}${sirene}`;
+  tip.classList.add('show');
+}
 function hideTip(){ tip.classList.remove('show'); }
 document.addEventListener('mousemove', e => { tip.style.left = (e.clientX+14)+'px'; tip.style.top = (e.clientY-32)+'px'; });
 
 /* INIT */
-renderTeam(); // render inicial sem dados
+montarFormReporte();
+aplicarDeepLink();
 fetchAll();
+
+/* Realtime: a sirene acende em todos os dispositivos abertos */
+if (sbCli) {
+  try {
+    sbCli.channel('hg_reportes_rt')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'hg_reportes' },
+          () => recarregarReportes())
+      .subscribe();
+  } catch(e) { console.warn('Realtime indisponível:', e); }
+}
 setInterval(fetchAll, REFRESH_MS);
 setInterval(updateClock, 1000);
 
