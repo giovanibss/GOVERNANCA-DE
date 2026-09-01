@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS public.tacf_temporadas (
   ano INT NOT NULL DEFAULT EXTRACT(YEAR FROM CURRENT_DATE),
   semestre INT NOT NULL DEFAULT 1,
   titulo TEXT NOT NULL DEFAULT '1º/2026',
-  status TEXT NOT NULL DEFAULT 'agendamento_fechado', -- Default OFF ('agendamento_fechado', 'agendamento_aberto', 'escala_gerada', 'finalizado')
+  status TEXT NOT NULL DEFAULT 'agendamento_fechado', -- 'agendamento_fechado' (Preparação), 'agendamento_aberto', 'escala_gerada', 'encerrado'
   
   datas_aplicacao JSONB NOT NULL DEFAULT '[]'::jsonb, -- Lista de datas no formato ["YYYY-MM-DD", ...]
   vagas_por_dia INT NOT NULL DEFAULT 4, -- Padronizado em 4 vagas por dia

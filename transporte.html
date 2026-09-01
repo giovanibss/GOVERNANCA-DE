@@ -345,7 +345,13 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
       <dl class="resumo" id="resumo" style="display:none">
         <div class="resCel"><dt>Soldo Base</dt><dd class="ouro" id="rSoldo">—</dd></div>
         <div class="resCel"><dt>Cota-Parte (6%)</dt><dd class="rubi" id="rCotaParte" title="Desconto mensal de 6% do soldo proporcional a 22 dias">—</dd></div>
-        <div class="resCel"><dt>Auxílio em vigência</dt><dd class="ouro" id="rVig">—</dd></div>
+        <div class="resCel" style="position:relative">
+          <dt style="display:flex;justify-content:space-between;align-items:center">
+            <span>Auxílio em vigência</span>
+            <button type="button" class="btnAjusteVig" title="Ajustar valor do auxílio em vigência" style="background:none;border:none;color:var(--ouro-2);cursor:pointer;font-size:0.72rem;padding:0;text-decoration:underline" onclick="ajustarValorVigencia()">✏️ Ajustar</button>
+          </dt>
+          <dd class="ouro" id="rVig">—</dd>
+        </div>
         <div class="resCel"><dt>Valor diário</dt><dd id="rDia">—</dd></div>
         <div class="resCel"><dt>Dias descontados</dt><dd class="ambar" id="rDesc">—</dd></div>
         <div class="resCel"><dt>Desconto total</dt><dd class="rubi" id="rDescV">—</dd></div>
@@ -916,7 +922,7 @@ async function abrirDeclaracao(){
   faixa($('cabMilitar'), 'info',
     '<b>' + mil.grad + ' ' + mil.nome + '</b> · SARAM ' + mil.saram +
     (sld > 0 ? ' · Soldo: <b>' + fmtBRL(sld) + '</b> · Cota-Parte (6%): <b>' + fmtBRL(cota) + '</b>' : '') +
-    ' · Auxílio em vigência: <b>' + fmtBRL(Number(mil.valor_mensal)) + '</b>' +
+    ' · Auxílio em vigência: <b>' + fmtBRL(Number(mil.valor_mensal)) + '</b> <button type="button" class="acao fantasma mini" onclick="ajustarValorVigencia()" style="padding:0.12rem 0.45rem;font-size:0.7rem;vertical-align:middle;margin-left:0.35rem;border-color:rgba(212,168,75,0.4);color:var(--ouro-2)" title="Ajustar valor mensal">✏️ Ajustar valor</button>' +
     ' · Valor diário: <b>' + fmtBRL(Number(mil.valor_diario)) + '</b>');
 
   try {
@@ -934,6 +940,153 @@ async function abrirDeclaracao(){
   pintarGrade();
   pintarStatus();
   recomputar();
+}
+
+/* ══════════════ AJUSTE DE VALOR DO AUXÍLIO (PELO TITULAR) ══════════════ */
+async function ajustarValorVigencia(){
+  const mil = milSelecionado();
+  if (!mil) {
+    if (typeof Swal !== 'undefined') {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Selecione o Militar',
+        text: 'Selecione seu nome na lista antes de ajustar o valor do auxílio.',
+        background: '#101f3e',
+        color: '#cfe4ff'
+      });
+    } else {
+      alert('Selecione seu nome na lista antes de ajustar o valor do auxílio.');
+    }
+    return;
+  }
+
+  const valorAtual = Number(mil.valor_mensal || 0);
+  const sld = obterSoldoMilitar(mil);
+  const cota = mil.cota_parte ? Number(mil.cota_parte) : calcularCotaParte(sld);
+
+  if (typeof Swal !== 'undefined') {
+    const { value: formValues } = await Swal.fire({
+      title: '✏️ Ajustar Auxílio em Vigência',
+      html: `
+        <div style="text-align:left;font-size:0.84rem;line-height:1.5">
+          <div style="background:rgba(212,168,75,0.08);border:1px solid rgba(212,168,75,0.3);border-radius:8px;padding:0.75rem 0.9rem;margin-bottom:1rem">
+            <b>${mil.grad} ${mil.nome}</b> (SARAM ${mil.saram})<br>
+            ${sld > 0 ? `<span style="color:var(--texto-3);font-size:0.75rem">Soldo: ${fmtBRL(sld)} | Cota-Parte: ${fmtBRL(cota)}</span><br>` : ''}
+            <span style="color:var(--texto-2);font-size:0.8rem">Valor atual cadastrado: <b>${fmtBRL(valorAtual)}</b> (Diária: ${fmtBRL(Number(mil.valor_diario || 0))})</span>
+          </div>
+
+          <p style="color:#f0cf8f;font-size:0.78rem;margin-bottom:0.8rem">
+            ⚠️ <b>Aviso:</b> Ao confirmar, o novo valor substituirá o anterior no sistema e servirá como base de cálculo mensal para todas as suas declarações, relatórios e demonstrativos.
+          </p>
+
+          <label style="display:block;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--texto-3);font-weight:700;margin-bottom:0.35rem">
+            Novo Valor Mensal em Vigência (R$)
+          </label>
+          <input id="swalNovoValorMensal" type="number" step="0.01" min="0.01" value="${valorAtual > 0 ? valorAtual.toFixed(2) : ''}" placeholder="Ex: 1936.22" style="width:100%;font-size:1.1rem;font-weight:700;padding:0.5rem 0.75rem;background:#060d1d;border:1px solid var(--linha);border-radius:8px;color:#cfe4ff;text-align:right" />
+
+          <div style="margin-top:0.6rem;font-size:0.78rem;color:var(--texto-2);display:flex;justify-content:space-between;align-items:center">
+            <span>Novo valor diário (base 22 dias):</span>
+            <b id="swalPreviewDiaria" style="color:var(--ouro-2);font-size:0.9rem">${valorAtual > 0 ? fmtBRL(valorAtual / 22) : 'R$ 0,00'}</b>
+          </div>
+        </div>
+      `,
+      showCancelButton: true,
+      confirmButtonText: '💾 Salvar Novo Valor',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#d4a84b',
+      background: '#101f3e',
+      color: '#cfe4ff',
+      width: '520px',
+      didOpen: () => {
+        const inp = document.getElementById('swalNovoValorMensal');
+        const prev = document.getElementById('swalPreviewDiaria');
+        if (inp && prev) {
+          inp.focus();
+          inp.select();
+          inp.addEventListener('input', () => {
+            const v = Number(inp.value || 0);
+            prev.textContent = v > 0 ? fmtBRL(v / 22) : 'R$ 0,00';
+          });
+        }
+      },
+      preConfirm: () => {
+        const inp = document.getElementById('swalNovoValorMensal');
+        const val = Number(inp?.value || 0);
+        if (!val || val <= 0) {
+          Swal.showValidationMessage('Informe um valor válido maior que zero.');
+          return false;
+        }
+        return val;
+      }
+    });
+
+    if (!formValues) return;
+    const novoValorMensal = Number(Number(formValues).toFixed(2));
+    const novoValorDiario = Number((novoValorMensal / 22).toFixed(2));
+
+    try {
+      // Salva no Supabase (at_militares)
+      await sbPatch('at_militares?id=eq.' + mil.id, {
+        valor_mensal: novoValorMensal,
+        valor_diario: novoValorDiario
+      });
+
+      // Atualiza o objeto do militar em memória
+      mil.valor_mensal = novoValorMensal;
+      mil.valor_diario = novoValorDiario;
+
+      // Recalcula e atualiza telas
+      await carregarMilitares();
+      // Reatribui seleção
+      $('selMilitar').value = mil.id;
+      await abrirDeclaracao();
+      if (typeof carregarSecretaria === 'function' && $('selCompSec')?.value) {
+        carregarSecretaria();
+      }
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Valor Atualizado!',
+        html: `O valor do Auxílio em Vigência de <b>${mil.grad} ${mil.nome}</b> foi atualizado para <b>${fmtBRL(novoValorMensal)}</b> (Diária: <b>${fmtBRL(novoValorDiario)}</b>).`,
+        timer: 2500,
+        showConfirmButton: false,
+        background: '#101f3e',
+        color: '#cfe4ff'
+      });
+    } catch (e) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Erro ao salvar',
+        text: 'Não consegui atualizar o valor: ' + (e.message || e),
+        background: '#101f3e',
+        color: '#cfe4ff'
+      });
+    }
+  } else {
+    const digitado = prompt(`Ajustar Auxílio em Vigência para ${mil.grad} ${mil.nome} (Atual: ${fmtBRL(valorAtual)}):\nInforme o novo valor mensal (R$):`, valorAtual.toFixed(2));
+    if (digitado === null) return;
+    const novoVal = parseFloat(digitado.replace(',', '.'));
+    if (!novoVal || novoVal <= 0) {
+      alert('Valor inválido.');
+      return;
+    }
+    const novoValorMensal = Number(novoVal.toFixed(2));
+    const novoValorDiario = Number((novoValorMensal / 22).toFixed(2));
+    try {
+      await sbPatch('at_militares?id=eq.' + mil.id, {
+        valor_mensal: novoValorMensal,
+        valor_diario: novoValorDiario
+      });
+      mil.valor_mensal = novoValorMensal;
+      mil.valor_diario = novoValorDiario;
+      await carregarMilitares();
+      $('selMilitar').value = mil.id;
+      await abrirDeclaracao();
+      alert(`Valor atualizado para ${fmtBRL(novoValorMensal)}.`);
+    } catch (e) {
+      alert('Erro: ' + e.message);
+    }
+  }
 }
 
 function pintarGrade(){

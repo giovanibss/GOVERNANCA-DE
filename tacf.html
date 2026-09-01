@@ -550,7 +550,7 @@ footer {
 <main>
 
   <!-- ═══ HERO KPIS ═══ -->
-  <dl class="kpis">
+  <dl class="kpis" id="heroKpis">
     <div class="resCel">
       <dt>Militares Elegíveis</dt>
       <dd class="ouro" id="kElegiveis">—</dd>
@@ -559,13 +559,17 @@ footer {
       <dt>Solicitações Efetuadas</dt>
       <dd class="jade" id="kSolicitados">—</dd>
     </div>
+    <div class="resCel" style="border: 1.5px solid rgba(250, 204, 21, 0.4); background: rgba(250, 204, 21, 0.08); box-shadow: inset 0 0 12px rgba(250, 204, 21, 0.05);">
+      <dt style="color:#fde047; font-weight:700;">⚠️ Faltam Solicitar</dt>
+      <dd class="amber" id="kFaltamPreencher" style="color:#fef08a; font-weight:800;">—</dd>
+    </div>
     <div class="resCel">
       <dt>TACF Realizados</dt>
       <dd class="purple" id="kRealizados">—</dd>
     </div>
     <div class="resCel">
-      <dt>Não Efetuaram / Baixa / Disp.</dt>
-      <dd class="amber" id="kPendentes">—</dd>
+      <dt>Dispensas / Missões / Baixas</dt>
+      <dd class="rubi" id="kPendentes">—</dd>
     </div>
   </dl>
 
@@ -582,9 +586,9 @@ footer {
     <div class="painel">
       <h3>Solicitação de Agendamento do TACF</h3>
       
-      <!-- Banner de Solicitação Fechada (OFF por Padrão) -->
-      <div id="msgStatusTemporada" class="faixaMsg alerta" style="display:none; margin-bottom:1.25rem;">
-        🔒 As solicitações de agendamento para o TACF estão FECHADAS no momento. Aguarde a abertura do período pela Secretaria.
+      <!-- Banner Dinâmico de Status do Ciclo (Preparação / Aberto / Escala Confeccionada / Encerrado) -->
+      <div id="msgStatusTemporada" class="faixaMsg alerta" style="margin-bottom:1.25rem;">
+        <!-- Preenchido via JavaScript -->
       </div>
 
       <form id="formSolicitacao" onsubmit="event.preventDefault(); salvarSolicitacaoMilitar();">
@@ -688,17 +692,54 @@ footer {
     <!-- ÁREA LIBERADA APÓS O PIN -->
     <div id="secArea" style="display:none">
 
-      <!-- PAINEL DE CONFIGURAÇÃO DA TEMPORADA -->
+      <!-- PAINEL DE CONTROLE DE FASES E GESTÃO DO CICLO -->
       <div class="painel" style="margin-bottom:1.5rem;">
-        <h3>Controle da Temporada & Datas de Aplicação</h3>
-        <div class="linhaCtl" style="border-bottom:1px solid var(--hair); padding-bottom:1rem; margin-bottom:1rem; align-items:flex-end;">
-          <div class="campo" style="max-width:340px;">
-            <label for="selTemporadaAtiva">Ciclo / Temporada Ativa</label>
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; border-bottom:1px solid var(--hair); padding-bottom:1rem; margin-bottom:1.25rem;">
+          <div>
+            <h3 style="margin-bottom:0.25rem; font-size:1.2rem;">Controle do Ciclo & Fases do TACF</h3>
+            <span style="font-size:0.85rem; color:var(--texto-2);">Gerencie a preparação, abertura para a tropa, confecção da escala e encerramento histórico.</span>
+          </div>
+          <div id="badgeFaseAtual"></div>
+        </div>
+
+        <!-- Faixa de aviso caso o ciclo selecionado esteja encerrado -->
+        <div id="faixaCicloEncerrado" class="faixaMsg info" style="display:none; background:rgba(30,41,59,0.85); border:1px solid #64748b; color:#cbd5e1; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+          <div style="flex:1;">
+            📁 <b>Ciclo Arquivado / Histórico:</b> Este ciclo de TACF está <b>ENCERRADO</b> para novas alterações.
+            <div id="detalhesSnapEncerrado" style="font-size:0.82rem; color:#94a3b8; margin-top:0.35rem;"></div>
+          </div>
+          <button type="button" class="acao fantasma mini" onclick="reabrirCicloAtual()" style="border-color:#6ee7b7; color:#6ee7b7; white-space:nowrap; margin-left:1rem;">
+            🔓 Reabrir Ciclo
+          </button>
+        </div>
+
+        <!-- SELETOR DE TEMPORADAS E BOTÕES DE AÇÃO DE FASE -->
+        <div class="linhaCtl" style="align-items:flex-end; gap:1rem; margin-bottom:1.25rem;">
+          <div class="campo" style="flex:2; min-width:280px;">
+            <label for="selTemporadaAtiva">Ciclo / Temporada Selecionada</label>
             <select id="selTemporadaAtiva" onchange="aoTrocarTemporada(this.value)"></select>
           </div>
-          <button type="button" class="acao fantasma mini" onclick="criarNovaTemporada()" style="margin-bottom:2px;">➕ Novo Ciclo</button>
+          
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+            <!-- Botão Dinâmico de Abrir / Fechar Agendamento -->
+            <div id="containerBotoesFase"></div>
+            
+            <button type="button" class="acao mini rubi" onclick="encerrarCicloAtual()" id="btnEncerrarCiclo" title="Fecha o ciclo e arquiva o snapshot estatístico histórico">
+              🔒 Encerrar Ciclo (Snap)
+            </button>
+            
+            <button type="button" class="acao fantasma mini" onclick="criarNovaTemporada()" style="margin-bottom:0;">
+              ➕ Iniciar Novo Ciclo
+            </button>
+            
+            <button type="button" class="acao rubi mini" onclick="excluirCicloAtualVazio()" id="btnExcluirCicloVazio" style="display:none;" title="Exclui ciclo vazio sem registros">
+              🗑️ Excluir Ciclo Vazio
+            </button>
+          </div>
         </div>
-        <div class="linhaCtl">
+
+        <!-- Parâmetros do Ciclo -->
+        <div class="linhaCtl" style="border-top:1px solid var(--hair); padding-top:1rem; margin-top:0.5rem;">
           <div class="campo">
             <label for="txtTituloTemp">Título do Ciclo</label>
             <input type="text" id="txtTituloTemp" placeholder="1º/2026" />
@@ -711,15 +752,7 @@ footer {
             <label for="numVagasRes">Vagas Livres (Res.)</label>
             <input type="number" id="numVagasRes" value="3" min="0" max="10" readonly title="Vagas livres reservadas para casos atípicos" />
           </div>
-          <div class="campo" style="max-width:180px;">
-            <label for="selStatusTemp">Status do Agendamento</label>
-            <select id="selStatusTemp">
-              <option value="agendamento_fechado">🔴 Agendamento Fechado (OFF)</option>
-              <option value="agendamento_aberto">🟢 Agendamento Aberto</option>
-              <option value="escala_gerada">⚡ Escala Gerada</option>
-            </select>
-          </div>
-          <button class="acao fantasma" onclick="salvarConfigTemporada()">Salvar Configurações</button>
+          <button class="acao fantasma" onclick="salvarConfigTemporada()">💾 Salvar Configurações</button>
         </div>
 
         <!-- Inserção de Datas -->
@@ -936,7 +969,7 @@ async function carregarEfetivoPlanilha() {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   PERSISTÊNCIA SUPABASE (GESTÃO DE CICLOS / TEMPORADAS)
+   PERSISTÊNCIA SUPABASE (GESTÃO DE CICLOS / TEMPORADAS & FASES)
    ══════════════════════════════════════════════════════════════ */
 function obterTituloTemporadaPadrao() {
   const agora = new Date();
@@ -958,7 +991,9 @@ async function carregarOuCriarTemporada() {
     if (data && data.length > 0) {
       listaTemporadas = data;
       if (!temporadaAtual || !listaTemporadas.some(t => t.id === temporadaAtual.id)) {
-        temporadaAtual = listaTemporadas[0];
+        // Prefere temporada ativa (não encerrada), se houver
+        const ativa = listaTemporadas.find(t => t.status !== 'encerrado');
+        temporadaAtual = ativa || listaTemporadas[0];
       } else {
         temporadaAtual = listaTemporadas.find(t => t.id === temporadaAtual.id);
       }
@@ -967,9 +1002,9 @@ async function carregarOuCriarTemporada() {
         ano: 2026,
         semestre: 1,
         titulo: '1º/2026',
-        status: 'agendamento_fechado', // Default OFF
+        status: 'agendamento_fechado', // Default Preparação
         datas_aplicacao: [],
-        vagas_por_dia: 4,               // Padronizado em 4 vagas por dia
+        vagas_por_dia: 4,
         vagas_livres_reserva: 3
       };
       const { data: created, error: errCreate } = await sb
@@ -982,6 +1017,7 @@ async function carregarOuCriarTemporada() {
       }
     }
     renderizarSeletorTemporadas();
+    renderizarControlesFaseSecretaria();
   } catch (e) {
     console.error('Erro ao carregar/criar temporada Supabase:', e);
   }
@@ -994,11 +1030,355 @@ function renderizarSeletorTemporadas() {
   listaTemporadas.forEach(t => {
     const opt = document.createElement('option');
     opt.value = t.id;
-    const rotuloStatus = t.status === 'agendamento_aberto' ? '🟢 Aberto' : (t.status === 'escala_gerada' ? '⚡ Escala Gerada' : '🔴 Fechado');
-    opt.textContent = `${t.titulo} (${rotuloStatus})`;
+    let rotulo = '🟡 Em Preparação';
+    if (t.status === 'agendamento_aberto') rotulo = '🟢 Agendamento Aberto';
+    else if (t.status === 'escala_gerada') rotulo = '⚡ Escala Ativa';
+    else if (t.status === 'encerrado') rotulo = '📁 🔒 Encerrado (Histórico)';
+
+    opt.textContent = `${t.titulo} (${rotulo})`;
     if (temporadaAtual && t.id === temporadaAtual.id) opt.selected = true;
     sel.appendChild(opt);
   });
+}
+
+function renderizarControlesFaseSecretaria() {
+  const containerBtns = document.getElementById('containerBotoesFase');
+  const badgeFase = document.getElementById('badgeFaseAtual');
+  const faixaEncerrado = document.getElementById('faixaCicloEncerrado');
+  const detalhesSnap = document.getElementById('detalhesSnapEncerrado');
+  const btnEncerrar = document.getElementById('btnEncerrarCiclo');
+  const btnExcluirVazio = document.getElementById('btnExcluirCicloVazio');
+
+  if (!temporadaAtual) return;
+
+  const st = temporadaAtual.status || 'agendamento_fechado';
+  let badgeHtml = '';
+  let btnsHtml = '';
+
+  if (st === 'agendamento_aberto') {
+    badgeHtml = '<span class="badge" style="background:rgba(16,185,129,0.2); color:#6ee7b7; border:1px solid #10b981; font-size:0.82rem; padding:0.35rem 0.75rem;">🟢 FASE 2: AGENDAMENTO ABERTO (TROPA)</span>';
+    btnsHtml = `
+      <button type="button" class="acao rubi mini" onclick="fecharAgendamentoEfetivo()" title="Bloqueia novas solicitações pelo público">
+        🔴 Fechar Agendamento
+      </button>
+    `;
+    if (faixaEncerrado) faixaEncerrado.style.display = 'none';
+    if (btnEncerrar) btnEncerrar.style.display = 'inline-flex';
+  } else if (st === 'escala_gerada') {
+    badgeHtml = '<span class="badge" style="background:rgba(59,130,246,0.2); color:#93c5fd; border:1px solid #3b82f6; font-size:0.82rem; padding:0.35rem 0.75rem;">⚡ FASE 3: ESCALA ATIVA & EXECUÇÃO</span>';
+    btnsHtml = `
+      <button type="button" class="acao jade mini" onclick="abrirAgendamentoEfetivo()" title="Reabre formulário para solicitações">
+        🟢 Reabrir Agendamento
+      </button>
+    `;
+    if (faixaEncerrado) faixaEncerrado.style.display = 'none';
+    if (btnEncerrar) btnEncerrar.style.display = 'inline-flex';
+  } else if (st === 'encerrado') {
+    badgeHtml = '<span class="badge" style="background:rgba(100,116,139,0.25); color:#cbd5e1; border:1px solid #64748b; font-size:0.82rem; padding:0.35rem 0.75rem;">🔒 FASE 4: CICLO ENCERRADO (HISTÓRICO)</span>';
+    btnsHtml = '';
+    if (faixaEncerrado) {
+      faixaEncerrado.style.display = 'flex';
+      if (temporadaAtual.observacoes) {
+        try {
+          const obs = typeof temporadaAtual.observacoes === 'string' ? JSON.parse(temporadaAtual.observacoes) : temporadaAtual.observacoes;
+          if (obs && obs.snapshot) {
+            const sn = obs.snapshot;
+            detalhesSnap.innerHTML = `📊 <b>Snapshot do Encerramento:</b> Total Efetivo: ${sn.total_efetivo || '—'} | Elegíveis: ${sn.elegiveis || '—'} | Realizados: ${sn.realizados || '—'} | Dispensas/Baixas: ${sn.dispensas_baixas || '—'} (Fechado em: ${obs.data_encerramento ? new Date(obs.data_encerramento).toLocaleDateString('pt-BR') : '—'})`;
+          }
+        } catch(e) {
+          detalhesSnap.textContent = String(temporadaAtual.observacoes);
+        }
+      } else {
+        detalhesSnap.textContent = '';
+      }
+    }
+    if (btnEncerrar) btnEncerrar.style.display = 'none';
+  } else {
+    // preparacao / agendamento_fechado
+    badgeHtml = '<span class="badge" style="background:rgba(245,158,11,0.2); color:#fde68a; border:1px solid #f59e0b; font-size:0.82rem; padding:0.35rem 0.75rem;">🟡 FASE 1: PREPARAÇÃO (SECRETARIA)</span>';
+    btnsHtml = `
+      <button type="button" class="acao jade mini" onclick="abrirAgendamentoEfetivo()" title="Disponibiliza o formulário de agendamento no Hero para o efetivo preencher">
+        🟢 Abrir Agendamento (Liberar p/ Efetivo)
+      </button>
+    `;
+    if (faixaEncerrado) faixaEncerrado.style.display = 'none';
+    if (btnEncerrar) btnEncerrar.style.display = 'inline-flex';
+  }
+
+  if (badgeFase) badgeFase.innerHTML = badgeHtml;
+  if (containerBtns) containerBtns.innerHTML = btnsHtml;
+
+  // Botão excluir ciclo vazio (se não houver solicitações e tiver mais de 1 temporada)
+  const totalSolsDesteCiclo = Object.values(solicitacoesMap).length;
+  if (btnExcluirVazio) {
+    if (totalSolsDesteCiclo === 0 && listaTemporadas.length > 1 && (!temporadaAtual.datas_aplicacao || temporadaAtual.datas_aplicacao.length === 0)) {
+      btnExcluirVazio.style.display = 'inline-flex';
+    } else {
+      btnExcluirVazio.style.display = 'none';
+    }
+  }
+}
+
+async function abrirAgendamentoEfetivo() {
+  if (!temporadaAtual) return;
+  const datas = temporadaAtual.datas_aplicacao || [];
+  if (!datas.length) {
+    return Swal.fire({
+      title: 'Datas de Aplicação Obrigatórias',
+      text: 'Antes de abrir o agendamento para o efetivo, cadastre ao menos uma data de aplicação clicando em "+ Adicionar Data" ou "⚡ Gerar Dias".',
+      icon: 'warning'
+    });
+  }
+
+  const confirm = await Swal.fire({
+    title: '🟢 Abrir Agendamento do TACF?',
+    html: `
+      <div style="text-align:left; font-size:0.9rem; line-height:1.5;">
+        Ao abrir o agendamento do ciclo <b>${temporadaAtual.titulo}</b>:<br/><br/>
+        • O formulário público ficará <b>LIBERADO</b> no Hero para o efetivo escolher suas preferências de datas;<br/>
+        • O contador com a quantidade de militares que faltam preencher será exibido publicamente;<br/>
+        • Você poderá fechar o agendamento ou gerar a escala oficial a qualquer momento.
+      </div>
+    `,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Sim, Abrir Agendamento',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#10b981'
+  });
+
+  if (!confirm.isConfirmed) return;
+
+  temporadaAtual.status = 'agendamento_aberto';
+
+  try {
+    const { error } = await sb
+      .from('tacf_temporadas')
+      .update({ status: 'agendamento_aberto' })
+      .eq('id', temporadaAtual.id);
+
+    if (error) throw error;
+
+    renderizarSeletorTemporadas();
+    renderizarControlesFaseSecretaria();
+    renderizarFormularioMilitar();
+    atualizarKpisEContadores();
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Agendamento Aberto!',
+      text: `O formulário do TACF ${temporadaAtual.titulo} está liberado para preenchimento pelo efetivo.`
+    });
+  } catch (e) {
+    Swal.fire('Erro', 'Falha ao abrir agendamento: ' + e.message, 'error');
+  }
+}
+
+async function fecharAgendamentoEfetivo() {
+  if (!temporadaAtual) return;
+
+  const confirm = await Swal.fire({
+    title: '🔴 Fechar Agendamento do TACF?',
+    text: 'Esta ação bloqueará novos envios pelo formulário público, permitindo que a Secretaria gere ou ajuste a escala.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sim, Fechar Agendamento',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#ef4444'
+  });
+
+  if (!confirm.isConfirmed) return;
+
+  temporadaAtual.status = 'agendamento_fechado';
+
+  try {
+    const { error } = await sb
+      .from('tacf_temporadas')
+      .update({ status: 'agendamento_fechado' })
+      .eq('id', temporadaAtual.id);
+
+    if (error) throw error;
+
+    renderizarSeletorTemporadas();
+    renderizarControlesFaseSecretaria();
+    renderizarFormularioMilitar();
+    atualizarKpisEContadores();
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Agendamento Fechado!',
+      text: 'O formulário público foi bloqueado para novas escolhas.'
+    });
+  } catch (e) {
+    Swal.fire('Erro', 'Falha ao fechar agendamento: ' + e.message, 'error');
+  }
+}
+
+async function encerrarCicloAtual() {
+  if (!temporadaAtual) return;
+
+  const elegiveisCount = listaEfetivo.filter(m => {
+    const sol = solicitacoesMap[m.saram];
+    if (m.isR1) return false;
+    if (sol && (
+      sol.status_elegibilidade === 'baixa' || 
+      sol.status_elegibilidade === 'dispensa' || 
+      sol.status_elegibilidade === 'missao' || 
+      sol.status_elegibilidade === 'r1_reserva' || 
+      sol.status_solicitacao === 'nao_realizou'
+    )) return false;
+    return true;
+  }).length;
+
+  const solicitadosCount = Object.values(solicitacoesMap).filter(s => s.prio1_data).length;
+  const realizadosCount = Object.values(solicitacoesMap).filter(s => s.status_solicitacao === 'realizou').length;
+  const naoRealizouCount = Object.values(solicitacoesMap).filter(s =>
+    s.status_elegibilidade === 'baixa' || 
+    s.status_elegibilidade === 'dispensa' || 
+    s.status_elegibilidade === 'missao' || 
+    s.status_elegibilidade === 'r1_reserva' || 
+    s.status_solicitacao === 'nao_realizou'
+  ).length;
+
+  const snapData = {
+    data_encerramento: new Date().toISOString(),
+    titulo_ciclo: temporadaAtual.titulo,
+    snapshot: {
+      total_efetivo: listaEfetivo.length,
+      elegiveis: elegiveisCount,
+      solicitados: solicitadosCount,
+      realizados: realizadosCount,
+      dispensas_baixas: naoRealizouCount,
+      datas_aplicadas: temporadaAtual.datas_aplicacao || []
+    }
+  };
+
+  const confirm = await Swal.fire({
+    title: `🔒 Encerrar Ciclo ${temporadaAtual.titulo}?`,
+    html: `
+      <div style="text-align:left; font-size:0.9rem; line-height:1.5;">
+        Esta ação irá <b>concluir e arquivar</b> este ciclo no histórico permanente da Secretaria.<br/><br/>
+        <b>Resumo das Estatísticas do Ciclo:</b><br/>
+        • <b>Efetivo Total:</b> ${listaEfetivo.length} militares<br/>
+        • <b>Elegíveis:</b> ${elegiveisCount} militares<br/>
+        • <b>TACF Concluídos:</b> ${realizadosCount} militares<br/>
+        • <b>Dispensas / Missões / Baixas:</b> ${naoRealizouCount} militares<br/><br/>
+        Os dados ficarão salvos e poderão ser consultados a qualquer momento pelo seletor de ciclos da Secretaria.
+      </div>
+    `,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sim, Encerrar Ciclo (Snap)',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#ef4444'
+  });
+
+  if (!confirm.isConfirmed) return;
+
+  temporadaAtual.status = 'encerrado';
+  temporadaAtual.observacoes = snapData;
+
+  try {
+    const { error } = await sb
+      .from('tacf_temporadas')
+      .update({
+        status: 'encerrado',
+        observacoes: snapData
+      })
+      .eq('id', temporadaAtual.id);
+
+    if (error) throw error;
+
+    renderizarSeletorTemporadas();
+    renderizarControlesFaseSecretaria();
+    renderizarFormularioMilitar();
+    atualizarKpisEContadores();
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Ciclo Encerrado com Sucesso!',
+      text: `O ciclo ${temporadaAtual.titulo} foi arquivado no histórico com snapshot estatístico salvo.`
+    });
+  } catch (e) {
+    Swal.fire('Erro', 'Falha ao encerrar ciclo: ' + e.message, 'error');
+  }
+}
+
+async function reabrirCicloAtual() {
+  if (!temporadaAtual) return;
+
+  const confirm = await Swal.fire({
+    title: `🔓 Reabrir Ciclo ${temporadaAtual.titulo}?`,
+    text: 'O ciclo voltará ao status ativo de execução da escala, permitindo edições e remanejamentos.',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Sim, Reabrir Ciclo',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#10b981'
+  });
+
+  if (!confirm.isConfirmed) return;
+
+  const temEscala = Object.values(solicitacoesMap).some(s => s.dia_escalado);
+  const novoStatus = temEscala ? 'escala_gerada' : 'agendamento_fechado';
+  temporadaAtual.status = novoStatus;
+
+  try {
+    const { error } = await sb
+      .from('tacf_temporadas')
+      .update({ status: novoStatus })
+      .eq('id', temporadaAtual.id);
+
+    if (error) throw error;
+
+    renderizarSeletorTemporadas();
+    renderizarControlesFaseSecretaria();
+    renderizarFormularioMilitar();
+    atualizarKpisEContadores();
+
+    Swal.fire('Ciclo Reaberto!', `O ciclo ${temporadaAtual.titulo} agora está ativo novamente.`, 'success');
+  } catch (e) {
+    Swal.fire('Erro', 'Falha ao reabrir ciclo: ' + e.message, 'error');
+  }
+}
+
+async function excluirCicloAtualVazio() {
+  if (!temporadaAtual) return;
+  if (listaTemporadas.length <= 1) {
+    return Swal.fire('Aviso', 'Não é possível excluir o único ciclo existente.', 'warning');
+  }
+
+  const confirm = await Swal.fire({
+    title: `🗑️ Excluir Ciclo "${temporadaAtual.titulo}"?`,
+    text: 'Este ciclo não possui solicitações registradas e será removido definitivamente do sistema.',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sim, Excluir Ciclo Vazio',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#ef4444'
+  });
+
+  if (!confirm.isConfirmed) return;
+
+  try {
+    const { error } = await sb
+      .from('tacf_temporadas')
+      .delete()
+      .eq('id', temporadaAtual.id);
+
+    if (error) throw error;
+
+    listaTemporadas = listaTemporadas.filter(t => t.id !== temporadaAtual.id);
+    temporadaAtual = listaTemporadas[0];
+    await carregarSolicitacoes();
+    atualizarKpisEContadores();
+    renderizarFormularioMilitar();
+    renderizarPainelSecretaria();
+
+    Swal.fire('Ciclo Removido!', 'O ciclo foi excluído com sucesso.', 'success');
+  } catch (e) {
+    Swal.fire('Erro', 'Falha ao excluir ciclo: ' + e.message, 'error');
+  }
 }
 
 async function aoTrocarTemporada(id) {
@@ -1014,20 +1394,35 @@ async function aoTrocarTemporada(id) {
 }
 
 async function criarNovaTemporada() {
+  const anoAtual = new Date().getFullYear();
+  const proximoSemestre = temporadaAtual && temporadaAtual.semestre === 1 ? '2º/' + anoAtual : '1º/' + (anoAtual + 1);
+
   const { value: titulo } = await Swal.fire({
-    title: '➕ Novo Ciclo / Temporada TACF',
-    text: 'Informe o título para o novo ciclo (Ex: 1º/2026 ou 2º/2026):',
+    title: '➕ Iniciar Novo Ciclo de TACF',
+    html: `
+      <div style="text-align:left; font-size:0.88rem; color:var(--texto-2); line-height:1.5; margin-bottom:1rem;">
+        O ciclo atual permanecerá salvo e você poderá alternar entre eles a qualquer momento pelo seletor.<br/><br/>
+        O novo ciclo iniciará em fase de <b>PREPARAÇÃO</b> para você cadastrar as datas de aplicação e vagas.
+      </div>
+    `,
     input: 'text',
-    inputValue: '2º/' + new Date().getFullYear(),
+    inputValue: proximoSemestre,
+    inputPlaceholder: 'Ex: 2º/2026',
     showCancelButton: true,
-    confirmButtonText: 'Criar Ciclo',
-    cancelButtonText: 'Cancelar'
+    confirmButtonText: 'Criar e Iniciar Ciclo',
+    cancelButtonText: 'Cancelar',
+    inputValidator: (value) => {
+      if (!value || !value.trim()) {
+        return 'Informe um título para o ciclo!';
+      }
+    }
   });
 
   if (!titulo || !titulo.trim()) return;
 
-  const ano = parseInt(titulo.split('/')[1]) || new Date().getFullYear();
-  const semestre = parseInt(titulo.split('º')[0]) || 1;
+  const partes = titulo.split('/');
+  const ano = parseInt(partes[1]) || new Date().getFullYear();
+  const semestre = parseInt(partes[0].replace(/\D/g, '')) || 1;
 
   const nova = {
     ano: ano,
@@ -1050,7 +1445,11 @@ async function criarNovaTemporada() {
       renderizarFormularioMilitar();
       renderizarPainelSecretaria();
       renderizarSeletorTemporadas();
-      Swal.fire('Sucesso', `Ciclo "${data[0].titulo}" criado com sucesso!`, 'success');
+      Swal.fire({
+        icon: 'success',
+        title: 'Novo Ciclo Iniciado!',
+        text: `Ciclo "${data[0].titulo}" criado em fase de PREPARAÇÃO.`
+      });
     }
   } catch (e) {
     Swal.fire('Erro', 'Falha ao criar ciclo: ' + e.message, 'error');
@@ -1096,6 +1495,7 @@ function atualizarKpisEContadores() {
   });
 
   const solicitadosCount = Object.values(solicitacoesMap).filter(s => s.prio1_data).length;
+  const faltamCount = Math.max(0, elegiveis.length - solicitadosCount);
   const realizadosCount = Object.values(solicitacoesMap).filter(s => s.status_solicitacao === 'realizou').length;
   const naoEfetuaramCount = Object.values(solicitacoesMap).filter(s =>
     s.status_elegibilidade === 'baixa' || 
@@ -1105,14 +1505,21 @@ function atualizarKpisEContadores() {
     s.status_solicitacao === 'nao_realizou'
   ).length;
 
-  document.getElementById('kElegiveis').textContent = elegiveis.length;
-  document.getElementById('kSolicitados').textContent = solicitadosCount;
-  document.getElementById('kRealizados').textContent = realizadosCount;
-  document.getElementById('kPendentes').textContent = naoEfetuaramCount;
+  const elEleg = document.getElementById('kElegiveis');
+  const elSol = document.getElementById('kSolicitados');
+  const elFaltam = document.getElementById('kFaltamPreencher');
+  const elReal = document.getElementById('kRealizados');
+  const elPend = document.getElementById('kPendentes');
+
+  if (elEleg) elEleg.textContent = elegiveis.length;
+  if (elSol) elSol.textContent = solicitadosCount;
+  if (elFaltam) elFaltam.textContent = faltamCount;
+  if (elReal) elReal.textContent = realizadosCount;
+  if (elPend) elPend.textContent = naoEfetuaramCount;
 }
 
 /* ══════════════════════════════════════════════════════════════
-   ABA 1: SOLICITAR AGENDAMENTO (INIBINDO R1 & VERIFICANDO STATUS OFF)
+   ABA 1: SOLICITAR AGENDAMENTO (INIBINDO R1 & BANNER DINÂMICO)
    ══════════════════════════════════════════════════════════════ */
 function renderizarFormularioMilitar() {
   const selMilitar = document.getElementById('selMilitar');
@@ -1128,17 +1535,103 @@ function renderizarFormularioMilitar() {
 
   const datas = temporadaAtual?.datas_aplicacao || [];
   const statusTemp = temporadaAtual?.status || 'agendamento_fechado';
+  const tituloTemp = temporadaAtual?.titulo || obterTituloTemporadaPadrao();
 
   const msgStatus = document.getElementById('msgStatusTemporada');
   const formSol = document.getElementById('formSolicitacao');
+  const btnEnviar = document.getElementById('btnEnviarSolicitacao');
 
-  // VERIFICA SE ESTÁ OFF
-  if (statusTemp === 'agendamento_fechado') {
+  // Calcular quantos faltam para exibição no banner público
+  const elegiveisCount = listaEfetivo.filter(m => {
+    const sol = solicitacoesMap[m.saram];
+    if (m.isR1) return false;
+    if (sol && (
+      sol.status_elegibilidade === 'baixa' || 
+      sol.status_elegibilidade === 'dispensa' || 
+      sol.status_elegibilidade === 'missao' || 
+      sol.status_elegibilidade === 'r1_reserva' || 
+      sol.status_solicitacao === 'nao_realizou'
+    )) return false;
+    return true;
+  }).length;
+  const solicitadosCount = Object.values(solicitacoesMap).filter(s => s.prio1_data).length;
+  const faltamCount = Math.max(0, elegiveisCount - solicitadosCount);
+
+  if (statusTemp === 'agendamento_aberto') {
+    msgStatus.className = 'faixaMsg info';
+    msgStatus.style.background = 'rgba(16, 185, 129, 0.12)';
+    msgStatus.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+    msgStatus.style.color = '#a7f3d0';
     msgStatus.style.display = 'flex';
-    formSol.style.display = 'none';
-  } else {
-    msgStatus.style.display = 'none';
+    msgStatus.innerHTML = `
+      <div style="flex:1;">
+        <div style="font-weight:700; font-size:0.95rem; margin-bottom:0.25rem;">
+          🟢 AGENDAMENTO ABERTO — TACF ${tituloTemp}
+        </div>
+        <div style="font-size:0.88rem; line-height:1.4;">
+          Selecione seu nome abaixo e indique suas 3 preferências de datas para a realização do teste.
+          <span style="display:inline-block; margin-top:4px; background:rgba(250,204,21,0.25); color:#fef08a; padding:2px 8px; border-radius:4px; font-weight:bold; border:1px solid rgba(250,204,21,0.5);">
+            📢 Restam <b>${faltamCount} militares</b> realizarem a escolha!
+          </span>
+        </div>
+      </div>
+    `;
     formSol.style.display = 'block';
+    if (btnEnviar) btnEnviar.style.display = 'inline-flex';
+  } else if (statusTemp === 'escala_gerada') {
+    msgStatus.className = 'faixaMsg info';
+    msgStatus.style.background = 'rgba(59, 130, 246, 0.15)';
+    msgStatus.style.borderColor = 'rgba(59, 130, 246, 0.35)';
+    msgStatus.style.color = '#93c5fd';
+    msgStatus.style.display = 'flex';
+    msgStatus.innerHTML = `
+      <div>
+        <div style="font-weight:700; font-size:0.95rem; margin-bottom:0.25rem;">
+          ⚡ ESCALA CONFECCIONADA — TACF ${tituloTemp}
+        </div>
+        <div style="font-size:0.88rem;">
+          O período de solicitação voluntária foi encerrado e a escala oficial já foi publicada. <b>Selecione seu nome abaixo para consultar seu dia escalado no comprovante oficial.</b>
+        </div>
+      </div>
+    `;
+    formSol.style.display = 'block';
+    if (btnEnviar) btnEnviar.style.display = 'none';
+  } else if (statusTemp === 'encerrado') {
+    msgStatus.className = 'faixaMsg info';
+    msgStatus.style.background = 'rgba(100, 116, 139, 0.2)';
+    msgStatus.style.borderColor = 'rgba(100, 116, 139, 0.4)';
+    msgStatus.style.color = '#cbd5e1';
+    msgStatus.style.display = 'flex';
+    msgStatus.innerHTML = `
+      <div>
+        <div style="font-weight:700; font-size:0.95rem; margin-bottom:0.25rem;">
+          🔒 CICLO ENCERRADO — TACF ${tituloTemp}
+        </div>
+        <div style="font-size:0.88rem;">
+          Este ciclo de TACF foi concluído e encerrado pela Secretaria. Os dados estão arquivados para consulta histórica.
+        </div>
+      </div>
+    `;
+    formSol.style.display = 'block';
+    if (btnEnviar) btnEnviar.style.display = 'none';
+  } else {
+    // preparacao / agendamento_fechado
+    msgStatus.className = 'faixaMsg alerta';
+    msgStatus.style.background = 'rgba(245, 158, 11, 0.12)';
+    msgStatus.style.borderColor = 'rgba(245, 158, 11, 0.3)';
+    msgStatus.style.color = '#fde68a';
+    msgStatus.style.display = 'flex';
+    msgStatus.innerHTML = `
+      <div>
+        <div style="font-weight:700; font-size:0.95rem; margin-bottom:0.25rem;">
+          🟡 AGENDAMENTO EM FASE DE PREPARAÇÃO — TACF ${tituloTemp}
+        </div>
+        <div style="font-size:0.88rem;">
+          A Secretaria está estruturando o calendário e as vagas de aplicação. O agendamento para o efetivo será liberado em breve.
+        </div>
+      </div>
+    `;
+    formSol.style.display = 'none';
   }
 
   ['selPrio1', 'selPrio2', 'selPrio3', 'selDataIndisp'].forEach(idSelect => {
@@ -1367,9 +1860,10 @@ function renderizarPainelSecretaria() {
   if (!temporadaAtual) return;
   document.getElementById('txtTituloTemp').value = temporadaAtual.titulo || obterTituloTemporadaPadrao();
   document.getElementById('numVagasDia').value = temporadaAtual.vagas_por_dia || 4;
-  document.getElementById('selStatusTemp').value = temporadaAtual.status || 'agendamento_fechado';
+  document.getElementById('numVagasRes').value = temporadaAtual.vagas_livres_reserva || 3;
 
   renderizarSeletorTemporadas();
+  renderizarControlesFaseSecretaria();
   renderizarBadgesDatas();
   renderizarEscalaHorizontal();
   renderizarTabelaSecretaria();
@@ -1592,7 +2086,6 @@ async function salvarConfigTemporada() {
   const novoTitulo = (document.getElementById('txtTituloTemp').value || '').trim() || obterTituloTemporadaPadrao();
   temporadaAtual.titulo = novoTitulo;
   temporadaAtual.vagas_por_dia = parseInt(document.getElementById('numVagasDia').value) || 4;
-  temporadaAtual.status = document.getElementById('selStatusTemp').value;
 
   try {
     const { error } = await sb
@@ -1608,7 +2101,8 @@ async function salvarConfigTemporada() {
     if (error) throw error;
     renderizarFormularioMilitar();
     renderizarSeletorTemporadas();
-    Swal.fire('Sucesso', 'Configurações da Secretaria salvas.', 'success');
+    renderizarControlesFaseSecretaria();
+    Swal.fire('Sucesso', 'Configurações do ciclo salvas!', 'success');
   } catch (e) {
     Swal.fire('Erro', 'Falha ao salvar: ' + e.message, 'error');
   }
@@ -1822,6 +2316,8 @@ async function executarAutofillEscala() {
       temporadaAtual.status = 'escala_gerada';
 
       renderizarPainelSecretaria();
+      renderizarSeletorTemporadas();
+      renderizarFormularioMilitar();
       renderizarEscalaHorizontal();
       renderizarTabelaSecretaria();
       atualizarKpisEContadores();
