@@ -2108,7 +2108,7 @@
     }
 
     if (!dados || !dados.length) {
-      const cached = localStorage.getItem('cargos_organograma_cache');
+      const cached = localStorage.getItem('cargos_organograma_v3');
       if (cached) {
         try { dados = JSON.parse(cached); } catch(e){}
       }
@@ -2118,24 +2118,55 @@
       dados = JSON.parse(JSON.stringify(ORGANOGRAMA_SEED_DATA));
     }
 
-    // Mesclar dinamicamente apenas com correspondência exata de seção/sigla
-    if (listaMilitaresAtivos && listaMilitaresAtivos.length) {
-      dados.forEach(no => {
-        if (no.chave_sigla === 'DE') return; // Preservar Chefia Cel Av Marcelo Resende
+    // Vincular titulares oficiais com precisão militar
+    dados.forEach(no => {
+      // 1. Chefia Geral (DE) é sempre o Cel Av Marcelo Resende
+      if (no.chave_sigla === 'DE') {
+        no.titular_posto = 'Cel Av';
+        no.titular_nome = 'Marcelo Resende';
+        no.titular_saram = '3147550';
+        no.categoria = 'chefe';
+        return;
+      }
+
+      // 2. Se houver militares ativos do banco cadastrados explicitamente para esta seção/cargo
+      if (listaMilitaresAtivos && listaMilitaresAtivos.length) {
         const titularAtivo = listaMilitaresAtivos.find(m => 
           (m.secao_sigla && m.secao_sigla.toUpperCase() === no.chave_sigla.toUpperCase() && m.tipo === 'cargo') ||
-          (m.cargo_funcao_nome && m.cargo_funcao_nome.toLowerCase() === no.titulo_exibicao.toLowerCase())
+          (m.cargo_funcao_nome && m.cargo_funcao_nome.trim().toLowerCase() === no.titulo_exibicao.trim().toLowerCase())
         );
         if (titularAtivo) {
           no.titular_saram = titularAtivo.saram || no.titular_saram;
           no.titular_nome = titularAtivo.nome || no.titular_nome;
           no.titular_posto = titularAtivo.posto_grad || no.titular_posto;
+          return;
         }
-      });
-    }
+      }
+
+      // 3. Obter titular Chefe/Encarregado diretamente da planilha Efetivo
+      if (listaEfetivo && listaEfetivo.length) {
+        const s = no.chave_sigla.toLowerCase();
+        let titularPlanilha = null;
+
+        if (no.chave_sigla === 'VC-DE') {
+          titularPlanilha = listaEfetivo.find(m => (m.funcao_col_h || '').toLowerCase().includes('adjunto (de)'));
+        } else {
+          titularPlanilha = listaEfetivo.find(m => {
+            const h = (m.funcao_col_h || '').toLowerCase();
+            return h.includes(`chefe (${s})`) || h.includes(`encarregado (${s})`);
+          });
+        }
+
+        if (titularPlanilha) {
+          no.titular_posto = titularPlanilha.posto || no.titular_posto;
+          no.titular_nome = titularPlanilha.nome || titularPlanilha.nome_completo || no.titular_nome;
+          no.titular_saram = titularPlanilha.saram || no.titular_saram;
+        }
+      }
+    });
 
     listaOrganograma = dados;
-    localStorage.setItem('cargos_organograma_cache', JSON.stringify(listaOrganograma));
+    localStorage.setItem('cargos_organograma_v3', JSON.stringify(listaOrganograma));
   }
 
   function renderizarOrganograma() {
