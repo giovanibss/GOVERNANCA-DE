@@ -621,6 +621,406 @@
       color: var(--ouro-lt);
       border-bottom-color: var(--ouro);
     }
+
+    /* ══════════════════════════════════════════════════════════════ */
+    /* ORGANOGRAMA DINÂMICO & INTERATIVO                            */
+    /* ══════════════════════════════════════════════════════════════ */
+    .organo-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      width: 100%;
+    }
+    
+    .organo-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.85rem 1.25rem;
+      background: rgba(13, 27, 62, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(212, 168, 75, 0.25);
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+    
+    .organo-search-box {
+      position: relative;
+      min-width: 240px;
+      flex: 1;
+      max-width: 360px;
+    }
+    .organo-search-box input {
+      width: 100%;
+      padding: 0.5rem 2.2rem 0.5rem 2.4rem;
+      background: rgba(3, 7, 18, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      color: var(--texto);
+      font-size: 0.85rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .organo-search-box input:focus {
+      border-color: var(--ouro);
+      box-shadow: 0 0 0 3px rgba(212, 168, 75, 0.2);
+    }
+    .organo-search-icon {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--texto-3);
+      pointer-events: none;
+    }
+    .organo-search-clear {
+      position: absolute;
+      right: 0.65rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      color: var(--texto-3);
+      cursor: pointer;
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    .organo-filters {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      background: rgba(3, 7, 18, 0.45);
+      padding: 0.25rem 0.5rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .organo-chk-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--texto-2);
+      cursor: pointer;
+      user-select: none;
+      padding: 0.25rem 0.45rem;
+      border-radius: 6px;
+      transition: background 0.15s;
+    }
+    .organo-chk-label:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    .organo-chk-label input[type="checkbox"] {
+      accent-color: var(--ouro);
+      cursor: pointer;
+      width: 14px;
+      height: 14px;
+    }
+    .organo-badge-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .dot-chefes { background: #d4a84b; box-shadow: 0 0 6px #d4a84b; }
+    .dot-oficiais { background: #60a5fa; box-shadow: 0 0 6px #60a5fa; }
+    .dot-graduados { background: #34d399; box-shadow: 0 0 6px #34d399; }
+    .dot-pracas { background: #c084fc; box-shadow: 0 0 6px #c084fc; }
+
+    .organo-ctrls {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .btn-organo-ctrl {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      padding: 0.45rem 0.75rem;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 6px;
+      color: var(--texto-2);
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-organo-ctrl:hover {
+      background: rgba(212, 168, 75, 0.15);
+      border-color: var(--ouro);
+      color: var(--ouro-lt);
+    }
+
+    /* Viewport & Canvas */
+    .organo-viewport {
+      position: relative;
+      width: 100%;
+      height: 720px;
+      min-height: 580px;
+      background: radial-gradient(ellipse at top, #09152e 0%, #030712 100%);
+      background-image: 
+        radial-gradient(rgba(212, 168, 75, 0.07) 1.5px, transparent 0),
+        radial-gradient(ellipse at top, #0d1e3d 0%, #030712 100%);
+      background-size: 28px 28px, 100% 100%;
+      border: 1px solid rgba(212, 168, 75, 0.25);
+      border-radius: 14px;
+      overflow: hidden;
+      cursor: grab;
+      user-select: none;
+      box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.6);
+    }
+    .organo-viewport:active {
+      cursor: grabbing;
+    }
+    .organo-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4800px;
+      height: 3200px;
+      transform-origin: 0 0;
+      will-change: transform;
+    }
+    
+    /* Conectores SVG */
+    .organo-svg-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .organo-svg-line {
+      fill: none;
+      stroke: rgba(212, 168, 75, 0.45);
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+    .organo-svg-line.staff-line {
+      stroke: rgba(96, 165, 250, 0.45);
+      stroke-dasharray: 4 3;
+    }
+
+    /* Cards / Nós */
+    .organo-nodes-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+    }
+    
+    .organo-node-card {
+      position: absolute;
+      width: 220px;
+      background: rgba(13, 27, 62, 0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1.5px solid rgba(212, 168, 75, 0.35);
+      border-radius: 12px;
+      padding: 0.75rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s, border-color 0.2s, opacity 0.2s;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .organo-node-card:hover {
+      transform: translateY(-4px) scale(1.02);
+      border-color: var(--ouro);
+      box-shadow: 0 12px 32px rgba(212, 168, 75, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      z-index: 10;
+    }
+    .organo-node-card.root-card {
+      width: 260px;
+      background: linear-gradient(135deg, rgba(30, 58, 138, 0.95), rgba(15, 23, 42, 0.95));
+      border: 2px solid var(--ouro);
+      box-shadow: 0 10px 36px rgba(212, 168, 75, 0.4);
+    }
+    .organo-node-card.staff-card {
+      border-color: rgba(96, 165, 250, 0.4);
+    }
+    .organo-node-card.subdiv-card {
+      border-color: rgba(212, 168, 75, 0.45);
+    }
+    .organo-node-card.celula-card {
+      border-color: rgba(52, 211, 153, 0.35);
+      background: rgba(11, 24, 52, 0.92);
+    }
+    .organo-node-card.filtered-hidden {
+      opacity: 0.18;
+      filter: grayscale(0.9);
+      pointer-events: none;
+    }
+    .organo-node-card.search-match {
+      border-color: #38bdf8 !important;
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.5), 0 12px 32px rgba(56, 189, 248, 0.4) !important;
+      animation: pulseMatch 1.5s infinite alternate;
+    }
+    @keyframes pulseMatch {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.05); }
+    }
+
+    .node-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.35rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 0.4rem;
+    }
+    .node-sigla-badge {
+      font-size: 0.82rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: var(--ouro-lt);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .node-type-pill {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      padding: 0.15rem 0.35rem;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--texto-3);
+    }
+    .node-title-desc {
+      font-size: 0.73rem;
+      color: var(--texto-2);
+      line-height: 1.25;
+      font-weight: 500;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .node-holder-box {
+      background: rgba(3, 7, 18, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 8px;
+      padding: 0.45rem 0.6rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+    .node-holder-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.3rem;
+    }
+    .node-posto-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+      letter-spacing: 0.02em;
+    }
+    .posto-oficial { background: rgba(96, 165, 250, 0.2); color: #93c5fd; border: 1px solid rgba(96, 165, 250, 0.3); }
+    .posto-chefe { background: rgba(212, 168, 75, 0.25); color: #fde047; border: 1px solid rgba(212, 168, 75, 0.4); }
+    .posto-graduado { background: rgba(52, 211, 153, 0.2); color: #6ee7b7; border: 1px solid rgba(52, 211, 153, 0.3); }
+    .posto-praca { background: rgba(192, 132, 252, 0.2); color: #d8b4fe; border: 1px solid rgba(192, 132, 252, 0.3); }
+
+    .node-holder-name {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .node-members-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      background: rgba(79, 163, 247, 0.12);
+      border: 1px solid rgba(79, 163, 247, 0.25);
+      border-radius: 6px;
+      padding: 0.3rem 0.5rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #93c5fd;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .node-members-badge:hover {
+      background: rgba(79, 163, 247, 0.25);
+      border-color: #60a5fa;
+      color: #ffffff;
+    }
+
+    .node-edit-btn-badge {
+      display: none;
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--ouro);
+      color: #030712;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    .node-edit-btn-badge:hover {
+      transform: scale(1.2);
+    }
+    .modo-secretaria-ativo .node-edit-btn-badge {
+      display: flex;
+    }
+
+    /* Modal Contextual / Gaveta de Membros */
+    .member-item-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 0.65rem 0.85rem;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+    }
+    .member-info-main {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+    .member-nome-guerra {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+    .member-funcao-text {
+      font-size: 0.75rem;
+      color: var(--ouro-lt);
+    }
+    .member-full-details {
+      font-size: 0.72rem;
+      color: var(--texto-3);
+    }
   </style>
 </head>
 <body>
@@ -651,7 +1051,11 @@
 
     <!-- ABAS -->
     <nav class="tabs-nav">
-      <button class="tab-btn active" id="tab-btn-solicitar" onclick="trocarAba('solicitar')">
+      <button class="tab-btn active" id="tab-btn-organograma" onclick="trocarAba('organograma')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M10 6.5h4"/><path d="M6.5 10v4"/><path d="M17.5 10v4"/></svg>
+        Organograma DE
+      </button>
+      <button class="tab-btn" id="tab-btn-solicitar" onclick="trocarAba('solicitar')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
         Solicitação de Publicação
       </button>
@@ -895,6 +1299,99 @@
     </section>
 
     <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- ABA: ORGANOGRAMA DE (VISUALIZAÇÃO & EDIÇÃO SECRETARIA)        -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <section id="aba-organograma" class="painel" style="display:block">
+      <div class="painel-header">
+        <div>
+          <h2>🏛️ Organograma da Divisão de Ensino</h2>
+          <p>Estrutura hierárquica oficial, chefias, subordinações e distribuição do efetivo da DE.</p>
+        </div>
+        <div style="display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap">
+          <span class="badge-aviso-cargo" id="organo-status-badge" style="background:rgba(52,211,153,0.12);border-color:rgba(52,211,153,0.3);color:#34d399">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Sincronizado com o Banco & Efetivo
+          </span>
+          <button class="btn btn-fantasma btn-sm" id="btn-organo-add-node" onclick="abrirModalEdicaoNo(null)" style="display:none">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            + Novo Nó
+          </button>
+        </div>
+      </div>
+
+      <div class="organo-wrap">
+        <!-- BARRA DE FERRAMENTAS DO ORGANOGRAMA -->
+        <div class="organo-toolbar">
+          
+          <!-- Busca -->
+          <div class="organo-search-box">
+            <svg class="organo-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="organo-busca-input" placeholder="Buscar militar ou seção…" autocomplete="off" oninput="buscarNoOrganograma(this.value)" />
+            <button class="organo-search-clear" id="organo-busca-clear" onclick="limparBuscaOrganograma()">&times;</button>
+          </div>
+
+          <!-- 4 Filtros de Categoria (Checkboxes) -->
+          <div class="organo-filters">
+            <label class="organo-chk-label">
+              <input type="checkbox" id="chk-filtro-chefes" checked onchange="aplicarFiltrosOrganograma()" />
+              <span class="organo-badge-dot dot-chefes"></span>
+              Chefes
+            </label>
+            <label class="organo-chk-label">
+              <input type="checkbox" id="chk-filtro-oficiais" checked onchange="aplicarFiltrosOrganograma()" />
+              <span class="organo-badge-dot dot-oficiais"></span>
+              Oficiais
+            </label>
+            <label class="organo-chk-label">
+              <input type="checkbox" id="chk-filtro-graduados" checked onchange="aplicarFiltrosOrganograma()" />
+              <span class="organo-badge-dot dot-graduados"></span>
+              Graduados (SO/Sgt)
+            </label>
+            <label class="organo-chk-label">
+              <input type="checkbox" id="chk-filtro-pracas" checked onchange="aplicarFiltrosOrganograma()" />
+              <span class="organo-badge-dot dot-pracas"></span>
+              Praças (Cb/Sd)
+            </label>
+          </div>
+
+          <!-- Controles de Visualização (Zoom / Pan / Exportar) -->
+          <div class="organo-ctrls">
+            <button class="btn-organo-ctrl" onclick="zoomOrganograma(0.15)" title="Aumentar Zoom">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+            <button class="btn-organo-ctrl" onclick="zoomOrganograma(-0.15)" title="Diminuir Zoom">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+            <button class="btn-organo-ctrl" id="btn-organo-zoom-pct" onclick="resetZoomOrganograma()" title="Resetar Zoom (100%)">
+              100%
+            </button>
+            <button class="btn-organo-ctrl" onclick="ajustarOrganogramaTela()" title="Ajustar à Tela">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+              Ajustar
+            </button>
+            <button class="btn-organo-ctrl" onclick="exportarOrganogramaPNG()" title="Exportar PNG / Imprimir">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Exportar
+            </button>
+          </div>
+
+        </div>
+
+        <!-- VIEWPORT DE NAVEGAÇÃO / CANVAS DO ORGANOGRAMA -->
+        <div class="organo-viewport" id="organo-viewport">
+          <div class="organo-canvas" id="organo-canvas">
+            <!-- Camada de Conexões SVG -->
+            <svg class="organo-svg-canvas" id="organo-svg-canvas"></svg>
+            <!-- Camada de Nós / Cards -->
+            <div class="organo-nodes-layer" id="organo-nodes-layer">
+              <!-- Nós renderizados via JavaScript -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
     <!-- ABA 3: SECRETARIA (PROTEGIDA POR PIN) -->
     <!-- ══════════════════════════════════════════════════════════════ -->
     <section id="aba-secretaria" class="painel" style="display:none">
@@ -993,7 +1490,8 @@
         <nav class="settings-nav">
           <button class="settings-tab active" id="set-tab-btn-secoes" onclick="trocarTabSettings('secoes')">📁 Seções e Catálogo</button>
           <button class="settings-tab" id="set-tab-btn-sync" onclick="trocarTabSettings('sync')">🔄 Sincronização com Efetivo</button>
-          <button class="settings-tab" id="set-tab-btn-motivos" onclick="trocarTabSettings('motivos')">⚙️ Códigos de Motivo & E-mail SREG</button>
+          <button class="settings-tab" id="set-tab-btn-auditoria" onclick="trocarTabSettings('auditoria')">🔍 Auditoria de Sincronia</button>
+          <button class="settings-tab" id="set-tab-btn-motivos" onclick="trocarTabSettings('motivos')">⚙️ Códigos & E-mail SREG</button>
         </nav>
 
         <!-- ABA SETTINGS 1: SEÇÕES E CATÁLOGO -->
@@ -1021,6 +1519,65 @@
             </button>
           </div>
           <div id="sync-log-box" style="font-family:var(--f-mono);font-size:0.78rem;background:#050c1c;padding:0.75rem;border-radius:8px;border:1px solid var(--linha);color:var(--texto-2);max-height:180px;overflow-y:auto;display:none"></div>
+        </div>
+
+        <!-- ABA SETTINGS: AUDITORIA DE SINCRONIA -->
+        <div id="set-aba-auditoria" style="display:none">
+          <div class="painel" style="background:rgba(15,23,42,0.6);margin-bottom:1rem">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem">
+              <div>
+                <h4 style="color:var(--ouro-lt);margin-bottom:0.25rem">Auditoria Comparativa (Planilha Efetivo vs Banco)</h4>
+                <p style="font-size:0.82rem;color:var(--texto-2)">Verifica discrepâncias entre os dados do efetivo, cargos ativos e catálogo.</p>
+              </div>
+              <div style="display:flex;gap:0.5rem">
+                <button class="btn btn-ouro btn-sm" onclick="executarAuditoriaSistema()">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+                  Executar Auditoria
+                </button>
+                <button class="btn btn-jade btn-sm" id="btn-corrigir-auditoria-lote" onclick="aplicarCorrecoesAuditoriaLote()" style="display:none">
+                  ⚡ Aplicar Todas as Correções
+                </button>
+              </div>
+            </div>
+
+            <!-- Contadores de Auditoria -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(130px, 1fr));gap:0.5rem;margin-bottom:1rem">
+              <div style="background:rgba(3,7,18,0.5);padding:0.5rem;border-radius:6px;border:1px solid rgba(255,255,255,0.06);text-align:center">
+                <small style="color:var(--texto-3);font-size:0.7rem">Total Efetivo DE</small>
+                <div style="font-size:1.1rem;font-weight:700;color:#ffffff" id="aud-total-efetivo">—</div>
+              </div>
+              <div style="background:rgba(52,211,153,0.1);padding:0.5rem;border-radius:6px;border:1px solid rgba(52,211,153,0.3);text-align:center">
+                <small style="color:#6ee7b7;font-size:0.7rem">Sincronizados</small>
+                <div style="font-size:1.1rem;font-weight:700;color:#34d399" id="aud-total-ok">—</div>
+              </div>
+              <div style="background:rgba(212,168,75,0.1);padding:0.5rem;border-radius:6px;border:1px solid rgba(212,168,75,0.3);text-align:center">
+                <small style="color:#fde047;font-size:0.7rem">Divergências</small>
+                <div style="font-size:1.1rem;font-weight:700;color:#d4a84b" id="aud-total-divergencias">—</div>
+              </div>
+              <div style="background:rgba(239,68,68,0.1);padding:0.5rem;border-radius:6px;border:1px solid rgba(239,68,68,0.3);text-align:center">
+                <small style="color:#fca5a5;font-size:0.7rem">Sem Vínculo</small>
+                <div style="font-size:1.1rem;font-weight:700;color:#ef4444" id="aud-total-sem-vinculo">—</div>
+              </div>
+            </div>
+
+            <!-- Tabela de Auditoria -->
+            <div class="table-wrap" style="max-height:280px;overflow-y:auto">
+              <table class="grid" style="font-size:0.78rem">
+                <thead>
+                  <tr>
+                    <th>Militar</th>
+                    <th>SARAM</th>
+                    <th>Coluna H (Planilha)</th>
+                    <th>Status no Banco</th>
+                    <th style="text-align:right">Ação</th>
+                  </tr>
+                </thead>
+                <tbody id="tabela-auditoria-corpo">
+                  <tr><td colspan="5" style="text-align:center;color:var(--texto-3);padding:1.5rem">Clique em "Executar Auditoria" para iniciar a verificação.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
         <!-- ABA SETTINGS 3: CÓDIGOS DE MOTIVO & E-MAIL SREG -->
@@ -1073,6 +1630,156 @@
     </div>
   </div>
 
+  <!-- MODAL DE INTEGRANTES DA SEÇÃO DO ORGANOGRAMA -->
+  <div class="modal-backdrop" id="modal-membros-secao" onclick="if(event.target===this)fecharModalMembrosSecao()">
+    <div class="modal-box" style="max-width:580px">
+      <div class="modal-head">
+        <h3 id="modal-membros-titulo">👥 Integrantes da Seção</h3>
+        <button class="modal-close" onclick="fecharModalMembrosSecao()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="modal-membros-desc" style="font-size:0.83rem;color:var(--texto-2);margin-bottom:1rem"></p>
+        <div id="modal-membros-lista" style="max-height:360px;overflow-y:auto">
+          <!-- Renderizado dinamicamente -->
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-fantasma" onclick="fecharModalMembrosSecao()">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CONTEXTUAL DA SECRETARIA NO NÓ DO ORGANOGRAMA -->
+  <div class="modal-backdrop" id="modal-contexto-no" onclick="if(event.target===this)fecharModalContextoNo()">
+    <div class="modal-box" style="max-width:480px">
+      <div class="modal-head">
+        <h3 id="ctx-modal-titulo">⚙️ Gestão do Nó: <span id="ctx-sigla-txt"></span></h3>
+        <button class="modal-close" onclick="fecharModalContextoNo()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="background:rgba(3,7,18,0.6);padding:0.75rem;border-radius:8px;border:1px solid var(--linha);margin-bottom:1.2rem">
+          <div style="font-size:0.75rem;color:var(--texto-3)">Titular Atual:</div>
+          <div style="font-size:1.05rem;font-weight:700;color:#ffffff" id="ctx-titular-txt">—</div>
+          <div style="font-size:0.78rem;color:var(--ouro-lt)" id="ctx-cargo-txt">—</div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:0.75rem">
+          <button class="btn btn-ouro" style="justify-content:flex-start;padding:0.85rem 1rem" onclick="executarAcaoCtx('transmissao')">
+            <div style="display:flex;flex-direction:column;align-items:flex-start;text-align:left">
+              <span style="font-weight:700;font-size:0.92rem;display:flex;align-items:center;gap:0.4rem">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Criar Transmissão de Cargo
+              </span>
+              <span style="font-size:0.74rem;opacity:0.85">Abre o formulário pré-preenchendo a seção, o cargo e o titular dispensado.</span>
+            </div>
+          </button>
+
+          <button class="btn btn-fantasma" style="justify-content:flex-start;padding:0.85rem 1rem;border-color:rgba(96,165,250,0.4);color:#93c5fd" onclick="executarAcaoCtx('edicao')">
+            <div style="display:flex;flex-direction:column;align-items:flex-start;text-align:left">
+              <span style="font-weight:700;font-size:0.92rem;display:flex;align-items:center;gap:0.4rem">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                Edição Livre do Nó
+              </span>
+              <span style="font-size:0.74rem;color:var(--texto-2)">Alterar titular, posto, SARAM, nome do nó ou subordinação diretamente.</span>
+            </div>
+          </button>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-fantasma" onclick="fecharModalContextoNo()">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE EDIÇÃO LIVRE DO NÓ -->
+  <div class="modal-backdrop" id="modal-edicao-livre-no" onclick="if(event.target===this)fecharModalEdicaoNo()">
+    <div class="modal-box" style="max-width:520px">
+      <div class="modal-head">
+        <h3 id="edit-no-titulo-modal">✏️ Edição Livre do Nó do Organograma</h3>
+        <button class="modal-close" onclick="fecharModalEdicaoNo()">&times;</button>
+      </div>
+      <form onsubmit="salvarEdicaoLivreNo(event)">
+        <div class="modal-body">
+          <input type="hidden" id="edit-no-chave-original" />
+          <div class="form-grid">
+            
+            <div class="campo">
+              <label for="edit-no-sigla">Sigla do Nó (Única) *</label>
+              <input type="text" id="edit-no-sigla" required placeholder="Ex: SDEX, CIE-DE" />
+            </div>
+
+            <div class="campo">
+              <label for="edit-no-parent">Nó Pai (Subordinação)</label>
+              <select id="edit-no-parent">
+                <option value="">— Raiz (Sem Pai) —</option>
+              </select>
+            </div>
+
+            <div class="campo full">
+              <label for="edit-no-titulo">Título / Nome de Exibição *</label>
+              <input type="text" id="edit-no-titulo" required placeholder="Ex: Subdivisão de Execução" />
+            </div>
+
+            <div class="campo">
+              <label for="edit-no-tipo">Tipo do Nó</label>
+              <select id="edit-no-tipo">
+                <option value="raiz">Raiz (Chefia Geral)</option>
+                <option value="staff">Staff / Assessoria</option>
+                <option value="subdivisao">Subdivisão Principal</option>
+                <option value="celula">Célula</option>
+                <option value="secao">Seção / Coordenadoria</option>
+              </select>
+            </div>
+
+            <div class="campo">
+              <label for="edit-no-categoria">Categoria (para filtros)</label>
+              <select id="edit-no-categoria">
+                <option value="chefe">Chefe</option>
+                <option value="oficial">Oficial</option>
+                <option value="graduado">Graduado (SO / Sgt)</option>
+                <option value="praca">Praça (Cb / Sd)</option>
+              </select>
+            </div>
+
+            <div class="campo full">
+              <label for="edit-no-titular-busca">Titular (Buscar do Efetivo)</label>
+              <div class="sugestoes-box">
+                <input type="text" id="edit-no-titular-busca" placeholder="Digite para buscar do efetivo…" autocomplete="off" oninput="buscarMilitarParaEdicaoNo(this.value)" />
+                <div class="sugestoes-list" id="sugestoes-edit-no"></div>
+              </div>
+            </div>
+
+            <div class="campo">
+              <label for="edit-no-posto">Posto / Graduação</label>
+              <input type="text" id="edit-no-posto" placeholder="Ex: Ten Cel Av, 1T" />
+            </div>
+
+            <div class="campo">
+              <label for="edit-no-nome">Nome do Titular</label>
+              <input type="text" id="edit-no-nome" placeholder="Ex: Nicolazzi, Marcelo Resende" />
+            </div>
+
+            <div class="campo">
+              <label for="edit-no-saram">SARAM</label>
+              <input type="text" id="edit-no-saram" placeholder="7 dígitos" />
+            </div>
+
+            <div class="campo">
+              <label for="edit-no-ordem">Ordem de Exibição (1, 2, 3...)</label>
+              <input type="number" id="edit-no-ordem" value="1" />
+            </div>
+
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="btn btn-perigo btn-sm" id="btn-excluir-no-organo" onclick="excluirNoOrganograma()" style="margin-right:auto;display:none">Excluir Nó</button>
+          <button type="button" class="btn btn-fantasma" onclick="fecharModalEdicaoNo()">Cancelar</button>
+          <button type="submit" class="btn btn-ouro">Salvar Alterações</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- SCRIPT CENTRAL DO MÓDULO CARGOS E FUNÇÕES -->
   <script>
   'use strict';
@@ -1089,8 +1796,17 @@
   let listaCatalogo = [];
   let listaSolicitacoes = [];
   let listaMilitaresAtivos = [];
+  let listaOrganograma = [];
   let tiposelecionado = 'funcao'; // 'funcao' | 'cargo'
   let filtroSecretariaAtual = 'todos';
+  let organoZoom = 1;
+  let organoPan = { x: 0, y: 0 };
+  let isPanning = false;
+  let startPan = { x: 0, y: 0 };
+  let noContextoSelecionado = null;
+  let sessaoSecretariaDesbloqueada = false;
+  let filtrosOrganoAtivos = { chefes: true, oficiais: true, graduados: true, pracas: true };
+  let termoBuscaOrgano = '';
 
   let configCargos = {
     motivo_cargo_designacao: '1138',
@@ -1100,6 +1816,91 @@
     email_sreg: 'sreg.afa@fab.mil.br',
     pin: '123456'
   };
+
+  // Coordenadas Absolutas do Layout da Árvore Hierárquica
+  const ORGANO_POSICOES = {
+    // Nível 0 (Raiz) & Staff
+    'DE': { x: 1350, y: 50 },
+    'VC-DE': { x: 880, y: 170 },
+    'CLMP': { x: 700, y: 350 },
+    'SEC-DE': { x: 390, y: 260 },
+    'COS-DE': { x: 390, y: 440 },
+    'CIE-DE': { x: 90, y: 350 },
+
+    // Subdivisões e Seções Horizontais
+    'CADA': { x: 60, y: 600 },
+    'CADE': { x: 60, y: 770 },
+    'CAAP': { x: 60, y: 940 },
+    'CDEns': { x: 60, y: 1110 },
+
+    'SED': { x: 340, y: 600 },
+
+    'SDPL': { x: 620, y: 600 },
+    'SPE': { x: 620, y: 770 },
+    'SAPRE': { x: 620, y: 940 },
+
+    'SDEX': { x: 900, y: 600 },
+    'SAE': { x: 900, y: 770 },
+    'SPI': { x: 900, y: 940 },
+    'SSE': { x: 900, y: 1110 },
+    'SVA': { x: 900, y: 1280 },
+
+    'SPPC': { x: 1180, y: 600 },
+    'CTCC': { x: 1180, y: 770 },
+    'CPC': { x: 1180, y: 940 },
+    'CPubl': { x: 1180, y: 1110 },
+    'BIBLI': { x: 1180, y: 1280 },
+
+    'SDIC': { x: 1460, y: 600 },
+
+    'SDIA': { x: 1740, y: 600 },
+    'SIAV': { x: 1740, y: 770 },
+    'CInst-SDIA': { x: 1740, y: 940 },
+
+    'SDINT': { x: 2020, y: 600 },
+    'SIINT': { x: 2020, y: 770 },
+    'SCEst': { x: 2020, y: 940 },
+    'CInst-SDINT': { x: 2020, y: 1110 },
+
+    'SDINF': { x: 2300, y: 600 }
+  };
+
+  // Seed Estrutural Oficial da Divisão de Ensino
+  const ORGANOGRAMA_SEED_DATA = [
+    { chave_sigla: 'DE', parent_sigla: null, secao_nome: 'Divisão de Ensino', titulo_exibicao: 'CHEFE', tipo_no: 'raiz', ordem: 1, nivel: 0, titular_posto: 'Cel Av', titular_nome: 'Marcelo Resende', titular_saram: '3147550', categoria: 'chefe' },
+    { chave_sigla: 'VC-DE', parent_sigla: 'DE', secao_nome: 'Vice-Chefia da Divisão de Ensino', titulo_exibicao: 'VC-DE', tipo_no: 'staff', ordem: 1, nivel: 1, titular_posto: 'Cel R1', titular_nome: 'Lopes', titular_saram: '1047612', categoria: 'chefe' },
+    { chave_sigla: 'SEC-DE', parent_sigla: 'VC-DE', secao_nome: 'Secretaria da Divisão de Ensino', titulo_exibicao: 'SEC-DE', tipo_no: 'staff', ordem: 1, nivel: 2, titular_posto: 'Cap AV', titular_nome: 'Bassanesi', titular_saram: '4311779', categoria: 'chefe' },
+    { chave_sigla: 'CIE-DE', parent_sigla: 'SEC-DE', secao_nome: 'Célula de Infraestrutura do Ensino', titulo_exibicao: 'Célula de Infraestrutura do Ensino (CIE-DE)', tipo_no: 'celula', ordem: 1, nivel: 3, titular_posto: '1T', titular_nome: 'Alex', titular_saram: '7488718', categoria: 'oficial' },
+    { chave_sigla: 'COS-DE', parent_sigla: 'SEC-DE', secao_nome: 'Célula de Obtenções e Serviços', titulo_exibicao: 'Célula de Obtenções e Serviços (COS-DE)', tipo_no: 'celula', ordem: 2, nivel: 3, titular_posto: '1T', titular_nome: 'Camila Calherani', titular_saram: '7272421', categoria: 'oficial' },
+    { chave_sigla: 'CLMP', parent_sigla: 'VC-DE', secao_nome: 'Célula de Logística de Material e Patrimônio', titulo_exibicao: 'CLMP', tipo_no: 'staff', ordem: 2, nivel: 2, titular_posto: 'Ten Cel Av', titular_nome: 'Pacheco', titular_saram: '3324346', categoria: 'chefe' },
+    { chave_sigla: 'CADA', parent_sigla: 'DE', secao_nome: 'Subdivisão de Apoio Docente e Discente', titulo_exibicao: 'CADA', tipo_no: 'subdivisao', ordem: 2, nivel: 1, titular_posto: 'Ten Cel Av', titular_nome: 'Belli', titular_saram: '3410773', categoria: 'chefe' },
+    { chave_sigla: 'CADE', parent_sigla: 'CADA', secao_nome: 'Célula de Análise de Desempenho de Ensino', titulo_exibicao: 'Célula de Análise de Desempenho de Ensino (CADE)', tipo_no: 'celula', ordem: 1, nivel: 2, titular_posto: '1T', titular_nome: 'Remédio', titular_saram: '7335326', categoria: 'oficial' },
+    { chave_sigla: 'CAAP', parent_sigla: 'CADA', secao_nome: 'Célula de Avaliação e Abordagem Psicopedagógica', titulo_exibicao: 'Célula de Avaliação e Abordagem Psicopedagógica (CAAP)', tipo_no: 'celula', ordem: 2, nivel: 2, titular_posto: '1T', titular_nome: 'Débora Sunega', titular_saram: '7272448', categoria: 'oficial' },
+    { chave_sigla: 'CDEns', parent_sigla: 'CADA', secao_nome: 'Célula de Documentação do Ensino', titulo_exibicao: 'Célula de Documentação do Ensino (CDEns)', tipo_no: 'celula', ordem: 3, nivel: 2, titular_posto: '1T', titular_nome: 'Thais Bergue', titular_saram: '7430540', categoria: 'oficial' },
+    { chave_sigla: 'SED', parent_sigla: 'DE', secao_nome: 'Seção de Educação a Distância', titulo_exibicao: 'SED', tipo_no: 'secao', ordem: 3, nivel: 1, titular_posto: 'Cap', titular_nome: 'Frederico', titular_saram: '3962180', categoria: 'oficial' },
+    { chave_sigla: 'SDPL', parent_sigla: 'DE', secao_nome: 'Subdivisão de Planejamento', titulo_exibicao: 'SDPL', tipo_no: 'subdivisao', ordem: 4, nivel: 1, titular_posto: 'Ten Cel Av', titular_nome: 'Pacheco', titular_saram: '3324346', categoria: 'chefe' },
+    { chave_sigla: 'SPE', parent_sigla: 'SDPL', secao_nome: 'Seção de Planejamento de Ensino', titulo_exibicao: 'Seção de Planejamento de Ensino (SPE)', tipo_no: 'secao', ordem: 1, nivel: 2, titular_posto: '1T Av', titular_nome: 'Wellington', titular_saram: '6482805', categoria: 'oficial' },
+    { chave_sigla: 'SAPRE', parent_sigla: 'SDPL', secao_nome: 'Seção de Análise de Programação de Ensino', titulo_exibicao: 'Seção de Análise de Programação de Ensino (SAPRE)', tipo_no: 'secao', ordem: 2, nivel: 2, titular_posto: '1T', titular_nome: 'Alex', titular_saram: '7488718', categoria: 'oficial' },
+    { chave_sigla: 'SDEX', parent_sigla: 'DE', secao_nome: 'Subdivisão de Execução', titulo_exibicao: 'SDEX', tipo_no: 'subdivisao', ordem: 5, nivel: 1, titular_posto: 'Ten Cel Av', titular_nome: 'Nicolazzi', titular_saram: '3256537', categoria: 'chefe' },
+    { chave_sigla: 'SAE', parent_sigla: 'SDEX', secao_nome: 'Seção de Admissão e Exclusão', titulo_exibicao: 'Seção de Admissão e Exclusão (SAE)', tipo_no: 'secao', ordem: 1, nivel: 2, titular_posto: '1T', titular_nome: 'Mariana', titular_saram: '7430442', categoria: 'oficial' },
+    { chave_sigla: 'SPI', parent_sigla: 'SDEX', secao_nome: 'Seção de Programas Internacionais', titulo_exibicao: 'Seção de Programas Internacionais (SPI)', tipo_no: 'secao', ordem: 2, nivel: 2, titular_posto: '1T', titular_nome: 'Franco', titular_saram: '7488734', categoria: 'oficial' },
+    { chave_sigla: 'SSE', parent_sigla: 'SDEX', secao_nome: 'Seção de Serviços Escolares', titulo_exibicao: 'Seção de Serviços Escolares (SSE)', tipo_no: 'secao', ordem: 3, nivel: 2, titular_posto: '1T', titular_nome: 'Andrade', titular_saram: '7488645', categoria: 'oficial' },
+    { chave_sigla: 'SVA', parent_sigla: 'SDEX', secao_nome: 'Seção de Verificação de Aprendizagem', titulo_exibicao: 'Seção de Verificação de Aprendizagem (SVA)', tipo_no: 'secao', ordem: 4, nivel: 2, titular_posto: 'Maj Av', titular_nome: 'Pedro', titular_saram: '3822427', categoria: 'oficial' },
+    { chave_sigla: 'SPPC', parent_sigla: 'DE', secao_nome: 'Subdivisão de Pesquisa e Produção Científica', titulo_exibicao: 'SPPC', tipo_no: 'subdivisao', ordem: 6, nivel: 1, titular_posto: 'Maj', titular_nome: 'Mendes', titular_saram: '4200101', categoria: 'chefe' },
+    { chave_sigla: 'CTCC', parent_sigla: 'SPPC', secao_nome: 'Coordenadoria de Trabalho de Conclusão de Curso', titulo_exibicao: 'Coordenadoria de Trabalho de Conclusão de Curso (CTCC)', tipo_no: 'secao', ordem: 1, nivel: 2, titular_posto: '1T', titular_nome: 'Rebeca Mega', titular_saram: '7488793', categoria: 'oficial' },
+    { chave_sigla: 'CPC', parent_sigla: 'SPPC', secao_nome: 'Coordenadoria de Produção Científica', titulo_exibicao: 'Coordenadoria de Produção Científica (CPC)', tipo_no: 'secao', ordem: 2, nivel: 2, titular_posto: '2T', titular_nome: 'Renan Peixoto', titular_saram: '7708408', categoria: 'oficial' },
+    { chave_sigla: 'CPubl', parent_sigla: 'SPPC', secao_nome: 'Coordenadoria de Publicação', titulo_exibicao: 'Coordenadoria de Publicação (CPubl)', tipo_no: 'secao', ordem: 3, nivel: 2, titular_posto: '1T', titular_nome: 'Leonardo', titular_saram: '7535082', categoria: 'oficial' },
+    { chave_sigla: 'BIBLI', parent_sigla: 'SPPC', secao_nome: 'Biblioteca da Divisão de Ensino', titulo_exibicao: 'Biblioteca (BIBLI)', tipo_no: 'secao', ordem: 4, nivel: 2, titular_posto: '1T', titular_nome: 'C. Rodrigues', titular_saram: '7430450', categoria: 'oficial' },
+    { chave_sigla: 'SDIC', parent_sigla: 'DE', secao_nome: 'Subdivisão de Instrução Científica', titulo_exibicao: 'SDIC', tipo_no: 'subdivisao', ordem: 7, nivel: 1, titular_posto: 'Profa', titular_nome: 'Marina', titular_saram: '', categoria: 'oficial' },
+    { chave_sigla: 'SDIA', parent_sigla: 'DE', secao_nome: 'Subdivisão de Instrução de Aviação', titulo_exibicao: 'SDIA', tipo_no: 'subdivisao', ordem: 8, nivel: 1, titular_posto: 'Maj', titular_nome: 'Puhle', titular_saram: '3822141', categoria: 'chefe' },
+    { chave_sigla: 'SIAV', parent_sigla: 'SDIA', secao_nome: 'Seção de Instrução de Aviação', titulo_exibicao: 'Seção de Instrução de Aviação (SIAV)', tipo_no: 'secao', ordem: 1, nivel: 2, titular_posto: 'Maj', titular_nome: 'Puhle', titular_saram: '3822141', categoria: 'oficial' },
+    { chave_sigla: 'CInst-SDIA', parent_sigla: 'SDIA', secao_nome: 'Corpo de Instrutores da SDIA', titulo_exibicao: 'Corpo de Instrutores (CInst-SDIA)', tipo_no: 'secao', ordem: 2, nivel: 2, titular_posto: 'Maj', titular_nome: 'Puhle', titular_saram: '3822141', categoria: 'oficial' },
+    { chave_sigla: 'SDINT', parent_sigla: 'DE', secao_nome: 'Subdivisão de Instrução de Intendência', titulo_exibicao: 'SDINT', tipo_no: 'subdivisao', ordem: 9, nivel: 1, titular_posto: 'Cel R1', titular_nome: 'Lopes', titular_saram: '1047612', categoria: 'chefe' },
+    { chave_sigla: 'SIINT', parent_sigla: 'SDINT', secao_nome: 'Seção de Instrução de Intendência', titulo_exibicao: 'Seção de Instrução de Intendência (SIINT)', tipo_no: 'secao', ordem: 1, nivel: 2, titular_posto: '1T', titular_nome: 'Kazu', titular_saram: '7488726', categoria: 'oficial' },
+    { chave_sigla: 'SCEst', parent_sigla: 'SDINT', secao_nome: 'Seção de Coordenação de Estágios', titulo_exibicao: 'Seção de Coordenação de Estágios (SCEst)', tipo_no: 'secao', ordem: 2, nivel: 2, titular_posto: 'Maj', titular_nome: 'Everton', titular_saram: '3882136', categoria: 'oficial' },
+    { chave_sigla: 'CInst-SDINT', parent_sigla: 'SDINT', secao_nome: 'Corpo de Instrutores da SDINT', titulo_exibicao: 'Corpo de Instrutores (CInst-SDINT)', tipo_no: 'secao', ordem: 3, nivel: 2, titular_posto: 'Maj', titular_nome: 'Everton', titular_saram: '3882136', categoria: 'oficial' },
+    { chave_sigla: 'SDINF', parent_sigla: 'DE', secao_nome: 'Subdivisão de Instrução de Infantaria', titulo_exibicao: 'SDINF', tipo_no: 'subdivisao', ordem: 10, nivel: 1, titular_posto: 'Ten Cel', titular_nome: 'Muriel', titular_saram: '3834743', categoria: 'chefe' }
+  ];
 
   // Inicialização ao carregar página
   document.addEventListener('DOMContentLoaded', async () => {
@@ -1125,14 +1926,20 @@
     await carregarSecoesECatalogo();
     await carregarSolicitacoes();
     await carregarMilitaresAtivos();
+    await carregarOrganograma();
+
+    // Configurar Controles de Zoom & Pan do Organograma
+    setupOrganoZoomPan();
 
     // Iniciar escuta Realtime do Supabase
     inicializarRealtimeCargos();
 
-    // Roteamento por hash na URL (#solicitar, #minha-funcao, #secretaria)
+    // Roteamento por hash na URL (#organograma, #solicitar, #minha-funcao, #secretaria)
     const hash = window.location.hash.replace('#', '');
-    if (hash === 'secretaria' || hash === 'minha-funcao' || hash === 'solicitar') {
+    if (hash === 'secretaria' || hash === 'minha-funcao' || hash === 'solicitar' || hash === 'organograma') {
       trocarAba(hash);
+    } else {
+      trocarAba('organograma');
     }
   });
 
@@ -1190,6 +1997,12 @@
         })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'cargos_militares_ativos' }, async () => {
           await carregarMilitaresAtivos();
+          await carregarOrganograma();
+          renderizarOrganograma();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'cargos_organograma_estrutura' }, async () => {
+          await carregarOrganograma();
+          renderizarOrganograma();
         })
         .subscribe();
     } catch(e) {
@@ -1201,7 +2014,7 @@
      NAVEGAÇÃO POR ABAS
      ═══════════════════════════════════════════════════════════════════ */
   function trocarAba(aba) {
-    ['solicitar', 'minha-funcao', 'secretaria'].forEach(a => {
+    ['organograma', 'solicitar', 'minha-funcao', 'secretaria'].forEach(a => {
       const elAba = document.getElementById(`aba-${a}`);
       const elBtn = document.getElementById(`tab-btn-${a}`);
       if (elAba) elAba.style.display = (a === aba) ? 'block' : 'none';
@@ -1209,59 +2022,814 @@
     });
     window.location.hash = aba;
 
-    if (aba === 'secretaria') {
+    if (aba === 'organograma') {
+      renderizarOrganograma();
+      setTimeout(ajustarOrganogramaTela, 80);
+    } else if (aba === 'secretaria') {
       verificarSessaoSecretaria();
     }
   }
 
   /* ═══════════════════════════════════════════════════════════════════
-     CARREGAMENTO DO EFETIVO (PLANILHA GOOGLE GVIZ)
+     CARREGAMENTO E GESTÃO DO ORGANOGRAMA
      ═══════════════════════════════════════════════════════════════════ */
-  async function carregarEfetivoPlanilha() {
-    try {
-      const res = await fetch(EFETIVO_URL);
-      const txt = await res.text();
-      const jsonStr = txt.replace(/^\/\*O_o\*\/\s*google\.visualization\.Query\.setResponse\(/, '').replace(/\);?\s*$/, '');
-      const data = JSON.parse(jsonStr);
-
-      if (data.table && data.table.rows) {
-        listaEfetivo = data.table.rows.map((r, i) => {
-          const c = r.c || [];
-          const v = idx => (c[idx]?.v !== undefined && c[idx]?.v !== null) ? c[idx].v.toString().trim() : '';
-          return {
-            idx: i,
-            posto: v(2),           // Col C (Posto/Grad)
-            esp: v(3),             // Col D (Especialidade)
-            nome: v(4),            // Col E (Nome de Guerra)
-            funcao_col_h: v(7),    // Col H (Função original na planilha)
-            nome_completo: v(13),  // Col N (Nome Completo)
-            cpf: formatarCPF(v(14)),   // Col O (CPF)
-            email: v(15),          // Col P (E-mail)
-            saram: formatarSARAM(v(19)), // Col T (SARAM)
-            rg: v(20)              // Col U (RG)
-          };
-        }).filter(m => m.nome || m.nome_completo);
-
-        localStorage.setItem('cargos_efetivo_cache', JSON.stringify(listaEfetivo));
-      }
-    } catch(e) {
-      console.warn('Erro ao carregar planilha de efetivo, tentando cache local...', e);
+  async function carregarOrganograma() {
+    let dados = [];
+    if (sb) {
       try {
-        const cached = localStorage.getItem('cargos_efetivo_cache');
-        if (cached) listaEfetivo = JSON.parse(cached);
-      } catch(e2){}
+        const { data, error } = await sb.from('cargos_organograma_estrutura').select('*').order('ordem');
+        if (!error && data && data.length) {
+          dados = data;
+        }
+      } catch(e) {
+        console.warn('Fallback leitura organograma:', e);
+      }
+    }
+
+    if (!dados || !dados.length) {
+      const cached = localStorage.getItem('cargos_organograma_cache');
+      if (cached) {
+        try { dados = JSON.parse(cached); } catch(e){}
+      }
+    }
+
+    if (!dados || !dados.length) {
+      dados = JSON.parse(JSON.stringify(ORGANOGRAMA_SEED_DATA));
+    }
+
+    // Mesclar dinamicamente com militares ativos do banco de dados (se houver transmissão registrada)
+    if (listaMilitaresAtivos && listaMilitaresAtivos.length) {
+      dados.forEach(no => {
+        const titularAtivo = listaMilitaresAtivos.find(m => 
+          (m.tipo === 'cargo' && m.secao_nome && m.secao_nome.toLowerCase().includes(no.chave_sigla.toLowerCase())) ||
+          (m.cargo_funcao_nome && m.cargo_funcao_nome.toLowerCase().includes(no.chave_sigla.toLowerCase()))
+        );
+        if (titularAtivo) {
+          no.titular_saram = titularAtivo.saram || no.titular_saram;
+          no.titular_nome = titularAtivo.nome || no.titular_nome;
+          no.titular_posto = titularAtivo.posto_grad || no.titular_posto;
+        }
+      });
+    }
+
+    listaOrganograma = dados;
+    localStorage.setItem('cargos_organograma_cache', JSON.stringify(listaOrganograma));
+  }
+
+  function renderizarOrganograma() {
+    const nodesLayer = document.getElementById('organo-nodes-layer');
+    const svgCanvas = document.getElementById('organo-svg-canvas');
+    if (!nodesLayer || !svgCanvas) return;
+
+    nodesLayer.innerHTML = '';
+    svgCanvas.innerHTML = '';
+
+    if (!listaOrganograma || !listaOrganograma.length) {
+      nodesLayer.innerHTML = '<p style="color:var(--texto-3);padding:2rem;text-align:center">Carregando estrutura do organograma…</p>';
+      return;
+    }
+
+    const mapaNos = new Map(listaOrganograma.map(n => [n.chave_sigla, n]));
+    const svgPaths = [];
+
+    // Renderizar Cards dos Nós
+    listaOrganograma.forEach(no => {
+      const pos = ORGANO_POSICOES[no.chave_sigla] || { x: 100, y: 100 };
+      const card = document.createElement('div');
+      
+      // Classes visuais
+      const classes = ['organo-node-card'];
+      if (no.tipo_no === 'raiz') classes.push('root-card');
+      else if (no.tipo_no === 'staff') classes.push('staff-card');
+      else if (no.tipo_no === 'subdivisao') classes.push('subdiv-card');
+      else if (no.tipo_no === 'celula') classes.push('celula-card');
+
+      // Categoria do Militar
+      const cat = (no.categoria || determinarCategoriaMilitar(no.titular_posto, no.titulo_exibicao)).toLowerCase();
+      card.dataset.categoria = cat;
+      card.dataset.sigla = no.chave_sigla;
+      card.dataset.nome = (no.titular_nome || '').toLowerCase();
+      card.dataset.posto = (no.titular_posto || '').toLowerCase();
+      card.dataset.titulo = (no.titulo_exibicao || '').toLowerCase();
+
+      // Verificar Filtros Ativos
+      if (!filtrosOrganoAtivos[cat]) {
+        classes.push('filtered-hidden');
+      }
+
+      // Verificar Busca Ativa
+      if (termoBuscaOrgano && (
+        card.dataset.sigla.includes(termoBuscaOrgano) ||
+        card.dataset.nome.includes(termoBuscaOrgano) ||
+        card.dataset.posto.includes(termoBuscaOrgano) ||
+        card.dataset.titulo.includes(termoBuscaOrgano)
+      )) {
+        classes.push('search-match');
+      }
+
+      card.className = classes.join(' ');
+      card.id = `organo-node-${no.chave_sigla}`;
+      card.style.left = `${pos.x}px`;
+      card.style.top = `${pos.y}px`;
+
+      // Determinar tag de cor do posto
+      let tagPostoClass = 'posto-oficial';
+      if (cat === 'chefe') tagPostoClass = 'posto-chefe';
+      else if (cat === 'graduado') tagPostoClass = 'posto-graduado';
+      else if (cat === 'praca') tagPostoClass = 'posto-praca';
+
+      // Calcular quantidade de membros adicionais vinculados à seção
+      const membrosSecao = obterMembrosDaSecao(no.chave_sigla, no.secao_nome);
+      const qtdExtras = membrosSecao.length;
+
+      card.innerHTML = `
+        <div class="node-edit-btn-badge" title="Gestão da Secretaria" onclick="event.stopPropagation(); abrirContextoNo('${no.chave_sigla}')">
+          ✏️
+        </div>
+        <div class="node-header">
+          <span class="node-sigla-badge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 13h6M9 17h4"/></svg>
+            ${no.chave_sigla}
+          </span>
+          <span class="node-type-pill">${no.tipo_no || 'seção'}</span>
+        </div>
+        <div class="node-title-desc" title="${no.titulo_exibicao || no.secao_nome}">
+          ${no.titulo_exibicao || no.secao_nome}
+        </div>
+        <div class="node-holder-box">
+          <div class="node-holder-top">
+            <span class="node-posto-tag ${tagPostoClass}">${no.titular_posto || '—'}</span>
+            ${no.titular_saram ? `<small style="color:var(--texto-3);font-size:0.68rem">SARAM ${no.titular_saram}</small>` : ''}
+          </div>
+          <div class="node-holder-name" title="${no.titular_nome || 'A Designar'}">
+            ${no.titular_nome || '<span style="color:var(--texto-3);font-style:italic">A Designar</span>'}
+          </div>
+        </div>
+        ${qtdExtras > 0 ? `
+          <button class="node-members-badge" onclick="event.stopPropagation(); abrirModalMembrosSecao('${no.chave_sigla}', '${no.secao_nome}')">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            + ${qtdExtras} integrante(s)
+          </button>
+        ` : ''}
+      `;
+
+      card.onclick = () => {
+        if (sessaoSecretariaDesbloqueada) {
+          abrirContextoNo(no.chave_sigla);
+        } else if (qtdExtras > 0) {
+          abrirModalMembrosSecao(no.chave_sigla, no.secao_nome);
+        }
+      };
+
+      nodesLayer.appendChild(card);
+
+      // Traçar Linhas SVG para o Nó Pai
+      if (no.parent_sigla && ORGANO_POSICOES[no.parent_sigla]) {
+        const pPos = ORGANO_POSICOES[no.parent_sigla];
+        const pNo = mapaNos.get(no.parent_sigla);
+        const isRootParent = (pNo && pNo.tipo_no === 'raiz');
+        const pWidth = isRootParent ? 260 : 220;
+        const cWidth = (no.tipo_no === 'raiz') ? 260 : 220;
+
+        const startX = pPos.x + (pWidth / 2);
+        const startY = pPos.y + 110;
+        const endX = pos.x + (cWidth / 2);
+        const endY = pos.y;
+
+        let pathD = '';
+        let lineClass = 'organo-svg-line';
+        if (no.tipo_no === 'staff' || (pNo && pNo.tipo_no === 'staff')) {
+          lineClass += ' staff-line';
+        }
+
+        if (Math.abs(startX - endX) < 10) {
+          // Linha reta vertical
+          pathD = `M ${startX} ${startY} L ${endX} ${endY}`;
+        } else {
+          // Conector ortogonal com cantos curvos
+          const midY = (startY + endY) / 2;
+          pathD = `M ${startX} ${startY} C ${startX} ${midY}, ${endX} ${midY}, ${endX} ${endY}`;
+        }
+
+        svgPaths.push(`<path d="${pathD}" class="${lineClass}" />`);
+      }
+    });
+
+    svgCanvas.innerHTML = svgPaths.join('\n');
+  }
+
+  function determinarCategoriaMilitar(posto, titulo) {
+    const p = (posto || '').toUpperCase();
+    const t = (titulo || '').toUpperCase();
+    if (t.includes('CHEFE') || t.includes('VICE-CHEFIA')) return 'chefe';
+    if (p.includes('CEL') || p.includes('MAJ') || p.includes('CAP') || p.includes('TEN') || p.includes('1T') || p.includes('2T') || p.includes('ASP') || p.includes('PROF')) return 'oficial';
+    if (p.includes('SO') || p.includes('SGT') || p.includes('1S') || p.includes('2S') || p.includes('3S')) return 'graduado';
+    if (p.includes('CB') || p.includes('SD') || p.includes('S1') || p.includes('S2') || p.includes('TAIF')) return 'praca';
+    return 'oficial';
+  }
+
+  function obterMembrosDaSecao(sigla, secaoNome) {
+    if (!listaEfetivo || !listaEfetivo.length) return [];
+    const s = sigla.toLowerCase();
+    const sn = (secaoNome || '').toLowerCase();
+
+    return listaEfetivo.filter(m => {
+      const h = (m.funcao_col_h || '').toLowerCase();
+      return h.includes(`(${s})`) || (sn && h.includes(`(${sn})`));
+    });
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     MOTOR DE ZOOM, PAN E NAVEGAÇÃO DO ORGANOGRAMA
+     ═══════════════════════════════════════════════════════════════════ */
+  function setupOrganoZoomPan() {
+    const viewport = document.getElementById('organo-viewport');
+    const canvas = document.getElementById('organo-canvas');
+    if (!viewport || !canvas) return;
+
+    viewport.addEventListener('mousedown', e => {
+      if (e.target.closest('.organo-node-card') || e.target.closest('button')) return;
+      isPanning = true;
+      startPan = { x: e.clientX - organoPan.x, y: e.clientY - organoPan.y };
+      viewport.style.cursor = 'grabbing';
+    });
+
+    window.addEventListener('mousemove', e => {
+      if (!isPanning) return;
+      organoPan.x = e.clientX - startPan.x;
+      organoPan.y = e.clientY - startPan.y;
+      aplicarTransformacaoCanvas();
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (isPanning) {
+        isPanning = false;
+        viewport.style.cursor = 'grab';
+      }
+    });
+
+    viewport.addEventListener('wheel', e => {
+      e.preventDefault();
+      const zoomFactor = e.deltaY < 0 ? 0.08 : -0.08;
+      zoomOrganograma(zoomFactor);
+    }, { passive: false });
+
+    // Suporte a Touch em dispositivos móveis
+    let touchStart = { x: 0, y: 0 };
+    viewport.addEventListener('touchstart', e => {
+      if (e.touches.length === 1) {
+        isPanning = true;
+        touchStart = { x: e.touches[0].clientX - organoPan.x, y: e.touches[0].clientY - organoPan.y };
+      }
+    }, { passive: true });
+
+    viewport.addEventListener('touchmove', e => {
+      if (isPanning && e.touches.length === 1) {
+        organoPan.x = e.touches[0].clientX - touchStart.x;
+        organoPan.y = e.touches[0].clientY - touchStart.y;
+        aplicarTransformacaoCanvas();
+      }
+    }, { passive: true });
+
+    viewport.addEventListener('touchend', () => {
+      isPanning = false;
+    });
+  }
+
+  function zoomOrganograma(delta) {
+    organoZoom = Math.min(Math.max(organoZoom + delta, 0.35), 2.2);
+    const btnPct = document.getElementById('btn-organo-zoom-pct');
+    if (btnPct) btnPct.textContent = `${Math.round(organoZoom * 100)}%`;
+    aplicarTransformacaoCanvas();
+  }
+
+  function resetZoomOrganograma() {
+    organoZoom = 1;
+    const btnPct = document.getElementById('btn-organo-zoom-pct');
+    if (btnPct) btnPct.textContent = '100%';
+    organoPan = { x: 50, y: 30 };
+    aplicarTransformacaoCanvas();
+  }
+
+  function ajustarOrganogramaTela() {
+    const viewport = document.getElementById('organo-viewport');
+    if (!viewport) return;
+    const vW = viewport.clientWidth;
+    const vH = viewport.clientHeight;
+
+    // Área do organograma: ~2600w por ~1400h
+    const escalaX = vW / 2650;
+    const escalaY = vH / 1450;
+    organoZoom = Math.min(Math.max(Math.min(escalaX, escalaY), 0.38), 0.95);
+    organoPan.x = Math.max((vW - 2500 * organoZoom) / 2, 20);
+    organoPan.y = 20;
+
+    const btnPct = document.getElementById('btn-organo-zoom-pct');
+    if (btnPct) btnPct.textContent = `${Math.round(organoZoom * 100)}%`;
+    aplicarTransformacaoCanvas();
+  }
+
+  function aplicarTransformacaoCanvas() {
+    const canvas = document.getElementById('organo-canvas');
+    if (canvas) {
+      canvas.style.transform = `translate(${organoPan.x}px, ${organoPan.y}px) scale(${organoZoom})`;
     }
   }
 
-  function formatarCPF(v) {
-    if (!v) return '';
-    const num = v.replace(/\D/g, '').padStart(11, '0').slice(-11);
-    return num.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  function exportarOrganogramaPNG() {
+    window.print();
   }
 
-  function formatarSARAM(v) {
-    if (!v) return '';
-    return v.toString().replace(/\D/g, '');
+  /* ═══════════════════════════════════════════════════════════════════
+     FILTROS E BUSCA DO ORGANOGRAMA
+     ═══════════════════════════════════════════════════════════════════ */
+  function aplicarFiltrosOrganograma() {
+    filtrosOrganoAtivos = {
+      chefes: document.getElementById('chk-filtro-chefes')?.checked ?? true,
+      oficiais: document.getElementById('chk-filtro-oficiais')?.checked ?? true,
+      graduados: document.getElementById('chk-filtro-graduados')?.checked ?? true,
+      pracas: document.getElementById('chk-filtro-pracas')?.checked ?? true
+    };
+    renderizarOrganograma();
+  }
+
+  function buscarNoOrganograma(val) {
+    termoBuscaOrgano = (val || '').trim().toLowerCase();
+    const btnClear = document.getElementById('organo-busca-clear');
+    if (btnClear) btnClear.style.display = termoBuscaOrgano ? 'block' : 'none';
+
+    renderizarOrganograma();
+
+    if (termoBuscaOrgano) {
+      const match = listaOrganograma.find(n => 
+        n.chave_sigla.toLowerCase().includes(termoBuscaOrgano) ||
+        (n.titular_nome || '').toLowerCase().includes(termoBuscaOrgano) ||
+        (n.titular_posto || '').toLowerCase().includes(termoBuscaOrgano)
+      );
+      if (match && ORGANO_POSICOES[match.chave_sigla]) {
+        const pos = ORGANO_POSICOES[match.chave_sigla];
+        const viewport = document.getElementById('organo-viewport');
+        if (viewport) {
+          organoPan.x = (viewport.clientWidth / 2) - (pos.x * organoZoom) - (110 * organoZoom);
+          organoPan.y = (viewport.clientHeight / 2) - (pos.y * organoZoom) - (70 * organoZoom);
+          aplicarTransformacaoCanvas();
+        }
+      }
+    }
+  }
+
+  function limparBuscaOrganograma() {
+    const input = document.getElementById('organo-busca-input');
+    if (input) input.value = '';
+    buscarNoOrganograma('');
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     GAVETA / MODAL DE INTEGRANTES DA SEÇÃO
+     ═══════════════════════════════════════════════════════════════════ */
+  function abrirModalMembrosSecao(sigla, secaoNome) {
+    const modal = document.getElementById('modal-membros-secao');
+    const titulo = document.getElementById('modal-membros-titulo');
+    const desc = document.getElementById('modal-membros-desc');
+    const listaBox = document.getElementById('modal-membros-lista');
+    if (!modal || !listaBox) return;
+
+    titulo.innerHTML = `👥 Integrantes: <span style="color:var(--ouro-lt)">${sigla}</span>`;
+    desc.textContent = `${secaoNome || sigla} — Efetivo vinculado na base de dados oficial.`;
+
+    const membros = obterMembrosDaSecao(sigla, secaoNome);
+    if (!membros.length) {
+      listaBox.innerHTML = '<p style="color:var(--texto-3);text-align:center;padding:1.5rem">Nenhum militar registrado nesta seção na planilha Efetivo.</p>';
+    } else {
+      listaBox.innerHTML = membros.map(m => `
+        <div class="member-item-row">
+          <div class="member-info-main">
+            <div class="member-nome-guerra">
+              <span class="node-posto-tag posto-oficial" style="margin-right:0.3rem">${m.posto}</span>
+              ${m.nome}
+            </div>
+            <div class="member-funcao-text">${m.funcao_col_h || 'Membro da Equipe'}</div>
+            <div class="member-full-details">${m.nome_completo || '—'} · SARAM: ${m.saram || '—'}</div>
+          </div>
+          <div>
+            ${m.email ? `<a href="mailto:${m.email}" class="btn btn-fantasma btn-sm" title="Enviar e-mail">✉️</a>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    modal.style.display = 'flex';
+  }
+
+  function fecharModalMembrosSecao() {
+    const modal = document.getElementById('modal-membros-secao');
+    if (modal) modal.style.display = 'none';
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     MENU CONTEXTUAL DA SECRETARIA NO NÓ
+     ═══════════════════════════════════════════════════════════════════ */
+  function abrirContextoNo(chaveSigla) {
+    const no = listaOrganograma.find(n => n.chave_sigla === chaveSigla);
+    if (!no) return;
+    noContextoSelecionado = no;
+
+    const modal = document.getElementById('modal-contexto-no');
+    const siglaTxt = document.getElementById('ctx-sigla-txt');
+    const titularTxt = document.getElementById('ctx-titular-txt');
+    const cargoTxt = document.getElementById('ctx-cargo-txt');
+    if (!modal) return;
+
+    siglaTxt.textContent = no.chave_sigla;
+    titularTxt.textContent = `${no.titular_posto || ''} ${no.titular_nome || 'A Designar'}`.trim();
+    cargoTxt.textContent = no.titulo_exibicao || no.secao_nome;
+
+    modal.style.display = 'flex';
+  }
+
+  function fecharModalContextoNo() {
+    const modal = document.getElementById('modal-contexto-no');
+    if (modal) modal.style.display = 'none';
+    noContextoSelecionado = null;
+  }
+
+  function executarAcaoCtx(tipo) {
+    const no = noContextoSelecionado;
+    fecharModalContextoNo();
+    if (!no) return;
+
+    if (tipo === 'transmissao') {
+      // Redirecionar para a aba de Solicitação pré-preenchendo os dados
+      trocarAba('solicitar');
+
+      // Selecionar Cargo (se chefia) ou Função
+      const ehCargo = (no.tipo_no === 'raiz' || no.tipo_no === 'subdivisao' || (no.titulo_exibicao || '').toLowerCase().includes('chefe'));
+      selecionarTipoSolicitacao(ehCargo ? 'cargo' : 'funcao');
+
+      // Selecionar Seção
+      const selSecao = document.getElementById('solic-secao');
+      if (selSecao) {
+        const optSec = Array.from(selSecao.options).find(o => o.text.includes(no.chave_sigla));
+        if (optSec) {
+          selSecao.value = optSec.value;
+          aoMudarSecao();
+        }
+      }
+
+      // Pré-preencher militar dispensado (titular atual)
+      if (ehCargo) {
+        const elNomeDisp = document.getElementById('solic-cargo-disp-nome');
+        const elPostoDisp = document.getElementById('solic-cargo-disp-posto');
+        const elSaramDisp = document.getElementById('solic-cargo-disp-saram');
+        if (elNomeDisp) elNomeDisp.value = no.titular_nome || '';
+        if (elPostoDisp) elPostoDisp.value = no.titular_posto || '';
+        if (elSaramDisp) elSaramDisp.value = no.titular_saram || '';
+
+        // Focar no militar designado
+        document.getElementById('solic-busca-cargo-desig')?.focus();
+      } else {
+        document.getElementById('solic-busca-militar')?.focus();
+      }
+
+      Swal.fire({
+        icon: 'info',
+        title: 'Transmissão Iniciada!',
+        text: `Seção (${no.chave_sigla}) e titular dispensado (${no.titular_posto} ${no.titular_nome}) pré-preenchidos. Selecione agora o militar designado.`,
+        confirmButtonColor: '#d4a84b'
+      });
+
+    } else if (tipo === 'edicao') {
+      abrirModalEdicaoNo(no.chave_sigla);
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     EDIÇÃO LIVRE DO NÓ DO ORGANOGRAMA
+     ═══════════════════════════════════════════════════════════════════ */
+  function abrirModalEdicaoNo(chaveSigla) {
+    const modal = document.getElementById('modal-edicao-livre-no');
+    const selParent = document.getElementById('edit-no-parent');
+    if (!modal || !selParent) return;
+
+    // Preencher opções de nós pais
+    selParent.innerHTML = '<option value="">— Raiz (Sem Pai) —</option>' +
+      listaOrganograma.filter(n => n.chave_sigla !== chaveSigla).map(n => 
+        `<option value="${n.chave_sigla}">${n.chave_sigla} - ${n.titulo_exibicao}</option>`
+      ).join('');
+
+    const no = listaOrganograma.find(n => n.chave_sigla === chaveSigla);
+    const btnExcluir = document.getElementById('btn-excluir-no-organo');
+
+    if (no) {
+      document.getElementById('edit-no-titulo-modal').textContent = `✏️ Editar Nó: ${no.chave_sigla}`;
+      document.getElementById('edit-no-chave-original').value = no.chave_sigla;
+      document.getElementById('edit-no-sigla').value = no.chave_sigla;
+      document.getElementById('edit-no-parent').value = no.parent_sigla || '';
+      document.getElementById('edit-no-titulo').value = no.titulo_exibicao || '';
+      document.getElementById('edit-no-tipo').value = no.tipo_no || 'secao';
+      document.getElementById('edit-no-categoria').value = no.categoria || 'oficial';
+      document.getElementById('edit-no-posto').value = no.titular_posto || '';
+      document.getElementById('edit-no-nome').value = no.titular_nome || '';
+      document.getElementById('edit-no-saram').value = no.titular_saram || '';
+      document.getElementById('edit-no-ordem').value = no.ordem || 1;
+      if (btnExcluir) btnExcluir.style.display = (no.tipo_no === 'raiz') ? 'none' : 'inline-block';
+    } else {
+      document.getElementById('edit-no-titulo-modal').textContent = '➕ Adicionar Novo Nó ao Organograma';
+      document.getElementById('edit-no-chave-original').value = '';
+      document.getElementById('edit-no-sigla').value = '';
+      document.getElementById('edit-no-parent').value = 'DE';
+      document.getElementById('edit-no-titulo').value = '';
+      document.getElementById('edit-no-tipo').value = 'secao';
+      document.getElementById('edit-no-categoria').value = 'oficial';
+      document.getElementById('edit-no-posto').value = '';
+      document.getElementById('edit-no-nome').value = '';
+      document.getElementById('edit-no-saram').value = '';
+      document.getElementById('edit-no-ordem').value = listaOrganograma.length + 1;
+      if (btnExcluir) btnExcluir.style.display = 'none';
+    }
+
+    modal.style.display = 'flex';
+  }
+
+  function fecharModalEdicaoNo() {
+    const modal = document.getElementById('modal-edicao-livre-no');
+    if (modal) modal.style.display = 'none';
+  }
+
+  function buscarMilitarParaEdicaoNo(query) {
+    const box = document.getElementById('sugestoes-edit-no');
+    if (!box) return;
+    if (!query || query.length < 2) { box.style.display = 'none'; return; }
+
+    const q = query.toLowerCase();
+    const matches = listaEfetivo.filter(m => 
+      (m.nome && m.nome.toLowerCase().includes(q)) ||
+      (m.nome_completo && m.nome_completo.toLowerCase().includes(q)) ||
+      (m.saram && m.saram.includes(q))
+    ).slice(0, 6);
+
+    if (!matches.length) { box.style.display = 'none'; return; }
+
+    box.innerHTML = matches.map(m => `
+      <div class="sugestao-item" onclick="selecionarMilitarParaEdicaoNo('${m.saram}')">
+        <strong>${m.posto} ${m.nome}</strong> · SARAM ${m.saram}
+      </div>
+    `).join('');
+    box.style.display = 'block';
+  }
+
+  function selecionarMilitarParaEdicaoNo(saram) {
+    const m = listaEfetivo.find(x => x.saram === saram);
+    document.getElementById('sugestoes-edit-no').style.display = 'none';
+    if (!m) return;
+
+    document.getElementById('edit-no-posto').value = m.posto || '';
+    document.getElementById('edit-no-nome').value = m.nome || m.nome_completo || '';
+    document.getElementById('edit-no-saram').value = m.saram || '';
+  }
+
+  async function salvarEdicaoLivreNo(e) {
+    e.preventDefault();
+    const chaveOriginal = document.getElementById('edit-no-chave-original').value.trim();
+    const sigla = document.getElementById('edit-no-sigla').value.trim().toUpperCase();
+    const parentSigla = document.getElementById('edit-no-parent').value.trim() || null;
+    const titulo = document.getElementById('edit-no-titulo').value.trim();
+    const tipoNo = document.getElementById('edit-no-tipo').value;
+    const categoria = document.getElementById('edit-no-categoria').value;
+    const posto = document.getElementById('edit-no-posto').value.trim();
+    const nome = document.getElementById('edit-no-nome').value.trim();
+    const saram = document.getElementById('edit-no-saram').value.trim();
+    const ordem = parseInt(document.getElementById('edit-no-ordem').value, 10) || 1;
+
+    const noData = {
+      chave_sigla: sigla,
+      parent_sigla: parentSigla,
+      secao_nome: titulo,
+      titulo_exibicao: titulo,
+      tipo_no: tipoNo,
+      categoria: categoria,
+      titular_posto: posto,
+      titular_nome: nome,
+      titular_saram: saram,
+      ordem: ordem,
+      updated_at: new Date().toISOString()
+    };
+
+    // Salvar no Supabase se disponível
+    if (sb) {
+      try {
+        await sb.from('cargos_organograma_estrutura').upsert(noData, { onConflict: 'chave_sigla' });
+      } catch(err) {
+        console.warn('Erro ao salvar no no Supabase:', err);
+      }
+    }
+
+    // Atualizar estado local
+    const idx = listaOrganograma.findIndex(n => n.chave_sigla === (chaveOriginal || sigla));
+    if (idx !== -1) {
+      listaOrganograma[idx] = { ...listaOrganograma[idx], ...noData };
+    } else {
+      listaOrganograma.push(noData);
+    }
+
+    localStorage.setItem('cargos_organograma_cache', JSON.stringify(listaOrganograma));
+    fecharModalEdicaoNo();
+    renderizarOrganograma();
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Organograma Atualizado!',
+      text: `Nó ${sigla} salvo com sucesso.`,
+      timer: 1800,
+      showConfirmButton: false
+    });
+  }
+
+  async function excluirNoOrganograma() {
+    const chaveOriginal = document.getElementById('edit-no-chave-original').value.trim();
+    if (!chaveOriginal) return;
+
+    const res = await Swal.fire({
+      title: 'Excluir este nó?',
+      text: `Deseja realmente remover o nó ${chaveOriginal} do organograma?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'Sim, excluir'
+    });
+    if (!res.isConfirmed) return;
+
+    if (sb) {
+      try {
+        await sb.from('cargos_organograma_estrutura').delete().eq('chave_sigla', chaveOriginal);
+      } catch(err){}
+    }
+
+    listaOrganograma = listaOrganograma.filter(n => n.chave_sigla !== chaveOriginal);
+    localStorage.setItem('cargos_organograma_cache', JSON.stringify(listaOrganograma));
+    fecharModalEdicaoNo();
+    renderizarOrganograma();
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     FERRAMENTA DE AUDITORIA DE SINCRONIA (EFETIVO VS BANCO)
+     ═══════════════════════════════════════════════════════════════════ */
+  async function executarAuditoriaSistema() {
+    const corpo = document.getElementById('tabela-auditoria-corpo');
+    const elTotEfetivo = document.getElementById('aud-total-efetivo');
+    const elTotOk = document.getElementById('aud-total-ok');
+    const elTotDiv = document.getElementById('aud-total-divergencias');
+    const elTotSem = document.getElementById('aud-total-sem-vinculo');
+    const btnLote = document.getElementById('btn-corrigir-auditoria-lote');
+
+    if (corpo) corpo.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1.5rem">Executando varredura analítica...</td></tr>';
+
+    await carregarEfetivoPlanilha();
+    await carregarSecoesECatalogo();
+    await carregarMilitaresAtivos();
+
+    let countOk = 0;
+    let countDiv = 0;
+    let countSem = 0;
+    const linhas = [];
+
+    const secoesMap = new Map(listaSecoes.map(s => [s.sigla ? s.sigla.toLowerCase() : '', s]));
+    listaSecoes.forEach(s => secoesMap.set(s.nome.toLowerCase(), s));
+
+    listaEfetivo.forEach(m => {
+      const textoH = (m.funcao_col_h || '').trim();
+      const militarBanco = listaMilitaresAtivos.find(a => a.saram === m.saram);
+
+      if (!textoH) {
+        linhas.push(`
+          <tr>
+            <td><strong>${m.posto} ${m.nome}</strong></td>
+            <td><code>${m.saram || '—'}</code></td>
+            <td style="color:var(--texto-3)">Sem função na coluna H</td>
+            <td><span class="badge" style="background:rgba(255,255,255,0.08)">Sem Atribuição</span></td>
+            <td style="text-align:right">—</td>
+          </tr>
+        `);
+        return;
+      }
+
+      // Extrair seção da coluna H
+      const match = /([^(]+)\s*\(([^)]+)\)/.exec(textoH);
+      if (match) {
+        const funcaoTitulo = match[1].trim();
+        const secaoSigla = match[2].trim();
+        const secaoExiste = secoesMap.has(secaoSigla.toLowerCase());
+
+        if (militarBanco && secaoExiste) {
+          countOk++;
+          linhas.push(`
+            <tr>
+              <td><strong>${m.posto} ${m.nome}</strong></td>
+              <td><code>${m.saram}</code></td>
+              <td><span style="color:#34d399">${textoH}</span></td>
+              <td><span class="badge" style="background:rgba(52,211,153,0.2);color:#34d399">🟢 Sincronizado</span></td>
+              <td style="text-align:right"><span style="color:#34d399;font-size:0.75rem">OK</span></td>
+            </tr>
+          `);
+        } else if (!secaoExiste) {
+          countDiv++;
+          linhas.push(`
+            <tr>
+              <td><strong>${m.posto} ${m.nome}</strong></td>
+              <td><code>${m.saram}</code></td>
+              <td><span style="color:#fde047">${textoH}</span></td>
+              <td><span class="badge" style="background:rgba(212,168,75,0.2);color:#fde047">🟡 Seção Não Catalogada (${secaoSigla})</span></td>
+              <td style="text-align:right">
+                <button class="btn btn-ouro btn-sm" style="padding:0.2rem 0.5rem;font-size:0.72rem" onclick="corrigirAuditoriaItem('${m.saram}', '${secaoSigla}', '${funcaoTitulo}')">
+                  Catalogar
+                </button>
+              </td>
+            </tr>
+          `);
+        } else {
+          countSem++;
+          linhas.push(`
+            <tr>
+              <td><strong>${m.posto} ${m.nome}</strong></td>
+              <td><code>${m.saram}</code></td>
+              <td><span style="color:#fca5a5">${textoH}</span></td>
+              <td><span class="badge" style="background:rgba(239,68,68,0.2);color:#ef4444">🔴 Vínculo Pendente no Banco</span></td>
+              <td style="text-align:right">
+                <button class="btn btn-jade btn-sm" style="padding:0.2rem 0.5rem;font-size:0.72rem" onclick="corrigirAuditoriaItem('${m.saram}', '${secaoSigla}', '${funcaoTitulo}')">
+                  Vincular
+                </button>
+              </td>
+            </tr>
+          `);
+        }
+      }
+    });
+
+    if (elTotEfetivo) elTotEfetivo.textContent = listaEfetivo.length;
+    if (elTotOk) elTotOk.textContent = countOk;
+    if (elTotDiv) elTotDiv.textContent = countDiv;
+    if (elTotSem) elTotSem.textContent = countSem;
+    if (corpo) corpo.innerHTML = linhas.join('') || '<tr><td colspan="5" style="text-align:center">Nenhum registro verificado.</td></tr>';
+    if (btnLote) btnLote.style.display = (countDiv > 0 || countSem > 0) ? 'inline-block' : 'none';
+  }
+
+  async function corrigirAuditoriaItem(saram, secaoSigla, funcaoTitulo) {
+    const m = listaEfetivo.find(x => x.saram === saram);
+    if (!m) return;
+
+    // Criar Seção se não existir
+    let secaoObj = listaSecoes.find(s => (s.sigla && s.sigla.toLowerCase() === secaoSigla.toLowerCase()) || s.nome.toLowerCase() === secaoSigla.toLowerCase());
+    if (!secaoObj) {
+      secaoObj = { nome: secaoSigla, sigla: secaoSigla };
+      if (sb) {
+        try {
+          const { data } = await sb.from('cargos_secoes').insert([secaoObj]).select();
+          if (data && data[0]) secaoObj = data[0];
+        } catch(e){}
+      }
+      listaSecoes.push(secaoObj);
+    }
+
+    const ehCargo = funcaoTitulo.toLowerCase().includes('chefe');
+    const tipo = ehCargo ? 'cargo' : 'funcao';
+
+    // Inserir militar ativo
+    if (sb) {
+      try {
+        await sb.from('cargos_militares_ativos').upsert({
+          saram: m.saram,
+          nome: m.nome || m.nome_completo,
+          posto_grad: m.posto,
+          cpf: m.cpf,
+          secao_id: secaoObj.id || null,
+          secao_nome: secaoObj.nome,
+          tipo: tipo,
+          cargo_funcao_nome: funcaoTitulo,
+          boletim_publicacao: 'Auditoria de Sincronia',
+          origem: 'auditoria',
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'saram' });
+      } catch(e){}
+    }
+
+    await executarAuditoriaSistema();
+    await carregarOrganograma();
+    renderizarOrganograma();
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Registro Sincronizado!',
+      text: `${m.posto} ${m.nome} vinculado com sucesso à ${secaoSigla}.`,
+      timer: 1500,
+      showConfirmButton: false
+    });
+  }
+
+  async function aplicarCorrecoesAuditoriaLote() {
+    await executarSincronizacaoEfetivo();
+    await executarAuditoriaSistema();
+    await carregarOrganograma();
+    renderizarOrganograma();
   }
 
   /* ═══════════════════════════════════════════════════════════════════
@@ -1276,7 +2844,6 @@
         }
       } catch(e){}
     }
-    // Preencher campos no modal settings se existirem
     const el1 = document.getElementById('cfg-mot-cargo-desig');
     const el2 = document.getElementById('cfg-mot-cargo-disp');
     const el3 = document.getElementById('cfg-mot-func-desig');
@@ -1289,6 +2856,42 @@
     if (el5) el5.value = configCargos.email_sreg || 'sreg.afa@fab.mil.br';
   }
 
+  const SECOES_OFICIAIS_SEED = [
+    { id: 'sec-de', nome: 'Divisão de Ensino', sigla: 'DE' },
+    { id: 'sec-vc-de', nome: 'Vice-Chefia da Divisão de Ensino', sigla: 'VC-DE' },
+    { id: 'sec-sec-de', nome: 'Secretaria da Divisão de Ensino', sigla: 'SEC-DE' },
+    { id: 'sec-cie-de', nome: 'Célula de Infraestrutura do Ensino', sigla: 'CIE-DE' },
+    { id: 'sec-cos-de', nome: 'Célula de Obtenções e Serviços', sigla: 'COS-DE' },
+    { id: 'sec-clmp', nome: 'Célula de Logística de Material e Patrimônio', sigla: 'CLMP' },
+    { id: 'sec-cada', nome: 'Subdivisão de Apoio Docente e Discente', sigla: 'CADA' },
+    { id: 'sec-cade', nome: 'Célula de Análise de Desempenho de Ensino', sigla: 'CADE' },
+    { id: 'sec-caap', nome: 'Célula de Avaliação e Abordagem Psicopedagógica', sigla: 'CAAP' },
+    { id: 'sec-cdens', nome: 'Célula de Documentação do Ensino', sigla: 'CDEns' },
+    { id: 'sec-sed', nome: 'Seção de Educação a Distância', sigla: 'SED' },
+    { id: 'sec-sdpl', nome: 'Subdivisão de Planejamento', sigla: 'SDPL' },
+    { id: 'sec-spe', nome: 'Seção de Planejamento de Ensino', sigla: 'SPE' },
+    { id: 'sec-sapre', nome: 'Seção de Análise de Programação de Ensino', sigla: 'SAPRE' },
+    { id: 'sec-sdex', nome: 'Subdivisão de Execução', sigla: 'SDEX' },
+    { id: 'sec-sae', nome: 'Seção de Admissão e Exclusão', sigla: 'SAE' },
+    { id: 'sec-spi', nome: 'Seção de Programas Internacionais', sigla: 'SPI' },
+    { id: 'sec-sse', nome: 'Seção de Serviços Escolares', sigla: 'SSE' },
+    { id: 'sec-sva', nome: 'Seção de Verificação de Aprendizagem', sigla: 'SVA' },
+    { id: 'sec-sppc', nome: 'Subdivisão de Pesquisa e Produção Científica', sigla: 'SPPC' },
+    { id: 'sec-ctcc', nome: 'Coordenadoria de Trabalho de Conclusão de Curso', sigla: 'CTCC' },
+    { id: 'sec-cpc', nome: 'Coordenadoria de Produção Científica', sigla: 'CPC' },
+    { id: 'sec-cpubl', nome: 'Coordenadoria de Publicação', sigla: 'CPubl' },
+    { id: 'sec-bibli', nome: 'Biblioteca da Divisão de Ensino', sigla: 'BIBLI' },
+    { id: 'sec-sdic', nome: 'Subdivisão de Instrução Científica', sigla: 'SDIC' },
+    { id: 'sec-sdia', nome: 'Subdivisão de Instrução de Aviação', sigla: 'SDIA' },
+    { id: 'sec-siav', nome: 'Seção de Instrução de Aviação', sigla: 'SIAV' },
+    { id: 'sec-cinst-sdia', nome: 'Corpo de Instrutores da SDIA', sigla: 'CInst-SDIA' },
+    { id: 'sec-sdint', nome: 'Subdivisão de Instrução de Intendência', sigla: 'SDINT' },
+    { id: 'sec-siint', nome: 'Seção de Instrução de Intendência', sigla: 'SIINT' },
+    { id: 'sec-scest', nome: 'Seção de Coordenação de Estágios', sigla: 'SCEst' },
+    { id: 'sec-cinst-sdint', nome: 'Corpo de Instrutores da SDINT', sigla: 'CInst-SDINT' },
+    { id: 'sec-sdinf', nome: 'Subdivisão de Instrução de Infantaria', sigla: 'SDINF' }
+  ];
+
   async function carregarSecoesECatalogo() {
     let secoes = [];
     let catalogo = [];
@@ -1296,28 +2899,47 @@
     if (sb) {
       try {
         const { data: sData } = await sb.from('cargos_secoes').select('*').order('nome');
-        if (sData) secoes = sData;
+        if (sData && sData.length) secoes = sData;
         const { data: cData } = await sb.from('cargos_catalogo').select('*').order('nome');
-        if (cData) catalogo = cData;
+        if (cData && cData.length) catalogo = cData;
       } catch(e){}
     }
 
-    // Se estiver vazio, popula com seções padrão da DE
     if (!secoes || !secoes.length) {
-      secoes = [
-        { id: 'sec-de', nome: 'Divisão de Ensino', sigla: 'DE' },
-        { id: 'sec-sdint', nome: 'Subdivisão de Instrução Militar', sigla: 'SDINT' },
-        { id: 'sec-sdir', nome: 'Subdivisão de Instrução Geral', sigla: 'SDIR' },
-        { id: 'sec-infra', nome: 'Célula de Infraestrutura ao Ensino', sigla: 'CEL-INFRA' },
-        { id: 'sec-secretaria', nome: 'Secretaria da Divisão de Ensino', sigla: 'SEC-DE' },
-        { id: 'sec-plan', nome: 'Célula de Planejamento e Avaliação', sigla: 'CEL-PLAN' }
-      ];
+      const cachedSec = localStorage.getItem('cargos_secoes_cache');
+      if (cachedSec) {
+        try { secoes = JSON.parse(cachedSec); } catch(e){}
+      }
+    }
+
+    if (!secoes || !secoes.length) {
+      secoes = JSON.parse(JSON.stringify(SECOES_OFICIAIS_SEED));
+    }
+
+    if (!catalogo || !catalogo.length) {
+      const cachedCat = localStorage.getItem('cargos_catalogo_cache');
+      if (cachedCat) {
+        try { catalogo = JSON.parse(cachedCat); } catch(e){}
+      }
+    }
+
+    if (!catalogo || !catalogo.length) {
       catalogo = [
         { id: 'cat-1', secao_id: 'sec-de', tipo: 'cargo', nome: 'Chefe da Divisão de Ensino' },
-        { id: 'cat-2', secao_id: 'sec-de', tipo: 'cargo', nome: 'Adjunto da Divisão de Ensino' },
-        { id: 'cat-3', secao_id: 'sec-infra', tipo: 'cargo', nome: 'Chefe da Célula de Infraestrutura ao Ensino' },
-        { id: 'cat-4', secao_id: 'sec-infra', tipo: 'funcao', nome: 'Auxiliar da Célula de Infraestrutura ao Ensino' },
-        { id: 'cat-5', secao_id: 'sec-sdint', tipo: 'funcao', nome: 'Adjunto da Subdivisão de Instrução de Infantaria' }
+        { id: 'cat-2', secao_id: 'sec-vc-de', tipo: 'cargo', nome: 'Vice-Chefe da Divisão de Ensino' },
+        { id: 'cat-3', secao_id: 'sec-sec-de', tipo: 'cargo', nome: 'Chefe da Secretaria da Divisão de Ensino' },
+        { id: 'cat-4', secao_id: 'sec-cie-de', tipo: 'funcao', nome: 'Chefe da Célula de Infraestrutura do Ensino' },
+        { id: 'cat-5', secao_id: 'sec-cos-de', tipo: 'funcao', nome: 'Chefe da Célula de Obtenções e Serviços' },
+        { id: 'cat-6', secao_id: 'sec-clmp', tipo: 'cargo', nome: 'Chefe da Célula de Logística de Material e Patrimônio' },
+        { id: 'cat-7', secao_id: 'sec-cada', tipo: 'cargo', nome: 'Chefe da Subdivisão de Apoio Docente e Discente' },
+        { id: 'cat-8', secao_id: 'sec-sed', tipo: 'funcao', nome: 'Chefe da Seção de Educação a Distância' },
+        { id: 'cat-9', secao_id: 'sec-sdpl', tipo: 'cargo', nome: 'Chefe da Subdivisão de Planejamento' },
+        { id: 'cat-10', secao_id: 'sec-sdex', tipo: 'cargo', nome: 'Chefe da Subdivisão de Execução' },
+        { id: 'cat-11', secao_id: 'sec-sppc', tipo: 'cargo', nome: 'Chefe da Subdivisão de Pesquisa e Produção Científica' },
+        { id: 'cat-12', secao_id: 'sec-sdic', tipo: 'cargo', nome: 'Chefe da Subdivisão de Instrução Científica' },
+        { id: 'cat-13', secao_id: 'sec-sdia', tipo: 'cargo', nome: 'Chefe da Subdivisão de Instrução de Aviação' },
+        { id: 'cat-14', secao_id: 'sec-sdint', tipo: 'cargo', nome: 'Chefe da Subdivisão de Instrução de Intendência' },
+        { id: 'cat-15', secao_id: 'sec-sdinf', tipo: 'cargo', nome: 'Chefe da Subdivisão de Instrução de Infantaria' }
       ];
     }
 
@@ -1348,11 +2970,20 @@
       return;
     }
 
+    const sec = listaSecoes.find(s => s.id === secaoId);
+    const secNome = sec ? (sec.sigla || sec.nome) : 'Seção';
+
     const filtrados = listaCatalogo.filter(c => c.secao_id === secaoId && c.tipo === tiposelecionado);
     lblCargoFuncao.textContent = (tiposelecionado === 'cargo') ? '2. Selecione o Cargo *' : '2. Selecione a Função *';
 
     if (filtrados.length === 0) {
-      selCargoFuncao.innerHTML = `<option value="">— Nenhum(a) ${tiposelecionado} cadastrado(a) nesta seção —</option>`;
+      // Fornecer opções padrão inteligentes para não bloquear o usuário
+      const padroes = (tiposelecionado === 'cargo') 
+        ? [`Chefe da ${secNome}`, `Adjunto da ${secNome}`]
+        : [`Encarregado da ${secNome}`, `Auxiliar da ${secNome}`, `Membro da ${secNome}`];
+
+      selCargoFuncao.innerHTML = `<option value="">— Selecione o(a) ${tiposelecionado} —</option>` +
+        padroes.map(p => `<option value="${p}">${p}</option>`).join('');
     } else {
       selCargoFuncao.innerHTML = `<option value="">— Selecione o(a) ${tiposelecionado} —</option>` +
         filtrados.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
@@ -1722,6 +3353,18 @@
      ═══════════════════════════════════════════════════════════════════ */
   function verificarSessaoSecretaria() {
     const ok = sessionStorage.getItem('cargos_sec_ok') === '1' || sessionStorage.getItem('secretaria_pin_ok') === '1';
+    sessaoSecretariaDesbloqueada = ok;
+    
+    if (ok) {
+      document.body.classList.add('modo-secretaria-ativo');
+      const btnAdd = document.getElementById('btn-organo-add-node');
+      if (btnAdd) btnAdd.style.display = 'inline-flex';
+    } else {
+      document.body.classList.remove('modo-secretaria-ativo');
+      const btnAdd = document.getElementById('btn-organo-add-node');
+      if (btnAdd) btnAdd.style.display = 'none';
+    }
+
     const gate = document.getElementById('pin-gate-box');
     const content = document.getElementById('secretaria-content');
     if (ok) {
@@ -2286,12 +3929,15 @@
   }
 
   function trocarTabSettings(tab) {
-    ['secoes', 'sync', 'motivos'].forEach(t => {
+    ['secoes', 'sync', 'auditoria', 'motivos'].forEach(t => {
       const el = document.getElementById(`set-aba-${t}`);
       const btn = document.getElementById(`set-tab-btn-${t}`);
       if (el) el.style.display = (t === tab) ? 'block' : 'none';
       if (btn) btn.classList.toggle('active', t === tab);
     });
+    if (tab === 'auditoria') {
+      executarAuditoriaSistema();
+    }
   }
 
   function renderizarCatalogoSettings() {
