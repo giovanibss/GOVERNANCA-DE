@@ -2031,6 +2031,56 @@
   }
 
   /* ═══════════════════════════════════════════════════════════════════
+     CARREGAMENTO DO EFETIVO (PLANILHA GOOGLE GVIZ)
+     ═══════════════════════════════════════════════════════════════════ */
+  async function carregarEfetivoPlanilha() {
+    try {
+      const res = await fetch(EFETIVO_URL);
+      const txt = await res.text();
+      const jsonStr = txt.replace(/^\/\*O_o\*\/\s*google\.visualization\.Query\.setResponse\(/, '').replace(/\);?\s*$/, '');
+      const data = JSON.parse(jsonStr);
+
+      if (data.table && data.table.rows) {
+        listaEfetivo = data.table.rows.map((r, i) => {
+          const c = r.c || [];
+          const v = idx => (c[idx]?.v !== undefined && c[idx]?.v !== null) ? c[idx].v.toString().trim() : '';
+          return {
+            idx: i,
+            posto: v(2),           // Col C (Posto/Grad)
+            esp: v(3),             // Col D (Especialidade)
+            nome: v(4),            // Col E (Nome de Guerra)
+            funcao_col_h: v(7),    // Col H (Função original na planilha)
+            nome_completo: v(13),  // Col N (Nome Completo)
+            cpf: formatarCPF(v(14)),   // Col O (CPF)
+            email: v(15),          // Col P (E-mail)
+            saram: formatarSARAM(v(19)), // Col T (SARAM)
+            rg: v(20)              // Col U (RG)
+          };
+        }).filter(m => m.nome || m.nome_completo);
+
+        localStorage.setItem('cargos_efetivo_cache', JSON.stringify(listaEfetivo));
+      }
+    } catch(e) {
+      console.warn('Erro ao carregar planilha de efetivo, tentando cache local...', e);
+      try {
+        const cached = localStorage.getItem('cargos_efetivo_cache');
+        if (cached) listaEfetivo = JSON.parse(cached);
+      } catch(e2){}
+    }
+  }
+
+  function formatarCPF(v) {
+    if (!v) return '';
+    const num = v.replace(/\D/g, '').padStart(11, '0').slice(-11);
+    return num.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  }
+
+  function formatarSARAM(v) {
+    if (!v) return '';
+    return v.toString().replace(/\D/g, '');
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════
      CARREGAMENTO E GESTÃO DO ORGANOGRAMA
      ═══════════════════════════════════════════════════════════════════ */
   async function carregarOrganograma() {
