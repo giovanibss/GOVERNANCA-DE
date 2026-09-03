@@ -801,14 +801,23 @@
     }
     .organo-svg-line {
       fill: none;
-      stroke: rgba(212, 168, 75, 0.45);
-      stroke-width: 2.2;
+      stroke: #d4a84b;
+      stroke-width: 2.4;
       stroke-linecap: round;
       stroke-linejoin: round;
     }
+    .organo-svg-line.bus-trunk {
+      stroke: #d4a84b;
+      stroke-width: 2.8;
+    }
+    .organo-svg-line.bus-horizontal {
+      stroke: #d4a84b;
+      stroke-width: 2.8;
+    }
     .organo-svg-line.staff-line {
-      stroke: rgba(96, 165, 250, 0.45);
-      stroke-dasharray: 4 3;
+      stroke: #60a5fa;
+      stroke-width: 2.2;
+      stroke-dasharray: 5 3;
     }
 
     /* Cards / Nós */
@@ -824,54 +833,55 @@
     .organo-node-card {
       position: absolute;
       width: 220px;
-      background: rgba(13, 27, 62, 0.92);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1.5px solid rgba(212, 168, 75, 0.35);
+      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+      border: 1.5px solid rgba(212, 168, 75, 0.45);
       border-radius: 12px;
       padding: 0.75rem;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.12);
       transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s, border-color 0.2s, opacity 0.2s;
       cursor: pointer;
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      gap: 0.45rem;
     }
     .organo-node-card:hover {
       transform: translateY(-4px) scale(1.02);
-      border-color: var(--ouro);
-      box-shadow: 0 12px 32px rgba(212, 168, 75, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      border-color: #ffd37a;
+      box-shadow: 0 14px 36px rgba(212, 168, 75, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
       z-index: 10;
     }
     .organo-node-card.root-card {
       width: 260px;
-      background: linear-gradient(135deg, rgba(30, 58, 138, 0.95), rgba(15, 23, 42, 0.95));
-      border: 2px solid var(--ouro);
-      box-shadow: 0 10px 36px rgba(212, 168, 75, 0.4);
+      background: linear-gradient(180deg, #1e3a8a 0%, #0f172a 100%);
+      border: 2.5px solid #d4a84b;
+      box-shadow: 0 12px 40px rgba(212, 168, 75, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.25);
     }
     .organo-node-card.staff-card {
-      border-color: rgba(96, 165, 250, 0.4);
+      border-color: rgba(96, 165, 250, 0.6);
+      background: linear-gradient(180deg, #1e293b 0%, #0b1528 100%);
     }
     .organo-node-card.subdiv-card {
-      border-color: rgba(212, 168, 75, 0.45);
+      border-color: rgba(212, 168, 75, 0.6);
+      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
     }
     .organo-node-card.celula-card {
-      border-color: rgba(52, 211, 153, 0.35);
-      background: rgba(11, 24, 52, 0.92);
+      border-color: rgba(52, 211, 153, 0.5);
+      background: linear-gradient(180deg, #1e293b 0%, #091a24 100%);
     }
     .organo-node-card.filtered-hidden {
-      opacity: 0.18;
-      filter: grayscale(0.9);
-      pointer-events: none;
+      opacity: 0.12 !important;
+      filter: grayscale(1) blur(0.5px) !important;
+      transform: scale(0.96);
+      pointer-events: none !important;
     }
     .organo-node-card.search-match {
       border-color: #38bdf8 !important;
-      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.5), 0 12px 32px rgba(56, 189, 248, 0.4) !important;
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.6), 0 14px 36px rgba(56, 189, 248, 0.5) !important;
       animation: pulseMatch 1.5s infinite alternate;
     }
     @keyframes pulseMatch {
       0% { transform: scale(1); }
-      100% { transform: scale(1.05); }
+      100% { transform: scale(1.04); }
     }
 
     .node-header {
@@ -879,14 +889,14 @@
       align-items: center;
       justify-content: space-between;
       gap: 0.35rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-      padding-bottom: 0.4rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      padding-bottom: 0.35rem;
     }
     .node-sigla-badge {
-      font-size: 0.82rem;
+      font-size: 0.88rem;
       font-weight: 800;
       letter-spacing: 0.04em;
-      color: var(--ouro-lt);
+      color: #ffd37a;
       display: inline-flex;
       align-items: center;
       gap: 0.3rem;
@@ -894,30 +904,30 @@
     .node-type-pill {
       font-size: 0.65rem;
       text-transform: uppercase;
-      font-weight: 700;
-      padding: 0.15rem 0.35rem;
+      font-weight: 800;
+      padding: 0.15rem 0.4rem;
       border-radius: 4px;
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--texto-3);
+      background: rgba(255, 255, 255, 0.12);
+      color: #94a3b8;
     }
     .node-title-desc {
-      font-size: 0.73rem;
-      color: var(--texto-2);
+      font-size: 0.78rem;
+      color: #f1f5f9;
       line-height: 1.25;
-      font-weight: 500;
+      font-weight: 600;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
     .node-holder-box {
-      background: rgba(3, 7, 18, 0.55);
-      border: 1px solid rgba(255, 255, 255, 0.07);
+      background: #020617;
+      border: 1px solid rgba(255, 255, 255, 0.18);
       border-radius: 8px;
-      padding: 0.45rem 0.6rem;
+      padding: 0.5rem 0.65rem;
       display: flex;
       flex-direction: column;
-      gap: 0.2rem;
+      gap: 0.25rem;
     }
     .node-holder-top {
       display: flex;
@@ -926,24 +936,25 @@
       gap: 0.3rem;
     }
     .node-posto-tag {
-      font-size: 0.72rem;
-      font-weight: 700;
-      padding: 0.1rem 0.35rem;
+      font-size: 0.74rem;
+      font-weight: 800;
+      padding: 0.12rem 0.45rem;
       border-radius: 4px;
       letter-spacing: 0.02em;
     }
-    .posto-oficial { background: rgba(96, 165, 250, 0.2); color: #93c5fd; border: 1px solid rgba(96, 165, 250, 0.3); }
-    .posto-chefe { background: rgba(212, 168, 75, 0.25); color: #fde047; border: 1px solid rgba(212, 168, 75, 0.4); }
-    .posto-graduado { background: rgba(52, 211, 153, 0.2); color: #6ee7b7; border: 1px solid rgba(52, 211, 153, 0.3); }
-    .posto-praca { background: rgba(192, 132, 252, 0.2); color: #d8b4fe; border: 1px solid rgba(192, 132, 252, 0.3); }
+    .posto-oficial { background: #2563eb; color: #ffffff; }
+    .posto-chefe { background: #eab308; color: #020617; font-weight: 900; }
+    .posto-graduado { background: #059669; color: #ffffff; }
+    .posto-praca { background: #7c3aed; color: #ffffff; }
 
     .node-holder-name {
-      font-size: 0.82rem;
-      font-weight: 700;
+      font-size: 0.88rem;
+      font-weight: 800;
       color: #ffffff;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.9);
     }
     
     .node-members-badge {
@@ -951,19 +962,19 @@
       align-items: center;
       justify-content: center;
       gap: 0.3rem;
-      background: rgba(79, 163, 247, 0.12);
-      border: 1px solid rgba(79, 163, 247, 0.25);
+      background: rgba(16, 185, 129, 0.18);
+      border: 1px solid rgba(16, 185, 129, 0.4);
       border-radius: 6px;
-      padding: 0.3rem 0.5rem;
-      font-size: 0.72rem;
-      font-weight: 600;
-      color: #93c5fd;
+      padding: 0.35rem 0.55rem;
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: #34d399;
       cursor: pointer;
       transition: all 0.15s;
     }
     .node-members-badge:hover {
-      background: rgba(79, 163, 247, 0.25);
-      border-color: #60a5fa;
+      background: rgba(16, 185, 129, 0.35);
+      border-color: #34d399;
       color: #ffffff;
     }
 
@@ -2092,7 +2103,7 @@
           dados = data;
         }
       } catch(e) {
-        console.warn('Fallback leitura organograma:', e);
+        // Fallback silencioso para dados estruturados
       }
     }
 
@@ -2107,12 +2118,13 @@
       dados = JSON.parse(JSON.stringify(ORGANOGRAMA_SEED_DATA));
     }
 
-    // Mesclar dinamicamente com militares ativos do banco de dados (se houver transmissão registrada)
+    // Mesclar dinamicamente apenas com correspondência exata de seção/sigla
     if (listaMilitaresAtivos && listaMilitaresAtivos.length) {
       dados.forEach(no => {
+        if (no.chave_sigla === 'DE') return; // Preservar Chefia Cel Av Marcelo Resende
         const titularAtivo = listaMilitaresAtivos.find(m => 
-          (m.tipo === 'cargo' && m.secao_nome && m.secao_nome.toLowerCase().includes(no.chave_sigla.toLowerCase())) ||
-          (m.cargo_funcao_nome && m.cargo_funcao_nome.toLowerCase().includes(no.chave_sigla.toLowerCase()))
+          (m.secao_sigla && m.secao_sigla.toUpperCase() === no.chave_sigla.toUpperCase() && m.tipo === 'cargo') ||
+          (m.cargo_funcao_nome && m.cargo_funcao_nome.toLowerCase() === no.titulo_exibicao.toLowerCase())
         );
         if (titularAtivo) {
           no.titular_saram = titularAtivo.saram || no.titular_saram;
@@ -2139,9 +2151,6 @@
       return;
     }
 
-    const mapaNos = new Map(listaOrganograma.map(n => [n.chave_sigla, n]));
-    const svgPaths = [];
-
     // Renderizar Cards dos Nós
     listaOrganograma.forEach(no => {
       const pos = ORGANO_POSICOES[no.chave_sigla] || { x: 100, y: 100 };
@@ -2162,8 +2171,9 @@
       card.dataset.posto = (no.titular_posto || '').toLowerCase();
       card.dataset.titulo = (no.titulo_exibicao || '').toLowerCase();
 
-      // Verificar Filtros Ativos
-      if (!filtrosOrganoAtivos[cat]) {
+      // Verificar Filtros Ativos (checa chaves singular e plural)
+      const visivel = (filtrosOrganoAtivos[cat] !== false && filtrosOrganoAtivos[`${cat}s`] !== false);
+      if (!visivel) {
         classes.push('filtered-hidden');
       }
 
@@ -2232,36 +2242,83 @@
       };
 
       nodesLayer.appendChild(card);
+    });
 
-      // Traçar Linhas SVG para o Nó Pai
-      if (no.parent_sigla && ORGANO_POSICOES[no.parent_sigla]) {
-        const pPos = ORGANO_POSICOES[no.parent_sigla];
-        const pNo = mapaNos.get(no.parent_sigla);
-        const isRootParent = (pNo && pNo.tipo_no === 'raiz');
-        const pWidth = isRootParent ? 260 : 220;
-        const cWidth = (no.tipo_no === 'raiz') ? 260 : 220;
+    // Gerar Trilhas SVG de Conexão Hierárquica Limpa (Barramento Ortogonal)
+    const svgPaths = [];
 
-        const startX = pPos.x + (pWidth / 2);
-        const startY = pPos.y + 110;
-        const endX = pos.x + (cWidth / 2);
-        const endY = pos.y;
+    // 1. Barramento Principal das 9 Subdivisões
+    const dePos = ORGANO_POSICOES['DE'] || { x: 1350, y: 50 };
+    const deCenter = dePos.x + 130; // 1480
+    const deBottom = dePos.y + 115; // 165
+    const busY = 530;
 
-        let pathD = '';
-        let lineClass = 'organo-svg-line';
-        if (no.tipo_no === 'staff' || (pNo && pNo.tipo_no === 'staff')) {
-          lineClass += ' staff-line';
+    // Linha vertical do DE descendo até o barramento
+    svgPaths.push(`<path d="M ${deCenter} ${deBottom} L ${deCenter} ${busY}" class="organo-svg-line bus-trunk" />`);
+
+    // Linha horizontal ligando a primeira subdivisão (CADA: X=170) à última (SDINF: X=2410)
+    const minX = (ORGANO_POSICOES['CADA']?.x || 60) + 110; // 170
+    const maxX = (ORGANO_POSICOES['SDINF']?.x || 2300) + 110; // 2410
+    svgPaths.push(`<path d="M ${minX} ${busY} L ${maxX} ${busY}" class="organo-svg-line bus-horizontal" />`);
+
+    // 9 descidas verticais para cada subdivisão principal
+    const colunasPrincipais = ['CADA', 'SED', 'SDPL', 'SDEX', 'SPPC', 'SDIC', 'SDIA', 'SDINT', 'SDINF'];
+    colunasPrincipais.forEach(sigla => {
+      const p = ORGANO_POSICOES[sigla];
+      if (p) {
+        const cX = p.x + 110;
+        svgPaths.push(`<path d="M ${cX} ${busY} L ${cX} ${p.y}" class="organo-svg-line" />`);
+      }
+    });
+
+    // 2. Ramo Staff Lateral (DE -> VC-DE -> SEC-DE -> CIE-DE/COS-DE, CLMP)
+    const vcPos = ORGANO_POSICOES['VC-DE'];
+    if (vcPos) {
+      const vcCenter = vcPos.x + 110; // 990
+      svgPaths.push(`<path d="M ${dePos.x} 105 L 990 105 L 990 ${vcPos.y}" class="organo-svg-line staff-line" />`);
+
+      const clmpPos = ORGANO_POSICOES['CLMP'];
+      if (clmpPos) {
+        const clmpCenter = clmpPos.x + 110; // 810
+        svgPaths.push(`<path d="M ${vcCenter} 275 L ${vcCenter} 310 L ${clmpCenter} 310 L ${clmpCenter} ${clmpPos.y}" class="organo-svg-line staff-line" />`);
+      }
+
+      const secPos = ORGANO_POSICOES['SEC-DE'];
+      if (secPos) {
+        const secCenter = secPos.x + 110; // 500
+        svgPaths.push(`<path d="M ${vcCenter} 310 L ${secCenter} 310 L ${secCenter} ${secPos.y}" class="organo-svg-line staff-line" />`);
+
+        const ciePos = ORGANO_POSICOES['CIE-DE'];
+        if (ciePos) {
+          const cieCenter = ciePos.x + 110; // 200
+          svgPaths.push(`<path d="M ${secCenter} 365 L ${secCenter} 390 L ${cieCenter} 390 L ${cieCenter} ${ciePos.y}" class="organo-svg-line staff-line" />`);
         }
 
-        if (Math.abs(startX - endX) < 10) {
-          // Linha reta vertical
-          pathD = `M ${startX} ${startY} L ${endX} ${endY}`;
-        } else {
-          // Conector ortogonal com cantos curvos
-          const midY = (startY + endY) / 2;
-          pathD = `M ${startX} ${startY} C ${startX} ${midY}, ${endX} ${midY}, ${endX} ${endY}`;
+        const cosPos = ORGANO_POSICOES['COS-DE'];
+        if (cosPos) {
+          svgPaths.push(`<path d="M ${secCenter} 365 L ${secCenter} ${cosPos.y}" class="organo-svg-line staff-line" />`);
         }
+      }
+    }
 
-        svgPaths.push(`<path d="${pathD}" class="${lineClass}" />`);
+    // 3. Filhos verticais dentro de cada subdivisão
+    const hierarquiasVerticais = [
+      ['CADA', 'CADE', 'CAAP', 'CDEns'],
+      ['SDPL', 'SPE', 'SAPRE'],
+      ['SDEX', 'SAE', 'SPI', 'SSE', 'SVA'],
+      ['SPPC', 'CTCC', 'CPC', 'CPubl', 'BIBLI'],
+      ['SDIA', 'SIAV', 'CInst-SDIA'],
+      ['SDINT', 'SIINT', 'SCEst', 'CInst-SDINT']
+    ];
+
+    hierarquiasVerticais.forEach(lista => {
+      for (let i = 0; i < lista.length - 1; i++) {
+        const pai = ORGANO_POSICOES[lista[i]];
+        const filho = ORGANO_POSICOES[lista[i+1]];
+        if (pai && filho) {
+          const cx = pai.x + 110;
+          svgPaths.push(`<path d="M ${cx} ${pai.y + 110} L ${cx} ${filho.y}" class="organo-svg-line" />`);
+        }
       }
     });
 
@@ -2271,7 +2328,7 @@
   function determinarCategoriaMilitar(posto, titulo) {
     const p = (posto || '').toUpperCase();
     const t = (titulo || '').toUpperCase();
-    if (t.includes('CHEFE') || t.includes('VICE-CHEFIA')) return 'chefe';
+    if (t.includes('CHEFE') || t.includes('VICE-CHEFIA') || t === 'DE' || t === 'VC-DE' || t === 'CLMP' || t === 'SEC-DE' || t === 'CADA' || t === 'SDPL' || t === 'SDEX' || t === 'SPPC' || t === 'SDIC' || t === 'SDIA' || t === 'SDINT' || t === 'SDINF') return 'chefe';
     if (p.includes('CEL') || p.includes('MAJ') || p.includes('CAP') || p.includes('TEN') || p.includes('1T') || p.includes('2T') || p.includes('ASP') || p.includes('PROF')) return 'oficial';
     if (p.includes('SO') || p.includes('SGT') || p.includes('1S') || p.includes('2S') || p.includes('3S')) return 'graduado';
     if (p.includes('CB') || p.includes('SD') || p.includes('S1') || p.includes('S2') || p.includes('TAIF')) return 'praca';
@@ -2394,11 +2451,16 @@
      FILTROS E BUSCA DO ORGANOGRAMA
      ═══════════════════════════════════════════════════════════════════ */
   function aplicarFiltrosOrganograma() {
+    const chefes = document.getElementById('chk-filtro-chefes')?.checked ?? true;
+    const oficiais = document.getElementById('chk-filtro-oficiais')?.checked ?? true;
+    const graduados = document.getElementById('chk-filtro-graduados')?.checked ?? true;
+    const pracas = document.getElementById('chk-filtro-pracas')?.checked ?? true;
+
     filtrosOrganoAtivos = {
-      chefes: document.getElementById('chk-filtro-chefes')?.checked ?? true,
-      oficiais: document.getElementById('chk-filtro-oficiais')?.checked ?? true,
-      graduados: document.getElementById('chk-filtro-graduados')?.checked ?? true,
-      pracas: document.getElementById('chk-filtro-pracas')?.checked ?? true
+      chefe: chefes, chefes: chefes,
+      oficial: oficiais, oficiais: oficiais,
+      graduado: graduados, graduados: graduados,
+      praca: pracas, pracas: pracas
     };
     renderizarOrganograma();
   }
