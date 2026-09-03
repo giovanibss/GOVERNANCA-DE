@@ -1217,7 +1217,7 @@ async function fecharAgendamentoEfetivo() {
 async function encerrarCicloAtual() {
   if (!temporadaAtual) return;
 
-  const elegiveisCount = listaEfetivo.filter(m => {
+  const elegiveis = listaEfetivo.filter(m => {
     const sol = solicitacoesMap[m.saram];
     if (m.isR1) return false;
     if (sol && (
@@ -1228,9 +1228,13 @@ async function encerrarCicloAtual() {
       sol.status_solicitacao === 'nao_realizou'
     )) return false;
     return true;
-  }).length;
+  });
+  const elegiveisCount = elegiveis.length;
 
-  const solicitadosCount = Object.values(solicitacoesMap).filter(s => s.prio1_data).length;
+  const solicitadosCount = elegiveis.filter(m => {
+    const sol = solicitacoesMap[m.saram];
+    return sol && sol.prio1_data;
+  }).length;
   const realizadosCount = Object.values(solicitacoesMap).filter(s => s.status_solicitacao === 'realizou').length;
   const naoRealizouCount = Object.values(solicitacoesMap).filter(s =>
     s.status_elegibilidade === 'baixa' || 
@@ -1494,7 +1498,10 @@ function atualizarKpisEContadores() {
     return true;
   });
 
-  const solicitadosCount = Object.values(solicitacoesMap).filter(s => s.prio1_data).length;
+  const solicitadosCount = elegiveis.filter(m => {
+    const sol = solicitacoesMap[m.saram];
+    return sol && sol.prio1_data;
+  }).length;
   const faltamCount = Math.max(0, elegiveis.length - solicitadosCount);
   const realizadosCount = Object.values(solicitacoesMap).filter(s => s.status_solicitacao === 'realizou').length;
   const naoEfetuaramCount = Object.values(solicitacoesMap).filter(s =>
@@ -1542,7 +1549,7 @@ function renderizarFormularioMilitar() {
   const btnEnviar = document.getElementById('btnEnviarSolicitacao');
 
   // Calcular quantos faltam para exibição no banner público
-  const elegiveisCount = listaEfetivo.filter(m => {
+  const elegiveis = listaEfetivo.filter(m => {
     const sol = solicitacoesMap[m.saram];
     if (m.isR1) return false;
     if (sol && (
@@ -1553,8 +1560,12 @@ function renderizarFormularioMilitar() {
       sol.status_solicitacao === 'nao_realizou'
     )) return false;
     return true;
+  });
+  const elegiveisCount = elegiveis.length;
+  const solicitadosCount = elegiveis.filter(m => {
+    const sol = solicitacoesMap[m.saram];
+    return sol && sol.prio1_data;
   }).length;
-  const solicitadosCount = Object.values(solicitacoesMap).filter(s => s.prio1_data).length;
   const faltamCount = Math.max(0, elegiveisCount - solicitadosCount);
 
   if (statusTemp === 'agendamento_aberto') {
@@ -2205,7 +2216,7 @@ async function definirDeferimentoIndisponibilidade(saram, itemIdx, novoStatus) {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   ALGORITMO DE AUTOFILL DA ESCALA (RESPEITANDO INDISPONIBILIDADES DEFERIDAS)
+   ALGORITMO DE AUTOFILL DA ESCALA (MULTI-PASS POR RODADAS DE PRIORIDADE)
    ══════════════════════════════════════════════════════════════ */
 async function executarAutofillEscala() {
   if (!listaEfetivo || !listaEfetivo.length) {
@@ -2221,24 +2232,70 @@ async function executarAutofillEscala() {
   // Garante datas ordenadas cronologicamente YYYY-MM-DD
   datas.sort();
 
-  const confirm = await Swal.fire({
-    title: 'Gerar Escala Automática?',
-    text: 'O sistema alocará os militares por antiguidade, respeitando escolhas de prioridades registradas e preenchendo as vagas disponíveis por antiguidade para quem não preencheu.',
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonText: 'Sim, Gerar Escala',
-    cancelButtonText: 'Cancelar'
+  // 1. VERIFICAR INDISPONIBILIDADES PENDENTES DE ANÁLISE
+  let indispPendentesCount = 0;
+  Object.values(solicitacoesMap).forEach(s => {
+    if (Array.isArray(s.indisponibilidades)) {
+      indispPendentesCount += s.indisponibilidades.filter(i => i.status_deferimento === 'pendente' || !i.status_deferimento).length;
+    }
   });
-  if (!confirm.isConfirmed) return;
+
+  if (indispPendentesCount > 0) {
+    const resIndisp = await Swal.fire({
+      title: '⚠️ Indisponibilidades Pendentes',
+      html: `
+        <div style="text-align:left; font-size:0.9rem; line-height:1.5;">
+          Existem <b>${indispPendentesCount} registro(s) de indisponibilidade</b> informados pelo efetivo que ainda estão com status <b>PENDENTE</b> na Secretaria.<br/><br/>
+          <i>Lembrete:</i> O gerador automático respeita e bloqueia datas apenas para indisponibilidades com parecer <b>DEFERIDO</b>.<br/><br/>
+          Deseja abrir a análise de indisponibilidades agora ou prosseguir com a geração da escala?
+        </div>
+      `,
+      icon: 'warning',
+      showCancelButton: true,
+      showDenyButton: true,
+      confirmButtonText: '📋 Analisar Indisponibilidades',
+      denyButtonText: '⚡ Prosseguir sem Analisar',
+      cancelButtonText: 'Cancelar'
+    });
+
+    if (resIndisp.isConfirmed) {
+      abrirModalAnaliseIndisponividades();
+      return;
+    } else if (!resIndisp.isDenied) {
+      return;
+    }
+  } else {
+    const confirm = await Swal.fire({
+      title: '⚡ Gerar Escala Automática?',
+      html: `
+        <div style="text-align:left; font-size:0.88rem; line-height:1.5;">
+          A distribuição será executada em <b>4 Rodadas de Prioridade (Multi-Pass)</b>:<br/><br/>
+          • <b>1ª Rodada:</b> Atendimento da <b>1ª Opção</b> de todos os militares (desempate por antiguidade militar);<br/>
+          • <b>2ª Rodada:</b> Atendimento da <b>2ª Opção</b> para os que não conseguiram vaga na 1ª rodada;<br/>
+          • <b>3ª Rodada:</b> Atendimento da <b>3ª Opção</b> para os ainda não atendidos;<br/>
+          • <b>4ª Rodada (Compulsória):</b> Alocação nas vagas cronológicas restantes por antiguidade militar.<br/><br/>
+          <small style="color:var(--texto-2);">• <b>Preservação:</b> Militares com presença já confirmada (TACF Concluído) mantêm suas datas intactas.<br/>
+          • <b>Dispensas:</b> Militares dispensados, em missão ou em processo de baixa não serão escalados.</small>
+        </div>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sim, Gerar Escala',
+      cancelButtonText: 'Cancelar'
+    });
+    if (!confirm.isConfirmed) return;
+  }
 
   const vagasMax = temporadaAtual.vagas_por_dia || 4;
   const ocupacaoPorData = {};
   datas.forEach(d => ocupacaoPorData[d] = []);
 
   const militaresOrdenados = [...listaEfetivo].sort((a, b) => a.antiguidade - b.antiguidade);
-  const naoAlocados = [];
 
-  // FASE 1: Atendimento das prioridades voluntárias
+  // PREPARAÇÃO: Criar/sincronizar registros e identificar quem participa da distribuição
+  const elegiveisAlocar = [];
+  let concluidosPreservadosCount = 0;
+
   militaresOrdenados.forEach(m => {
     if (m.isR1) return;
 
@@ -2256,48 +2313,117 @@ async function executarAutofillEscala() {
         status_elegibilidade: 'elegivel'
       };
       solicitacoesMap[m.saram] = sol;
+    } else {
+      sol.posto_grad = m.posto;
+      sol.especialidade = m.esp;
+      sol.nome_guerra = m.nomeGuerra;
+      sol.nome_completo = m.nomeCompleto;
+      sol.antiguidade_index = m.antiguidade;
     }
 
-    if (sol.status_elegibilidade !== 'elegivel') return;
-
-    const indispDeferidas = (Array.isArray(sol.indisponibilidades) ? sol.indisponibilidades : [])
-      .filter(i => i.status_deferimento === 'deferido')
-      .map(i => i.data);
-
-    let alocado = false;
-    const prios = [sol.prio1_data, sol.prio2_data, sol.prio3_data].filter(Boolean);
-
-    for (let i = 0; i < prios.length; i++) {
-      const p = prios[i];
-      if (datas.includes(p) && !indispDeferidas.includes(p) && ocupacaoPorData[p].length < vagasMax) {
-        ocupacaoPorData[p].push(m.saram);
-        sol.dia_escalado = p;
-        sol.metodo_alocacao = `prio${i+1}`;
-        sol.status_solicitacao = 'escalado';
-        alocado = true;
-        break;
+    // Se o militar já realizou o TACF, preserva a realização e ocupa a vaga na data
+    if (sol.status_solicitacao === 'realizou') {
+      const dReal = sol.data_realizacao || sol.dia_escalado;
+      if (dReal && ocupacaoPorData[dReal]) {
+        ocupacaoPorData[dReal].push(m.saram);
       }
+      concluidosPreservadosCount++;
+      return;
     }
-    if (!alocado) naoAlocados.push(m);
+
+    // Se o militar não for elegível ou foi marcado como "não realizou" (dispensa/justificado), ignora da escala
+    if (sol.status_elegibilidade !== 'elegivel' || sol.status_solicitacao === 'nao_realizou') {
+      sol.dia_escalado = null;
+      return;
+    }
+
+    // Militar elegível para a nova distribuição: limpa alocação anterior para redistribuição justa
+    sol.dia_escalado = null;
+    sol.metodo_alocacao = null;
+    sol.status_solicitacao = 'pendente';
+    elegiveisAlocar.push({ m, sol });
   });
 
-  // FASE 2: Preenchimento compulsório por antiguidade
-  naoAlocados.forEach(m => {
-    const sol = solicitacoesMap[m.saram];
-    if (!sol || sol.status_elegibilidade !== 'elegivel') return;
+  // Estatísticas de alocação
+  let countPrio1 = 0;
+  let countPrio2 = 0;
+  let countPrio3 = 0;
+  let countCompulsorio = 0;
+  const naoAlocadosFaltaVaga = [];
 
-    const indispDeferidas = (Array.isArray(sol.indisponibilidades) ? sol.indisponibilidades : [])
+  // Helper para obter indisponibilidades deferidas
+  function getIndispDeferidas(sol) {
+    return (Array.isArray(sol.indisponibilidades) ? sol.indisponibilidades : [])
       .filter(i => i.status_deferimento === 'deferido')
       .map(i => i.data);
+  }
+
+  // ═══ RODADA 1: 1ª OPÇÃO DE TODOS OS MILITARES (POR ANTIGUIDADE) ═══
+  elegiveisAlocar.forEach(({ m, sol }) => {
+    if (sol.dia_escalado) return;
+    const p1 = sol.prio1_data;
+    if (p1 && datas.includes(p1)) {
+      const indisp = getIndispDeferidas(sol);
+      if (!indisp.includes(p1) && ocupacaoPorData[p1].length < vagasMax) {
+        ocupacaoPorData[p1].push(m.saram);
+        sol.dia_escalado = p1;
+        sol.metodo_alocacao = 'prio1';
+        sol.status_solicitacao = 'escalado';
+        countPrio1++;
+      }
+    }
+  });
+
+  // ═══ RODADA 2: 2ª OPÇÃO PARA OS QUE NÃO CONSEGUIRAM A 1ª (POR ANTIGUIDADE) ═══
+  elegiveisAlocar.forEach(({ m, sol }) => {
+    if (sol.dia_escalado) return;
+    const p2 = sol.prio2_data;
+    if (p2 && datas.includes(p2)) {
+      const indisp = getIndispDeferidas(sol);
+      if (!indisp.includes(p2) && ocupacaoPorData[p2].length < vagasMax) {
+        ocupacaoPorData[p2].push(m.saram);
+        sol.dia_escalado = p2;
+        sol.metodo_alocacao = 'prio2';
+        sol.status_solicitacao = 'escalado';
+        countPrio2++;
+      }
+    }
+  });
+
+  // ═══ RODADA 3: 3ª OPÇÃO PARA OS QUE NÃO CONSEGUIRAM A 1ª OU 2ª (POR ANTIGUIDADE) ═══
+  elegiveisAlocar.forEach(({ m, sol }) => {
+    if (sol.dia_escalado) return;
+    const p3 = sol.prio3_data;
+    if (p3 && datas.includes(p3)) {
+      const indisp = getIndispDeferidas(sol);
+      if (!indisp.includes(p3) && ocupacaoPorData[p3].length < vagasMax) {
+        ocupacaoPorData[p3].push(m.saram);
+        sol.dia_escalado = p3;
+        sol.metodo_alocacao = 'prio3';
+        sol.status_solicitacao = 'escalado';
+        countPrio3++;
+      }
+    }
+  });
+
+  // ═══ RODADA 4: ALOCAÇÃO COMPULSÓRIA NAS VAGAS RESTANTES (POR ANTIGUIDADE) ═══
+  elegiveisAlocar.forEach(({ m, sol }) => {
+    if (sol.dia_escalado) return;
+    const indisp = getIndispDeferidas(sol);
 
     for (const d of datas) {
-      if (!indispDeferidas.includes(d) && ocupacaoPorData[d].length < vagasMax) {
+      if (!indisp.includes(d) && ocupacaoPorData[d].length < vagasMax) {
         ocupacaoPorData[d].push(m.saram);
         sol.dia_escalado = d;
         sol.metodo_alocacao = 'antiguidade';
         sol.status_solicitacao = 'escalado';
+        countCompulsorio++;
         break;
       }
+    }
+
+    if (!sol.dia_escalado) {
+      naoAlocadosFaltaVaga.push(m);
     }
   });
 
@@ -2322,7 +2448,36 @@ async function executarAutofillEscala() {
       renderizarTabelaSecretaria();
       atualizarKpisEContadores();
 
-      Swal.fire('Escala Gerada!', 'A escala do TACF foi alocada com sucesso.', 'success');
+      const totalAlocados = countPrio1 + countPrio2 + countPrio3 + countCompulsorio;
+      let avisoFaltaHtml = '';
+      if (naoAlocadosFaltaVaga.length > 0) {
+        avisoFaltaHtml = `
+          <div style="background:rgba(239,68,68,0.18); border:1px solid #ef4444; border-radius:6px; padding:0.65rem 0.85rem; margin-top:0.75rem; text-align:left; color:#fca5a5; font-size:0.85rem;">
+            ⚠️ <b>Atenção:</b> ${naoAlocadosFaltaVaga.length} militar(es) elegível(is) não puderam ser alocados por <b>falta de vagas nas datas cadastradas</b>.<br/>
+            Adicione novas datas de aplicação ou remaneje manualmente para as 3 Vagas Livres Reservadas de cada dia.
+          </div>
+        `;
+      }
+
+      Swal.fire({
+        title: '⚡ Escala do TACF Gerada com Sucesso!',
+        html: `
+          <div style="text-align:left; font-size:0.88rem; line-height:1.6;">
+            <b>Resumo da Distribuição em Rodadas:</b>
+            <ul style="margin:0.5rem 0 0.5rem 1.25rem; padding:0;">
+              <li>🎯 <b>1ª Opção:</b> ${countPrio1} militares atendidos</li>
+              <li>🥈 <b>2ª Opção:</b> ${countPrio2} militares atendidos</li>
+              <li>🥉 <b>3ª Opção:</b> ${countPrio3} militares atendidos</li>
+              <li>⚖️ <b>Compulsório (Antiguidade):</b> ${countCompulsorio} militares alocados</li>
+              ${concluidosPreservadosCount > 0 ? `<li>✓ <b>TACF Concluídos (Preservados):</b> ${concluidosPreservadosCount} militares</li>` : ''}
+            </ul>
+            <b>Total de Militares Escalados:</b> ${totalAlocados} / ${elegiveisAlocar.length} elegíveis.
+            ${avisoFaltaHtml}
+          </div>
+        `,
+        icon: naoAlocadosFaltaVaga.length > 0 ? 'warning' : 'success',
+        confirmButtonText: 'Entendido'
+      });
     }
   } catch (e) {
     Swal.fire('Erro', 'Falha ao salvar a escala automática: ' + e.message, 'error');
@@ -2563,6 +2718,19 @@ function renderizarEscalaHorizontal() {
         'manual': 'Manual'
       }[s.metodo_alocacao] || 'Auto';
 
+      let badgeMetodoStyle = 'background:rgba(207,228,255,0.1); color:var(--texto-2);';
+      if (s.metodo_alocacao === 'prio1') {
+        badgeMetodoStyle = 'background:rgba(16,185,129,0.18); color:#6ee7b7; border:1px solid rgba(16,185,129,0.35);';
+      } else if (s.metodo_alocacao === 'prio2') {
+        badgeMetodoStyle = 'background:rgba(245,158,11,0.18); color:#fde68a; border:1px solid rgba(245,158,11,0.35);';
+      } else if (s.metodo_alocacao === 'prio3') {
+        badgeMetodoStyle = 'background:rgba(168,85,247,0.18); color:#e9d5ff; border:1px solid rgba(168,85,247,0.35);';
+      } else if (s.metodo_alocacao === 'antiguidade') {
+        badgeMetodoStyle = 'background:rgba(59,130,246,0.18); color:#93c5fd; border:1px solid rgba(59,130,246,0.35);';
+      } else if (s.metodo_alocacao === 'manual') {
+        badgeMetodoStyle = 'background:rgba(212,168,75,0.22); color:#fde047; border:1px solid rgba(212,168,75,0.4);';
+      }
+
       let styleCard = 'cursor:pointer;';
       if (isAusenteVermelho) {
         styleCard += 'background:rgba(239, 68, 68, 0.2); border:1.5px solid #ef4444; color:#fca5a5;';
@@ -2578,7 +2746,7 @@ function renderizarEscalaHorizontal() {
           <div style="display:flex; flex-direction:column; gap:0.15rem; text-align:left;">
             <span>${s.posto_grad} ${s.nome_guerra}</span>
             <div style="display:flex; gap:0.3rem; align-items:center; margin-top:0.25rem;">
-              <span class="badgeMetodo">${isSelected ? '🎯 SELECIONADO' : (isRealizou ? '✓ REALIZOU' : rotuloMetodo)}</span>
+              <span class="badgeMetodo" style="${isSelected ? 'background:#facc15; color:#000; font-weight:bold;' : (isRealizou ? 'background:#10b981; color:#fff;' : badgeMetodoStyle)}">${isSelected ? '🎯 SELECIONADO' : (isRealizou ? '✓ REALIZOU' : rotuloMetodo)}</span>
               ${isAusenteVermelho ? '<span style="font-size:0.62rem; background:#dc2626; color:#fff; padding:1px 4px; border-radius:3px;">⚠️ Não compareceu</span>' : ''}
             </div>
           </div>
@@ -3035,7 +3203,25 @@ function renderizarTabelaSecretaria() {
       }).join('<br/>');
     }
 
-    const diaEscStr = sol && sol.dia_escalado ? `<b>${formatarDataBR(sol.dia_escalado)}</b>` : '—';
+    let diaEscStr = '—';
+    if (sol && sol.dia_escalado) {
+      const rotuloMetodoTab = {
+        'prio1': '1ª Opção',
+        'prio2': '2ª Opção',
+        'prio3': '3ª Opção',
+        'regra_secundaria_velhos': 'Antiguidade',
+        'regra_secundaria_novos': 'Modernidade',
+        'antiguidade': 'Antiguidade',
+        'manual': 'Manual'
+      }[sol.metodo_alocacao] || '';
+      
+      const badgeMetodoTab = rotuloMetodoTab 
+        ? `<div style="font-size:0.68rem; color:var(--texto-2); margin-top:0.2rem;">(${rotuloMetodoTab})</div>` 
+        : '';
+
+      diaEscStr = `<b>${formatarDataBR(sol.dia_escalado)}</b>${badgeMetodoTab}`;
+    }
+
     const valJustif = sol?.justificativa || '';
 
     tr.innerHTML = `

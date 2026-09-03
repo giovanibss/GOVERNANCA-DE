@@ -1112,9 +1112,12 @@
       } catch(e) { console.warn('Supabase fallback:', e); }
     }
 
-    // Setar data default no campo de data (hoje)
+    // Setar data default no campo de data (hoje no fuso local)
     const dtIn = document.getElementById('solic-data-inicio');
-    if (dtIn) dtIn.value = new Date().toISOString().split('T')[0];
+    if (dtIn) dtIn.value = obterDataHojeLocal();
+
+    // Sincronizar solicitações que possam ter ficado pendentes no localStorage
+    await sincronizarSolicitacoesLocais();
 
     // Carregar Efetivo da Planilha e Dados do Banco
     await carregarEfetivoPlanilha();
@@ -1123,12 +1126,76 @@
     await carregarSolicitacoes();
     await carregarMilitaresAtivos();
 
+    // Iniciar escuta Realtime do Supabase
+    inicializarRealtimeCargos();
+
     // Roteamento por hash na URL (#solicitar, #minha-funcao, #secretaria)
     const hash = window.location.hash.replace('#', '');
     if (hash === 'secretaria' || hash === 'minha-funcao' || hash === 'solicitar') {
       trocarAba(hash);
     }
   });
+
+  function obterDataHojeLocal() {
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoje.getDate()).padStart(2, '0');
+    return `${ano}-${mes}-${dia}`;
+  }
+
+  async function sincronizarSolicitacoesLocais() {
+    if (!sb) return;
+    try {
+      const loc = JSON.parse(localStorage.getItem('cargos_solicitacoes_cache') || '[]');
+      const pendentes = loc.filter(s => typeof s.id === 'string' && s.id.startsWith('loc-'));
+      if (!pendentes.length) return;
+
+      let atualizou = false;
+      for (const item of pendentes) {
+        const payload = { ...item };
+        delete payload.id;
+        delete payload.texto_vigencia;
+        if (payload.secao_id && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(payload.secao_id)) {
+          payload.secao_id = null;
+        }
+        const { data, error } = await sb.from('cargos_solicitacoes').insert([payload]).select();
+        if (!error && data && data.length) {
+          const idx = loc.findIndex(x => x.id === item.id);
+          if (idx !== -1) {
+            loc[idx] = data[0];
+            atualizou = true;
+          }
+        }
+      }
+      if (atualizou) {
+        localStorage.setItem('cargos_solicitacoes_cache', JSON.stringify(loc));
+      }
+    } catch(e) {
+      console.warn('Erro na sincronização de solicitações locais:', e);
+    }
+  }
+
+  function inicializarRealtimeCargos() {
+    if (!sb || typeof sb.channel !== 'function') return;
+    try {
+      sb.channel('cargos_realtime_channel')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'cargos_solicitacoes' }, async () => {
+          await carregarSolicitacoes();
+          renderizarTabelaSecretaria();
+          atualizarContadores();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'cargos_secoes' }, async () => {
+          await carregarSecoesECatalogo();
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'cargos_militares_ativos' }, async () => {
+          await carregarMilitaresAtivos();
+        })
+        .subscribe();
+    } catch(e) {
+      console.warn('Realtime subscription fallback:', e);
+    }
+  }
 
   /* ═══════════════════════════════════════════════════════════════════
      NAVEGAÇÃO POR ABAS
@@ -1413,11 +1480,10 @@
 
     const payload = {
       tipo: tiposelecionado,
-      secao_id: secaoId,
+      secao_id: (secaoId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(secaoId)) ? secaoId : null,
       secao_nome: secaoObj ? secaoObj.nome : '',
       cargo_funcao_nome: cargoFuncaoNome,
       data_inicio: (tiposelecionado === 'cargo') ? null : dataInicio,
-      texto_vigencia: (tiposelecionado === 'cargo') ? 'A contar da data de publicação no Boletim Interno Ostensivo' : null,
       observacoes: obs,
       created_at: new Date().toISOString()
     };
@@ -1466,12 +1532,12 @@
       payload.siloms_status = 'pendente';
       payload.ttac_pendente = true;
       payload.motivo_codigo = configCargos.motivo_cargo_designacao;
-      payload.militar_dispensado_saram = dispSaram;
-      payload.militar_dispensado_nome = dispNome;
-      payload.militar_dispensado_posto = dispPosto;
-      payload.militar_designado_saram = desigSaram;
-      payload.militar_designado_nome = desigNome;
-      payload.militar_designado_posto = desigPosto;
+      payload.militar_dispensado_saram = dispSaram || null;
+      payload.militar_dispensado_nome = dispNome || null;
+      payload.militar_dispensado_posto = dispPosto || null;
+      payload.militar_designado_saram = desigSaram || null;
+      payload.militar_designado_nome = desigNome || null;
+      payload.militar_designado_posto = desigPosto || null;
     }
 
     // Salvar no Supabase ou LocalStorage
@@ -1482,20 +1548,29 @@
         if (!error && data && data.length) {
           salvo = true;
           payload.id = data[0].id;
+          payload.created_at = data[0].created_at;
+          payload.updated_at = data[0].updated_at;
+        } else if (error) {
+          console.error('Erro ao salvar no Supabase:', error);
         }
       } catch(err) {
-        console.warn('Erro ao salvar solicitação no Supabase:', err);
+        console.error('Exceção ao salvar no Supabase:', err);
       }
     }
 
     if (!salvo) {
       payload.id = 'loc-' + Date.now();
+      payload.created_at = new Date().toISOString();
+      payload.updated_at = payload.created_at;
       let loc = JSON.parse(localStorage.getItem('cargos_solicitacoes_cache') || '[]');
       loc.unshift(payload);
       localStorage.setItem('cargos_solicitacoes_cache', JSON.stringify(loc));
     }
 
-    listaSolicitacoes.unshift(payload);
+    const jaExiste = listaSolicitacoes.some(s => s.id === payload.id);
+    if (!jaExiste) {
+      listaSolicitacoes.unshift(payload);
+    }
     atualizarContadores();
 
     Swal.fire({
@@ -1514,12 +1589,12 @@
 
   function limparFormulario() {
     document.getElementById('form-solicitacao')?.reset();
-    ['solic-posto','solic-nome-completo','solic-saram','solic-disp-posto','solic-disp-saram','solic-disp-nome','solic-desig-posto','solic-desig-saram','solic-desig-nome'].forEach(id => {
+    ['solic-posto','solic-nome-completo','solic-saram','solic-disp-posto','solic-disp-saram','solic-disp-nome','solic-desig-posto','solic-desig-saram','solic-desig-nome','solic-busca-militar','solic-busca-dispensa','solic-busca-designa','solic-obs'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
     const dtIn = document.getElementById('solic-data-inicio');
-    if (dtIn) dtIn.value = new Date().toISOString().split('T')[0];
+    if (dtIn) dtIn.value = obterDataHojeLocal();
     aoMudarSecao();
   }
 
@@ -1699,13 +1774,20 @@
   }
 
   async function carregarSolicitacoes() {
+    let remotas = null;
     if (sb) {
       try {
-        const { data } = await sb.from('cargos_solicitacoes').select('*').order('created_at', { ascending: false });
-        if (data) listaSolicitacoes = data;
-      } catch(e){}
+        const { data, error } = await sb.from('cargos_solicitacoes').select('*').order('created_at', { ascending: false });
+        if (!error && data) {
+          remotas = data;
+          listaSolicitacoes = data;
+          localStorage.setItem('cargos_solicitacoes_cache', JSON.stringify(data));
+        }
+      } catch(e){
+        console.warn('Erro ao carregar solicitações do Supabase:', e);
+      }
     }
-    if (!listaSolicitacoes.length) {
+    if (!remotas) {
       try {
         listaSolicitacoes = JSON.parse(localStorage.getItem('cargos_solicitacoes_cache') || '[]');
       } catch(e){}
@@ -1765,7 +1847,7 @@
           </td>
           <td>
             <span class="badge ${isCargo ? 'badge-cargo' : 'badge-funcao'}">${item.tipo}</span>
-            <div style="font-size:0.72rem;color:var(--texto-3);margin-top:2px">${item.acao_tipo || 'designação'}</div>
+            <div style="font-size:0.72rem;color:var(--texto-3),margin-top:2px">${item.acao_tipo || 'designação'}</div>
           </td>
           <td>
             <strong>${item.cargo_funcao_nome}</strong>
@@ -1934,7 +2016,7 @@
       saram: militarSaram,
       nome: militarNome,
       posto_grad: militarPosto,
-      secao_id: item.secao_id,
+      secao_id: (item.secao_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.secao_id)) ? item.secao_id : null,
       secao_nome: item.secao_nome,
       tipo: item.tipo,
       cargo_funcao_nome: item.cargo_funcao_nome,
@@ -1967,14 +2049,18 @@
 
     const isDispensa = item.acao_tipo === 'dispensa';
     const motivoCod = isDispensa ? (configCargos.motivo_funcao_dispensa || '9209') : (configCargos.motivo_funcao_designacao || '9208');
-    const saram = item.militar_designado_saram || item.militar_dispensado_saram || '7430540';
-    const dataFmt = formatarDataBR(item.data_inicio) || '10/08/2026';
+    const saram = item.militar_designado_saram || item.militar_dispensado_saram || '';
+    const militarNome = item.militar_designado_nome || item.militar_dispensado_nome || '';
+    const militarPosto = item.militar_designado_posto || item.militar_dispensado_posto || '';
+    const dataFmt = formatarDataBR(item.data_inicio) || '';
+    const funcaoNome = item.cargo_funcao_nome || '';
+    const secaoNome = item.secao_nome || '';
     
     // Cadeia da função: Função, da Seção, da Divisão de Ensino, da AFA
-    const funcaoCadeia = `${item.cargo_funcao_nome}, da ${item.secao_nome}, da Divisão de Ensino, da AFA`;
+    const funcaoCadeia = `${funcaoNome}, da ${secaoNome}, da Divisão de Ensino, da AFA`;
 
-    // Linha CSV oficial
-    const linhaCsv = `${saram};${dataFmt}`;
+    // Linha CSV oficial com todos os campos (SARAM; Data; Função; Seção; Divisão; OM)
+    const linhaCsv = `${saram};${dataFmt};${funcaoNome};${secaoNome};Divisão de Ensino;AFA`;
 
     // Texto formatado do item de publicação
     const textoPublicacao = isDispensa
@@ -1986,20 +2072,27 @@
       html: `
         <div style="text-align:left;font-size:0.85rem">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.8rem;background:rgba(212,168,75,0.1);padding:0.6rem 0.8rem;border-radius:8px;border:1px solid rgba(212,168,75,0.3)">
-            <span>Tipo: <b>${isDispensa ? 'Dispensa de Função' : 'Designação de Função'}</b></span>
+            <div>
+              <span>Tipo: <b>${isDispensa ? 'Dispensa de Função' : 'Designação de Função'}</b></span>
+              <div style="font-size:0.75rem;color:var(--texto-2);margin-top:2px">${militarPosto} ${militarNome}</div>
+            </div>
             <span class="badge-motivo">Motivo ${motivoCod}</span>
           </div>
 
-          <p style="color:var(--texto-2);margin-bottom:0.4rem">
+          <p style="color:var(--texto-2);margin-bottom:0.4rem;font-weight:600">
             1. Conteúdo CSV para importação no sistema de publicações:
           </p>
-          <textarea id="swal-csv-text" readonly style="width:100%;height:65px;background:#050c1c;color:#6ee7b7;border:1px solid var(--linha);border-radius:8px;padding:0.5rem;font-family:monospace;font-size:0.85rem;margin-bottom:0.8rem;resize:none">${linhaCsv}</textarea>
+          <textarea id="swal-csv-text" readonly style="width:100%;height:68px;background:#050c1c;color:#6ee7b7;border:1px solid var(--linha);border-radius:8px;padding:0.5rem;font-family:monospace;font-size:0.82rem;margin-bottom:0.8rem;resize:none">${linhaCsv}</textarea>
 
-          <p style="color:var(--texto-2);margin-bottom:0.4rem">
+          <p style="color:var(--texto-2);margin-bottom:0.4rem;font-weight:600">
             2. Texto do item conforme será confeccionado no Boletim:
           </p>
-          <div style="background:#050c1c;color:#cbd5e1;border:1px solid var(--linha);border-radius:8px;padding:0.75rem;font-size:0.82rem;line-height:1.45;font-style:italic">
+          <div id="swal-item-text" style="background:#050c1c;color:#cbd5e1;border:1px solid var(--linha);border-radius:8px;padding:0.75rem;font-size:0.82rem;line-height:1.45;font-style:italic;margin-bottom:0.8rem">
             "${textoPublicacao}"
+          </div>
+
+          <div style="background:rgba(15,23,42,0.6);border:1px solid var(--linha);border-radius:8px;padding:0.6rem 0.8rem;font-size:0.75rem;color:var(--texto-3)">
+            <b>Campos do CSV (6 colunas):</b> SARAM (<code>${saram || '—'}</code>) ; Data (<code>${dataFmt || '—'}</code>) ; Função (<code>${funcaoNome}</code>) ; Seção (<code>${secaoNome}</code>) ; Divisão (<code>Divisão de Ensino</code>) ; OM (<code>AFA</code>)
           </div>
         </div>
       `,
@@ -2012,7 +2105,7 @@
       denyButtonColor: '#10b981',
       background: '#0a192f',
       color: '#f1f5f9',
-      width: '640px'
+      width: '680px'
     }).then(res => {
       if (res.isConfirmed) {
         navigator.clipboard.writeText(linhaCsv).then(() => {
@@ -2727,9 +2820,28 @@
      ═══════════════════════════════════════════════════════════════════ */
   function formatarDataBR(iso) {
     if (!iso) return '';
+    if (typeof iso === 'string') {
+      const trimmed = iso.trim();
+      // Formato YYYY-MM-DD puro (sem conversão de fuso)
+      if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+        const [ano, mes, dia] = trimmed.split('-');
+        return `${dia}/${mes}/${ano}`;
+      }
+      // Formato DD/MM/YYYY já formatado
+      if (/^\d{2}\/\d{2}\/\d{4}$/.test(trimmed)) {
+        return trimmed;
+      }
+      // ISO com T (timestamp com horário)
+      if (trimmed.includes('T')) {
+        const d = new Date(trimmed);
+        if (!isNaN(d.getTime())) {
+          return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear();
+        }
+      }
+    }
     const d = new Date(iso);
     if (isNaN(d.getTime())) return iso;
-    return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + d.getFullYear();
+    return String(d.getDate()).padStart(2, '0') + '/' + String(d.getMonth() + 1).padStart(2, '0') + '/' + d.getFullYear();
   }
 
   function atualizarContadores() {
