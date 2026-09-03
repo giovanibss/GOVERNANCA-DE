@@ -3176,14 +3176,18 @@ async function carregarCargosHub() {
     let solics = [];
     let secoes = [];
 
-    if (window.sbCli) {
-      const [rSolic, rSec] = await Promise.all([
-        window.sbCli.from('cargos_solicitacoes').select('id, tipo, status_funcao, status_cargo, ttac_pendente').catch(() => ({ data: [] })),
-        window.sbCli.from('cargos_secoes').select('id').catch(() => ({ data: [] }))
-      ]);
+    const sb = window.sbCli || window.sb || (window.supabase && typeof window.supabase.createClient === 'function' ? window.supabase.createClient(window.SUPABASE_URL || 'https://sovrgsbdhdpxsaomspsp.supabase.co', window.SUPABASE_ANON || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg') : null);
 
-      if (rSolic && rSolic.data) solics = rSolic.data;
-      if (rSec && rSec.data) secoes = rSec.data;
+    if (sb) {
+      try {
+        const { data: sData, error: sErr } = await sb.from('cargos_solicitacoes').select('id, tipo, status_funcao, status_cargo, ttac_pendente');
+        if (!sErr && sData) solics = sData;
+      } catch(e) { console.warn('Cargos solic fetch error:', e); }
+
+      try {
+        const { data: secData, error: secErr } = await sb.from('cargos_secoes').select('id');
+        if (!secErr && secData) secoes = secData;
+      } catch(e) { console.warn('Cargos secoes fetch error:', e); }
     }
 
     if (!solics.length) {
@@ -3345,8 +3349,11 @@ montarGaugeMini();
 atualizar();
 setInterval(atualizar, 60000);
 
-// reflete no ato as mudanças feitas em diarias.html (outra aba, mesmo navegador)
-addEventListener('storage', e=>{ if (e.key === CACHE_KEY) carregarDiarias(); });
+// reflete no ato as mudanças feitas em outros módulos (outra aba, mesmo navegador)
+addEventListener('storage', e=>{
+  if (e.key === CACHE_KEY) carregarDiarias();
+  if (e.key === 'cargos_solicitacoes_cache' || e.key === 'cargos_secoes_cache') carregarCargosHub();
+});
 
 /* ═══ LÓGICA DO MODAL DE CONFIGURAÇÕES (GERENCIAMENTO DO PIN & GMAIL API) ═══ */
 document.addEventListener('DOMContentLoaded', () => {
