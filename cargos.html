@@ -1077,14 +1077,14 @@
       <button class="tab-btn" id="tab-btn-secretaria" onclick="trocarAba('secretaria')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         Secretaria
-        <span class="tab-badge" id="badge-total-pendentes">0</span>
+        <span class="tab-badge" id="badge-total-pendentes" title="Clique para ver pendências na Secretaria" style="cursor:pointer" onclick="event.stopPropagation(); trocarAba('secretaria'); filtrarSecretariaStatus('pendente');">0</span>
       </button>
     </nav>
 
     <!-- ══════════════════════════════════════════════════════════════ -->
     <!-- ABA 1: SOLICITAÇÃO DE PUBLICAÇÃO -->
     <!-- ══════════════════════════════════════════════════════════════ -->
-    <section id="aba-solicitar" class="painel">
+    <section id="aba-solicitar" class="painel" style="display:none">
       <div class="painel-header">
         <div>
           <h2>📝 Nova Solicitação de Publicação</h2>
@@ -1124,9 +1124,13 @@
           <!-- Cargo ou Função da Seção -->
           <div class="campo">
             <label for="solic-cargo-funcao" id="lbl-cargo-funcao">2. Selecione a Função *</label>
-            <select id="solic-cargo-funcao" required>
+            <select id="solic-cargo-funcao" required onchange="aoMudarCargoFuncaoSelect()">
               <option value="">— Selecione a seção primeiro —</option>
             </select>
+            <div id="box-cargo-funcao-custom" style="display:none;margin-top:0.5rem">
+              <input type="text" id="solic-cargo-funcao-custom" placeholder="Digite o nome da nova função ou cargo…" style="width:100%" />
+              <small style="color:var(--c-muted,#94a3b8);font-size:0.75rem">Este nome será cadastrado e associado à seção.</small>
+            </div>
           </div>
 
           <!-- Tipo de Ação (Apenas se for Função) -->
@@ -1155,8 +1159,13 @@
 
           <!-- BLOCO PARA FUNÇÃO: SELETOR DE PESSOA -->
           <div class="campo full" id="box-pessoa-funcao">
-            <label for="solic-busca-militar">Militar / Servidor *</label>
-            <div class="sugestoes-box">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.25rem">
+              <label for="solic-busca-militar" style="margin-bottom:0">Militar / Servidor *</label>
+              <label style="font-size:0.8rem;cursor:pointer;display:flex;align-items:center;gap:0.35rem;color:var(--c-muted,#94a3b8)">
+                <input type="checkbox" id="chk-manual-funcao" onchange="alternarManualMilitar('funcao', this.checked)"> Inserir militar manualmente
+              </label>
+            </div>
+            <div class="sugestoes-box" id="box-busca-funcao-wrap">
               <input type="text" id="solic-busca-militar" placeholder="Digite o nome, SARAM ou CPF do militar…" autocomplete="off" oninput="buscarMilitar(this.value, 'funcao')" />
               <div class="sugestoes-list" id="sugestoes-funcao"></div>
             </div>
@@ -1173,8 +1182,13 @@
               
               <!-- Quem sai (Dispensa) -->
               <div class="painel" style="padding:1rem;background:rgba(239,68,68,0.06);border-color:rgba(239,68,68,0.3)">
-                <h4 style="color:#fca5a5;font-size:0.9rem;margin-bottom:0.5rem">👤 Quem está saindo (Dispensa - Cód 1139)</h4>
-                <div class="sugestoes-box">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+                  <h4 style="color:#fca5a5;font-size:0.9rem;margin:0">👤 Quem está saindo (Dispensa - Cód 1139)</h4>
+                  <label style="font-size:0.75rem;cursor:pointer;display:flex;align-items:center;gap:0.3rem;color:var(--c-muted,#94a3b8)">
+                    <input type="checkbox" id="chk-manual-disp" onchange="alternarManualMilitar('dispensa', this.checked)"> Manual
+                  </label>
+                </div>
+                <div class="sugestoes-box" id="box-busca-disp-wrap">
                   <input type="text" id="solic-busca-dispensa" placeholder="Buscar militar saindo…" autocomplete="off" oninput="buscarMilitar(this.value, 'dispensa')" />
                   <div class="sugestoes-list" id="sugestoes-dispensa"></div>
                 </div>
@@ -1187,8 +1201,13 @@
 
               <!-- Quem assume (Designação) -->
               <div class="painel" style="padding:1rem;background:rgba(16,185,129,0.06);border-color:rgba(16,185,129,0.3)">
-                <h4 style="color:#6ee7b7;font-size:0.9rem;margin-bottom:0.5rem">👤 Quem está assumindo (Designação - Cód 1138)</h4>
-                <div class="sugestoes-box">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem">
+                  <h4 style="color:#6ee7b7;font-size:0.9rem;margin:0">👤 Quem está assumindo (Designação - Cód 1138)</h4>
+                  <label style="font-size:0.75rem;cursor:pointer;display:flex;align-items:center;gap:0.3rem;color:var(--c-muted,#94a3b8)">
+                    <input type="checkbox" id="chk-manual-desig" onchange="alternarManualMilitar('designa', this.checked)"> Manual
+                  </label>
+                </div>
+                <div class="sugestoes-box" id="box-busca-desig-wrap">
                   <input type="text" id="solic-busca-designa" placeholder="Buscar militar assumindo…" autocomplete="off" oninput="buscarMilitar(this.value, 'designa')" />
                   <div class="sugestoes-list" id="sugestoes-designa"></div>
                 </div>
@@ -1447,10 +1466,19 @@
 
         <!-- FILTROS -->
         <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center">
-          <div style="display:flex;gap:0.35rem">
-            <button class="btn btn-fantasma btn-sm active" id="flt-todos" onclick="filtrarSecretaria('todos')">Todas (<span id="cnt-flt-todos">0</span>)</button>
-            <button class="btn btn-fantasma btn-sm" id="flt-funcoes" onclick="filtrarSecretaria('funcao')">Funções (<span id="cnt-flt-funcoes">0</span>)</button>
-            <button class="btn btn-fantasma btn-sm" id="flt-cargos" onclick="filtrarSecretaria('cargo')">Cargos (<span id="cnt-flt-cargos">0</span>)</button>
+          <div style="display:flex;gap:0.35rem;align-items:center" id="grp-flt-tipo">
+            <span style="font-size:0.75rem;font-weight:600;color:var(--c-muted,#94a3b8);text-transform:uppercase">Tipo:</span>
+            <button class="btn btn-fantasma btn-sm active" id="flt-todos" onclick="filtrarSecretariaTipo('todos')">Todas (<span id="cnt-flt-todos">0</span>)</button>
+            <button class="btn btn-fantasma btn-sm" id="flt-funcoes" onclick="filtrarSecretariaTipo('funcao')">Funções (<span id="cnt-flt-funcoes">0</span>)</button>
+            <button class="btn btn-fantasma btn-sm" id="flt-cargos" onclick="filtrarSecretariaTipo('cargo')">Cargos (<span id="cnt-flt-cargos">0</span>)</button>
+          </div>
+          <div style="display:flex;gap:0.35rem;align-items:center" id="grp-flt-status">
+            <span style="font-size:0.75rem;font-weight:600;color:var(--c-muted,#94a3b8);text-transform:uppercase">Status:</span>
+            <button class="btn btn-fantasma btn-sm active" id="flt-st-todos" onclick="filtrarSecretariaStatus('todos')">Todos</button>
+            <button class="btn btn-fantasma btn-sm" id="flt-st-pendentes" onclick="filtrarSecretariaStatus('pendente')">Pendentes</button>
+            <button class="btn btn-fantasma btn-sm" id="flt-st-confeccionados" onclick="filtrarSecretariaStatus('confeccionado')">Confeccionados</button>
+            <button class="btn btn-fantasma btn-sm" id="flt-st-publicados" onclick="filtrarSecretariaStatus('publicado')">Publicados</button>
+            <button class="btn btn-fantasma btn-sm" id="flt-st-finalizados" onclick="filtrarSecretariaStatus('finalizado')">Finalizados</button>
           </div>
           <div style="margin-left:auto;display:flex;gap:0.5rem">
             <input type="text" id="filtro-texto-sec" placeholder="Filtrar por nome ou seção…" style="padding:0.35rem 0.65rem;font-size:0.82rem;border-radius:6px;background:var(--bg-input);border:1px solid var(--linha);color:var(--texto)" oninput="renderizarTabelaSecretaria()" />
@@ -1810,6 +1838,7 @@
   let listaOrganograma = [];
   let tiposelecionado = 'funcao'; // 'funcao' | 'cargo'
   let filtroSecretariaAtual = 'todos';
+  let filtroSecretariaStatusAtual = 'todos';
   let organoZoom = 1;
   let organoPan = { x: 0, y: 0 };
   let isPanning = false;
@@ -1828,52 +1857,62 @@
     pin: '123456'
   };
 
-  // Coordenadas Absolutas do Layout da Árvore Hierárquica
+  // Coordenadas Absolutas do Layout da Árvore Hierárquica (Espaçamento de Respiro de 55px)
   const ORGANO_POSICOES = {
     // Nível 0 (Raiz) & Staff
-    'DE': { x: 1350, y: 50 },
-    'VC-DE': { x: 880, y: 170 },
-    'CLMP': { x: 700, y: 350 },
-    'SEC-DE': { x: 390, y: 260 },
-    'COS-DE': { x: 390, y: 440 },
-    'CIE-DE': { x: 90, y: 350 },
+    'DE': { x: 1160, y: 40 },
+    'VC-DE': { x: 760, y: 170 },
+    'CLMP': { x: 620, y: 330 },
+    'SEC-DE': { x: 340, y: 330 },
+    'CIE-DE': { x: 60, y: 490 },
+    'COS-DE': { x: 340, y: 490 },
 
-    // Subdivisões e Seções Horizontais
-    'CADA': { x: 60, y: 600 },
-    'CADE': { x: 60, y: 770 },
-    'CAAP': { x: 60, y: 940 },
-    'CDEns': { x: 60, y: 1110 },
+    // 9 Colunas de Subdivisões (Barramento Horizontal em Y = 680, Cards em Y = 750)
+    // Delta Y vertical entre níveis = 210px (55px de respiro para linhas e conectores)
+    // Coluna 1: CADA
+    'CADA': { x: 60, y: 750 },
+    'CADE': { x: 60, y: 960 },
+    'CAAP': { x: 60, y: 1170 },
+    'CDEns': { x: 60, y: 1380 },
 
-    'SED': { x: 340, y: 600 },
+    // Coluna 2: SED
+    'SED': { x: 340, y: 750 },
 
-    'SDPL': { x: 620, y: 600 },
-    'SPE': { x: 620, y: 770 },
-    'SAPRE': { x: 620, y: 940 },
+    // Coluna 3: SDPL
+    'SDPL': { x: 620, y: 750 },
+    'SPE': { x: 620, y: 960 },
+    'SAPRE': { x: 620, y: 1170 },
 
-    'SDEX': { x: 900, y: 600 },
-    'SAE': { x: 900, y: 770 },
-    'SPI': { x: 900, y: 940 },
-    'SSE': { x: 900, y: 1110 },
-    'SVA': { x: 900, y: 1280 },
+    // Coluna 4: SDEX
+    'SDEX': { x: 900, y: 750 },
+    'SAE': { x: 900, y: 960 },
+    'SPI': { x: 900, y: 1170 },
+    'SSE': { x: 900, y: 1380 },
+    'SVA': { x: 900, y: 1590 },
 
-    'SPPC': { x: 1180, y: 600 },
-    'CTCC': { x: 1180, y: 770 },
-    'CPC': { x: 1180, y: 940 },
-    'CPubl': { x: 1180, y: 1110 },
-    'BIBLI': { x: 1180, y: 1280 },
+    // Coluna 5: SPPC
+    'SPPC': { x: 1180, y: 750 },
+    'CTCC': { x: 1180, y: 960 },
+    'CPC': { x: 1180, y: 1170 },
+    'CPubl': { x: 1180, y: 1380 },
+    'BIBLI': { x: 1180, y: 1590 },
 
-    'SDIC': { x: 1460, y: 600 },
+    // Coluna 6: SDIC
+    'SDIC': { x: 1460, y: 750 },
 
-    'SDIA': { x: 1740, y: 600 },
-    'SIAV': { x: 1740, y: 770 },
-    'CInst-SDIA': { x: 1740, y: 940 },
+    // Coluna 7: SDIA
+    'SDIA': { x: 1740, y: 750 },
+    'SIAV': { x: 1740, y: 960 },
+    'CInst-SDIA': { x: 1740, y: 1170 },
 
-    'SDINT': { x: 2020, y: 600 },
-    'SIINT': { x: 2020, y: 770 },
-    'SCEst': { x: 2020, y: 940 },
-    'CInst-SDINT': { x: 2020, y: 1110 },
+    // Coluna 8: SDINT
+    'SDINT': { x: 2020, y: 750 },
+    'SIINT': { x: 2020, y: 960 },
+    'SCEst': { x: 2020, y: 1170 },
+    'CInst-SDINT': { x: 2020, y: 1380 },
 
-    'SDINF': { x: 2300, y: 600 }
+    // Coluna 9: SDINF
+    'SDINF': { x: 2300, y: 750 }
   };
 
   // Seed Estrutural Oficial da Divisão de Ensino
@@ -1944,6 +1983,18 @@
 
     // Iniciar escuta Realtime do Supabase
     inicializarRealtimeCargos();
+
+    // Fechar caixas de sugestão ao clicar fora ou pressionar Escape
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.sugestoes-box')) {
+        document.querySelectorAll('.sugestoes-list').forEach(el => el.style.display = 'none');
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.sugestoes-list').forEach(el => el.style.display = 'none');
+      }
+    });
 
     // Roteamento por hash na URL (#organograma, #solicitar, #minha-funcao, #secretaria)
     const hash = window.location.hash.replace('#', '');
@@ -2035,7 +2086,7 @@
 
     if (aba === 'organograma') {
       renderizarOrganograma();
-      setTimeout(ajustarOrganogramaTela, 80);
+      setTimeout(centralizarOrganogramaInicial, 80);
     } else if (aba === 'secretaria') {
       verificarSessaoSecretaria();
     }
@@ -2045,6 +2096,33 @@
      CARREGAMENTO DO EFETIVO (PLANILHA GOOGLE GVIZ)
      ═══════════════════════════════════════════════════════════════════ */
   async function carregarEfetivoPlanilha() {
+    // 1. Prioriza a base central unificada do Supabase via AppConfig (Fase 3)
+    try {
+      if (window.AppConfig && typeof window.AppConfig.fetchEfetivo === 'function') {
+        const militaresDB = await window.AppConfig.fetchEfetivo({ activeOnly: true });
+        if (militaresDB && militaresDB.length > 0) {
+          listaEfetivo = militaresDB.map((m, i) => ({
+            idx: i,
+            posto: m.posto_grad || '',
+            esp: m.especialidade || '',
+            nome: m.nome_guerra || '',
+            funcao_col_h: m.cargo_funcao || '',
+            nome_completo: m.nome_completo || '',
+            cpf: formatarCPF(m.cpf),
+            email: m.email || '',
+            saram: formatarSARAM(m.saram),
+            rg: m.rg || ''
+          })).filter(m => m.nome || m.nome_completo);
+
+          localStorage.setItem('cargos_efetivo_cache', JSON.stringify(listaEfetivo));
+          return;
+        }
+      }
+    } catch(errDb) {
+      console.warn('AppConfig fetchEfetivo falhou, tentando fallback...', errDb);
+    }
+
+    // 2. Fallback para Google Sheets GViz
     try {
       const res = await fetch(EFETIVO_URL);
       const txt = await res.text();
@@ -2108,7 +2186,7 @@
     }
 
     if (!dados || !dados.length) {
-      const cached = localStorage.getItem('cargos_organograma_v3');
+      const cached = localStorage.getItem('cargos_organograma_v3') || localStorage.getItem('cargos_organograma_cache');
       if (cached) {
         try { dados = JSON.parse(cached); } catch(e){}
       }
@@ -2132,6 +2210,7 @@
       // 2. Se houver militares ativos do banco cadastrados explicitamente para esta seção/cargo
       if (listaMilitaresAtivos && listaMilitaresAtivos.length) {
         const titularAtivo = listaMilitaresAtivos.find(m => 
+          (m.secao_id && no.secao_id && m.secao_id === no.secao_id && m.tipo === 'cargo') ||
           (m.secao_sigla && m.secao_sigla.toUpperCase() === no.chave_sigla.toUpperCase() && m.tipo === 'cargo') ||
           (m.cargo_funcao_nome && m.cargo_funcao_nome.trim().toLowerCase() === no.titulo_exibicao.trim().toLowerCase())
         );
@@ -2143,8 +2222,8 @@
         }
       }
 
-      // 3. Obter titular Chefe/Encarregado diretamente da planilha Efetivo
-      if (listaEfetivo && listaEfetivo.length) {
+      // 3. Obter titular Chefe/Encarregado diretamente da planilha Efetivo (apenas se ainda não possuir titular definido)
+      if (!no.titular_nome && listaEfetivo && listaEfetivo.length) {
         const s = no.chave_sigla.toLowerCase();
         let titularPlanilha = null;
 
@@ -2167,6 +2246,7 @@
 
     listaOrganograma = dados;
     localStorage.setItem('cargos_organograma_v3', JSON.stringify(listaOrganograma));
+    localStorage.setItem('cargos_organograma_cache', JSON.stringify(listaOrganograma));
   }
 
   function renderizarOrganograma() {
@@ -2208,12 +2288,24 @@
         classes.push('filtered-hidden');
       }
 
-      // Verificar Busca Ativa
+      // Calcular quantidade de membros adicionais vinculados à seção
+      const membrosSecao = obterMembrosDaSecao(no.chave_sigla, no.secao_nome);
+      const qtdExtras = membrosSecao.length;
+
+      // Verificar Busca Ativa (considera nó e integrantes da equipe da seção)
+      const temMembroBusca = termoBuscaOrgano && membrosSecao.some(m => 
+        (m.nome || '').toLowerCase().includes(termoBuscaOrgano) ||
+        (m.nome_completo || '').toLowerCase().includes(termoBuscaOrgano) ||
+        (m.saram || '').includes(termoBuscaOrgano) ||
+        (m.cargo_funcao || '').toLowerCase().includes(termoBuscaOrgano)
+      );
+
       if (termoBuscaOrgano && (
         card.dataset.sigla.includes(termoBuscaOrgano) ||
         card.dataset.nome.includes(termoBuscaOrgano) ||
         card.dataset.posto.includes(termoBuscaOrgano) ||
-        card.dataset.titulo.includes(termoBuscaOrgano)
+        card.dataset.titulo.includes(termoBuscaOrgano) ||
+        temMembroBusca
       )) {
         classes.push('search-match');
       }
@@ -2228,10 +2320,6 @@
       if (cat === 'chefe') tagPostoClass = 'posto-chefe';
       else if (cat === 'graduado') tagPostoClass = 'posto-graduado';
       else if (cat === 'praca') tagPostoClass = 'posto-praca';
-
-      // Calcular quantidade de membros adicionais vinculados à seção
-      const membrosSecao = obterMembrosDaSecao(no.chave_sigla, no.secao_nome);
-      const qtdExtras = membrosSecao.length;
 
       card.innerHTML = `
         <div class="node-edit-btn-badge" title="Gestão da Secretaria" onclick="event.stopPropagation(); abrirContextoNo('${no.chave_sigla}')">
@@ -2277,22 +2365,20 @@
 
     // Gerar Trilhas SVG de Conexão Hierárquica Limpa (Barramento Ortogonal)
     const svgPaths = [];
+    const busY = 680;
 
-    // 1. Barramento Principal das 9 Subdivisões
-    const dePos = ORGANO_POSICOES['DE'] || { x: 1350, y: 50 };
-    const deCenter = dePos.x + 130; // 1480
-    const deBottom = dePos.y + 115; // 165
-    const busY = 530;
-
-    // Linha vertical do DE descendo até o barramento
+    // 1. Tronco de DE descendo até o Barramento
+    const dePos = ORGANO_POSICOES['DE'] || { x: 1160, y: 40 };
+    const deCenter = dePos.x + 130; // 1290
+    const deBottom = dePos.y + 160; // 200
     svgPaths.push(`<path d="M ${deCenter} ${deBottom} L ${deCenter} ${busY}" class="organo-svg-line bus-trunk" />`);
 
-    // Linha horizontal ligando a primeira subdivisão (CADA: X=170) à última (SDINF: X=2410)
+    // 2. Linha horizontal do barramento de X=170 (CADA) a X=2410 (SDINF) em Y = 680
     const minX = (ORGANO_POSICOES['CADA']?.x || 60) + 110; // 170
     const maxX = (ORGANO_POSICOES['SDINF']?.x || 2300) + 110; // 2410
     svgPaths.push(`<path d="M ${minX} ${busY} L ${maxX} ${busY}" class="organo-svg-line bus-horizontal" />`);
 
-    // 9 descidas verticais para cada subdivisão principal
+    // 3. 9 descidas verticais do barramento para cada subdivisão principal
     const colunasPrincipais = ['CADA', 'SED', 'SDPL', 'SDEX', 'SPPC', 'SDIC', 'SDIA', 'SDINT', 'SDINF'];
     colunasPrincipais.forEach(sigla => {
       const p = ORGANO_POSICOES[sigla];
@@ -2302,37 +2388,37 @@
       }
     });
 
-    // 2. Ramo Staff Lateral (DE -> VC-DE -> SEC-DE -> CIE-DE/COS-DE, CLMP)
+    // 4. Ramo Staff Lateral (DE -> VC-DE -> SEC-DE -> CIE-DE/COS-DE, CLMP)
     const vcPos = ORGANO_POSICOES['VC-DE'];
     if (vcPos) {
-      const vcCenter = vcPos.x + 110; // 990
-      svgPaths.push(`<path d="M ${dePos.x} 105 L 990 105 L 990 ${vcPos.y}" class="organo-svg-line staff-line" />`);
+      const vcCenter = vcPos.x + 110; // 870
+      svgPaths.push(`<path d="M ${dePos.x} 115 L ${vcCenter} 115 L ${vcCenter} ${vcPos.y}" class="organo-svg-line staff-line" />`);
 
       const clmpPos = ORGANO_POSICOES['CLMP'];
       if (clmpPos) {
-        const clmpCenter = clmpPos.x + 110; // 810
-        svgPaths.push(`<path d="M ${vcCenter} 275 L ${vcCenter} 310 L ${clmpCenter} 310 L ${clmpCenter} ${clmpPos.y}" class="organo-svg-line staff-line" />`);
+        const clmpCenter = clmpPos.x + 110; // 730
+        svgPaths.push(`<path d="M ${vcCenter} ${vcPos.y + 155} L ${vcCenter} 280 L ${clmpCenter} 280 L ${clmpCenter} ${clmpPos.y}" class="organo-svg-line staff-line" />`);
       }
 
       const secPos = ORGANO_POSICOES['SEC-DE'];
       if (secPos) {
-        const secCenter = secPos.x + 110; // 500
-        svgPaths.push(`<path d="M ${vcCenter} 310 L ${secCenter} 310 L ${secCenter} ${secPos.y}" class="organo-svg-line staff-line" />`);
+        const secCenter = secPos.x + 110; // 450
+        svgPaths.push(`<path d="M ${vcCenter} 280 L ${secCenter} 280 L ${secCenter} ${secPos.y}" class="organo-svg-line staff-line" />`);
 
         const ciePos = ORGANO_POSICOES['CIE-DE'];
         if (ciePos) {
-          const cieCenter = ciePos.x + 110; // 200
-          svgPaths.push(`<path d="M ${secCenter} 365 L ${secCenter} 390 L ${cieCenter} 390 L ${cieCenter} ${ciePos.y}" class="organo-svg-line staff-line" />`);
+          const cieCenter = ciePos.x + 110; // 170
+          svgPaths.push(`<path d="M ${secCenter} ${secPos.y + 155} L ${secCenter} 440 L ${cieCenter} 440 L ${cieCenter} ${ciePos.y}" class="organo-svg-line staff-line" />`);
         }
 
         const cosPos = ORGANO_POSICOES['COS-DE'];
         if (cosPos) {
-          svgPaths.push(`<path d="M ${secCenter} 365 L ${secCenter} ${cosPos.y}" class="organo-svg-line staff-line" />`);
+          svgPaths.push(`<path d="M ${secCenter} ${secPos.y + 155} L ${cosPos.x + 110} ${cosPos.y}" class="organo-svg-line staff-line" />`);
         }
       }
     }
 
-    // 3. Filhos verticais dentro de cada subdivisão
+    // 5. Filhos verticais dentro de cada subdivisão (com 55px de respiro visível)
     const hierarquiasVerticais = [
       ['CADA', 'CADE', 'CAAP', 'CDEns'],
       ['SDPL', 'SPE', 'SAPRE'],
@@ -2348,7 +2434,7 @@
         const filho = ORGANO_POSICOES[lista[i+1]];
         if (pai && filho) {
           const cx = pai.x + 110;
-          svgPaths.push(`<path d="M ${cx} ${pai.y + 110} L ${cx} ${filho.y}" class="organo-svg-line" />`);
+          svgPaths.push(`<path d="M ${cx} ${pai.y + 155} L ${cx} ${filho.y}" class="organo-svg-line" />`);
         }
       }
     });
@@ -2442,10 +2528,19 @@
   }
 
   function resetZoomOrganograma() {
-    organoZoom = 1;
+    centralizarOrganogramaInicial();
+  }
+
+  function centralizarOrganogramaInicial() {
+    const viewport = document.getElementById('organo-viewport');
+    if (!viewport) return;
+    const vW = viewport.clientWidth;
+    organoZoom = 0.75;
+    // Centralizar no nó da Chefia (DE, X=1160, Centro=1290)
+    organoPan.x = Math.round((vW / 2) - (1290 * organoZoom));
+    organoPan.y = 30;
     const btnPct = document.getElementById('btn-organo-zoom-pct');
-    if (btnPct) btnPct.textContent = '100%';
-    organoPan = { x: 50, y: 30 };
+    if (btnPct) btnPct.textContent = `${Math.round(organoZoom * 100)}%`;
     aplicarTransformacaoCanvas();
   }
 
@@ -2455,11 +2550,11 @@
     const vW = viewport.clientWidth;
     const vH = viewport.clientHeight;
 
-    // Área do organograma: ~2600w por ~1400h
-    const escalaX = vW / 2650;
-    const escalaY = vH / 1450;
-    organoZoom = Math.min(Math.max(Math.min(escalaX, escalaY), 0.38), 0.95);
-    organoPan.x = Math.max((vW - 2500 * organoZoom) / 2, 20);
+    // Área total do organograma: ~2650w por ~1850h
+    const escalaX = vW / 2680;
+    const escalaY = vH / 1900;
+    organoZoom = Math.min(Math.max(Math.min(escalaX, escalaY), 0.32), 0.95);
+    organoPan.x = Math.max((vW - 2580 * organoZoom) / 2, 20);
     organoPan.y = 20;
 
     const btnPct = document.getElementById('btn-organo-zoom-pct');
@@ -2475,7 +2570,22 @@
   }
 
   function exportarOrganogramaPNG() {
-    window.print();
+    Swal.fire({
+      title: 'Exportar Organograma',
+      html: `Para salvar ou imprimir o organograma:<br><br>
+             1. Na tela de impressão que abrirá, selecione <b>Salvar como PDF</b> ou sua impressora.<br>
+             2. Escolha orientação <b>Paisagem (Landscape)</b>.<br>
+             3. Marque a opção <b>Gráficos de segundo plano</b> para preservar cores e linhas.`,
+      icon: 'info',
+      showCancelButton: true,
+      confirmButtonText: 'Abrir Impressão',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: 'var(--ouro, #d4af37)'
+    }).then(res => {
+      if (res.isConfirmed) {
+        window.print();
+      }
+    });
   }
 
   /* ═══════════════════════════════════════════════════════════════════
@@ -2504,11 +2614,21 @@
     renderizarOrganograma();
 
     if (termoBuscaOrgano) {
-      const match = listaOrganograma.find(n => 
+      let match = listaOrganograma.find(n => 
         n.chave_sigla.toLowerCase().includes(termoBuscaOrgano) ||
         (n.titular_nome || '').toLowerCase().includes(termoBuscaOrgano) ||
         (n.titular_posto || '').toLowerCase().includes(termoBuscaOrgano)
       );
+      if (!match) {
+        match = listaOrganograma.find(n => {
+          const membros = obterMembrosDaSecao(n.chave_sigla, n.secao_nome);
+          return membros.some(m =>
+            (m.nome || '').toLowerCase().includes(termoBuscaOrgano) ||
+            (m.nome_completo || '').toLowerCase().includes(termoBuscaOrgano) ||
+            (m.saram || '').includes(termoBuscaOrgano)
+          );
+        });
+      }
       if (match && ORGANO_POSICOES[match.chave_sigla]) {
         const pos = ORGANO_POSICOES[match.chave_sigla];
         const viewport = document.getElementById('organo-viewport');
@@ -2621,17 +2741,41 @@
 
       // Pré-preencher militar dispensado (titular atual)
       if (ehCargo) {
-        const elNomeDisp = document.getElementById('solic-cargo-disp-nome');
-        const elPostoDisp = document.getElementById('solic-cargo-disp-posto');
-        const elSaramDisp = document.getElementById('solic-cargo-disp-saram');
+        const elNomeDisp = document.getElementById('solic-disp-nome');
+        const elPostoDisp = document.getElementById('solic-disp-posto');
+        const elSaramDisp = document.getElementById('solic-disp-saram');
+        const elBuscaDisp = document.getElementById('solic-busca-dispensa');
         if (elNomeDisp) elNomeDisp.value = no.titular_nome || '';
         if (elPostoDisp) elPostoDisp.value = no.titular_posto || '';
         if (elSaramDisp) elSaramDisp.value = no.titular_saram || '';
+        if (elBuscaDisp) elBuscaDisp.value = `${no.titular_posto || ''} ${no.titular_nome || ''}`.trim();
 
-        // Focar no militar designado
-        document.getElementById('solic-busca-cargo-desig')?.focus();
+        // Selecionar o cargo correspondente no dropdown se disponível
+        const selCargo = document.getElementById('solic-cargo-funcao');
+        if (selCargo && selCargo.options.length) {
+          const opt = Array.from(selCargo.options).find(o => 
+            (no.titulo_exibicao && o.text.toLowerCase().includes(no.titulo_exibicao.toLowerCase())) ||
+            o.text.toLowerCase().includes('chefe') ||
+            o.text.toLowerCase().includes('encarregado')
+          );
+          if (opt) {
+            selCargo.value = opt.value;
+            aoMudarCargoFuncaoSelect();
+          }
+        }
+
+        // Focar no campo de busca do militar designado
+        setTimeout(() => document.getElementById('solic-busca-designa')?.focus(), 150);
       } else {
-        document.getElementById('solic-busca-militar')?.focus();
+        const elNome = document.getElementById('solic-nome-completo');
+        const elPosto = document.getElementById('solic-posto');
+        const elSaram = document.getElementById('solic-saram');
+        const elBusca = document.getElementById('solic-busca-militar');
+        if (elNome) elNome.value = no.titular_nome || '';
+        if (elPosto) elPosto.value = no.titular_posto || '';
+        if (elSaram) elSaram.value = no.titular_saram || '';
+        if (elBusca) elBusca.value = `${no.titular_posto || ''} ${no.titular_nome || ''}`.trim();
+        setTimeout(() => document.getElementById('solic-busca-militar')?.focus(), 150);
       }
 
       Swal.fire({
@@ -2776,6 +2920,7 @@
     }
 
     localStorage.setItem('cargos_organograma_cache', JSON.stringify(listaOrganograma));
+    localStorage.setItem('cargos_organograma_v3', JSON.stringify(listaOrganograma));
     fecharModalEdicaoNo();
     renderizarOrganograma();
 
@@ -2810,6 +2955,7 @@
 
     listaOrganograma = listaOrganograma.filter(n => n.chave_sigla !== chaveOriginal);
     localStorage.setItem('cargos_organograma_cache', JSON.stringify(listaOrganograma));
+    localStorage.setItem('cargos_organograma_v3', JSON.stringify(listaOrganograma));
     fecharModalEdicaoNo();
     renderizarOrganograma();
   }
@@ -2864,16 +3010,43 @@
         const secaoExiste = secoesMap.has(secaoSigla.toLowerCase());
 
         if (militarBanco && secaoExiste) {
-          countOk++;
-          linhas.push(`
-            <tr>
-              <td><strong>${m.posto} ${m.nome}</strong></td>
-              <td><code>${m.saram}</code></td>
-              <td><span style="color:#34d399">${textoH}</span></td>
-              <td><span class="badge" style="background:rgba(52,211,153,0.2);color:#34d399">🟢 Sincronizado</span></td>
-              <td style="text-align:right"><span style="color:#34d399;font-size:0.75rem">OK</span></td>
-            </tr>
-          `);
+          const funcaoBate = militarBanco.cargo_funcao_nome && (
+            militarBanco.cargo_funcao_nome.toLowerCase().includes(funcaoTitulo.toLowerCase()) ||
+            funcaoTitulo.toLowerCase().includes(militarBanco.cargo_funcao_nome.toLowerCase())
+          );
+          const secaoBate = (militarBanco.secao_sigla && militarBanco.secao_sigla.toLowerCase() === secaoSigla.toLowerCase()) ||
+                            (militarBanco.secao_nome && militarBanco.secao_nome.toLowerCase().includes(secaoSigla.toLowerCase()));
+
+          if (funcaoBate && secaoBate) {
+            countOk++;
+            linhas.push(`
+              <tr>
+                <td><strong>${m.posto} ${m.nome}</strong></td>
+                <td><code>${m.saram}</code></td>
+                <td><span style="color:#34d399">${textoH}</span></td>
+                <td><span class="badge" style="background:rgba(52,211,153,0.2);color:#34d399">🟢 Sincronizado</span></td>
+                <td style="text-align:right"><span style="color:#34d399;font-size:0.75rem">OK</span></td>
+              </tr>
+            `);
+          } else {
+            countDiv++;
+            linhas.push(`
+              <tr>
+                <td><strong>${m.posto} ${m.nome}</strong></td>
+                <td><code>${m.saram}</code></td>
+                <td>
+                  <div style="color:#fde047">${textoH}</div>
+                  <small style="color:var(--texto-3)">No banco: ${militarBanco.cargo_funcao_nome || '—'} (${militarBanco.secao_sigla || militarBanco.secao_nome || '—'})</small>
+                </td>
+                <td><span class="badge" style="background:rgba(212,168,75,0.2);color:#fde047">🟡 Divergente no Banco</span></td>
+                <td style="text-align:right">
+                  <button class="btn btn-ouro btn-sm" style="padding:0.2rem 0.5rem;font-size:0.72rem" onclick="corrigirAuditoriaItem('${m.saram}', '${secaoSigla}', '${funcaoTitulo}')">
+                    Atualizar
+                  </button>
+                </td>
+              </tr>
+            `);
+          }
         } else if (!secaoExiste) {
           countDiv++;
           linhas.push(`
@@ -3110,6 +3283,7 @@
 
     if (!secaoId) {
       selCargoFuncao.innerHTML = '<option value="">— Selecione a seção primeiro —</option>';
+      aoMudarCargoFuncaoSelect();
       return;
     }
 
@@ -3119,6 +3293,8 @@
     const filtrados = listaCatalogo.filter(c => c.secao_id === secaoId && c.tipo === tiposelecionado);
     lblCargoFuncao.textContent = (tiposelecionado === 'cargo') ? '2. Selecione o Cargo *' : '2. Selecione a Função *';
 
+    const opcaoOutro = '<option value="__outro__">➕ Outro (Digitar manualmente)...</option>';
+
     if (filtrados.length === 0) {
       // Fornecer opções padrão inteligentes para não bloquear o usuário
       const padroes = (tiposelecionado === 'cargo') 
@@ -3126,10 +3302,56 @@
         : [`Encarregado da ${secNome}`, `Auxiliar da ${secNome}`, `Membro da ${secNome}`];
 
       selCargoFuncao.innerHTML = `<option value="">— Selecione o(a) ${tiposelecionado} —</option>` +
-        padroes.map(p => `<option value="${p}">${p}</option>`).join('');
+        padroes.map(p => `<option value="${p}">${p}</option>`).join('') + opcaoOutro;
     } else {
       selCargoFuncao.innerHTML = `<option value="">— Selecione o(a) ${tiposelecionado} —</option>` +
-        filtrados.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('');
+        filtrados.map(c => `<option value="${c.nome}">${c.nome}</option>`).join('') + opcaoOutro;
+    }
+    aoMudarCargoFuncaoSelect();
+  }
+
+  function aoMudarCargoFuncaoSelect() {
+    const sel = document.getElementById('solic-cargo-funcao');
+    const boxCustom = document.getElementById('box-cargo-funcao-custom');
+    const inpCustom = document.getElementById('solic-cargo-funcao-custom');
+    if (!sel || !boxCustom) return;
+
+    if (sel.value === '__outro__') {
+      boxCustom.style.display = 'block';
+      if (inpCustom) {
+        inpCustom.required = true;
+        inpCustom.focus();
+      }
+    } else {
+      boxCustom.style.display = 'none';
+      if (inpCustom) {
+        inpCustom.required = false;
+        inpCustom.value = '';
+      }
+    }
+  }
+
+  function alternarManualMilitar(alvo, manual) {
+    const prefixo = alvo === 'funcao' ? 'solic' : (alvo === 'dispensa' ? 'solic-disp' : 'solic-desig');
+    const campoNome = alvo === 'funcao' ? document.getElementById('solic-nome-completo') : document.getElementById(`${prefixo}-nome`);
+    const campoPosto = document.getElementById(`${prefixo}-posto`);
+    const campoSaram = document.getElementById(`${prefixo}-saram`);
+    const wrapBusca = document.getElementById(alvo === 'funcao' ? 'box-busca-funcao-wrap' : (alvo === 'dispensa' ? 'box-busca-disp-wrap' : 'box-busca-desig-wrap'));
+
+    [campoNome, campoPosto, campoSaram].forEach(el => {
+      if (el) {
+        el.readOnly = !manual;
+        el.style.backgroundColor = manual ? 'var(--bg-input, rgba(255,255,255,0.06))' : 'rgba(255,255,255,0.03)';
+        el.style.borderColor = manual ? 'var(--ouro, #d4af37)' : '';
+      }
+    });
+
+    if (wrapBusca) {
+      wrapBusca.style.display = manual ? 'none' : 'block';
+    }
+
+    if (manual && campoNome) {
+      campoNome.focus();
     }
   }
 
@@ -3238,13 +3460,40 @@
     e.preventDefault();
     const secaoId = document.getElementById('solic-secao').value;
     const secaoObj = listaSecoes.find(s => s.id === secaoId);
-    const cargoFuncaoNome = document.getElementById('solic-cargo-funcao').value;
+    let cargoFuncaoNome = document.getElementById('solic-cargo-funcao').value;
     const dataInicio = document.getElementById('solic-data-inicio').value;
     const obs = document.getElementById('solic-obs').value.trim();
 
     if (!secaoId || !cargoFuncaoNome) {
       Swal.fire({ icon: 'warning', title: 'Campos Obrigatórios', text: 'Por favor, selecione a seção e o cargo/função.' });
       return;
+    }
+
+    if (cargoFuncaoNome === '__outro__') {
+      const customNome = document.getElementById('solic-cargo-funcao-custom')?.value.trim();
+      if (!customNome) {
+        Swal.fire({ icon: 'warning', title: 'Nome Obrigatório', text: 'Por favor, digite o nome do novo cargo ou função.' });
+        return;
+      }
+      cargoFuncaoNome = customNome;
+      // Adicionar ao catálogo local e remoto se possível
+      const novoItemCat = {
+        id: 'cat-' + Date.now(),
+        secao_id: secaoId,
+        tipo: tiposelecionado,
+        nome: cargoFuncaoNome
+      };
+      listaCatalogo.push(novoItemCat);
+      localStorage.setItem('cargos_catalogo_cache', JSON.stringify(listaCatalogo));
+      if (sb) {
+        try {
+          sb.from('cargos_catalogo').insert([{
+            secao_id: (secaoId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(secaoId)) ? secaoId : null,
+            tipo: tiposelecionado,
+            nome: cargoFuncaoNome
+          }]).then();
+        } catch(e){}
+      }
     }
 
     if (tiposelecionado === 'funcao' && !dataInicio) {
@@ -3269,7 +3518,7 @@
       const posto = document.getElementById('solic-posto').value;
 
       if (!saram || !nomeComp) {
-        Swal.fire({ icon: 'warning', title: 'Militar Não Selecionado', text: 'Por favor, selecione um militar na busca.' });
+        Swal.fire({ icon: 'warning', title: 'Militar Não Selecionado', text: 'Por favor, selecione um militar na busca ou marque a inserção manual.' });
         return;
       }
 
@@ -3301,11 +3550,25 @@
         return;
       }
 
-      payload.acao_tipo = 'transmissao';
+      let acaoTipoCargo = 'transmissao';
+      let motivoCodigoCargo = configCargos.motivo_cargo_designacao || '1138';
+
+      if (dispSaram && !desigSaram) {
+        acaoTipoCargo = 'dispensa';
+        motivoCodigoCargo = configCargos.motivo_cargo_dispensa || '1139';
+      } else if (!dispSaram && desigSaram) {
+        acaoTipoCargo = 'designacao';
+        motivoCodigoCargo = configCargos.motivo_cargo_designacao || '1138';
+      } else {
+        acaoTipoCargo = 'transmissao';
+        motivoCodigoCargo = configCargos.motivo_cargo_designacao || '1138';
+      }
+
+      payload.acao_tipo = acaoTipoCargo;
       payload.status_cargo = 'pendente';
       payload.siloms_status = 'pendente';
       payload.ttac_pendente = true;
-      payload.motivo_codigo = configCargos.motivo_cargo_designacao;
+      payload.motivo_codigo = motivoCodigoCargo;
       payload.militar_dispensado_saram = dispSaram || null;
       payload.militar_dispensado_nome = dispNome || null;
       payload.militar_dispensado_posto = dispPosto || null;
@@ -3363,10 +3626,19 @@
 
   function limparFormulario() {
     document.getElementById('form-solicitacao')?.reset();
-    ['solic-posto','solic-nome-completo','solic-saram','solic-disp-posto','solic-disp-saram','solic-disp-nome','solic-desig-posto','solic-desig-saram','solic-desig-nome','solic-busca-militar','solic-busca-dispensa','solic-busca-designa','solic-obs'].forEach(id => {
+    ['solic-posto','solic-nome-completo','solic-saram','solic-disp-posto','solic-disp-saram','solic-disp-nome','solic-desig-posto','solic-desig-saram','solic-desig-nome','solic-busca-militar','solic-busca-dispensa','solic-busca-designa','solic-obs','solic-cargo-funcao-custom'].forEach(id => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
+    // Resetar seleções manuais
+    ['funcao', 'dispensa', 'designa'].forEach(alvo => {
+      alternarManualMilitar(alvo, false);
+      const chk = document.getElementById(alvo === 'funcao' ? 'chk-manual-funcao' : (alvo === 'dispensa' ? 'chk-manual-disp' : 'chk-manual-desig'));
+      if (chk) chk.checked = false;
+    });
+    const boxCustom = document.getElementById('box-cargo-funcao-custom');
+    if (boxCustom) boxCustom.style.display = 'none';
+
     const dtIn = document.getElementById('solic-data-inicio');
     if (dtIn) dtIn.value = obterDataHojeLocal();
     aoMudarSecao();
@@ -3590,10 +3862,30 @@
   }
 
   function filtrarSecretaria(tipo) {
+    filtrarSecretariaTipo(tipo);
+  }
+
+  function filtrarSecretariaTipo(tipo) {
     filtroSecretariaAtual = tipo;
     ['todos', 'funcoes', 'cargos'].forEach(f => {
       const btn = document.getElementById(`flt-${f}`);
       if (btn) btn.classList.toggle('active', f === tipo || (f==='funcoes'&&tipo==='funcao') || (f==='cargos'&&tipo==='cargo'));
+    });
+    renderizarTabelaSecretaria();
+  }
+
+  function filtrarSecretariaStatus(status) {
+    filtroSecretariaStatusAtual = status;
+    const mapaBotoes = {
+      'todos': 'flt-st-todos',
+      'pendente': 'flt-st-pendentes',
+      'confeccionado': 'flt-st-confeccionados',
+      'publicado': 'flt-st-publicados',
+      'finalizado': 'flt-st-finalizados'
+    };
+    Object.keys(mapaBotoes).forEach(k => {
+      const btn = document.getElementById(mapaBotoes[k]);
+      if (btn) btn.classList.toggle('active', k === status);
     });
     renderizarTabelaSecretaria();
   }
@@ -3608,18 +3900,30 @@
     if (filtroSecretariaAtual === 'funcao') itens = itens.filter(i => i.tipo === 'funcao');
     if (filtroSecretariaAtual === 'cargo') itens = itens.filter(i => i.tipo === 'cargo');
 
+    if (filtroSecretariaStatusAtual && filtroSecretariaStatusAtual !== 'todos') {
+      itens = itens.filter(i => {
+        const st = (i.tipo === 'cargo' ? i.status_cargo : i.status_funcao) || 'pendente';
+        if (filtroSecretariaStatusAtual === 'pendente') return st === 'pendente';
+        if (filtroSecretariaStatusAtual === 'confeccionado') return st === 'item_confeccionado';
+        if (filtroSecretariaStatusAtual === 'publicado') return st === 'publicado_atualizar_105';
+        if (filtroSecretariaStatusAtual === 'finalizado') return st === 'finalizado';
+        return true;
+      });
+    }
+
     if (textoFiltro) {
       itens = itens.filter(i => 
         (i.secao_nome && i.secao_nome.toLowerCase().includes(textoFiltro)) ||
         (i.cargo_funcao_nome && i.cargo_funcao_nome.toLowerCase().includes(textoFiltro)) ||
         (i.militar_designado_nome && i.militar_designado_nome.toLowerCase().includes(textoFiltro)) ||
         (i.militar_dispensado_nome && i.militar_dispensado_nome.toLowerCase().includes(textoFiltro)) ||
-        (i.militar_designado_saram && i.militar_designado_saram.includes(textoFiltro))
+        (i.militar_designado_saram && i.militar_designado_saram.includes(textoFiltro)) ||
+        (i.militar_dispensado_saram && i.militar_dispensado_saram.includes(textoFiltro))
       );
     }
 
     if (!itens.length) {
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--texto-3)">Nenhuma solicitação encontrada.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--texto-3)">Nenhuma solicitação encontrada para os filtros selecionados.</td></tr>';
       return;
     }
 
@@ -3633,7 +3937,7 @@
           </td>
           <td>
             <span class="badge ${isCargo ? 'badge-cargo' : 'badge-funcao'}">${item.tipo}</span>
-            <div style="font-size:0.72rem;color:var(--texto-3),margin-top:2px">${item.acao_tipo || 'designação'}</div>
+            <div style="font-size:0.72rem;color:var(--texto-3);margin-top:2px">${item.acao_tipo || 'designação'}</div>
           </td>
           <td>
             <strong>${item.cargo_funcao_nome}</strong>
@@ -3685,11 +3989,9 @@
           </td>
           <td style="text-align:right">
             <div style="display:flex;gap:0.35rem;justify-content:flex-end;flex-wrap:wrap">
-              ${!isCargo && (item.status_funcao === 'pendente' || !item.status_funcao) ? `
-                <button class="btn btn-ouro btn-sm" onclick="gerarCsvItem('${item.id}')" title="Gerar CSV para publicação">
-                  📊 Gerar CSV
-                </button>
-              ` : ''}
+              <button class="btn btn-ouro btn-sm" onclick="gerarCsvItem('${item.id}')" title="Gerar Texto / CSV para publicação">
+                📊 Texto / CSV
+              </button>
               ${isCargo ? `
                 <button class="btn btn-azul btn-sm" onclick="anexarBoletimCargo('${item.id}')" title="Anexar Boletim PDF-A e Gerar E-mail SREG">
                   📎 Anexar Bol & TTAC
@@ -3698,11 +4000,54 @@
               <button class="btn btn-jade btn-sm" onclick="salvarAlteracoesItem('${item.id}')" title="Salvar boletim, SILOMS e status">
                 💾 Salvar
               </button>
+              <button class="btn btn-perigo btn-sm" onclick="excluirSolicitacao('${item.id}')" title="Excluir solicitação">
+                🗑️
+              </button>
             </div>
           </td>
         </tr>
       `;
     }).join('');
+  }
+
+  async function excluirSolicitacao(id) {
+    const item = listaSolicitacoes.find(s => s.id === id);
+    if (!item) return;
+
+    const res = await Swal.fire({
+      title: 'Excluir Solicitação?',
+      text: `Deseja realmente remover a solicitação de ${item.cargo_funcao_nome} (${item.secao_nome})?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'Sim, excluir',
+      cancelButtonText: 'Cancelar'
+    });
+    if (!res.isConfirmed) return;
+
+    if (sb && typeof id === 'string' && !id.startsWith('loc-')) {
+      try {
+        await sb.from('cargos_solicitacoes').delete().eq('id', id);
+      } catch(err) {
+        console.warn('Erro ao excluir no Supabase:', err);
+      }
+    }
+
+    listaSolicitacoes = listaSolicitacoes.filter(s => s.id !== id);
+    let loc = JSON.parse(localStorage.getItem('cargos_solicitacoes_cache') || '[]');
+    loc = loc.filter(s => s.id !== id);
+    localStorage.setItem('cargos_solicitacoes_cache', JSON.stringify(loc));
+
+    atualizarContadores();
+    renderizarTabelaSecretaria();
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Excluída!',
+      text: 'A solicitação foi removida com sucesso.',
+      timer: 1500,
+      showConfirmButton: false
+    });
   }
 
   function renderSeletorStatus(item) {
@@ -3793,46 +4138,194 @@
   }
 
   async function registrarAtribuicaoMilitarAtivo(item) {
-    const militarSaram = item.militar_designado_saram || item.militar_dispensado_saram;
-    const militarNome = item.militar_designado_nome || item.militar_dispensado_nome;
-    const militarPosto = item.militar_designado_posto || item.militar_dispensado_posto;
-    if (!militarSaram) return;
-
-    const payloadAtivo = {
-      saram: militarSaram,
-      nome: militarNome,
-      posto_grad: militarPosto,
-      secao_id: (item.secao_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.secao_id)) ? item.secao_id : null,
-      secao_nome: item.secao_nome,
-      tipo: item.tipo,
-      cargo_funcao_nome: item.cargo_funcao_nome,
-      data_assuncao: item.data_inicio || null,
-      boletim_publicacao: item.boletim_numero ? `Bol n° ${item.boletim_numero} de ${formatarDataBR(item.boletim_data)}` : 'Publicado',
-      boletim_data: item.boletim_data || null,
-      siloms_num: item.siloms_processo_num || null,
-      origem: 'sistema',
-      updated_at: new Date().toISOString()
-    };
-
-    if (sb) {
-      try {
-        const { data: exist } = await sb.from('cargos_militares_ativos').select('id').eq('saram', militarSaram).maybeSingle();
-        if (exist) {
-          await sb.from('cargos_militares_ativos').update(payloadAtivo).eq('id', exist.id);
-        } else {
-          await sb.from('cargos_militares_ativos').insert([payloadAtivo]);
+    // 1. Se for FUNÇÃO e ação for DISPENSA: remover militar de cargos_militares_ativos
+    if (item.tipo === 'funcao' && item.acao_tipo === 'dispensa') {
+      const saramDisp = item.militar_dispensado_saram;
+      if (saramDisp) {
+        if (sb) {
+          try {
+            await sb.from('cargos_militares_ativos').delete().eq('saram', saramDisp);
+          } catch(e) { console.warn(e); }
         }
-      } catch(e){}
+        listaMilitaresAtivos = listaMilitaresAtivos.filter(m => m.saram !== saramDisp);
+      }
+      return;
+    }
+
+    // 2. Se houver militar dispensado (cargo ou transmissão): remover das atribuições ativas
+    if (item.militar_dispensado_saram) {
+      if (sb) {
+        try {
+          await sb.from('cargos_militares_ativos').delete().eq('saram', item.militar_dispensado_saram);
+        } catch(e) { console.warn(e); }
+      }
+      listaMilitaresAtivos = listaMilitaresAtivos.filter(m => m.saram !== item.militar_dispensado_saram);
+    }
+
+    // 3. Se houver militar designado: upsert em cargos_militares_ativos
+    if (item.militar_designado_saram) {
+      const payloadAtivo = {
+        saram: item.militar_designado_saram,
+        nome: item.militar_designado_nome,
+        posto_grad: item.militar_designado_posto,
+        secao_id: (item.secao_id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(item.secao_id)) ? item.secao_id : null,
+        secao_nome: item.secao_nome,
+        tipo: item.tipo,
+        cargo_funcao_nome: item.cargo_funcao_nome,
+        data_assuncao: item.data_inicio || null,
+        boletim_publicacao: item.boletim_numero ? `Bol n° ${item.boletim_numero} de ${formatarDataBR(item.boletim_data)}` : 'Publicado',
+        boletim_data: item.boletim_data || null,
+        siloms_num: item.siloms_processo_num || null,
+        origem: 'sistema',
+        updated_at: new Date().toISOString()
+      };
+
+      if (sb) {
+        try {
+          const { data: exist } = await sb.from('cargos_militares_ativos').select('id').eq('saram', item.militar_designado_saram).maybeSingle();
+          if (exist) {
+            await sb.from('cargos_militares_ativos').update(payloadAtivo).eq('id', exist.id);
+          } else {
+            await sb.from('cargos_militares_ativos').insert([payloadAtivo]);
+          }
+        } catch(e){ console.warn(e); }
+      }
+
+      // Atualizar cache local
+      const idxAtivo = listaMilitaresAtivos.findIndex(m => m.saram === item.militar_designado_saram);
+      if (idxAtivo >= 0) {
+        listaMilitaresAtivos[idxAtivo] = { ...listaMilitaresAtivos[idxAtivo], ...payloadAtivo };
+      } else {
+        listaMilitaresAtivos.push(payloadAtivo);
+      }
+
+      // 4. Se for Cargo, atualizar o nó correspondente no Organograma
+      if (item.tipo === 'cargo') {
+        const noOrgano = listaOrganograma.find(n => 
+          (n.secao_id && item.secao_id && n.secao_id === item.secao_id) ||
+          (item.secao_nome && (n.secao_nome.toLowerCase() === item.secao_nome.toLowerCase() || n.chave_sigla.toLowerCase() === item.secao_nome.toLowerCase())) ||
+          (n.titulo_exibicao && n.titulo_exibicao.toLowerCase() === item.cargo_funcao_nome.toLowerCase())
+        );
+        if (noOrgano) {
+          noOrgano.titular_nome = item.militar_designado_nome;
+          noOrgano.titular_posto = item.militar_designado_posto;
+          noOrgano.titular_saram = item.militar_designado_saram;
+          if (sb) {
+            try {
+              await sb.from('cargos_organograma_estrutura').update({
+                titular_nome: item.militar_designado_nome,
+                titular_posto: item.militar_designado_posto,
+                titular_saram: item.militar_designado_saram,
+                updated_at: new Date().toISOString()
+              }).eq('chave_sigla', noOrgano.chave_sigla);
+            } catch(e){}
+          }
+          localStorage.setItem('cargos_organograma_cache', JSON.stringify(listaOrganograma));
+          localStorage.setItem('cargos_organograma_v3', JSON.stringify(listaOrganograma));
+          renderizarOrganograma();
+        }
+      }
     }
   }
 
   /* ═══════════════════════════════════════════════════════════════════
      GERADOR DE CSV (COM MOTIVO DINÂMICO E SWEETALERT2)
      ═══════════════════════════════════════════════════════════════════ */
+  function copiarTexto(enc) {
+    const txt = decodeURIComponent(enc);
+    navigator.clipboard.writeText(txt).then(() => {
+      Swal.fire({ icon: 'success', title: 'Copiado!', timer: 1200, showConfirmButton: false });
+    });
+  }
+
   function gerarCsvItem(id) {
     const item = listaSolicitacoes.find(s => s.id === id);
     if (!item) return;
 
+    // Se for CARGO:
+    if (item.tipo === 'cargo') {
+      const motDisp = configCargos.motivo_cargo_dispensa || '1139';
+      const motDesig = configCargos.motivo_cargo_designacao || '1138';
+      const cargoNome = item.cargo_funcao_nome || '';
+      const secaoNome = item.secao_nome || '';
+      const bolData = formatarDataBR(item.boletim_data);
+      const vigenciaTxt = bolData ? `a contar de ${bolData}` : 'a contar da data de publicação deste boletim';
+
+      let dispHtml = '';
+      let desigHtml = '';
+      let allTextToCopy = '';
+
+      if (item.militar_dispensado_saram) {
+        const txtDisp = `Dispensado(a) do cargo de ${cargoNome}, da ${secaoNome}, da Divisão de Ensino, ${vigenciaTxt}.`;
+        const csvDisp = `${item.militar_dispensado_saram};${bolData || ''};${cargoNome};${secaoNome};Divisão de Ensino;AFA;${motDisp}`;
+        allTextToCopy += `[DISPENSA - MOTIVO ${motDisp}]\n${txtDisp}\n\n`;
+        dispHtml = `
+          <div style="margin-bottom:0.8rem;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:0.75rem">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem">
+              <strong style="color:#fca5a5;font-size:0.85rem">1. Dispensa de Cargo (Motivo ${motDisp})</strong>
+              <button class="btn btn-fantasma btn-sm" onclick="copiarTexto('${encodeURIComponent(txtDisp)}')">📋 Copiar Texto</button>
+            </div>
+            <div style="font-size:0.8rem;color:var(--texto-2);margin-bottom:0.3rem">
+              <b>${item.militar_dispensado_posto || ''} ${item.militar_dispensado_nome || ''}</b> (SARAM: <code>${item.militar_dispensado_saram}</code>)
+            </div>
+            <div style="background:#050c1c;padding:0.5rem;border-radius:6px;font-size:0.8rem;font-style:italic;color:#e2e8f0;margin-bottom:0.4rem">"${txtDisp}"</div>
+            <div style="font-size:0.72rem;font-family:monospace;color:#94a3b8">CSV: ${csvDisp}</div>
+          </div>
+        `;
+      }
+
+      if (item.militar_designado_saram) {
+        const txtDesig = `Designado(a) para o cargo de ${cargoNome}, da ${secaoNome}, da Divisão de Ensino, ${vigenciaTxt}.`;
+        const csvDesig = `${item.militar_designado_saram};${bolData || ''};${cargoNome};${secaoNome};Divisão de Ensino;AFA;${motDesig}`;
+        allTextToCopy += `[DESIGNAÇÃO - MOTIVO ${motDesig}]\n${txtDesig}\n\n`;
+        desigHtml = `
+          <div style="margin-bottom:0.8rem;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:0.75rem">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem">
+              <strong style="color:#6ee7b7;font-size:0.85rem">2. Designação de Cargo (Motivo ${motDesig})</strong>
+              <button class="btn btn-fantasma btn-sm" onclick="copiarTexto('${encodeURIComponent(txtDesig)}')">📋 Copiar Texto</button>
+            </div>
+            <div style="font-size:0.8rem;color:var(--texto-2);margin-bottom:0.3rem">
+              <b>${item.militar_designado_posto || ''} ${item.militar_designado_nome || ''}</b> (SARAM: <code>${item.militar_designado_saram}</code>)
+            </div>
+            <div style="background:#050c1c;padding:0.5rem;border-radius:6px;font-size:0.8rem;font-style:italic;color:#e2e8f0;margin-bottom:0.4rem">"${txtDesig}"</div>
+            <div style="font-size:0.72rem;font-family:monospace;color:#94a3b8">CSV: ${csvDesig}</div>
+          </div>
+        `;
+      }
+
+      Swal.fire({
+        title: '📊 Textos de Publicação - Cargo',
+        html: `
+          <div style="text-align:left;font-size:0.85rem">
+            <div style="background:rgba(212,168,75,0.1);border:1px solid rgba(212,168,75,0.3);border-radius:8px;padding:0.6rem 0.8rem;margin-bottom:0.8rem">
+              <span>Cargo: <b>${cargoNome}</b> (${secaoNome})</span>
+              <div style="font-size:0.75rem;color:var(--ouro-lt);margin-top:2px">⚠️ Vigência oficial: a contar da data de publicação no Boletim Interno Ostensivo</div>
+            </div>
+            ${dispHtml}
+            ${desigHtml}
+            <div style="background:rgba(15,23,42,0.6);border:1px solid var(--linha);border-radius:8px;padding:0.6rem 0.8rem;font-size:0.75rem;color:var(--texto-3)">
+              📌 <b>Lembrete Secretaria:</b> Após publicar no boletim, anexe o PDF-A e envie e-mail para SREG solicitando o TTAC.
+            </div>
+          </div>
+        `,
+        confirmButtonText: '📋 Copiar Todos os Textos',
+        cancelButtonText: 'Fechar',
+        showCancelButton: true,
+        confirmButtonColor: '#d4a84b',
+        background: '#0a192f',
+        color: '#f1f5f9',
+        width: '680px'
+      }).then(res => {
+        if (res.isConfirmed) {
+          navigator.clipboard.writeText(allTextToCopy.trim()).then(() => {
+            Swal.fire({ icon: 'success', title: 'Copiado!', text: 'Textos copiados para a área de transferência.', timer: 1500, showConfirmButton: false });
+          });
+        }
+      });
+      return;
+    }
+
+    // Se for FUNÇÃO:
     const isDispensa = item.acao_tipo === 'dispensa';
     const motivoCod = isDispensa ? (configCargos.motivo_funcao_dispensa || '9209') : (configCargos.motivo_funcao_designacao || '9208');
     const saram = item.militar_designado_saram || item.militar_dispensado_saram || '';
