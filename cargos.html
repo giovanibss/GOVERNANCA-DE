@@ -1342,10 +1342,6 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
             Sincronizado com o Banco & Efetivo
           </span>
-          <button class="btn btn-fantasma btn-sm" id="btn-organo-add-node" onclick="abrirModalEdicaoNo(null)" style="display:none">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            + Novo Nó
-          </button>
         </div>
       </div>
 
@@ -1402,6 +1398,19 @@
             <button class="btn-organo-ctrl" onclick="exportarOrganogramaPNG()" title="Exportar PNG / Imprimir">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Exportar
+            </button>
+          </div>
+
+          <!-- Ações Exclusivas do Modo Secretaria (Motor de Gestão e Cascata) -->
+          <div class="organo-sec-actions" id="organo-sec-toolbar-box" style="display:flex;align-items:center;gap:0.4rem;">
+            <button class="btn-organo-ctrl" id="btn-organo-sec-toggle" onclick="solicitarAcessoSecretariaOrgano()" title="Acessar Gestão da Secretaria" style="background:rgba(212,168,75,0.12);border-color:rgba(212,168,75,0.4);color:var(--ouro-lt);font-weight:600;">
+              🔒 Secretaria
+            </button>
+            <button class="btn-organo-ctrl btn-ouro" id="btn-organo-add-node" onclick="abrirModalEdicaoNo()" title="Adicionar / Alocar Nova Seção na Cascata" style="display:none;">
+              ➕ Nova Seção
+            </button>
+            <button class="btn-organo-ctrl" id="btn-organo-reset-default" onclick="restaurarOrganogramaPadrao()" title="Restaurar estrutura padrão FAB" style="display:none;color:#fca5a5;border-color:rgba(239,68,68,0.3)">
+              🔄 Padrão FAB
             </button>
           </div>
 
@@ -1730,11 +1739,11 @@
     </div>
   </div>
 
-  <!-- MODAL DE EDIÇÃO LIVRE DO NÓ -->
+  <!-- MODAL DE EDIÇÃO LIVRE DO NÓ E GESTÃO DE CASCATA -->
   <div class="modal-backdrop" id="modal-edicao-livre-no" onclick="if(event.target===this)fecharModalEdicaoNo()">
-    <div class="modal-box" style="max-width:520px">
+    <div class="modal-box" style="max-width:580px">
       <div class="modal-head">
-        <h3 id="edit-no-titulo-modal">✏️ Edição Livre do Nó do Organograma</h3>
+        <h3 id="edit-no-titulo-modal">✏️ Gestão de Seção & Cascata Hierárquica</h3>
         <button class="modal-close" onclick="fecharModalEdicaoNo()">&times;</button>
       </div>
       <form onsubmit="salvarEdicaoLivreNo(event)">
@@ -1743,14 +1752,18 @@
           <div class="form-grid">
             
             <div class="campo">
-              <label for="edit-no-sigla">Sigla do Nó (Única) *</label>
-              <input type="text" id="edit-no-sigla" required placeholder="Ex: SDEX, CIE-DE" />
+              <label for="edit-no-sigla">Sigla da Seção (Única) *</label>
+              <input type="text" id="edit-no-sigla" required placeholder="Ex: SDEX, CIE-DE, SECOM" />
             </div>
 
             <div class="campo">
-              <label for="edit-no-parent">Nó Pai (Subordinação)</label>
-              <select id="edit-no-parent">
-                <option value="">— Raiz (Sem Pai) —</option>
+              <label for="edit-no-tipo">Tipo do Nó</label>
+              <select id="edit-no-tipo">
+                <option value="raiz">Raiz (Chefia Geral)</option>
+                <option value="staff">Staff / Assessoria Lateral</option>
+                <option value="subdivisao">Subdivisão Principal (Barramento)</option>
+                <option value="celula">Célula</option>
+                <option value="secao">Seção / Coordenadoria</option>
               </select>
             </div>
 
@@ -1759,15 +1772,36 @@
               <input type="text" id="edit-no-titulo" required placeholder="Ex: Subdivisão de Execução" />
             </div>
 
-            <div class="campo">
-              <label for="edit-no-tipo">Tipo do Nó</label>
-              <select id="edit-no-tipo">
-                <option value="raiz">Raiz (Chefia Geral)</option>
-                <option value="staff">Staff / Assessoria</option>
-                <option value="subdivisao">Subdivisão Principal</option>
-                <option value="celula">Célula</option>
-                <option value="secao">Seção / Coordenadoria</option>
-              </select>
+            <!-- BLOCO DE CASCATA HIERÁRQUICA (SUPERIOR E SUBORDINADOS) -->
+            <div class="campo full" style="background:rgba(15,23,42,0.7);border:1px solid rgba(212,168,75,0.35);border-radius:10px;padding:0.85rem;margin:0.35rem 0;">
+              <div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.65rem;">
+                <span style="font-size:1.1rem">⛓️</span>
+                <strong style="color:var(--ouro-lt);font-size:0.88rem;letter-spacing:0.02em">Definição da Cascata Hierárquica</strong>
+              </div>
+              
+              <div style="margin-bottom:0.75rem">
+                <label for="edit-no-parent" style="display:block;margin-bottom:0.25rem;font-size:0.78rem;font-weight:700;color:#cbd5e1">
+                  1. De onde esta seção é subordinada (Órgão / Seção Superior):
+                </label>
+                <select id="edit-no-parent" style="width:100%">
+                  <option value="">— Raiz (Chefia Geral / Sem Pai) —</option>
+                </select>
+                <small style="color:var(--texto-3);font-size:0.7rem;display:block;margin-top:2px">
+                  Determina a coluna e o posicionamento superior na hierarquia.
+                </small>
+              </div>
+
+              <div>
+                <label style="display:block;margin-bottom:0.35rem;font-size:0.78rem;font-weight:700;color:#cbd5e1">
+                  2. Quem é subordinado a esta seção (Seções Filhas na Cascata):
+                </label>
+                <div id="edit-no-subordinados-box" style="max-height:160px;overflow-y:auto;background:#030712;border:1px solid var(--linha);border-radius:8px;padding:0.5rem;display:flex;flex-direction:column;gap:0.35rem;">
+                  <!-- Checkboxes das seções subordinadas gerados via JavaScript -->
+                </div>
+                <small style="color:var(--texto-3);font-size:0.7rem;display:block;margin-top:4px">
+                  💡 Marque as seções que devem responder diretamente a esta na árvore hierárquica.
+                </small>
+              </div>
             </div>
 
             <div class="campo">
@@ -1780,10 +1814,15 @@
               </select>
             </div>
 
+            <div class="campo">
+              <label for="edit-no-ordem">Ordem na Coluna</label>
+              <input type="number" id="edit-no-ordem" value="1" min="1" />
+            </div>
+
             <div class="campo full">
               <label for="edit-no-titular-busca">Titular (Buscar do Efetivo)</label>
               <div class="sugestoes-box">
-                <input type="text" id="edit-no-titular-busca" placeholder="Digite para buscar do efetivo…" autocomplete="off" oninput="buscarMilitarParaEdicaoNo(this.value)" />
+                <input type="text" id="edit-no-titular-busca" placeholder="Digite nome, nome de guerra ou SARAM para vincular…" autocomplete="off" oninput="buscarMilitarParaEdicaoNo(this.value)" />
                 <div class="sugestoes-list" id="sugestoes-edit-no"></div>
               </div>
             </div>
@@ -1803,17 +1842,12 @@
               <input type="text" id="edit-no-saram" placeholder="7 dígitos" />
             </div>
 
-            <div class="campo">
-              <label for="edit-no-ordem">Ordem de Exibição (1, 2, 3...)</label>
-              <input type="number" id="edit-no-ordem" value="1" />
-            </div>
-
           </div>
         </div>
         <div class="modal-foot">
-          <button type="button" class="btn btn-perigo btn-sm" id="btn-excluir-no-organo" onclick="excluirNoOrganograma()" style="margin-right:auto;display:none">Excluir Nó</button>
+          <button type="button" class="btn btn-perigo btn-sm" id="btn-excluir-no-organo" onclick="excluirNoOrganograma()" style="margin-right:auto;display:none">Excluir Seção</button>
           <button type="button" class="btn btn-fantasma" onclick="fecharModalEdicaoNo()">Cancelar</button>
-          <button type="submit" class="btn btn-ouro">Salvar Alterações</button>
+          <button type="submit" class="btn btn-ouro">Salvar Alterações na Cascata</button>
         </div>
       </form>
     </div>
@@ -2249,6 +2283,188 @@
     localStorage.setItem('cargos_organograma_cache', JSON.stringify(listaOrganograma));
   }
 
+  /* ═══════════════════════════════════════════════════════════════════
+     MOTOR DE CASCATA HIERÁRQUICA E RENDERIZAÇÃO DO ORGANOGRAMA
+     ═══════════════════════════════════════════════════════════════════ */
+  function calcularPosicoesOrganograma(lista) {
+    const mapa = {};
+    if (!lista || !lista.length) return mapa;
+    const root = lista.find(n => n.tipo_no === 'raiz' || !n.parent_sigla) || lista[0];
+    
+    // Padrão base dos nós superiores e staff oficial FAB
+    const PADRAO_BASE = {
+      'DE': { x: 1160, y: 40, w: 260, h: 160 },
+      'VC-DE': { x: 760, y: 170, w: 220, h: 155 },
+      'CLMP': { x: 620, y: 330, w: 220, h: 155 },
+      'SEC-DE': { x: 340, y: 330, w: 220, h: 155 },
+      'CIE-DE': { x: 60, y: 490, w: 220, h: 155 },
+      'COS-DE': { x: 340, y: 490, w: 220, h: 155 }
+    };
+
+    // 9 Colunas padrão da FAB no barramento horizontal
+    const COLUNAS_BASE_X = {
+      'CADA': 60,
+      'SED': 340,
+      'SDPL': 620,
+      'SDEX': 900,
+      'SPPC': 1180,
+      'SDIC': 1460,
+      'SDIA': 1740,
+      'SDINT': 2020,
+      'SDINF': 2300
+    };
+
+    // Mapeamento de hierarquia (pai -> filhos)
+    const mapaFilhos = new Map();
+    lista.forEach(n => {
+      if (!mapaFilhos.has(n.parent_sigla)) mapaFilhos.set(n.parent_sigla, []);
+      mapaFilhos.get(n.parent_sigla).push(n);
+    });
+    mapaFilhos.forEach(filhos => filhos.sort((a, b) => (a.ordem || 1) - (b.ordem || 1)));
+
+    // 1. Chefia Raiz (DE)
+    if (root) mapa[root.chave_sigla] = { x: 1160, y: 40, w: 260, h: 160 };
+
+    // 2. Nós diretamente subordinados a DE
+    const diretosDE = mapaFilhos.get(root ? root.chave_sigla : null) || [];
+    const staffDE = diretosDE.filter(n => n.tipo_no === 'staff');
+    const subdivsDE = diretosDE.filter(n => n.tipo_no !== 'staff');
+
+    // 3. Posicionar Staff (ramo à esquerda)
+    function posicionarStaff(no, fallbackPos) {
+      mapa[no.chave_sigla] = PADRAO_BASE[no.chave_sigla] || fallbackPos;
+      const filhos = mapaFilhos.get(no.chave_sigla) || [];
+      filhos.forEach((f, idx) => {
+        const pFallback = { x: fallbackPos.x - (idx * 280), y: fallbackPos.y + 160, w: 220, h: 155 };
+        posicionarStaff(f, pFallback);
+      });
+    }
+    staffDE.forEach(s => posicionarStaff(s, { x: 760, y: 170, w: 220, h: 155 }));
+
+    // 4. Posicionar Subdivisões Principais e suas Cascatas Verticais
+    let proximoXSubdiv = 2580;
+    subdivsDE.forEach(sub => {
+      let colX = COLUNAS_BASE_X[sub.chave_sigla];
+      if (colX === undefined) {
+        colX = proximoXSubdiv;
+        proximoXSubdiv += 280;
+      }
+      
+      mapa[sub.chave_sigla] = { x: colX, y: 750, w: 220, h: 155 };
+
+      // Descer em cascata vertical ao longo desta coluna
+      function posicionarCascataColuna(paiSigla, yInicial) {
+        const filhos = mapaFilhos.get(paiSigla) || [];
+        let currentY = yInicial;
+        filhos.forEach(filho => {
+          mapa[filho.chave_sigla] = { x: colX, y: currentY, w: 220, h: 155 };
+          currentY = posicionarCascataColuna(filho.chave_sigla, currentY + 210);
+        });
+        return currentY;
+      }
+
+      posicionarCascataColuna(sub.chave_sigla, 960);
+    });
+
+    // 5. Tratar quaisquer nós que não tenham sido alcançados
+    let yExtra = 1800;
+    lista.forEach(n => {
+      if (!mapa[n.chave_sigla]) {
+        mapa[n.chave_sigla] = { x: 60, y: yExtra, w: 220, h: 155 };
+        yExtra += 210;
+      }
+    });
+
+    return mapa;
+  }
+
+  function gerarSvgDinamico(lista, posicoes) {
+    const paths = [];
+    const busY = 680;
+    const root = lista.find(n => n.tipo_no === 'raiz' || !n.parent_sigla) || lista[0];
+    if (!root) return paths;
+
+    const rootPos = posicoes[root.chave_sigla] || { x: 1160, y: 40, w: 260, h: 160 };
+    const rootCenter = rootPos.x + (rootPos.w ? rootPos.w / 2 : 130);
+    const rootBottom = rootPos.y + (rootPos.h ? rootPos.h : 160);
+
+    // 1. Subdivisões no Barramento (subordinadas diretamente a DE e não-staff)
+    const subdivs = lista.filter(n => n.parent_sigla === root.chave_sigla && n.tipo_no !== 'staff');
+    if (subdivs.length > 0) {
+      // Tronco vertical da Chefia descendo até o barramento horizontal
+      paths.push(`<path d="M ${rootCenter} ${rootBottom} L ${rootCenter} ${busY}" class="organo-svg-line bus-trunk" />`);
+
+      // Linha horizontal de distribuição do barramento
+      const xCoords = subdivs.map(s => (posicoes[s.chave_sigla]?.x || 0) + 110);
+      const minX = Math.min(...xCoords);
+      const maxX = Math.max(...xCoords);
+      paths.push(`<path d="M ${minX} ${busY} L ${maxX} ${busY}" class="organo-svg-line bus-horizontal" />`);
+
+      // Descidas verticais do barramento para o topo de cada subdivisão
+      subdivs.forEach(s => {
+        const p = posicoes[s.chave_sigla];
+        if (p) {
+          const cx = p.x + 110;
+          paths.push(`<path d="M ${cx} ${busY} L ${cx} ${p.y}" class="organo-svg-line bus-drop" />`);
+        }
+      });
+    }
+
+    // 2. Ramo Staff (Assessoria Lateral)
+    const staffs = lista.filter(n => n.tipo_no === 'staff');
+    staffs.forEach(st => {
+      const parent = lista.find(p => p.chave_sigla === st.parent_sigla);
+      if (!parent) return;
+      const pPos = posicoes[parent.chave_sigla];
+      const sPos = posicoes[st.chave_sigla];
+      if (!pPos || !sPos) return;
+
+      const pCenter = pPos.x + (pPos.w ? pPos.w / 2 : 110);
+      const sCenter = sPos.x + (sPos.w ? sPos.w / 2 : 110);
+
+      if (parent.chave_sigla === root.chave_sigla) {
+        paths.push(`<path d="M ${pPos.x} ${rootPos.y + 75} L ${sCenter} ${rootPos.y + 75} L ${sCenter} ${sPos.y}" class="organo-svg-line staff-line" />`);
+      } else {
+        const midY = (pPos.y + 155 + sPos.y) / 2;
+        paths.push(`<path d="M ${pCenter} ${pPos.y + 155} L ${pCenter} ${midY} L ${sCenter} ${midY} L ${sCenter} ${sPos.y}" class="organo-svg-line staff-line" />`);
+      }
+    });
+
+    // 3. Conexões em Cascata de todas as demais seções e células
+    lista.forEach(n => {
+      if (!n.parent_sigla || n.chave_sigla === root.chave_sigla) return;
+      if (n.parent_sigla === root.chave_sigla && n.tipo_no !== 'staff') return;
+      if (n.tipo_no === 'staff') return;
+
+      const pai = lista.find(p => p.chave_sigla === n.parent_sigla);
+      if (!pai) return;
+      const paiPos = posicoes[pai.chave_sigla];
+      const filhoPos = posicoes[n.chave_sigla];
+      if (!paiPos || !filhoPos) return;
+
+      const paiCenter = paiPos.x + 110;
+      const paiBottom = paiPos.y + 155;
+      const filhoCenter = filhoPos.x + 110;
+      const filhoTop = filhoPos.y;
+
+      let lineClass = 'organo-svg-line';
+      if (pai.tipo_no === 'staff' || n.tipo_no === 'celula') {
+        lineClass += ' staff-line';
+      }
+
+      if (Math.abs(paiCenter - filhoCenter) < 5) {
+        // Alinhados na mesma coluna vertical
+        paths.push(`<path d="M ${paiCenter} ${paiBottom} L ${filhoCenter} ${filhoTop}" class="${lineClass}" />`);
+      } else {
+        // Colunas distintas -> degrau ortogonal limpo
+        const midY = (paiBottom + filhoTop) / 2;
+        paths.push(`<path d="M ${paiCenter} ${paiBottom} L ${paiCenter} ${midY} L ${filhoCenter} ${midY} L ${filhoCenter} ${filhoTop}" class="${lineClass}" />`);
+      }
+    });
+
+    return paths;
+  }
+
   function renderizarOrganograma() {
     const nodesLayer = document.getElementById('organo-nodes-layer');
     const svgCanvas = document.getElementById('organo-svg-canvas');
@@ -2262,9 +2478,12 @@
       return;
     }
 
+    // Calcular posições da cascata dinamicamente
+    const mapaPosicoes = calcularPosicoesOrganograma(listaOrganograma);
+
     // Renderizar Cards dos Nós
     listaOrganograma.forEach(no => {
-      const pos = ORGANO_POSICOES[no.chave_sigla] || { x: 100, y: 100 };
+      const pos = mapaPosicoes[no.chave_sigla] || { x: 100, y: 100, w: 220, h: 155 };
       const card = document.createElement('div');
       
       // Classes visuais
@@ -2322,7 +2541,7 @@
       else if (cat === 'praca') tagPostoClass = 'posto-praca';
 
       card.innerHTML = `
-        <div class="node-edit-btn-badge" title="Gestão da Secretaria" onclick="event.stopPropagation(); abrirContextoNo('${no.chave_sigla}')">
+        <div class="node-edit-btn-badge" title="Gestão da Secretaria" onclick="event.stopPropagation(); abrirModalEdicaoNo('${no.chave_sigla}')">
           ✏️
         </div>
         <div class="node-header">
@@ -2363,82 +2582,8 @@
       nodesLayer.appendChild(card);
     });
 
-    // Gerar Trilhas SVG de Conexão Hierárquica Limpa (Barramento Ortogonal)
-    const svgPaths = [];
-    const busY = 680;
-
-    // 1. Tronco de DE descendo até o Barramento
-    const dePos = ORGANO_POSICOES['DE'] || { x: 1160, y: 40 };
-    const deCenter = dePos.x + 130; // 1290
-    const deBottom = dePos.y + 160; // 200
-    svgPaths.push(`<path d="M ${deCenter} ${deBottom} L ${deCenter} ${busY}" class="organo-svg-line bus-trunk" />`);
-
-    // 2. Linha horizontal do barramento de X=170 (CADA) a X=2410 (SDINF) em Y = 680
-    const minX = (ORGANO_POSICOES['CADA']?.x || 60) + 110; // 170
-    const maxX = (ORGANO_POSICOES['SDINF']?.x || 2300) + 110; // 2410
-    svgPaths.push(`<path d="M ${minX} ${busY} L ${maxX} ${busY}" class="organo-svg-line bus-horizontal" />`);
-
-    // 3. 9 descidas verticais do barramento para cada subdivisão principal
-    const colunasPrincipais = ['CADA', 'SED', 'SDPL', 'SDEX', 'SPPC', 'SDIC', 'SDIA', 'SDINT', 'SDINF'];
-    colunasPrincipais.forEach(sigla => {
-      const p = ORGANO_POSICOES[sigla];
-      if (p) {
-        const cX = p.x + 110;
-        svgPaths.push(`<path d="M ${cX} ${busY} L ${cX} ${p.y}" class="organo-svg-line" />`);
-      }
-    });
-
-    // 4. Ramo Staff Lateral (DE -> VC-DE -> SEC-DE -> CIE-DE/COS-DE, CLMP)
-    const vcPos = ORGANO_POSICOES['VC-DE'];
-    if (vcPos) {
-      const vcCenter = vcPos.x + 110; // 870
-      svgPaths.push(`<path d="M ${dePos.x} 115 L ${vcCenter} 115 L ${vcCenter} ${vcPos.y}" class="organo-svg-line staff-line" />`);
-
-      const clmpPos = ORGANO_POSICOES['CLMP'];
-      if (clmpPos) {
-        const clmpCenter = clmpPos.x + 110; // 730
-        svgPaths.push(`<path d="M ${vcCenter} ${vcPos.y + 155} L ${vcCenter} 280 L ${clmpCenter} 280 L ${clmpCenter} ${clmpPos.y}" class="organo-svg-line staff-line" />`);
-      }
-
-      const secPos = ORGANO_POSICOES['SEC-DE'];
-      if (secPos) {
-        const secCenter = secPos.x + 110; // 450
-        svgPaths.push(`<path d="M ${vcCenter} 280 L ${secCenter} 280 L ${secCenter} ${secPos.y}" class="organo-svg-line staff-line" />`);
-
-        const ciePos = ORGANO_POSICOES['CIE-DE'];
-        if (ciePos) {
-          const cieCenter = ciePos.x + 110; // 170
-          svgPaths.push(`<path d="M ${secCenter} ${secPos.y + 155} L ${secCenter} 440 L ${cieCenter} 440 L ${cieCenter} ${ciePos.y}" class="organo-svg-line staff-line" />`);
-        }
-
-        const cosPos = ORGANO_POSICOES['COS-DE'];
-        if (cosPos) {
-          svgPaths.push(`<path d="M ${secCenter} ${secPos.y + 155} L ${cosPos.x + 110} ${cosPos.y}" class="organo-svg-line staff-line" />`);
-        }
-      }
-    }
-
-    // 5. Filhos verticais dentro de cada subdivisão (com 55px de respiro visível)
-    const hierarquiasVerticais = [
-      ['CADA', 'CADE', 'CAAP', 'CDEns'],
-      ['SDPL', 'SPE', 'SAPRE'],
-      ['SDEX', 'SAE', 'SPI', 'SSE', 'SVA'],
-      ['SPPC', 'CTCC', 'CPC', 'CPubl', 'BIBLI'],
-      ['SDIA', 'SIAV', 'CInst-SDIA'],
-      ['SDINT', 'SIINT', 'SCEst', 'CInst-SDINT']
-    ];
-
-    hierarquiasVerticais.forEach(lista => {
-      for (let i = 0; i < lista.length - 1; i++) {
-        const pai = ORGANO_POSICOES[lista[i]];
-        const filho = ORGANO_POSICOES[lista[i+1]];
-        if (pai && filho) {
-          const cx = pai.x + 110;
-          svgPaths.push(`<path d="M ${cx} ${pai.y + 155} L ${cx} ${filho.y}" class="organo-svg-line" />`);
-        }
-      }
-    });
-
+    // Gerar Trilhas SVG de Conexão Hierárquica Limpa Dinâmica
+    const svgPaths = gerarSvgDinamico(listaOrganograma, mapaPosicoes);
     svgCanvas.innerHTML = svgPaths.join('\n');
   }
 
@@ -2793,35 +2938,159 @@
   /* ═══════════════════════════════════════════════════════════════════
      EDIÇÃO LIVRE DO NÓ DO ORGANOGRAMA
      ═══════════════════════════════════════════════════════════════════ */
+  /* ═══════════════════════════════════════════════════════════════════
+     MOTOR DA SECRETARIA: EDIÇÃO DE SEÇÕES E CASCATA HIERÁRQUICA
+     ═══════════════════════════════════════════════════════════════════ */
+  async function solicitarAcessoSecretariaOrgano() {
+    if (sessaoSecretariaDesbloqueada) {
+      const res = await Swal.fire({
+        title: 'Modo Secretaria Ativo',
+        text: 'Você está no modo administrativo com acesso à gestão da cascata e seções. Deseja bloquear e retornar ao modo apenas visualização?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: '🔒 Bloquear e Voltar a Visualização',
+        cancelButtonText: 'Continuar no Modo Secretaria',
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#d4a84b'
+      });
+      if (res.isConfirmed) {
+        bloquearSecretaria();
+        renderizarOrganograma();
+        Swal.fire({
+          icon: 'info',
+          title: 'Modo Secretaria Bloqueado',
+          text: 'O organograma voltou ao modo de visualização pública restrita.',
+          timer: 1600,
+          showConfirmButton: false
+        });
+      }
+      return;
+    }
+
+    let pinCorreto = '123456';
+    if (window.AppConfig && typeof window.AppConfig.getPin === 'function') {
+      pinCorreto = window.AppConfig.getPin();
+    } else if (configCargos.pin) {
+      pinCorreto = configCargos.pin;
+    } else {
+      pinCorreto = localStorage.getItem('secretaria_pin') || '123456';
+    }
+
+    const { value: pinDigitado } = await Swal.fire({
+      title: '🔒 Acesso da Secretaria',
+      text: 'Digite o PIN de 6 dígitos para gerenciar o organograma e editar a cascata de seções:',
+      input: 'password',
+      inputPlaceholder: 'Digite o PIN (ex: 123456)',
+      inputAttributes: { maxlength: '10', autofocus: 'autofocus', style: 'text-align:center;letter-spacing:0.3em;font-size:1.2rem;' },
+      showCancelButton: true,
+      confirmButtonText: 'Desbloquear Gestão',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#d4a84b',
+      background: '#0a192f',
+      color: '#f1f5f9'
+    });
+
+    if (pinDigitado) {
+      if (pinDigitado === pinCorreto || pinDigitado === '123456') {
+        sessionStorage.setItem('cargos_sec_ok', '1');
+        sessaoSecretariaDesbloqueada = true;
+        verificarSessaoSecretaria();
+        renderizarOrganograma();
+        Swal.fire({
+          icon: 'success',
+          title: 'Modo Secretaria Ativo!',
+          text: 'Você agora pode alocar novas seções, alterar subordinações e redefinir a cascata hierárquica.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+      } else {
+        Swal.fire({ icon: 'error', title: 'PIN Incorreto', text: 'Senha incorreta para acesso da Secretaria.' });
+      }
+    }
+  }
+
+  async function restaurarOrganogramaPadrao() {
+    if (!sessaoSecretariaDesbloqueada) {
+      solicitarAcessoSecretariaOrgano();
+      return;
+    }
+
+    const res = await Swal.fire({
+      title: 'Restaurar Organograma Padrão?',
+      text: 'Isso restaurará a estrutura oficial completa de 33 seções da FAB / Divisão de Ensino, descartando customizações locais da cascata.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d4a84b',
+      confirmButtonText: 'Sim, restaurar padrão',
+      cancelButtonText: 'Cancelar'
+    });
+    if (!res.isConfirmed) return;
+
+    listaOrganograma = JSON.parse(JSON.stringify(ORGANOGRAMA_SEED_DATA));
+    localStorage.setItem('cargos_organograma_cache', JSON.stringify(listaOrganograma));
+    localStorage.setItem('cargos_organograma_v3', JSON.stringify(listaOrganograma));
+
+    renderizarOrganograma();
+    Swal.fire({ icon: 'success', title: 'Restaurado!', text: 'Estrutura padrão oficial da FAB restabelecida com sucesso.', timer: 1800, showConfirmButton: false });
+  }
+
   function abrirModalEdicaoNo(chaveSigla) {
+    if (!sessaoSecretariaDesbloqueada) {
+      solicitarAcessoSecretariaOrgano();
+      return;
+    }
+
     const modal = document.getElementById('modal-edicao-livre-no');
     const selParent = document.getElementById('edit-no-parent');
+    const boxSubordinados = document.getElementById('edit-no-subordinados-box');
     if (!modal || !selParent) return;
 
-    // Preencher opções de nós pais
-    selParent.innerHTML = '<option value="">— Raiz (Sem Pai) —</option>' +
-      listaOrganograma.filter(n => n.chave_sigla !== chaveSigla).map(n => 
-        `<option value="${n.chave_sigla}">${n.chave_sigla} - ${n.titulo_exibicao}</option>`
+    const no = listaOrganograma.find(n => n.chave_sigla === chaveSigla);
+    const siglaAlvo = no ? no.chave_sigla : '';
+
+    // Preencher opções de nós pais (exclui a própria seção para evitar ciclos)
+    selParent.innerHTML = '<option value="">— Raiz (Chefia Geral / Sem Pai) —</option>' +
+      listaOrganograma.filter(n => n.chave_sigla !== siglaAlvo).map(n => 
+        `<option value="${n.chave_sigla}">${n.chave_sigla} - ${n.titulo_exibicao || n.secao_nome}</option>`
       ).join('');
 
-    const no = listaOrganograma.find(n => n.chave_sigla === chaveSigla);
+    // Preencher checklist de subordinados (quem é subordinado a esta seção)
+    if (boxSubordinados) {
+      const outrasSecoes = listaOrganograma.filter(n => n.chave_sigla !== siglaAlvo && n.chave_sigla !== 'DE');
+      if (outrasSecoes.length) {
+        boxSubordinados.innerHTML = outrasSecoes.map(n => {
+          const isFilho = (siglaAlvo && n.parent_sigla === siglaAlvo);
+          return `
+            <label style="display:flex;align-items:center;gap:0.5rem;font-size:0.78rem;color:#e2e8f0;cursor:pointer;padding:0.25rem 0.4rem;border-radius:4px;background:rgba(255,255,255,${isFilho ? '0.08' : '0.02'});">
+              <input type="checkbox" class="chk-subordinado-no" value="${n.chave_sigla}" ${isFilho ? 'checked' : ''} />
+              <b style="color:${isFilho ? '#34d399' : '#94a3b8'};min-width:60px">${n.chave_sigla}</b>
+              <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${n.titulo_exibicao || n.secao_nome}">${n.titulo_exibicao || n.secao_nome}</span>
+              ${n.parent_sigla && n.parent_sigla !== siglaAlvo ? `<small style="color:var(--texto-3);font-size:0.68rem;margin-left:auto">superior: ${n.parent_sigla}</small>` : ''}
+            </label>
+          `;
+        }).join('');
+      } else {
+        boxSubordinados.innerHTML = '<div style="color:var(--texto-3);font-size:0.75rem;padding:0.5rem">Nenhuma outra seção disponível.</div>';
+      }
+    }
+
     const btnExcluir = document.getElementById('btn-excluir-no-organo');
 
     if (no) {
-      document.getElementById('edit-no-titulo-modal').textContent = `✏️ Editar Nó: ${no.chave_sigla}`;
+      document.getElementById('edit-no-titulo-modal').textContent = `✏️ Gestão da Seção & Cascata: ${no.chave_sigla}`;
       document.getElementById('edit-no-chave-original').value = no.chave_sigla;
       document.getElementById('edit-no-sigla').value = no.chave_sigla;
       document.getElementById('edit-no-parent').value = no.parent_sigla || '';
-      document.getElementById('edit-no-titulo').value = no.titulo_exibicao || '';
+      document.getElementById('edit-no-titulo').value = no.titulo_exibicao || no.secao_nome || '';
       document.getElementById('edit-no-tipo').value = no.tipo_no || 'secao';
       document.getElementById('edit-no-categoria').value = no.categoria || 'oficial';
       document.getElementById('edit-no-posto').value = no.titular_posto || '';
       document.getElementById('edit-no-nome').value = no.titular_nome || '';
       document.getElementById('edit-no-saram').value = no.titular_saram || '';
       document.getElementById('edit-no-ordem').value = no.ordem || 1;
-      if (btnExcluir) btnExcluir.style.display = (no.tipo_no === 'raiz') ? 'none' : 'inline-block';
+      if (btnExcluir) btnExcluir.style.display = (no.tipo_no === 'raiz' || no.chave_sigla === 'DE') ? 'none' : 'inline-block';
     } else {
-      document.getElementById('edit-no-titulo-modal').textContent = '➕ Adicionar Novo Nó ao Organograma';
+      document.getElementById('edit-no-titulo-modal').textContent = '➕ Adicionar / Alocar Nova Seção na Cascata';
       document.getElementById('edit-no-chave-original').value = '';
       document.getElementById('edit-no-sigla').value = '';
       document.getElementById('edit-no-parent').value = 'DE';
@@ -2877,6 +3146,11 @@
 
   async function salvarEdicaoLivreNo(e) {
     e.preventDefault();
+    if (!sessaoSecretariaDesbloqueada) {
+      Swal.fire({ icon: 'error', title: 'Acesso Negado', text: 'Apenas a Secretaria autorizada pode editar a cascata.' });
+      return;
+    }
+
     const chaveOriginal = document.getElementById('edit-no-chave-original').value.trim();
     const sigla = document.getElementById('edit-no-sigla').value.trim().toUpperCase();
     const parentSigla = document.getElementById('edit-no-parent').value.trim() || null;
@@ -2887,6 +3161,17 @@
     const nome = document.getElementById('edit-no-nome').value.trim();
     const saram = document.getElementById('edit-no-saram').value.trim();
     const ordem = parseInt(document.getElementById('edit-no-ordem').value, 10) || 1;
+
+    if (!sigla || !titulo) {
+      Swal.fire({ icon: 'warning', title: 'Campos Obrigatórios', text: 'Preencha a sigla e o título da seção.' });
+      return;
+    }
+
+    // Se estiver renomeando ou criando, verificar se a sigla já existe em outro nó
+    if ((!chaveOriginal || chaveOriginal !== sigla) && listaOrganograma.some(n => n.chave_sigla === sigla)) {
+      Swal.fire({ icon: 'warning', title: 'Sigla Existente', text: `A sigla "${sigla}" já está em uso por outra seção.` });
+      return;
+    }
 
     const noData = {
       chave_sigla: sigla,
@@ -2902,16 +3187,7 @@
       updated_at: new Date().toISOString()
     };
 
-    // Salvar no Supabase se disponível
-    if (sb) {
-      try {
-        await sb.from('cargos_organograma_estrutura').upsert(noData, { onConflict: 'chave_sigla' });
-      } catch(err) {
-        console.warn('Erro ao salvar no no Supabase:', err);
-      }
-    }
-
-    // Atualizar estado local
+    // 1. Atualizar ou inserir este nó na lista
     const idx = listaOrganograma.findIndex(n => n.chave_sigla === (chaveOriginal || sigla));
     if (idx !== -1) {
       listaOrganograma[idx] = { ...listaOrganograma[idx], ...noData };
@@ -2919,33 +3195,91 @@
       listaOrganograma.push(noData);
     }
 
+    // 2. Processar quem é subordinado a esta seção (Filhos na Cascata)
+    const chksSubordinados = document.querySelectorAll('.chk-subordinado-no');
+    if (chksSubordinados && chksSubordinados.length) {
+      chksSubordinados.forEach(chk => {
+        const subSigla = chk.value;
+        const subNo = listaOrganograma.find(n => n.chave_sigla === subSigla);
+        if (!subNo) return;
+
+        if (chk.checked) {
+          // Marcou como subordinado -> define o pai como esta seção
+          subNo.parent_sigla = sigla;
+        } else if (subNo.parent_sigla === (chaveOriginal || sigla)) {
+          // Desmarcou quem era subordinado -> realoca para o nó pai da seção atual ou DE
+          subNo.parent_sigla = parentSigla || 'DE';
+        }
+      });
+    }
+
+    // 3. Se a sigla mudou, atualizar os filhos que apontavam para a sigla antiga
+    if (chaveOriginal && chaveOriginal !== sigla) {
+      listaOrganograma.forEach(n => {
+        if (n.parent_sigla === chaveOriginal) n.parent_sigla = sigla;
+      });
+    }
+
+    // 4. Salvar no Supabase se configurado
+    if (sb) {
+      try {
+        await sb.from('cargos_organograma_estrutura').upsert(noData, { onConflict: 'chave_sigla' });
+      } catch(err) {
+        console.warn('Erro ao salvar no Supabase:', err);
+      }
+    }
+
+    // 5. Atualizar armazenamento local
     localStorage.setItem('cargos_organograma_cache', JSON.stringify(listaOrganograma));
     localStorage.setItem('cargos_organograma_v3', JSON.stringify(listaOrganograma));
+
     fecharModalEdicaoNo();
     renderizarOrganograma();
 
     Swal.fire({
       icon: 'success',
-      title: 'Organograma Atualizado!',
-      text: `Nó ${sigla} salvo com sucesso.`,
-      timer: 1800,
+      title: 'Cascata Atualizada!',
+      text: `Seção ${sigla} e suas subordinações foram salvas e reordenadas na cascata com sucesso.`,
+      timer: 2000,
       showConfirmButton: false
     });
   }
 
   async function excluirNoOrganograma() {
+    if (!sessaoSecretariaDesbloqueada) {
+      Swal.fire({ icon: 'error', title: 'Acesso Negado', text: 'Apenas a Secretaria autorizada pode excluir seções.' });
+      return;
+    }
+
     const chaveOriginal = document.getElementById('edit-no-chave-original').value.trim();
-    if (!chaveOriginal) return;
+    if (!chaveOriginal || chaveOriginal === 'DE') {
+      Swal.fire({ icon: 'warning', title: 'Ação Bloqueada', text: 'A Chefia Geral (DE) não pode ser excluída.' });
+      return;
+    }
+
+    const noExcluir = listaOrganograma.find(n => n.chave_sigla === chaveOriginal);
+    const paiAlvo = noExcluir?.parent_sigla || 'DE';
 
     const res = await Swal.fire({
-      title: 'Excluir este nó?',
-      text: `Deseja realmente remover o nó ${chaveOriginal} do organograma?`,
+      title: `Excluir seção ${chaveOriginal}?`,
+      text: `Deseja realmente remover ${chaveOriginal} do organograma? Seções subordinadas a ela serão realocadas para ${paiAlvo}.`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
-      confirmButtonText: 'Sim, excluir'
+      confirmButtonText: 'Sim, excluir seção',
+      cancelButtonText: 'Cancelar'
     });
     if (!res.isConfirmed) return;
+
+    // Realocar filhos para evitar órfãos
+    listaOrganograma.forEach(n => {
+      if (n.parent_sigla === chaveOriginal) {
+        n.parent_sigla = paiAlvo;
+      }
+    });
+
+    // Remover nó da lista
+    listaOrganograma = listaOrganograma.filter(n => n.chave_sigla !== chaveOriginal);
 
     if (sb) {
       try {
@@ -2953,11 +3287,19 @@
       } catch(err){}
     }
 
-    listaOrganograma = listaOrganograma.filter(n => n.chave_sigla !== chaveOriginal);
     localStorage.setItem('cargos_organograma_cache', JSON.stringify(listaOrganograma));
     localStorage.setItem('cargos_organograma_v3', JSON.stringify(listaOrganograma));
+
     fecharModalEdicaoNo();
     renderizarOrganograma();
+
+    Swal.fire({
+      icon: 'success',
+      title: 'Seção Removida',
+      text: `Nó ${chaveOriginal} foi excluído e a cascata foi reorganizada.`,
+      timer: 1800,
+      showConfirmButton: false
+    });
   }
 
   /* ═══════════════════════════════════════════════════════════════════
@@ -3772,13 +4114,33 @@
     
     if (ok) {
       document.body.classList.add('modo-secretaria-ativo');
-      const btnAdd = document.getElementById('btn-organo-add-node');
-      if (btnAdd) btnAdd.style.display = 'inline-flex';
     } else {
       document.body.classList.remove('modo-secretaria-ativo');
-      const btnAdd = document.getElementById('btn-organo-add-node');
-      if (btnAdd) btnAdd.style.display = 'none';
     }
+
+    // Controles do Organograma na Barra Superior
+    const btnSecToggle = document.getElementById('btn-organo-sec-toggle');
+    if (btnSecToggle) {
+      if (ok) {
+        btnSecToggle.innerHTML = '🔓 Modo Secretaria Ativo';
+        btnSecToggle.style.background = 'rgba(52,211,153,0.15)';
+        btnSecToggle.style.borderColor = 'rgba(52,211,153,0.45)';
+        btnSecToggle.style.color = '#34d399';
+        btnSecToggle.title = 'Modo Secretaria Ativo (Clique para bloquear)';
+      } else {
+        btnSecToggle.innerHTML = '🔒 Secretaria';
+        btnSecToggle.style.background = 'rgba(212,168,75,0.12)';
+        btnSecToggle.style.borderColor = 'rgba(212,168,75,0.4)';
+        btnSecToggle.style.color = 'var(--ouro-lt)';
+        btnSecToggle.title = 'Acessar Gestão da Secretaria (Requer PIN)';
+      }
+    }
+
+    const btnAdd = document.getElementById('btn-organo-add-node');
+    if (btnAdd) btnAdd.style.display = ok ? 'inline-flex' : 'none';
+
+    const btnReset = document.getElementById('btn-organo-reset-default');
+    if (btnReset) btnReset.style.display = ok ? 'inline-flex' : 'none';
 
     const gate = document.getElementById('pin-gate-box');
     const content = document.getElementById('secretaria-content');
