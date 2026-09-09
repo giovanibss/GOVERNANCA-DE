@@ -10,193 +10,182 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --navy-900:#0a1628; --navy-800:#0f2341; --navy-700:#14315a;
-  --navy-600:#1e4377; --navy-500:#2d5a9e; --navy-400:#5b82c4;
-  --navy-300:#94b0d8; --navy-200:#c5d4e8; --navy-100:#e6eef7; --navy-50:#f2f6fb;
-  --gold-500:#d4a84b; --gold-400:#e6be65; --gold-100:#fef9c3;
-  --green-500:#10b981; --green-600:#059669; --green-50:#ecfdf5;
-  --yellow-500:#f59e0b; --yellow-50:#fefce8;
-  --red-500:#ef4444; --red-600:#dc2626; --red-50:#fef2f2;
-  --purple-500:#8b5cf6; --purple-50:#f5f3ff;
-  --gray-100:#f1f5f9; --gray-200:#e2e8f0; --gray-300:#cbd5e1;
-  --gray-400:#94a3b8; --gray-500:#64748b; --gray-700:#334155; --gray-900:#0f172a;
-  --f-display:'Oswald',sans-serif;
-  --f-body:'Inter',sans-serif;
-  --f-mono:'JetBrains Mono',monospace;
-}
-body{font-family:var(--f-body);background:var(--navy-50);color:var(--navy-900);min-height:100vh}
+  /* ── paleta institucional escura (padrão index / transporte) ── */
+  --navy-0:#060d1d; --navy-1:#0a1730; --navy-2:#101f3e;
+  --card:rgba(16,31,62,.72);
+  --card-2:rgba(10,23,48,.55);
+  --linha:rgba(207,228,255,.12);
 
-/* ═══ PIN GATE ═══ */
-.pin-gate-wrap{
-  min-height: calc(100vh - 78px); display: flex; align-items: center; justify-content: center;
-  padding: 2rem 1rem; position: relative; z-index: 5;
-}
-.pin-gate-card{
-  background: #fff; border: 1px solid var(--navy-100); border-top: 4px solid var(--gold-500);
-  border-radius: 12px; padding: 2.5rem 2rem; max-width: 440px; width: 100%; text-align: center;
-  box-shadow: 0 16px 40px -10px rgba(10,22,40,.2);
-}
-.pin-gate-icon{ font-size: 2.5rem; margin-bottom: .8rem; }
-.pin-gate-title{ font-family: var(--f-display); font-size: 1.4rem; font-weight: 600; text-transform: uppercase; color: var(--navy-900); margin-bottom: .4rem; }
-.pin-gate-desc{ font-size: .82rem; color: var(--gray-500); margin-bottom: 1.5rem; line-height: 1.5; }
-.pin-gate-form{ display: flex; gap: .6rem; justify-content: center; }
-.pin-gate-input{
-  padding: .75rem 1rem; border-radius: 6px; border: 1px solid var(--navy-200); font-family: var(--f-mono);
-  font-size: 1.2rem; text-align: center; width: 160px; letter-spacing: .2em; outline: none;
-}
-.pin-gate-input:focus{ border-color: var(--gold-500); box-shadow: 0 0 0 3px rgba(212,168,75,.2); }
-.pin-gate-submit{
-  padding: .75rem 1.4rem; border-radius: 6px; background: var(--gold-500); color: var(--navy-900);
-  border: none; font-family: var(--f-display); font-size: .95rem; font-weight: 600; text-transform: uppercase;
-  letter-spacing: .06em; cursor: pointer; transition: all .2s;
-}
-.pin-gate-submit:hover{ background: var(--gold-400); transform: translateY(-1px); }
-.pin-gate-err{ margin-top: 1rem; font-size: .8rem; color: var(--red-500); font-weight: 600; }
+  /* ── aliases legados: mantêm os styles inline do HTML coerentes ── */
+  --navy-900:#e8f0fc; --navy-800:#dce8fa; --navy-700:#cfe4ff;
+  --navy-600:#8fa9cf; --navy-500:#8fa9cf; --navy-400:#5f7699;
+  --navy-300:rgba(207,228,255,.28); --navy-200:rgba(207,228,255,.16);
+  --navy-100:rgba(207,228,255,.10); --navy-50:rgba(10,23,48,.55);
 
-/* ═══ TABS NAV ═══ */
-.tabs-bar{
-  display:flex;gap:.5rem;padding:.75rem 2rem 0 2rem;background:#fff;
-  border-bottom:2px solid var(--navy-100);position:sticky;top:78px;z-index:90;overflow-x:auto;
+  --gold-500:#d4a84b; --gold-400:#e8c56f; --gold-100:rgba(212,168,75,.16);
+  --green-500:#3ecf9a; --green-600:#3ecf9a; --green-50:rgba(62,207,154,.10);
+  --yellow-500:#e8b13f; --yellow-50:rgba(232,177,63,.10);
+  --red-500:#e05a5a; --red-600:#e05a5a; --red-50:rgba(224,90,90,.10);
+  --purple-500:#a78bfa; --purple-50:rgba(167,139,250,.10);
+  --ceu:#5aa2e0;
+
+  --gray-100:rgba(207,228,255,.07); --gray-200:rgba(207,228,255,.14);
+  --gray-300:rgba(207,228,255,.22); --gray-400:#5f7699;
+  --gray-500:#8fa9cf; --gray-700:#b9cdea; --gray-900:#e8f0fc;
+
+  --f-display:'Oswald',system-ui,sans-serif;
+  --f-body:'Inter',system-ui,sans-serif;
+  --f-mono:'JetBrains Mono',ui-monospace,monospace;
+  --r:14px;
 }
-.tab-btn{
-  display:inline-flex;align-items:center;gap:.5rem;padding:.65rem 1.1rem;
-  font-family:var(--f-display);font-size:.85rem;font-weight:600;letter-spacing:.06em;
-  text-transform:uppercase;color:var(--gray-500);background:transparent;
-  border:none;border-bottom:3px solid transparent;cursor:pointer;transition:all .2s;white-space:nowrap;
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--f-body);
+  background:
+    radial-gradient(1100px 520px at 85% -10%, rgba(90,162,224,.10), transparent 60%),
+    radial-gradient(900px 480px at -10% 110%, rgba(212,168,75,.07), transparent 55%),
+    linear-gradient(180deg,var(--navy-0),var(--navy-1) 40%,var(--navy-0));
+  background-attachment:fixed;
+  color:var(--navy-700);min-height:100vh;-webkit-font-smoothing:antialiased;
 }
-.tab-btn:hover{color:var(--navy-700);background:var(--navy-50)}
-.tab-btn.active{color:var(--navy-900);border-bottom-color:var(--gold-500);background:rgba(212,168,75,.08)}
-.tab-btn svg{width:16px;height:16px}
-.tab-badge{font-family:var(--f-mono);font-size:.65rem;background:var(--navy-100);color:var(--navy-700);padding:2px 6px;border-radius:10px;margin-left:4px}
-.tab-btn.active .tab-badge{background:var(--gold-500);color:var(--navy-900)}
-.grat-actions{display:flex;gap:.35rem;margin-top:.6rem;flex-wrap:wrap}
-.btn-doc{padding:.32rem .6rem;font-size:.68rem;font-family:var(--f-mono);font-weight:600;border-radius:4px;border:1px solid var(--navy-200);background:var(--navy-50);color:var(--navy-700);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:.3rem}
-.btn-doc:hover{background:var(--navy-700);color:#fff;border-color:var(--navy-700)}
-.btn-doc.gold{background:var(--gold-500);color:var(--navy-900);border-color:var(--gold-500)}
-.btn-doc.gold:hover{background:var(--gold-400)}
-.btn-doc.green{background:#dcfce7;color:#15803d;border-color:#bbf7d0}
-.btn-doc.green:hover{background:#16a34a;color:#fff;border-color:#16a34a}
-.btn-doc.purple{background:#f3e8ff;color:#6b21a8;border-color:#e9d5ff}
-.btn-doc.purple:hover{background:#7e22ce;color:#fff;border-color:#7e22ce}
-
-/* ═══ TOGGLES & ACCORDION ═══ */
-.toggle-field{background:var(--navy-50);border:1px solid var(--navy-200);border-radius:6px;padding:.75rem .9rem;margin-bottom:.85rem}
-.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;cursor:pointer;user-select:none}
-.toggle-title{font-size:.76rem;font-weight:600;color:var(--navy-900);text-transform:uppercase;letter-spacing:.04em}
-.toggle-sub{font-size:.64rem;color:var(--gray-500);margin-top:2px}
-.switch{position:relative;display:inline-block;width:38px;height:22px;flex-shrink:0}
-.switch input{opacity:0;width:0;height:0}
-.slider{position:absolute;cursor:pointer;inset:0;background-color:var(--gray-300);transition:.24s;border-radius:22px}
-.slider:before{position:absolute;content:"";height:16px;width:16px;left:3px;bottom:3px;background-color:white;transition:.24s;border-radius:50%}
-input:checked + .slider{background-color:var(--gold-500)}
-input:checked + .slider:before{transform:translateX(16px)}
-
-.accordion-body{display:none;margin-top:.75rem;padding-top:.75rem;border-top:1px dashed var(--navy-200)}
-.accordion-body.show{display:block}
-
-/* Multimilitar List */
-.militar-item-card{background:#fff;border:1px solid var(--navy-200);border-left:3px solid var(--gold-500);border-radius:6px;padding:.85rem;margin-bottom:.65rem;position:relative}
-.militar-item-card.coord{border-left-color:#10b981;background:#f0fdf4}
-.militar-item-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;font-size:.78rem;font-weight:700;color:var(--navy-900)}
-
 body::after{
   content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
-  background-image:linear-gradient(rgba(20,49,90,.04) 1px,transparent 1px),
-                   linear-gradient(90deg,rgba(20,49,90,.04) 1px,transparent 1px);
-  background-size:40px 40px;
+  background-image:linear-gradient(rgba(207,228,255,.028) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(207,228,255,.028) 1px,transparent 1px);
+  background-size:44px 44px;
 }
+
+/* ═══ PIN GATE ═══ */
+.pin-gate-wrap{min-height:calc(100vh - 78px);display:flex;align-items:center;justify-content:center;padding:2rem 1rem;position:relative;z-index:5}
+.pin-gate-card{
+  background:var(--card);border:1px solid var(--linha);border-top:3px solid var(--gold-500);
+  border-radius:var(--r);padding:2.5rem 2rem;max-width:440px;width:100%;text-align:center;
+  box-shadow:0 22px 60px -18px rgba(0,0,0,.7);backdrop-filter:blur(10px);
+}
+.pin-gate-icon{font-size:2.5rem;margin-bottom:.8rem;opacity:.9}
+.pin-gate-title{font-family:var(--f-display);font-size:1.4rem;font-weight:600;text-transform:uppercase;color:var(--navy-900);margin-bottom:.4rem}
+.pin-gate-desc{font-size:.82rem;color:var(--gray-500);margin-bottom:1.5rem;line-height:1.5}
+.pin-gate-form{display:flex;gap:.6rem;justify-content:center}
+.pin-gate-input{
+  padding:.75rem 1rem;border-radius:8px;border:1px solid var(--navy-200);background:rgba(6,13,29,.6);
+  color:var(--navy-900);font-family:var(--f-mono);font-size:1.2rem;text-align:center;width:160px;letter-spacing:.2em;outline:none;
+}
+.pin-gate-input:focus{border-color:var(--gold-500);box-shadow:0 0 0 3px rgba(212,168,75,.18)}
+.pin-gate-submit{
+  padding:.75rem 1.4rem;border-radius:8px;background:var(--gold-500);color:var(--navy-0);border:none;
+  font-family:var(--f-display);font-size:.95rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;transition:all .2s;
+}
+.pin-gate-submit:hover{background:var(--gold-400);transform:translateY(-1px)}
+.pin-gate-err{margin-top:1rem;font-size:.8rem;color:var(--red-500);font-weight:600}
 
 /* ═══ HEADER ═══ */
 header{
-  background:linear-gradient(135deg,var(--navy-900),var(--navy-700));color:#fff;
-  padding:0 2rem;height:78px;display:flex;align-items:center;justify-content:space-between;
-  position:sticky;top:0;z-index:100;border-bottom:3px solid var(--gold-500);
+  background:rgba(6,13,29,.72);backdrop-filter:blur(12px);color:var(--navy-900);
+  padding:0 clamp(1rem,4vw,2rem);height:78px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;border-bottom:1px solid var(--linha);box-shadow:0 1px 0 rgba(212,168,75,.35);
 }
-header::before{
-  content:'';position:absolute;inset:0;pointer-events:none;
-  background-image:repeating-linear-gradient(45deg,rgba(212,168,75,.05) 0 1px,transparent 1px 20px);
-}
-.logo{display:flex;align-items:center;gap:1rem;position:relative}
-.crest{width:58px;height:58px;flex-shrink:0;background:#fff;border-radius:6px;padding:3px;
-  border:2px solid var(--gold-500);box-shadow:0 3px 10px rgba(0,0,0,.3)}
+.logo{display:flex;align-items:center;gap:1rem;position:relative;min-width:0}
+.crest{width:54px;height:54px;flex-shrink:0;background:rgba(255,255,255,.94);border-radius:8px;padding:3px;
+  border:1px solid rgba(212,168,75,.55);box-shadow:0 3px 14px rgba(0,0,0,.45)}
 .crest img{width:100%;height:100%;object-fit:contain}
-.logo-text{font-family:var(--f-display);font-size:1.15rem;font-weight:600;letter-spacing:.04em;
-  line-height:1;text-transform:uppercase}
-.logo-sub{font-size:.7rem;color:var(--navy-300);letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
-.header-right{display:flex;align-items:center;gap:.65rem;position:relative}
+.logo-text{font-family:var(--f-display);font-size:1.12rem;font-weight:600;letter-spacing:.05em;line-height:1;text-transform:uppercase;color:#fff}
+.logo-sub{font-size:.68rem;color:var(--gold-400);letter-spacing:.1em;text-transform:uppercase;margin-top:5px}
+.header-right{display:flex;align-items:center;gap:.55rem;position:relative;flex-wrap:wrap;justify-content:flex-end}
 .hbtn{
-  display:flex;align-items:center;gap:.45rem;font-size:.72rem;font-weight:500;color:#fff;
-  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:4px;
-  padding:.4rem .8rem;cursor:pointer;text-transform:uppercase;letter-spacing:.05em;
-  transition:all .2s;font-family:var(--f-body);text-decoration:none;
+  display:inline-flex;align-items:center;gap:.45rem;font-size:.7rem;font-weight:500;color:var(--navy-700);
+  background:rgba(207,228,255,.06);border:1px solid var(--linha);border-radius:99px;
+  padding:.42rem .85rem;cursor:pointer;text-transform:uppercase;letter-spacing:.05em;
+  transition:all .2s;font-family:var(--f-body);text-decoration:none;white-space:nowrap;
 }
-.hbtn:hover{background:rgba(255,255,255,.15)}
-.hbtn.gold{background:var(--gold-500);color:var(--navy-900);border-color:var(--gold-500);font-weight:600}
-.hbtn.gold:hover{background:var(--gold-400)}
+.hbtn:hover{background:rgba(207,228,255,.12);color:#fff;border-color:var(--navy-300)}
+.hbtn.gold{background:var(--gold-500);color:var(--navy-0);border-color:var(--gold-500);font-weight:700}
+.hbtn.gold:hover{background:var(--gold-400);color:var(--navy-0)}
+.hbtn.volta:hover{color:var(--gold-400);border-color:rgba(212,168,75,.5)}
 
-/* status de sincronização */
-.sync{display:flex;align-items:center;gap:.45rem;font-family:var(--f-mono);font-size:.66rem;
-  color:var(--navy-200);background:rgba(255,255,255,.08);padding:.35rem .75rem;border-radius:4px;
-  border:1px solid rgba(255,255,255,.1);white-space:nowrap}
+.sync{display:flex;align-items:center;gap:.45rem;font-family:var(--f-mono);font-size:.64rem;
+  color:var(--gray-500);background:rgba(207,228,255,.05);padding:.35rem .75rem;border-radius:99px;
+  border:1px solid var(--linha);white-space:nowrap}
 .sync i{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:var(--gray-400)}
-.sync.ok i{background:var(--green-500);box-shadow:0 0 8px rgba(16,185,129,.7)}
+.sync.ok i{background:var(--green-500);box-shadow:0 0 8px rgba(62,207,154,.8)}
 .sync.busy i{background:var(--yellow-500);animation:pulse 1.1s ease-in-out infinite}
 .sync.off i{background:var(--red-500)}
 .sync.cfg i{background:var(--gold-500)}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 
+/* ═══ TABS ═══ */
+.tabs-bar{
+  display:flex;gap:.4rem;padding:.7rem clamp(1rem,4vw,2rem) 0;
+  background:rgba(6,13,29,.6);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--linha);position:sticky;top:78px;z-index:90;overflow-x:auto;
+}
+.tabs-bar::-webkit-scrollbar{height:0}
+.tab-btn{
+  display:inline-flex;align-items:center;gap:.5rem;padding:.65rem 1.05rem;
+  font-family:var(--f-display);font-size:.83rem;font-weight:600;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--gray-500);background:transparent;
+  border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .2s;white-space:nowrap;
+}
+.tab-btn:hover{color:var(--navy-700)}
+.tab-btn.active{color:#fff;border-bottom-color:var(--gold-500)}
+.tab-btn svg{width:16px;height:16px}
+.tab-badge{font-family:var(--f-mono);font-size:.63rem;background:rgba(207,228,255,.1);color:var(--navy-700);padding:2px 7px;border-radius:99px;margin-left:2px}
+.tab-btn.active .tab-badge{background:var(--gold-500);color:var(--navy-0);font-weight:700}
+
 /* ═══ SUMMARY ═══ */
-.summary{display:flex;gap:.75rem;padding:1.25rem 2rem;background:#fff;
-  border-bottom:1px solid var(--navy-100);overflow-x:auto;position:relative;z-index:5}
-.scard{flex:0 0 auto;display:flex;align-items:center;gap:.75rem;background:var(--navy-50);
-  border:1px solid var(--navy-100);border-left:3px solid;border-radius:4px;
-  padding:.6rem 1.1rem;min-width:160px}
+.summary{display:flex;gap:.7rem;padding:1.25rem clamp(1rem,4vw,2rem);overflow-x:auto;position:relative;z-index:5}
+.summary::-webkit-scrollbar{height:0}
+.scard{flex:0 0 auto;display:flex;align-items:center;gap:.75rem;background:var(--card);
+  border:1px solid var(--linha);border-left:3px solid var(--navy-300);border-radius:10px;
+  padding:.7rem 1.15rem;min-width:165px;backdrop-filter:blur(6px)}
 .scard.gold{border-left-color:var(--gold-500)}
 .scard.red{border-left-color:var(--red-500)}
 .scard.green{border-left-color:var(--green-500)}
 .scard.purple{border-left-color:var(--purple-500)}
-.scard.navy{border-left-color:var(--navy-600);margin-left:auto}
-.scount{font-family:var(--f-display);font-size:1.35rem;font-weight:600;line-height:1;
-  color:var(--navy-900);font-variant-numeric:tabular-nums}
-.slabel{font-size:.62rem;color:var(--gray-500);text-transform:uppercase;
-  letter-spacing:.08em;font-weight:500;margin-top:3px}
+.scard.ceu{border-left-color:var(--ceu)}
+.scard.navy{border-left-color:var(--navy-300);margin-left:auto}
+.scount{font-family:var(--f-display);font-size:1.4rem;font-weight:600;line-height:1;color:#fff;font-variant-numeric:tabular-nums}
+.slabel{font-size:.61rem;color:var(--gray-500);text-transform:uppercase;letter-spacing:.09em;font-weight:500;margin-top:4px}
 
 /* ═══ MAIN ═══ */
-main{display:grid;grid-template-columns:1fr 340px;gap:1.5rem;padding:1.5rem 2rem;
+main{display:grid;grid-template-columns:1fr 340px;gap:1.5rem;padding:.5rem clamp(1rem,4vw,2rem) 2rem;
   max-width:1500px;margin:0 auto;position:relative;z-index:5;align-items:start}
 @media(max-width:1000px){main{grid-template-columns:1fr}}
 
 .section-title{font-family:var(--f-display);font-size:.74rem;font-weight:500;
-  text-transform:uppercase;letter-spacing:.12em;color:var(--navy-600);
+  text-transform:uppercase;letter-spacing:.13em;color:var(--gray-500);
   margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
-.section-title::before{content:'';width:16px;height:2px;background:var(--gold-500)}
+.section-title::before{content:'';width:16px;height:2px;background:var(--gold-500);flex-shrink:0}
 
 .toolbar{display:flex;gap:.6rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
 .btn{
-  display:inline-flex;align-items:center;gap:.45rem;padding:.6rem 1.1rem;border-radius:5px;
+  display:inline-flex;align-items:center;gap:.45rem;padding:.6rem 1.1rem;border-radius:8px;
   font-family:var(--f-display);font-size:.78rem;font-weight:600;letter-spacing:.08em;
-  text-transform:uppercase;cursor:pointer;border:none;transition:all .2s;
+  text-transform:uppercase;cursor:pointer;border:1px solid transparent;transition:all .2s;
 }
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.btn-primary{background:var(--navy-700);color:#fff}
-.btn-primary:not(:disabled):hover{background:var(--navy-600);transform:translateY(-1px);box-shadow:0 4px 12px rgba(20,49,90,.28)}
-.btn-ghost{background:#fff;color:var(--navy-700);border:1px solid var(--navy-200)}
-.btn-ghost:not(:disabled):hover{background:var(--navy-50);border-color:var(--navy-400)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn-primary{background:var(--gold-500);color:var(--navy-0)}
+.btn-primary:not(:disabled):hover{background:var(--gold-400);transform:translateY(-1px);box-shadow:0 8px 20px -8px rgba(212,168,75,.6)}
+.btn-ghost{background:rgba(207,228,255,.05);color:var(--navy-700);border-color:var(--linha)}
+.btn-ghost:not(:disabled):hover{background:rgba(207,228,255,.11);border-color:var(--navy-300);color:#fff}
+.btn-rubi{background:rgba(224,90,90,.14);color:var(--red-500);border-color:rgba(224,90,90,.35)}
+.btn-rubi:not(:disabled):hover{background:var(--red-500);color:#fff}
 .search{
-  flex:1;min-width:180px;padding:.6rem .9rem;border-radius:5px;
-  border:1px solid var(--navy-200);background:#fff;font-family:var(--f-body);
+  flex:1;min-width:180px;padding:.6rem .9rem;border-radius:8px;
+  border:1px solid var(--navy-200);background:rgba(6,13,29,.5);font-family:var(--f-body);
   font-size:.82rem;color:var(--navy-900);
 }
-.search:focus{outline:2px solid var(--gold-500);outline-offset:1px;border-color:var(--gold-500)}
+.search::placeholder{color:var(--gray-400)}
+.search:focus{outline:none;border-color:var(--gold-500);box-shadow:0 0 0 3px rgba(212,168,75,.15)}
+select.search option{background:var(--navy-1);color:var(--navy-900)}
 
-/* ═══ OS CARDS ═══ */
-.os-grid{display:grid;gap:.85rem;grid-template-columns:repeat(auto-fill,minmax(330px,1fr))}
+/* ═══ CARDS ═══ */
+.os-grid{display:grid;gap:.85rem;grid-template-columns:repeat(auto-fill,minmax(340px,1fr))}
 .os{
-  background:#fff;border:1px solid var(--navy-100);border-radius:8px;
-  border-top:3px solid var(--navy-600);padding:1.1rem;position:relative;
-  transition:transform .2s,box-shadow .2s,opacity .2s;
+  background:var(--card);border:1px solid var(--linha);border-radius:12px;
+  border-top:3px solid var(--navy-300);padding:1.1rem;position:relative;
+  transition:transform .2s,box-shadow .2s,border-color .2s;backdrop-filter:blur(6px);
 }
-.os:hover{transform:translateY(-2px);box-shadow:0 10px 26px -12px rgba(10,22,40,.3)}
+.os:hover{transform:translateY(-2px);box-shadow:0 16px 34px -18px rgba(0,0,0,.8);border-color:var(--navy-200)}
 .os.st-curso{border-top-color:var(--green-500)}
 .os.st-futura{border-top-color:var(--gold-500)}
 .os.st-fim{border-top-color:var(--gray-300)}
@@ -204,90 +193,160 @@ main{display:grid;grid-template-columns:1fr 340px;gap:1.5rem;padding:1.5rem 2rem
 .os.st-concluida{border-top-color:var(--green-500)}
 .os.st-cancelada{border-top-color:var(--red-500)}
 .os.pend{opacity:.55}
+.os.legada{border-top-color:var(--yellow-500)}
 
 .os-head{display:flex;align-items:flex-start;gap:.6rem;margin-bottom:.7rem}
-.os-num{font-family:var(--f-display);font-size:1rem;font-weight:600;letter-spacing:.04em;
-  color:var(--navy-900);line-height:1.1}
+.os-num{font-family:var(--f-display);font-size:1.05rem;font-weight:600;letter-spacing:.04em;color:#fff;line-height:1.15}
 .os-num span{display:block;font-family:var(--f-mono);font-size:.58rem;color:var(--gray-400);
-  font-weight:400;letter-spacing:.06em;text-transform:uppercase;margin-top:2px}
+  font-weight:400;letter-spacing:.06em;text-transform:uppercase;margin-top:3px}
 .os-badge{margin-left:auto;font-family:var(--f-mono);font-size:.56rem;letter-spacing:.1em;
-  text-transform:uppercase;padding:.2rem .5rem;border-radius:3px;white-space:nowrap}
-.badge-curso{background:rgba(16,185,129,.12);color:var(--green-600)}
-.badge-futura{background:rgba(212,168,75,.15);color:#8a6d1f}
-.badge-fim{background:var(--gray-100);color:var(--gray-500)}
-.badge-paga{background:#dcfce7;color:#15803d}
-.badge-analise{background:rgba(212,168,75,.18);color:#8a6d1f}
-.badge-siloms-ok{background:#dbeafe;color:#1e40af;font-weight:700}
-.badge-siloms-pend{background:#fef3c7;color:#92400e;font-weight:700}
+  text-transform:uppercase;padding:.22rem .55rem;border-radius:99px;white-space:nowrap;border:1px solid transparent}
+.badge-curso{background:rgba(62,207,154,.14);color:var(--green-500);border-color:rgba(62,207,154,.3)}
+.badge-futura{background:rgba(212,168,75,.14);color:var(--gold-400);border-color:rgba(212,168,75,.3)}
+.badge-fim{background:rgba(207,228,255,.07);color:var(--gray-500);border-color:var(--linha)}
+.badge-paga{background:rgba(62,207,154,.14);color:var(--green-500);border-color:rgba(62,207,154,.3)}
+.badge-analise{background:rgba(212,168,75,.14);color:var(--gold-400);border-color:rgba(212,168,75,.3)}
+.badge-siloms-ok{background:rgba(90,162,224,.15);color:var(--ceu);border-color:rgba(90,162,224,.35);font-weight:700}
+.badge-siloms-pend{background:rgba(232,177,63,.14);color:var(--yellow-500);border-color:rgba(232,177,63,.32);font-weight:700}
+.badge-legada{background:rgba(232,177,63,.16);color:var(--yellow-500);border-color:rgba(232,177,63,.4);font-weight:700}
+.badge-semos{background:rgba(90,162,224,.13);color:var(--ceu);border-color:rgba(90,162,224,.3);font-weight:700}
 
 .os-desc{font-size:.83rem;line-height:1.5;color:var(--gray-700);margin-bottom:.85rem;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .os-meta{display:flex;flex-direction:column;gap:.4rem;margin-bottom:.85rem;
-  padding-bottom:.85rem;border-bottom:1px dashed var(--navy-100)}
+  padding-bottom:.85rem;border-bottom:1px dashed var(--navy-200)}
 .os-row{display:flex;align-items:center;gap:.5rem;font-size:.74rem;color:var(--gray-700)}
-.os-row svg{width:13px;height:13px;flex-shrink:0;color:var(--navy-400)}
+.os-row svg{width:13px;height:13px;flex-shrink:0;color:var(--gold-500);opacity:.75}
 .os-row b{font-weight:600;color:var(--navy-900)}
 .os-row u{text-decoration:none;color:var(--gray-400);margin-left:auto;font-family:var(--f-mono);font-size:.66rem}
 
 .os-foot{display:flex;align-items:flex-end;justify-content:space-between;gap:.6rem}
-.os-qtd{font-family:var(--f-mono);font-size:.75rem;color:var(--navy-600);font-weight:500}
-.os-qtd small{display:block;font-size:.58rem;color:var(--gray-400);text-transform:uppercase;
-  letter-spacing:.07em;margin-top:1px;font-family:var(--f-body)}
-.os-val{font-family:var(--f-display);font-size:1.2rem;font-weight:600;color:var(--navy-900);
-  font-variant-numeric:tabular-nums;text-align:right;line-height:1}
-.os-val small{display:block;font-size:.55rem;color:var(--gray-400);text-transform:uppercase;
-  letter-spacing:.08em;margin-top:3px;font-family:var(--f-body);font-weight:400}
+.os-qtd{font-family:var(--f-mono);font-size:.75rem;color:var(--navy-700);font-weight:500}
+.os-qtd small{display:block;font-size:.58rem;color:var(--gray-400);text-transform:uppercase;letter-spacing:.07em;margin-top:1px;font-family:var(--f-body)}
+.os-val{font-family:var(--f-display);font-size:1.2rem;font-weight:600;color:var(--gold-400);font-variant-numeric:tabular-nums;text-align:right;line-height:1}
+.os-val small{display:block;font-size:.55rem;color:var(--gray-400);text-transform:uppercase;letter-spacing:.08em;margin-top:3px;font-family:var(--f-body);font-weight:400}
 
 .os-acts{position:absolute;top:.75rem;right:.7rem;display:flex;gap:.2rem;opacity:0;transition:opacity .2s}
 .os:hover .os-acts,.os:focus-within .os-acts{opacity:1}
-.icon-btn{background:transparent;border:none;cursor:pointer;padding:.28rem;border-radius:4px;
-  color:var(--gray-400);display:flex;transition:all .15s}
-.icon-btn:hover{background:var(--navy-50);color:var(--navy-700)}
-.icon-btn.del:hover{background:rgba(239,68,68,.1);color:var(--red-500)}
+.icon-btn{background:transparent;border:none;cursor:pointer;padding:.3rem;border-radius:6px;color:var(--gray-400);display:flex;transition:all .15s}
+.icon-btn:hover{background:rgba(207,228,255,.1);color:#fff}
+.icon-btn.del:hover{background:rgba(224,90,90,.16);color:var(--red-500)}
 .icon-btn svg{width:14px;height:14px}
 
 .empty{grid-column:1/-1;text-align:center;padding:3.5rem 1rem;color:var(--gray-400)}
-.empty img{width:52px;opacity:.28;margin-bottom:.9rem}
+.empty img{width:52px;opacity:.3;margin-bottom:.9rem}
 .empty p{font-size:.88rem;margin-bottom:1.1rem}
-.skel{background:#fff;border:1px solid var(--navy-100);border-radius:8px;height:210px;
-  animation:sk 1.3s ease-in-out infinite}
-@keyframes sk{0%,100%{opacity:.55}50%{opacity:.85}}
+.skel{background:var(--card);border:1px solid var(--linha);border-radius:12px;height:210px;animation:sk 1.3s ease-in-out infinite}
+@keyframes sk{0%,100%{opacity:.4}50%{opacity:.75}}
 
-/* ═══ SIDEBAR ═══ */
+/* ═══ AÇÕES DE DOCUMENTO ═══ */
+.grat-actions{display:flex;gap:.35rem;margin-top:.6rem;flex-wrap:wrap}
+.btn-doc{padding:.34rem .62rem;font-size:.67rem;font-family:var(--f-mono);font-weight:600;border-radius:6px;
+  border:1px solid var(--linha);background:rgba(207,228,255,.05);color:var(--navy-700);cursor:pointer;
+  transition:all .15s;display:inline-flex;align-items:center;gap:.3rem;text-decoration:none}
+.btn-doc:hover{background:rgba(207,228,255,.13);color:#fff;border-color:var(--navy-300)}
+.btn-doc.gold{background:rgba(212,168,75,.16);color:var(--gold-400);border-color:rgba(212,168,75,.4)}
+.btn-doc.gold:hover{background:var(--gold-500);color:var(--navy-0)}
+.btn-doc.green{background:rgba(62,207,154,.13);color:var(--green-500);border-color:rgba(62,207,154,.32)}
+.btn-doc.green:hover{background:var(--green-500);color:var(--navy-0)}
+.btn-doc.purple{background:rgba(167,139,250,.13);color:var(--purple-500);border-color:rgba(167,139,250,.32)}
+.btn-doc.purple:hover{background:var(--purple-500);color:var(--navy-0)}
+
+/* ═══ TOGGLES & ACCORDION ═══ */
+.toggle-field{background:var(--card-2);border:1px solid var(--linha);border-radius:10px;padding:.8rem .9rem;margin-bottom:.85rem}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;cursor:pointer;user-select:none}
+.toggle-title{font-size:.76rem;font-weight:600;color:var(--navy-900);text-transform:uppercase;letter-spacing:.04em}
+.toggle-sub{font-size:.64rem;color:var(--gray-500);margin-top:3px;line-height:1.4}
+.switch{position:relative;display:inline-block;width:38px;height:22px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;inset:0;background-color:rgba(207,228,255,.18);transition:.24s;border-radius:22px}
+.slider:before{position:absolute;content:"";height:16px;width:16px;left:3px;bottom:3px;background-color:#e8f0fc;transition:.24s;border-radius:50%}
+input:checked + .slider{background-color:var(--gold-500)}
+input:checked + .slider:before{transform:translateX(16px);background-color:var(--navy-0)}
+.accordion-body{display:none;margin-top:.75rem;padding-top:.75rem;border-top:1px dashed var(--navy-200)}
+.accordion-body.show{display:block}
+
+/* ═══ LISTA MULTIMILITAR ═══ */
+.militar-item-card{background:var(--card);border:1px solid var(--linha);border-left:3px solid var(--gold-500);
+  border-radius:10px;padding:.85rem;margin-bottom:.65rem;position:relative}
+.militar-item-card.coord{border-left-color:var(--green-500);background:rgba(62,207,154,.06)}
+.militar-item-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;font-size:.78rem;font-weight:700;color:var(--navy-900)}
+
+/* ═══ BLOCO DE NUMERAÇÃO (OMIS ↔ OS) ═══ */
+.num-box{background:linear-gradient(150deg,rgba(212,168,75,.10),rgba(10,23,48,.5));
+  border:1px solid rgba(212,168,75,.3);border-radius:12px;padding:1rem;margin-bottom:1rem}
+.num-box-title{font-family:var(--f-display);font-size:.75rem;font-weight:600;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--gold-400);margin-bottom:.8rem;display:flex;align-items:center;gap:.45rem}
+.num-par{display:grid;grid-template-columns:1fr auto 1fr;gap:.75rem;align-items:center;margin-top:.75rem}
+@media(max-width:600px){.num-par{grid-template-columns:1fr;gap:.5rem}}
+.num-cel{background:rgba(6,13,29,.55);border:1px solid var(--navy-200);border-radius:10px;padding:.6rem .8rem}
+.num-cel.travado{opacity:.92}
+.num-cel label{display:block;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--gray-500);margin-bottom:.3rem}
+.num-cel .num-val{font-family:var(--f-mono);font-size:1.25rem;font-weight:700;color:#fff;letter-spacing:.02em;display:flex;align-items:center;gap:.4rem}
+.num-cel .num-val.vazio{color:var(--gray-400);font-size:.95rem;font-weight:500}
+.num-cel input{width:100%;padding:.35rem .5rem;border-radius:6px;border:1px solid var(--gold-500);
+  background:rgba(6,13,29,.7);color:#fff;font-family:var(--f-mono);font-size:1.1rem;font-weight:700;text-align:center}
+.num-cel input:focus{outline:none;box-shadow:0 0 0 3px rgba(212,168,75,.2)}
+.num-elo{display:flex;align-items:center;justify-content:center;color:var(--gold-500);font-size:1.3rem;padding-top:1rem}
+@media(max-width:600px){.num-elo{padding-top:0;transform:rotate(90deg)}}
+.num-aviso{margin-top:.75rem;padding:.6rem .75rem;border-radius:8px;font-size:.72rem;line-height:1.5;display:none}
+.num-aviso.show{display:block}
+.num-aviso.legado{background:rgba(232,177,63,.12);border:1px solid rgba(232,177,63,.35);color:var(--yellow-500)}
+.num-aviso.erro{background:rgba(224,90,90,.12);border:1px solid rgba(224,90,90,.35);color:var(--red-500)}
+.num-aviso.ok{background:rgba(62,207,154,.10);border:1px solid rgba(62,207,154,.3);color:var(--green-500)}
+
+/* ═══ RÉGUA DE SEQUÊNCIA ═══ */
+.regua-panel{background:var(--card);border:1px solid var(--linha);border-top:3px solid var(--gold-500);
+  border-radius:12px;padding:1.25rem;margin-bottom:1.25rem;backdrop-filter:blur(6px)}
+.regua-grid{display:flex;flex-wrap:wrap;gap:.35rem;margin:.9rem 0}
+.rg{width:40px;height:40px;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family:var(--f-mono);font-size:.78rem;font-weight:700;cursor:pointer;border:1px solid transparent;
+  transition:transform .15s,box-shadow .15s;position:relative;line-height:1}
+.rg:hover{transform:translateY(-2px) scale(1.06);box-shadow:0 6px 16px -6px rgba(0,0,0,.8);z-index:2}
+.rg small{font-size:.48rem;font-weight:600;opacity:.85;margin-top:2px;letter-spacing:.02em}
+.rg.ok{background:rgba(62,207,154,.15);color:var(--green-500);border-color:rgba(62,207,154,.4)}
+.rg.semos{background:rgba(90,162,224,.15);color:var(--ceu);border-color:rgba(90,162,224,.4)}
+.rg.legada{background:rgba(232,177,63,.18);color:var(--yellow-500);border-color:rgba(232,177,63,.5)}
+.rg.lacuna{background:rgba(224,90,90,.10);color:var(--red-500);border:1px dashed rgba(224,90,90,.5)}
+.regua-legenda{display:flex;flex-wrap:wrap;gap:1rem;font-size:.68rem;color:var(--gray-500);margin-top:.5rem}
+.regua-legenda span{display:inline-flex;align-items:center;gap:.4rem}
+.regua-legenda i{width:11px;height:11px;border-radius:3px;display:inline-block}
+.regua-vazia{font-size:.82rem;color:var(--gray-400);padding:1rem 0}
+
+/* ═══ SIDEBAR / PAINÉIS ═══ */
 .sidebar{display:flex;flex-direction:column;gap:1rem}
-.panel{background:#fff;border:1px solid var(--navy-100);border-radius:8px;padding:1.25rem;
-  border-top:3px solid var(--navy-600)}
+.panel{background:var(--card);border:1px solid var(--linha);border-radius:12px;padding:1.25rem;
+  border-top:3px solid var(--navy-300);backdrop-filter:blur(6px)}
 .panel.gauge-panel{border-top-color:var(--gold-500)}
 
 #gauge{width:100%;height:auto;display:block;margin:0 auto}
-.gauge-read{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--navy-100);
-  border:1px solid var(--navy-100);border-radius:6px;overflow:hidden;margin-top:.9rem}
-.gauge-read div{background:var(--navy-50);padding:.6rem .5rem;text-align:center}
-.gauge-read dt{font-size:.54rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray-500);
-  margin-bottom:.22rem;font-weight:600}
-.gauge-read dd{font-family:var(--f-mono);font-size:.72rem;font-weight:700;color:var(--navy-900);
-  font-variant-numeric:tabular-nums;line-height:1.2}
-.gauge-read dd.spent{color:var(--red-600)}
-.gauge-read dd.left{color:var(--green-600)}
+.gauge-read{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--linha);
+  border:1px solid var(--linha);border-radius:8px;overflow:hidden;margin-top:.9rem}
+.gauge-read div{background:rgba(6,13,29,.5);padding:.6rem .5rem;text-align:center}
+.gauge-read dt{font-size:.53rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray-500);margin-bottom:.24rem;font-weight:600}
+.gauge-read dd{font-family:var(--f-mono);font-size:.72rem;font-weight:700;color:var(--navy-900);font-variant-numeric:tabular-nums;line-height:1.2}
+.gauge-read dd.spent{color:var(--red-500)}
+.gauge-read dd.left{color:var(--green-500)}
 
 .field{margin-bottom:.85rem}
-.field label{display:block;font-size:.64rem;font-weight:600;text-transform:uppercase;
-  letter-spacing:.08em;color:var(--navy-500);margin-bottom:.35rem}
+.field label{display:block;font-size:.63rem;font-weight:600;text-transform:uppercase;letter-spacing:.09em;color:var(--gray-500);margin-bottom:.35rem}
 .field input,.field textarea,.field select{
-  width:100%;padding:.6rem .75rem;border-radius:5px;border:1px solid var(--navy-200);
-  background:#fff;font-family:var(--f-body);font-size:.85rem;color:var(--navy-900);
+  width:100%;padding:.6rem .75rem;border-radius:8px;border:1px solid var(--navy-200);
+  background:rgba(6,13,29,.5);font-family:var(--f-body);font-size:.85rem;color:var(--navy-900);
 }
-.field input.money{font-family:var(--f-mono);font-weight:500}
-.field input:focus,.field textarea:focus,.field select:focus{
-  outline:2px solid var(--gold-500);outline-offset:1px;border-color:var(--gold-500)}
+.field input::placeholder,.field textarea::placeholder{color:var(--gray-400)}
+.field select option{background:var(--navy-1);color:var(--navy-900)}
+.field input.money{font-family:var(--f-mono);font-weight:600}
+.field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--gold-500);box-shadow:0 0 0 3px rgba(212,168,75,.15)}
+.field input:disabled,.field select:disabled{opacity:.5;cursor:not-allowed}
 .field textarea{resize:vertical;min-height:70px;line-height:1.5}
-.field .hint{font-size:.62rem;color:var(--gray-400);margin-top:.28rem}
-.err{display:none;font-size:.68rem;color:var(--red-500);margin-top:3px;font-weight:600}
+.field .hint{font-size:.62rem;color:var(--gray-400);margin-top:.3rem;line-height:1.45}
+.err{display:none;font-size:.68rem;color:var(--red-500);margin-top:4px;font-weight:600}
 .err.show{display:block}
 
-.warn{display:flex;gap:.55rem;align-items:flex-start;padding:.7rem .8rem;border-radius:5px;
-  background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.22);
-  font-size:.72rem;line-height:1.45;color:#991b1b;margin-top:.85rem}
+.warn{display:flex;gap:.55rem;align-items:flex-start;padding:.7rem .8rem;border-radius:8px;
+  background:rgba(224,90,90,.10);border:1px solid rgba(224,90,90,.3);
+  font-size:.72rem;line-height:1.45;color:var(--red-500);margin-top:.85rem}
 .warn svg{width:15px;height:15px;flex-shrink:0;margin-top:1px}
 .warn.hide{display:none}
 
@@ -295,75 +354,79 @@ main{display:grid;grid-template-columns:1fr 340px;gap:1.5rem;padding:1.5rem 2rem
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem}
 @media(max-width:600px){.grid2,.grid3{grid-template-columns:1fr}}
 
-/* ═══ TABELA DE CONTROLE DE PROCESSOS (CONTROLE OS 2026) ═══ */
-.table-controle-wrap{
-  background:#fff;border:1px solid var(--navy-100);border-radius:8px;overflow-x:auto;box-shadow:0 4px 16px rgba(10,25,47,0.04);
-}
-.table-controle{
-  width:100%;border-collapse:collapse;font-size:.82rem;text-align:left;min-width:1050px;
-}
+/* ═══ TABELA DA ESTEIRA ═══ */
+.table-controle-wrap{background:var(--card);border:1px solid var(--linha);border-radius:12px;overflow-x:auto;backdrop-filter:blur(6px)}
+.table-controle{width:100%;border-collapse:collapse;font-size:.8rem;text-align:left;min-width:1050px;color:var(--navy-700)}
 .table-controle th{
-  background:var(--navy-900);color:#fff;font-family:var(--f-display);font-size:.75rem;
-  letter-spacing:.06em;text-transform:uppercase;padding:.75rem .9rem;white-space:nowrap;
+  background:rgba(6,13,29,.75);color:var(--gold-400);font-family:var(--f-display);font-size:.72rem;
+  letter-spacing:.08em;text-transform:uppercase;padding:.75rem .9rem;white-space:nowrap;
+  border-bottom:1px solid var(--linha);position:sticky;top:0;
 }
-.table-controle td{
-  padding:.75rem .9rem;border-bottom:1px solid var(--navy-100);vertical-align:middle;
-}
-.table-controle tr:hover td{background:var(--navy-50)}
-.badge-st{
-  display:inline-block;padding:.2rem .55rem;border-radius:4px;font-family:var(--f-mono);
-  font-size:.68rem;font-weight:700;text-transform:uppercase;
-}
-.st-pendente{background:#fef3c7;color:#92400e}
-.st-analise{background:#e0e7ff;color:#3730a3}
-.st-aprovada{background:#dbeafe;color:#1e40af}
-.st-apresentado{background:#d1fae5;color:#065f46;border:1px solid #a7f3d0}
-.st-despachado{background:#ede9fe;color:#5b21b6;border:1px solid #ddd6fe}
-.st-corrigir{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5}
-.st-aceito{background:#dbeafe;color:#1e40af}
-.st-aguardando-bca{background:#fef9c3;color:#854d0e;border:1px solid #fde047}
-.st-confeccionado{background:#dcfce7;color:#15803d}
-.st-publicado{background:#ccfbf1;color:#115e59;border:1px solid #99f6e4}
+.table-controle td{padding:.75rem .9rem;border-bottom:1px solid var(--navy-100);vertical-align:middle}
+.table-controle tr:hover td{background:rgba(207,228,255,.04)}
+.table-controle b{color:#fff}
+.badge-st{display:inline-block;padding:.22rem .58rem;border-radius:99px;font-family:var(--f-mono);
+  font-size:.66rem;font-weight:700;text-transform:uppercase;border:1px solid transparent;white-space:nowrap}
+.st-pendente{background:rgba(232,177,63,.14);color:var(--yellow-500);border-color:rgba(232,177,63,.35)}
+.st-analise{background:rgba(129,140,248,.14);color:#a5b4fc;border-color:rgba(129,140,248,.35)}
+.st-aprovada{background:rgba(90,162,224,.14);color:var(--ceu);border-color:rgba(90,162,224,.35)}
+.st-apresentado{background:rgba(62,207,154,.14);color:var(--green-500);border-color:rgba(62,207,154,.35)}
+.st-despachado{background:rgba(167,139,250,.14);color:var(--purple-500);border-color:rgba(167,139,250,.35)}
+.st-corrigir{background:rgba(224,90,90,.16);color:var(--red-500);border-color:rgba(224,90,90,.45)}
+.st-aceito{background:rgba(90,162,224,.14);color:var(--ceu);border-color:rgba(90,162,224,.35)}
+.st-aguardando-bca{background:rgba(232,177,63,.14);color:var(--yellow-500);border-color:rgba(232,177,63,.4)}
+.st-confeccionado{background:rgba(62,207,154,.14);color:var(--green-500);border-color:rgba(62,207,154,.35)}
+.st-publicado{background:rgba(45,212,191,.14);color:#5eead4;border-color:rgba(45,212,191,.35)}
 
 /* ═══ MODAL ═══ */
 .backdrop{
-  position:fixed;inset:0;background:rgba(10,22,40,.6);backdrop-filter:blur(3px);
+  position:fixed;inset:0;background:rgba(3,8,18,.78);backdrop-filter:blur(4px);
   display:flex;align-items:center;justify-content:center;padding:1rem;
   z-index:200;opacity:0;pointer-events:none;transition:opacity .2s;
 }
 .backdrop.open{opacity:1;pointer-events:auto}
 .modal{
-  background:#fff;border-radius:10px;box-shadow:0 24px 48px -12px rgba(10,22,40,.4);
+  background:linear-gradient(180deg,var(--navy-2),var(--navy-1));
+  border:1px solid var(--linha);border-radius:14px;box-shadow:0 30px 70px -20px rgba(0,0,0,.9);
   width:100%;max-width:600px;overflow:hidden;transform:scale(.96);transition:transform .2s;
-  display:flex;flex-direction:column;max-height:90vh;
+  display:flex;flex-direction:column;max-height:92vh;
 }
 .backdrop.open .modal{transform:scale(1)}
 .modal-head{
-  display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;
-  background:var(--navy-900);color:#fff;border-bottom:3px solid var(--gold-500);
+  display:flex;align-items:center;gap:.6rem;padding:1rem 1.25rem;
+  background:rgba(6,13,29,.75);color:#fff;border-bottom:1px solid rgba(212,168,75,.4);
 }
-.modal-head h2{font-family:var(--f-display);font-size:1.05rem;letter-spacing:.04em;text-transform:uppercase}
+.modal-head h2{font-family:var(--f-display);font-size:1.02rem;letter-spacing:.05em;text-transform:uppercase;flex:1}
 .modal-head svg{color:var(--gold-500)}
+.modal-head .icon-btn{margin-left:auto}
 .modal-body{padding:1.25rem;overflow-y:auto;flex:1}
 .modal-foot{
   display:flex;align-items:center;justify-content:flex-end;gap:.6rem;padding:.9rem 1.25rem;
-  background:var(--navy-50);border-top:1px solid var(--navy-100);
+  background:rgba(6,13,29,.55);border-top:1px solid var(--linha);flex-wrap:wrap;
 }
 
-.calc{font-family:var(--f-mono);font-size:.78rem;color:var(--gray-500);margin-top:.4rem;padding:.5rem .75rem;background:var(--navy-50);border-radius:4px}
+.calc{font-family:var(--f-mono);font-size:.78rem;color:var(--gray-500);margin-top:.4rem;
+  padding:.55rem .8rem;background:rgba(6,13,29,.5);border:1px solid var(--linha);border-radius:8px}
 .toast{
-  position:fixed;bottom:1.5rem;right:1.5rem;background:var(--navy-900);color:#fff;
-  padding:.75rem 1.25rem;border-radius:6px;font-size:.82rem;box-shadow:0 10px 25px rgba(0,0,0,.25);
-  border-left:4px solid var(--gold-500);z-index:300;opacity:0;transform:translateY(10px);
-  transition:all .25s;pointer-events:none;
+  position:fixed;bottom:1.5rem;right:1.5rem;background:var(--navy-2);color:#fff;
+  padding:.8rem 1.25rem;border-radius:10px;font-size:.82rem;box-shadow:0 14px 34px rgba(0,0,0,.7);
+  border:1px solid var(--linha);border-left:3px solid var(--gold-500);z-index:300;opacity:0;transform:translateY(10px);
+  transition:all .25s;pointer-events:none;max-width:min(420px,88vw);
 }
 .toast.show{opacity:1;transform:translateY(0)}
+.toast.erro{border-left-color:var(--red-500)}
 
 footer{
-  display:flex;align-items:center;justify-content:center;gap:.6rem;padding:1.5rem;
-  font-size:.72rem;color:var(--gray-400);letter-spacing:.06em;text-transform:uppercase;margin-top:auto;
+  display:flex;align-items:center;justify-content:center;gap:.6rem;padding:2rem 1.5rem;
+  font-size:.7rem;color:var(--gray-400);letter-spacing:.08em;text-transform:uppercase;
+  border-top:1px solid var(--linha);margin-top:2rem;position:relative;z-index:5;text-align:center;
 }
-footer img{height:16px;opacity:.4}
+footer img{height:16px;opacity:.45}
+
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(207,228,255,.16);border-radius:99px;border:2px solid transparent;background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:rgba(207,228,255,.3);background-clip:padding-box}
 </style>
 </head>
 <body>
@@ -377,6 +440,10 @@ footer img{height:16px;opacity:.4}
     </div>
   </div>
   <div class="header-right">
+    <a href="index.html" class="hbtn volta" title="Voltar ao hub Governança DE">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Hub
+    </a>
     <div class="sync ok" id="sync"><i id="sync-dot"></i><span id="sync-txt">Sincronizado</span></div>
     <button class="hbtn" onclick="abrirModalExternos()" title="Gerenciar Militares Externos">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -411,35 +478,35 @@ footer img{height:16px;opacity:.4}
 <div id="missoesContent" style="display:none;">
 
 <div class="tabs-bar">
-  <button class="tab-btn active" id="tab-btn-diarias" onclick="trocarAba('diarias')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-    Diária
-    <span class="tab-badge" id="badge-diarias-count">0</span>
+  <button class="tab-btn active" id="tab-btn-omis" onclick="trocarAba('omis')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    Ordens de Missão <span class="hide-mob">(OMIS)</span>
+    <span class="tab-badge" id="badge-omis-count">0</span>
   </button>
   <button class="tab-btn" id="tab-btn-gratificacao" onclick="trocarAba('gratificacao')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>
     Gratificação <span class="hide-mob">de Representação</span>
     <span class="tab-badge" id="badge-grat-count">0</span>
   </button>
-  <button class="tab-btn" id="tab-btn-omis" onclick="trocarAba('omis')">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-    Ordens de Missão (OMIS)
-    <span class="tab-badge" id="badge-omis-count">0</span>
+  <button class="tab-btn" id="tab-btn-diarias" onclick="trocarAba('diarias')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+    Diárias
+    <span class="tab-badge" id="badge-diarias-count">0</span>
   </button>
   <button class="tab-btn" id="tab-btn-solicitacoes" onclick="trocarAba('solicitacoes')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
     Solicitações <span class="hide-mob">de OS</span>
-    <span class="tab-badge" id="badge-solic-count" style="background:#ef4444;color:#fff">0</span>
+    <span class="tab-badge" id="badge-solic-count">0</span>
   </button>
   <button class="tab-btn" id="tab-btn-controle" onclick="trocarAba('controle')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-    Controle OS 2026 (Esteira)
+    Esteira de Processos
     <span class="tab-badge" id="badge-controle-count">0</span>
   </button>
 </div>
 
 <!-- ABA 1: DIÁRIA -->
-<div id="view-diarias">
+<div id="view-diarias" style="display:none">
   <div class="summary">
     <div class="scard gold"><div><div class="scount" id="s-total">—</div><div class="slabel">Dotação total</div></div></div>
     <div class="scard red"><div><div class="scount" id="s-gasto">—</div><div class="slabel">Empenhado</div></div></div>
@@ -449,19 +516,20 @@ footer img{height:16px;opacity:.4}
 
   <main>
     <div>
-      <div class="section-title">Ordens de Serviço (Diárias)</div>
+      <div class="section-title">Ordens de Serviço de Diária — cada uma nasce de uma OMIS</div>
       <div class="toolbar">
-        <button class="btn btn-primary" onclick="abrirModal()">
+        <button class="btn btn-primary" onclick="abrirModalNovaDiaria()">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 5v14M5 12h14"/></svg>
-          Nova OS Diária
+          Nova OMIS de Diária
         </button>
-        <input class="search" id="busca" type="search" placeholder="Buscar por número, missão ou servidor…" oninput="render()" />
+        <select class="search" style="flex:0 0 auto;min-width:120px;font-weight:700" id="diaria-ano" onchange="render()"></select>
+        <input class="search" id="busca" type="search" placeholder="Buscar por número, missão ou militar…" oninput="render()" />
         <select class="search" style="flex:0 0 auto;min-width:150px" id="ordem" onchange="render()">
+          <option value="num">Nº da OMIS</option>
           <option value="data-desc">Data ↓ (recente)</option>
           <option value="data-asc">Data ↑ (antiga)</option>
           <option value="valor-desc">Maior valor</option>
           <option value="valor-asc">Menor valor</option>
-          <option value="num">Nº da OS</option>
         </select>
       </div>
       <div class="os-grid" id="lista">
@@ -528,11 +596,7 @@ footer img{height:16px;opacity:.4}
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 5v14M5 12h14"/></svg>
           Nova Gratificação
         </button>
-        <select class="search" style="flex:0 0 auto;min-width:110px;font-weight:700" id="grat-ano" onchange="renderGratificacao()">
-          <option value="2026" selected>Ano 2026</option>
-          <option value="2025">Ano 2025</option>
-          <option value="2024">Ano 2024</option>
-        </select>
+        <select class="search" style="flex:0 0 auto;min-width:120px;font-weight:700" id="grat-ano" onchange="renderGratificacao()"></select>
         <input class="search" id="grat-busca" type="search" placeholder="Buscar por OS, militar, CPF, SARAM ou missão..." oninput="renderGratificacao()" />
       </div>
       <div class="os-grid" id="lista-gratificacao">
@@ -542,26 +606,66 @@ footer img{height:16px;opacity:.4}
   </main>
 </div>
 
-<!-- ABA 3: ORDENS DE MISSÃO (OMIS) -->
-<div id="view-omis" style="display:none">
+<!-- ABA 1: ORDENS DE MISSÃO (OMIS) — documento originador -->
+<div id="view-omis">
   <div class="summary">
-    <div class="scard gold"><div><div class="scount" id="so-qtd">0</div><div class="slabel">OMIS Emitidas</div></div></div>
-    <div class="scard green"><div><div class="scount" id="so-siloms-ok">0</div><div class="slabel">Protocoladas SILOMS</div></div></div>
-    <div class="scard purple"><div><div class="scount" id="so-enviadas">0</div><div class="slabel">E-mails Disparados</div></div></div>
-    <div class="scard navy" style="margin-left:0"><div><div class="scount" id="so-mils">0</div><div class="slabel">Militares em Missão</div></div></div>
+    <div class="scard gold"><div><div class="scount" id="so-qtd">0</div><div class="slabel">OMIS emitidas no ano</div></div></div>
+    <div class="scard green"><div><div class="scount" id="so-com-os">0</div><div class="slabel">Com OS vinculada</div></div></div>
+    <div class="scard ceu"><div><div class="scount" id="so-sem-os">0</div><div class="slabel">Sem OS (sem custo)</div></div></div>
+    <div class="scard purple"><div><div class="scount" id="so-siloms-ok">0</div><div class="slabel">Protocoladas SILOMS</div></div></div>
+    <div class="scard red" style="margin-left:auto"><div><div class="scount" id="so-alertas">0</div><div class="slabel">Lacunas e divergências</div></div></div>
   </div>
 
   <main style="grid-template-columns:1fr;max-width:1500px">
     <div>
-      <div class="section-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem">
-        <span>Ordens de Missão de Caráter Imediato / Emergencial (OMIS)</span>
-        <button class="btn btn-primary" onclick="abrirModalNovaOmisSemCusto()">
-          + Nova OMIS (Sem Custo)
+
+      <!-- ═══ RÉGUA DE SEQUÊNCIA ═══ -->
+      <div class="regua-panel">
+        <div class="section-title" style="justify-content:space-between;flex-wrap:wrap;gap:.6rem;margin-bottom:.4rem">
+          <span>Régua de sequência · Exercício <b id="regua-ano" style="color:var(--gold-400)">—</b></span>
+          <span style="font-family:var(--f-mono);font-size:.68rem;color:var(--gray-400);letter-spacing:0;text-transform:none">
+            Próxima OMIS: <b id="regua-proxima" style="color:var(--gold-400);font-size:.9rem">—</b>
+          </span>
+        </div>
+        <p style="font-size:.74rem;color:var(--gray-500);line-height:1.5;margin-bottom:.2rem">
+          Cada quadro é um número de OMIS do exercício. Clique para filtrar a lista abaixo.
+        </p>
+
+        <div class="regua-grid" id="regua-grid">
+          <div class="regua-vazia">Carregando sequência…</div>
+        </div>
+
+        <div class="regua-legenda">
+          <span><i style="background:rgba(62,207,154,.45);border:1px solid var(--jade,#3ecf9a)"></i> OMIS com OS de mesmo número</span>
+          <span><i style="background:rgba(90,162,224,.45);border:1px solid #5aa2e0"></i> OMIS sem OS (sem custo)</span>
+          <span><i style="background:rgba(232,177,63,.5);border:1px solid #e8b13f"></i> Numeração legada (divergente)</span>
+          <span><i style="background:rgba(224,90,90,.25);border:1px dashed #e05a5a"></i> Lacuna — número não utilizado</span>
+        </div>
+
+        <div id="regua-alertas" style="display:none;margin-top:.9rem"></div>
+      </div>
+
+      <div class="section-title" style="justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem">
+        <span>Ordens de Missão da Divisão de Ensino</span>
+        <button class="btn btn-primary" onclick="abrirModalOmis()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 5v14M5 12h14"/></svg>
+          Nova Ordem de Missão
         </button>
       </div>
+
       <div class="toolbar">
-        <input class="search" id="omis-busca" type="search" placeholder="Buscar por OMIS, OS, SILOMS, coordenador ou destino..." oninput="renderOmis()" />
+        <select class="search" style="flex:0 0 auto;min-width:120px;font-weight:700" id="omis-ano" onchange="renderOmis()"></select>
+        <select class="search" style="flex:0 0 auto;min-width:180px" id="omis-filtro" onchange="renderOmis()">
+          <option value="TODOS">Todas as modalidades</option>
+          <option value="gratificacao">Gratificação de Representação</option>
+          <option value="diaria">Diária de Viagem</option>
+          <option value="sem_custo">Sem custo (só OMIS)</option>
+          <option value="__ALERTA">⚠️ Só divergências e pendências</option>
+        </select>
+        <input class="search" id="omis-busca" type="search" placeholder="Buscar por OMIS, OS, SILOMS, coordenador ou destino…" oninput="renderOmis()" />
+        <button class="btn btn-ghost" onclick="limparFiltroRegua()" id="btn-limpar-regua" style="display:none">✕ Limpar seleção da régua</button>
       </div>
+
       <div class="os-grid" id="lista-omis">
         <div class="skel"></div><div class="skel"></div>
       </div>
@@ -665,7 +769,8 @@ footer img{height:16px;opacity:.4}
 
 <footer>
   <img src="assets/cocar-fab.png" alt="" />
-  Academia da Força Aérea · Divisão de Ensino
+  <span>Governança DE · Academia da Força Aérea — módulo Missões &amp; OS · <b style="color:var(--gold-400)">v2.0</b>
+  <br><small style="opacity:.7;text-transform:none;letter-spacing:0">OMIS como documento originador · numeração de OS vinculada à OMIS</small></span>
   <img src="assets/cocar-fab.png" alt="" />
 </footer>
 
@@ -673,101 +778,94 @@ footer img{height:16px;opacity:.4}
      MODAIS DE CADASTRO E EDIÇÃO
      ══════════════════════════════════════════════════════════════ -->
 
-<!-- MODAL 1: OS DIÁRIA -->
-<div class="backdrop" id="backdrop" onclick="if(event.target===this)fecharModal()">
-  <div class="modal" role="dialog" aria-modal="true">
-    <div class="modal-head">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
-      <h2 id="modal-title">Nova Ordem de Serviço (Diárias)</h2>
-      <button class="icon-btn" onclick="fecharModal()" aria-label="Fechar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
-      </button>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="f-id" />
-      <div class="field">
-        <label for="f-serv-select">Selecionar do Efetivo da AFA</label>
-        <select id="f-serv-select" onchange="selecionarServidorDiaria(this.value)">
-          <option value="">-- Selecione para preencher automaticamente --</option>
-        </select>
-      </div>
-      <div class="grid2">
-        <div class="field">
-          <label for="f-num">Nº da OS *</label>
-          <input id="f-num" type="text" placeholder="Ex.: 042/2026" />
-          <div class="err" id="e-num">Informe o número da OS.</div>
-        </div>
-        <div class="field">
-          <label for="f-serv">Servidor alocado *</label>
-          <input id="f-serv" type="text" placeholder="Posto e nome" />
-          <div class="err" id="e-serv">Informe o servidor.</div>
-        </div>
-      </div>
-      <div class="field">
-        <label for="f-desc">Descrição da missão *</label>
-        <textarea id="f-desc" placeholder="Objeto e destino da missão"></textarea>
-        <div class="err" id="e-desc">Descreva a missão.</div>
-      </div>
-      <div class="grid2">
-        <div class="field">
-          <label for="f-ini">Data de início *</label>
-          <input id="f-ini" type="date" />
-          <div class="err" id="e-ini">Informe a data de início.</div>
-        </div>
-        <div class="field">
-          <label for="f-fim">Data de término *</label>
-          <input id="f-fim" type="date" />
-          <div class="err" id="e-fim">Término não pode ser antes do início.</div>
-        </div>
-      </div>
-      <div class="grid2">
-        <div class="field">
-          <label for="f-qtd">Quantidade de diárias *</label>
-          <input id="f-qtd" type="number" step="0.5" min="0.5" placeholder="Ex.: 2,5" />
-          <div class="err" id="e-qtd">Informe uma quantidade maior que zero.</div>
-        </div>
-        <div class="field">
-          <label for="f-val">Valor total (R$) *</label>
-          <input class="money" id="f-val" type="text" inputmode="decimal" placeholder="R$ 0,00" />
-          <div class="err" id="e-val">Informe o valor total.</div>
-        </div>
-      </div>
-      <div class="calc" id="calc">Valor unitário: —</div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="fecharModal()">Cancelar</button>
-      <button class="btn btn-primary" id="btn-salvar" onclick="salvarOS()">Salvar OS Diária</button>
-    </div>
-  </div>
-</div>
-
 <!-- MODAL 2: GRATIFICAÇÃO DE REPRESENTAÇÃO -->
 <div class="backdrop" id="backdrop-grat" onclick="if(event.target===this)fecharModalGrat()">
   <div class="modal" style="max-width:760px" role="dialog" aria-modal="true">
     <div class="modal-head">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>
-      <h2 id="modal-grat-title">Nova Gratificação de Representação</h2>
+      <h2 id="modal-grat-title">Nova Ordem de Missão</h2>
       <button class="icon-btn" onclick="fecharModalGrat()" aria-label="Fechar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="fg-id" />
-      
-      <div class="grid3">
+      <input type="hidden" id="fg-omis-seq" />
+      <input type="hidden" id="fg-os-seq" />
+      <input type="hidden" id="fg-num" />
+      <input type="hidden" id="fg-num-omis" />
+
+      <!-- ═══ MODALIDADE ═══ -->
+      <div class="grid2">
         <div class="field">
-          <label for="fg-num">Nº da OS (GratiRep) *</label>
-          <input id="fg-num" type="text" placeholder="Ex.: 24/DE/2026" />
-          <div class="err" id="eg-num">Informe o número da OS.</div>
+          <label for="fg-modalidade">Modalidade da missão *</label>
+          <select id="fg-modalidade" onchange="aoTrocarModalidade()">
+            <option value="gratificacao">Gratificação de Representação (gera OS)</option>
+            <option value="diaria">Diária de Viagem (gera OS)</option>
+            <option value="sem_custo">Sem custo — apenas OMIS (não gera OS)</option>
+          </select>
         </div>
         <div class="field">
-          <label for="fg-num-omis">Nº da OMIS (Série Independente)</label>
-          <input id="fg-num-omis" type="text" placeholder="Ex.: 05/DE/2026" />
+          <label for="fg-ano">Exercício (ano)</label>
+          <select id="fg-ano" onchange="recalcularNumeracao()"></select>
         </div>
-        <div class="field">
-          <label for="fg-enquadramento">Enquadramento Legal</label>
-          <input id="fg-enquadramento" type="text" value="Art 5°, Inc II (Viagem de Instrução)" />
+      </div>
+
+      <!-- ═══ BLOCO DE NUMERAÇÃO OMIS ↔ OS ═══ -->
+      <div class="num-box">
+        <div class="num-box-title">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Numeração do processo
         </div>
+
+        <div class="toggle-row" onclick="toggleSwitch('fg-toggle-retroativo')">
+          <div>
+            <div class="toggle-title" style="font-size:.72rem">Lançamento retroativo (numeração legada)</div>
+            <div class="toggle-sub">Use apenas para registrar processos que já tramitaram com a numeração antiga.</div>
+          </div>
+          <label class="switch" onclick="event.stopPropagation()">
+            <input type="checkbox" id="fg-toggle-retroativo" onchange="recalcularNumeracao()" />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="num-par">
+          <div class="num-cel" id="cel-omis">
+            <label>Ordem de Missão (OMIS)</label>
+            <div class="num-val" id="fg-omis-display">—</div>
+            <input type="number" min="1" step="1" id="fg-omis-input" style="display:none" oninput="recalcularNumeracao()" />
+          </div>
+          <div class="num-elo" id="num-elo" title="A OS herda o número da OMIS">&#10230;</div>
+          <div class="num-cel" id="cel-os">
+            <label>Ordem de Serviço (OS)</label>
+            <div class="num-val" id="fg-os-display">—</div>
+            <input type="number" min="1" step="1" id="fg-os-input" style="display:none" oninput="recalcularNumeracao()" />
+          </div>
+        </div>
+
+        <div class="num-aviso" id="num-aviso"></div>
+        <div class="err" id="eg-num" style="margin-top:.5rem">Numeração inválida.</div>
+      </div>
+
+      <!-- ═══ CAMPOS FINANCEIROS DA DIÁRIA ═══ -->
+      <div id="bloco-diaria" style="display:none">
+        <div class="grid2">
+          <div class="field">
+            <label for="fg-qtd-diarias">Quantidade de diárias *</label>
+            <input id="fg-qtd-diarias" type="number" step="0.5" min="0.5" placeholder="Ex.: 2,5" oninput="calcUnitarioOmis()" />
+          </div>
+          <div class="field">
+            <label for="fg-valor-total">Valor total (R$) *</label>
+            <input class="money" id="fg-valor-total" type="text" inputmode="decimal" placeholder="R$ 0,00" oninput="calcUnitarioOmis()" />
+          </div>
+        </div>
+        <div class="calc" id="calc-omis">Valor unitário: —</div>
+        <div class="err" id="eg-diaria" style="margin-bottom:.85rem">Informe a quantidade e o valor total da diária.</div>
+      </div>
+
+      <div class="field" id="campo-enquadramento">
+        <label for="fg-enquadramento">Enquadramento Legal</label>
+        <input id="fg-enquadramento" type="text" value="Art 5°, Inc II (Viagem de Instrução)" />
       </div>
 
       <!-- SEÇÃO MULTIMILITAR -->
@@ -850,7 +948,7 @@ footer img{height:16px;opacity:.4}
     </div>
     <div class="modal-foot">
       <button class="btn btn-ghost" onclick="fecharModalGrat()">Cancelar</button>
-      <button class="btn btn-primary" id="btn-salvar-grat" onclick="salvarGratificacao()">Salvar Gratificação</button>
+      <button class="btn btn-primary" id="btn-salvar-grat" onclick="salvarGratificacao()">Salvar Ordem de Missão</button>
     </div>
   </div>
 </div>
@@ -935,7 +1033,7 @@ footer img{height:16px;opacity:.4}
       </div>
 
       <div class="field" id="box-fc-auditoria">
-        <label for="fc-auditoria" style="color:#991b1b;font-weight:700">Auditoria / Pendências para Correção</label>
+        <label for="fc-auditoria" style="color:var(--red-500);font-weight:700">Auditoria / Pendências para Correção</label>
         <textarea id="fc-auditoria" rows="2" placeholder="Descreva os ajustes solicitados pelo comando ou auditoria..."></textarea>
       </div>
 
@@ -1106,11 +1204,11 @@ footer img{height:16px;opacity:.4}
         </div>
       </div>
 
-      <div style="background:#f8fafc;padding:.85rem;border-radius:6px;border:1px dashed var(--navy-300);margin-top:.5rem">
+      <div style="background:rgba(6,13,29,.5);padding:.85rem;border-radius:8px;border:1px dashed var(--navy-300);margin-top:.5rem">
         <label style="font-size:.66rem;font-weight:700;text-transform:uppercase;color:var(--navy-700);margin-bottom:.35rem;display:block">
           Pré-Visualização da Mensagem Oficial (Padrão FAB)
         </label>
-        <div id="fsil-preview-msg" style="font-family:var(--f-body);font-size:.84rem;color:#1e293b;line-height:1.5;font-style:italic">
+        <div id="fsil-preview-msg" style="font-family:var(--f-body);font-size:.84rem;color:var(--navy-700);line-height:1.5;font-style:italic">
           "Venho por meio deste solicitar a assinatura da OMIS..."
         </div>
       </div>
@@ -1240,7 +1338,7 @@ function urlPdf(caminho) {
 /* ══════════════════════════════════════════════════════════════
    2 · ESTADO GLOBAL
    ══════════════════════════════════════════════════════════════ */
-let abaAtual = 'diarias';
+let abaAtual = 'omis';
 let dados = { dotacao:0, ordens:[] };
 let dadosGratificacao = [];
 let dadosSolicitacoes = [];
@@ -1259,6 +1357,161 @@ const CACHE_CONTROLE_KEY = 'afa_controle_os_cache_v1';
 /* ── EFETIVO GOOGLE SHEETS ── */
 const EFETIVO_SHEET_ID = '1UOMh4y-wHL8kHcB9TUUcEmkeF7z6KYAs4vipsoOFgfA';
 const EFETIVO_URL = `https://docs.google.com/spreadsheets/d/${EFETIVO_SHEET_ID}/gviz/tq?tqx=out:json&sheet=efetivo&range=A5:AC250&headers=0`;
+
+
+/* ══════════════════════════════════════════════════════════════
+   2.1 · NÚCLEO DE NUMERAÇÃO OMIS ↔ OS
+   ──────────────────────────────────────────────────────────────
+   REGRA VIGENTE: toda OS herda o número da sua OMIS.
+   Uma OMIS pode não gerar OS (missão sem custo) — nesse caso o
+   número simplesmente não existe na série de OS. Buracos na série
+   de OS são LEGÍTIMOS e esperados.
+
+   REGISTROS LEGADOS: processos que já tramitaram sob a lógica
+   antiga (série de OS contínua e independente da OMIS) são
+   lançados em modo retroativo, ficam marcados com selo e não
+   podem ter a numeração alterada.
+   ══════════════════════════════════════════════════════════════ */
+
+const MODALIDADES = {
+  gratificacao: { rotulo: 'Gratificação de Representação', curto: 'GRATIREP', geraOs: true,  cor: 'gold'  },
+  diaria:       { rotulo: 'Diária de Viagem',              curto: 'DIÁRIA',   geraOs: true,  cor: 'green' },
+  sem_custo:    { rotulo: 'Sem custo (apenas OMIS)',       curto: 'SEM CUSTO', geraOs: false, cor: 'ceu'   }
+};
+
+const ANO_CORRENTE = new Date().getFullYear();
+let anoOmisSelecionado = ANO_CORRENTE;
+let filtroReguaSeq = null;
+
+/* Extrai o inteiro inicial de "12/DE/2026" → 12 ; "SEM CUSTO (7/DE/2026)" → 7 */
+function seqDe(txt) {
+  if (txt === null || txt === undefined || txt === '') return null;
+  if (typeof txt === 'number') return Number.isFinite(txt) ? Math.trunc(txt) : null;
+  const m = String(txt).match(/(\d+)/);
+  return m ? parseInt(m[1], 10) : null;
+}
+
+/* Monta o número oficial de exibição */
+function fmtNum(seq, ano) {
+  if (!seq) return '';
+  return `${seq}/DE/${ano || ANO_CORRENTE}`;
+}
+
+/* Deduz a modalidade de um registro antigo que não tem o campo preenchido */
+function deduzirModalidade(g) {
+  if (g.modalidade && MODALIDADES[g.modalidade]) return g.modalidade;
+  const enq = String(g.enquadramento_legal || '');
+  const numOs = String(g.num_os || '');
+  if (/sem\s*custo/i.test(enq) || /sem\s*custo/i.test(numOs)) return 'sem_custo';
+  if (/di[áa]ria/i.test(enq)) return 'diaria';
+  return 'gratificacao';
+}
+
+/* Normaliza um registro de missão vindo do banco / cache legado.
+   Nunca sobrescreve valores já estruturados. */
+function normalizarMissao(g) {
+  if (!g) return g;
+
+  if (!g.ano) g.ano = seqDe(String(g.data_inicio || '').slice(0, 4)) || ANO_CORRENTE;
+  g.ano = Number(g.ano) || ANO_CORRENTE;
+
+  if (!g.modalidade || !MODALIDADES[g.modalidade]) g.modalidade = deduzirModalidade(g);
+
+  if (g.omis_seq === null || g.omis_seq === undefined || g.omis_seq === '') {
+    g.omis_seq = seqDe(g.num_omis) || seqDe(g.num_os) || null;
+  }
+  g.omis_seq = g.omis_seq ? Number(g.omis_seq) : null;
+
+  if (typeof g.gera_os !== 'boolean') {
+    g.gera_os = g.modalidade !== 'sem_custo';
+  }
+
+  if (g.os_seq === null || g.os_seq === undefined || g.os_seq === '') {
+    g.os_seq = g.gera_os ? (seqDe(g.num_os) || g.omis_seq || null) : null;
+  }
+  g.os_seq = g.os_seq ? Number(g.os_seq) : null;
+  if (!g.gera_os) g.os_seq = null;
+
+  if (typeof g.numeracao_legada !== 'boolean') {
+    g.numeracao_legada = !!(g.gera_os && g.os_seq && g.omis_seq && g.os_seq !== g.omis_seq);
+  }
+
+  /* strings de exibição, consumidas pelo CompiladorDoc e pelo AppConfig */
+  g.num_omis = fmtNum(g.omis_seq, g.ano) || g.num_omis || '';
+  if (g.gera_os && g.os_seq) g.num_os = fmtNum(g.os_seq, g.ano);
+  else if (!g.gera_os) g.num_os = g.num_omis;
+
+  g.modalidade_label = MODALIDADES[g.modalidade].curto;
+  return g;
+}
+
+function normalizarTodas() {
+  dadosGratificacao = (dadosGratificacao || []).map(normalizarMissao);
+}
+
+/* Todas as missões de um exercício */
+function missoesDoAno(ano) {
+  return (dadosGratificacao || []).filter(g => Number(g.ano) === Number(ano));
+}
+
+/* Anos com registro + o ano corrente */
+function anosComRegistro() {
+  const s = new Set([ANO_CORRENTE]);
+  (dadosGratificacao || []).forEach(g => { if (g.ano) s.add(Number(g.ano)); });
+  return [...s].sort((a, b) => b - a);
+}
+
+function proximoOmisSeq(ano) {
+  const maior = missoesDoAno(ano).reduce((m, g) => Math.max(m, Number(g.omis_seq) || 0), 0);
+  return maior + 1;
+}
+
+/* Conflitos de numeração — usado na validação do modal */
+function conflitoOmis(ano, seq, idIgnorar) {
+  return missoesDoAno(ano).find(g =>
+    String(g.id) !== String(idIgnorar || '') && Number(g.omis_seq) === Number(seq));
+}
+function conflitoOs(ano, seq, idIgnorar) {
+  if (!seq) return null;
+  return missoesDoAno(ano).find(g =>
+    String(g.id) !== String(idIgnorar || '') && g.gera_os && Number(g.os_seq) === Number(seq));
+}
+
+/* Radiografia completa da sequência do exercício.
+   Devolve um item por número de 1 até o maior emitido. */
+function analisarSequencia(ano) {
+  const lista = missoesDoAno(ano);
+  const maior = lista.reduce((m, g) => Math.max(m, Number(g.omis_seq) || 0), 0);
+  const porSeq = new Map();
+  lista.forEach(g => { if (g.omis_seq) porSeq.set(Number(g.omis_seq), g); });
+
+  const itens = [];
+  for (let n = 1; n <= maior; n++) {
+    const g = porSeq.get(n);
+    if (!g) {
+      itens.push({ seq: n, estado: 'lacuna', missao: null });
+    } else if (!g.gera_os) {
+      itens.push({ seq: n, estado: 'semos', missao: g });
+    } else if (g.numeracao_legada || (g.os_seq && g.os_seq !== n)) {
+      itens.push({ seq: n, estado: 'legada', missao: g });
+    } else {
+      itens.push({ seq: n, estado: 'ok', missao: g });
+    }
+  }
+
+  return {
+    ano, maior, itens,
+    lacunas:      itens.filter(i => i.estado === 'lacuna'),
+    legadas:      itens.filter(i => i.estado === 'legada'),
+    semOs:        itens.filter(i => i.estado === 'semos'),
+    conformes:    itens.filter(i => i.estado === 'ok'),
+    duplicadas:   (() => {
+      const cont = {};
+      lista.forEach(g => { if (g.omis_seq) cont[g.omis_seq] = (cont[g.omis_seq] || 0) + 1; });
+      return Object.keys(cont).filter(k => cont[k] > 1).map(Number);
+    })()
+  };
+}
 
 function formatarCPF(raw) {
   if (!raw) return '';
@@ -1341,11 +1594,26 @@ function preencherSelectsEfetivo() {
   const options = '<option value="">-- Selecione do Efetivo --</option>' +
     listaEfetivo.map((m, idx) => `<option value="${idx}">${esc(m.posto)} ${esc(m.esp)} ${esc(m.nome_completo || m.nome)}</option>`).join('');
 
-  const sel1 = document.getElementById('f-serv-select');
-  if (sel1) sel1.innerHTML = options;
-
   const selCfg = document.getElementById('cfg-omis-select');
   if (selCfg) selCfg.innerHTML = options;
+}
+
+/* ── Toggles e accordions do modal ──
+   Estas duas funções eram referenciadas pelo HTML mas nunca foram
+   definidas neste arquivo: os três interruptores do modal de
+   gratificação não funcionavam. */
+function toggleSwitch(id) {
+  const chk = document.getElementById(id);
+  if (!chk) return;
+  chk.checked = !chk.checked;
+  chk.dispatchEvent(new Event('change'));
+}
+
+function alternarAccordion(chkId, accId) {
+  const chk = document.getElementById(chkId);
+  const acc = document.getElementById(accId);
+  if (!acc) return;
+  acc.classList.toggle('show', !!(chk && chk.checked));
 }
 
 function setSync(estado, texto){
@@ -1368,26 +1636,6 @@ function toast(msg, erro){
 /* ══════════════════════════════════════════════════════════════
    3 · DIÁRIAS (ABA 1)
    ══════════════════════════════════════════════════════════════ */
-const doBanco = r => ({
-  id: r.id,
-  num: r.num || '',
-  desc: r.descricao || '',
-  servidor: r.servidor || '',
-  ini: r.data_inicio || '',
-  fim: r.data_fim || '',
-  qtd: Number(r.qtd_diarias) || 0,
-  valor: Number(r.valor_total) || 0
-});
-const paraBanco = o => ({
-  num: o.num,
-  descricao: o.desc,
-  servidor: o.servidor,
-  data_inicio: o.ini,
-  data_fim: o.fim,
-  qtd_diarias: o.qtd,
-  valor_total: o.valor
-});
-
 const BRL = new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'});
 const fmtM = v => BRL.format(Number(v)||0);
 function parseM(s){
@@ -1415,10 +1663,16 @@ function statusOS(ini,fim){
 const ROTULO = { futura:'Programada', curso:'Em curso', fim:'Concluída' };
 const esc = s => (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
+/* As OS de diária são missões (modalidade 'diaria') do exercício corrente.
+   A tabela diarias_os deixou de ser fonte de verdade — ver migração SQL. */
+const ordensDiaria = (ano) => (dadosGratificacao || [])
+  .filter(g => g.modalidade === 'diaria' && Number(g.ano) === Number(ano || anoDiariaSelecionado));
+
 const totais = () => {
-  const gasto = dados.ordens.reduce((s,o)=> s + (Number(o.valor)||0), 0);
+  const gasto = ordensDiaria().reduce((s,o)=> s + (Number(o.valor_total)||0), 0);
   return { total: dados.dotacao, gasto, saldo: dados.dotacao - gasto };
 };
+let anoDiariaSelecionado = ANO_CORRENTE;
 
 /* Medidor Analógico */
 const G = { cx:130, cy:130, r:96, start:150, sweep:240 };
@@ -1531,89 +1785,93 @@ function atualizarGauge(){
 }
 
 function render(){
+  const selAno = document.getElementById('diaria-ano');
+  if (selAno) {
+    const anos = anosComRegistro();
+    if (!anos.includes(anoDiariaSelecionado)) anoDiariaSelecionado = anos[0];
+    selAno.innerHTML = anos.map(a => `<option value="${a}">Exercício ${a}</option>`).join('');
+    selAno.value = anoDiariaSelecionado;
+  }
+  const ano = Number(selAno?.value) || ANO_CORRENTE;
+  anoDiariaSelecionado = ano;
+
   const t = totais();
-  document.getElementById('s-total').textContent = t.total ? fmtM(t.total) : '—';
-  document.getElementById('s-gasto').textContent = t.total ? fmtM(t.gasto) : '—';
-  document.getElementById('s-saldo').textContent = t.total ? fmtM(t.saldo) : '—';
-  document.getElementById('s-qtd').textContent = dados.ordens.length;
+  const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+  set('s-total', t.total ? fmtM(t.total) : '—');
+  set('s-gasto', t.total ? fmtM(t.gasto) : '—');
+  set('s-saldo', t.total ? fmtM(t.saldo) : '—');
+
+  const todas = ordensDiaria(ano);
+  set('s-qtd', todas.length);
+  set('badge-diarias-count', (dadosGratificacao||[]).filter(g => g.modalidade === 'diaria').length);
 
   atualizarGauge();
 
-  const termo = (document.getElementById('busca').value || '').toLowerCase().trim();
-  const crit = document.getElementById('ordem').value;
+  /* alerta de estouro de dotação */
+  const alerta = document.getElementById('alerta');
+  const alertaTxt = document.getElementById('alerta-txt');
+  if (alerta && alertaTxt) {
+    if (t.total > 0 && t.saldo < 0) {
+      alerta.classList.remove('hide');
+      alertaTxt.textContent = `Dotação estourada em ${fmtM(Math.abs(t.saldo))}. Revise as OS de diária ou atualize o valor autorizado.`;
+    } else if (t.total > 0 && t.saldo < t.total * 0.15) {
+      alerta.classList.remove('hide');
+      alertaTxt.textContent = `Restam apenas ${fmtM(t.saldo)} de saldo (menos de 15% da dotação).`;
+    } else {
+      alerta.classList.add('hide');
+    }
+  }
 
-  let lista = dados.ordens.filter(o => !termo || [o.num, o.desc, o.servidor].some(c => (c||'').toLowerCase().includes(termo)));
+  /* lista */
+  const termo = (document.getElementById('busca')?.value || '').toLowerCase().trim();
+  const ordem = document.getElementById('ordem')?.value || 'num';
+  let lista = todas.slice();
 
-  lista.sort((a,b)=>{
-    if (crit === 'data-desc') return (b.ini||'').localeCompare(a.ini||'');
-    if (crit === 'data-asc')  return (a.ini||'').localeCompare(b.ini||'');
-    if (crit === 'valor-desc') return b.valor - a.valor;
-    if (crit === 'valor-asc')  return a.valor - b.valor;
-    if (crit === 'num') return (a.num||'').localeCompare(b.num||'', undefined, {numeric:true});
-    return 0;
-  });
+  if (termo) {
+    lista = lista.filter(o => [o.num_os, o.num_omis, o.servico_local,
+      ...(Array.isArray(o.militares) ? o.militares.map(m => `${m.posto_grad} ${m.nome} ${m.nome_guerra}`) : [])]
+      .some(c => (c || '').toLowerCase().includes(termo)));
+  }
+
+  const cmp = {
+    'data-desc': (a,b) => String(b.data_inicio||'').localeCompare(String(a.data_inicio||'')),
+    'data-asc':  (a,b) => String(a.data_inicio||'').localeCompare(String(b.data_inicio||'')),
+    'valor-desc':(a,b) => (Number(b.valor_total)||0) - (Number(a.valor_total)||0),
+    'valor-asc': (a,b) => (Number(a.valor_total)||0) - (Number(b.valor_total)||0),
+    'num':       (a,b) => (b.omis_seq||0) - (a.omis_seq||0)
+  }[ordem] || ((a,b) => (b.omis_seq||0) - (a.omis_seq||0));
+  lista.sort(cmp);
 
   const alvo = document.getElementById('lista');
-  if (!lista.length){
-    alvo.innerHTML = `<div class="empty"><img src="assets/cocar-fab.png" alt="" /><p>${dados.ordens.length ? 'Nenhuma OS coincide com a busca.' : 'Nenhuma ordem de serviço cadastrada ainda.'}</p><button class="btn btn-primary" onclick="abrirModal()">Lançar a primeira OS</button></div>`;
+  if (!alvo) return;
+
+  if (!lista.length) {
+    alvo.innerHTML = `
+      <div class="empty">
+        <img src="assets/cocar-fab.png" alt="" />
+        <p>Nenhuma OS de diária no exercício de ${ano}.</p>
+        <button class="btn btn-primary" onclick="abrirModalNovaDiaria()">+ Nova OS de Diária</button>
+      </div>`;
     return;
   }
 
-  alvo.innerHTML = lista.map(o => {
-    const st = statusOS(o.ini, o.fim);
-    const dias = diasEntre(o.ini, o.fim);
-    const unit = o.qtd > 0 ? o.valor / o.qtd : 0;
-    return `
-    <article class="os st-${st}">
-      <div class="os-acts">
-        <button class="icon-btn" onclick="editarOS('${o.id}')" aria-label="Editar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
-        </button>
-        <button class="icon-btn del" onclick="excluirOS('${o.id}')" aria-label="Excluir">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
-        </button>
-      </div>
-      <div class="os-head">
-        <div class="os-num">OS ${esc(o.num)}<span>Diárias de Viagem</span></div>
-        <span class="os-badge badge-${st}">${ROTULO[st]}</span>
-      </div>
-      <p class="os-desc">${esc(o.desc)}</p>
-      <div class="os-meta">
-        <div class="os-row">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          <b>${esc(o.servidor)}</b>
-        </div>
-        <div class="os-row">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-          ${fmtData(o.ini)} → ${fmtData(o.fim)} <u>${dias} ${dias===1?'dia':'dias'}</u>
-        </div>
-      </div>
-      <div class="os-foot">
-        <div class="os-qtd">${fmtQtd(o.qtd)} ${o.qtd===1?'diária':'diárias'}<small>${fmtM(unit)} / dia</small></div>
-        <div class="os-val">${fmtM(o.valor)}<small>Valor total</small></div>
-      </div>
-    </article>`;
-  }).join('');
+  alvo.innerHTML = lista.map(g => cardMissao(g, 'diaria')).join('');
 }
 
+/* ── Dotação orçamentária (tabela diarias_config) ── */
 async function recarregar(avisar){
   if (!configurado) return;
   setSync('busy','Sincronizando…');
   try{
-    const [cfg, os] = await Promise.all([
-      sb.from('diarias_config').select('dotacao').eq('id', CONFIG_ID).maybeSingle(),
-      sb.from('diarias_os').select('*').order('data_inicio', { ascending:false })
-    ]);
+    const cfg = await sb.from('diarias_config').select('dotacao').eq('id', CONFIG_ID).maybeSingle();
     if (cfg.error) throw cfg.error;
-    if (os.error)  throw os.error;
 
     dados.dotacao = Number(cfg.data?.dotacao) || 0;
-    dados.ordens  = (os.data || []).map(doBanco);
-
     carregando = false;
     gravarCache();
+
     const inp = document.getElementById('in-total');
-    if (document.activeElement !== inp) inp.value = dados.dotacao ? fmtM(dados.dotacao) : '';
+    if (inp && document.activeElement !== inp) inp.value = dados.dotacao ? fmtM(dados.dotacao) : '';
     render();
     setSync('ok','Sincronizado');
     if (avisar) toast('Dados de diárias atualizados');
@@ -1629,132 +1887,15 @@ function lerCache(){
     if (raw){
       const d = JSON.parse(raw);
       dados.dotacao = Number(d.dotacao)||0;
-      dados.ordens  = Array.isArray(d.ordens) ? d.ordens : [];
+      dados.ordens  = [];
       return true;
     }
   }catch(e){}
   return false;
 }
+
 function gravarCache(){
-  try{ localStorage.setItem(CACHE_KEY, JSON.stringify(dados)); }catch(e){}
-}
-
-function abrirModal(){
-  limparErros();
-  document.getElementById('f-id').value = '';
-  document.getElementById('f-num').value = '';
-  document.getElementById('f-serv').value = '';
-  document.getElementById('f-desc').value = '';
-  document.getElementById('f-ini').value = '';
-  document.getElementById('f-fim').value = '';
-  document.getElementById('f-qtd').value = '';
-  document.getElementById('f-val').value = '';
-  document.getElementById('calc').textContent = 'Valor unitário: —';
-  document.getElementById('modal-title').textContent = 'Nova Ordem de Serviço (Diárias)';
-  document.getElementById('backdrop').classList.add('open');
-}
-function fecharModal(){ document.getElementById('backdrop').classList.remove('open'); }
-
-function selecionarServidorDiaria(idx) {
-  if (idx === '' || !listaEfetivo[idx]) return;
-  const m = listaEfetivo[idx];
-  document.getElementById('f-serv').value = `${m.posto} ${m.esp || ''} ${m.nome_completo || m.nome}`.trim();
-}
-
-function editarOS(id){
-  const o = dados.ordens.find(x => String(x.id) === String(id));
-  if (!o) return;
-  limparErros();
-  document.getElementById('f-id').value = o.id;
-  document.getElementById('f-num').value = o.num;
-  document.getElementById('f-serv').value = o.servidor;
-  document.getElementById('f-desc').value = o.desc;
-  document.getElementById('f-ini').value = o.ini;
-  document.getElementById('f-fim').value = o.fim;
-  document.getElementById('f-qtd').value = o.qtd;
-  document.getElementById('f-val').value = fmtM(o.valor);
-  calcUnitario();
-  document.getElementById('modal-title').textContent = 'Editar Ordem de Serviço';
-  document.getElementById('backdrop').classList.add('open');
-}
-
-function limparErros(){
-  ['e-num','e-serv','e-desc','e-ini','e-fim','e-qtd','e-val'].forEach(k=>{
-    const el = document.getElementById(k); if (el) el.classList.remove('show');
-  });
-}
-
-function calcUnitario(){
-  const qtd = parseFloat(document.getElementById('f-qtd').value)||0;
-  const val = parseM(document.getElementById('f-val').value);
-  const el = document.getElementById('calc');
-  el.textContent = (qtd>0 && val>0) ? `Valor unitário: ${fmtM(val/qtd)} por diária` : 'Valor unitário: —';
-}
-
-document.getElementById('f-qtd')?.addEventListener('input', calcUnitario);
-document.getElementById('f-val')?.addEventListener('input', calcUnitario);
-
-async function salvarOS(){
-  limparErros();
-  const id  = document.getElementById('f-id').value;
-  const num = document.getElementById('f-num').value.trim();
-  const serv= document.getElementById('f-serv').value.trim();
-  const desc= document.getElementById('f-desc').value.trim();
-  const ini = document.getElementById('f-ini').value;
-  const fim = document.getElementById('f-fim').value;
-  const qtd = parseFloat(document.getElementById('f-qtd').value);
-  const val = parseM(document.getElementById('f-val').value);
-
-  let erro = false;
-  const marcar = k => { document.getElementById(k).classList.add('show'); erro = true; };
-  if (!num) marcar('e-num');
-  if (!serv) marcar('e-serv');
-  if (!desc) marcar('e-desc');
-  if (!ini)  marcar('e-ini');
-  if (!fim || fim < ini) marcar('e-fim');
-  if (!qtd || qtd <= 0)  marcar('e-qtd');
-  if (!val || val <= 0)  marcar('e-val');
-  if (erro) return;
-
-  const o = { num, desc, servidor:serv, ini, fim, qtd, valor:val };
-  const btn = document.getElementById('btn-salvar');
-  btn.disabled = true;
-
-  try{
-    if (id){
-      if (configurado) await sb.from('diarias_os').update(paraBanco(o)).eq('id', id);
-      const idx = dados.ordens.findIndex(x => String(x.id) === String(id));
-      if (idx >= 0) dados.ordens[idx] = { id, ...o };
-      toast('OS atualizada');
-    }else{
-      if (configurado){
-        const { data } = await sb.from('diarias_os').insert([paraBanco(o)]).select().single();
-        dados.ordens.unshift(doBanco(data));
-      }else{
-        o.id = 'temp_' + Date.now();
-        dados.ordens.unshift(o);
-      }
-      toast('OS lançada com sucesso');
-    }
-    gravarCache(); render(); fecharModal();
-  }catch(e){
-    toast('Erro ao salvar OS: ' + (e.message||'erro'), true);
-  }finally{
-    btn.disabled = false;
-  }
-}
-
-async function excluirOS(id){
-  const o = dados.ordens.find(x => String(x.id) === String(id));
-  if (!o) return;
-  if (!confirm(`Excluir a OS ${o.num}?`)) return;
-  try{
-    if (configurado && !String(id).startsWith('temp_')) await sb.from('diarias_os').delete().eq('id', id);
-    dados.ordens = dados.ordens.filter(x => String(x.id) !== String(id));
-    gravarCache(); render(); toast('OS excluída');
-  }catch(e){
-    toast('Erro ao excluir: ' + (e.message||'erro'), true);
-  }
+  try{ localStorage.setItem(CACHE_KEY, JSON.stringify({ dotacao: dados.dotacao })); }catch(e){}
 }
 
 async function salvarDotacao(){
@@ -1769,14 +1910,19 @@ async function salvarDotacao(){
 }
 
 function exportarDiariasCSV(){
-  const cab = ['Nº OS','Servidor','Descrição','Início','Término','Qtd Diárias','Valor Total (R$)'];
-  const linhas = dados.ordens.map(o => [o.num, o.servidor, `"${o.desc.replace(/"/g,'""')}"`, o.ini, o.fim, o.qtd, o.valor]);
+  const cab = ['Nº OMIS','Nº OS','Numeração legada','Coordenador','Missão','Início','Término','Qtd Diárias','Valor Total (R$)'];
+  const linhas = ordensDiaria().map(o => {
+    const prim = (Array.isArray(o.militares) && o.militares[0]) || {};
+    return [o.num_omis, o.num_os, o.numeracao_legada ? 'SIM' : 'NÃO',
+            `${prim.posto_grad||''} ${prim.nome_guerra||prim.nome||''}`.trim(),
+            `"${String(o.servico_local||'').replace(/"/g,'""')}"`,
+            o.data_inicio, o.data_fim, o.qtd_diarias, o.valor_total];
+  });
   const csv = [cab.join(';'), ...linhas.map(l => l.join(';'))].join('\n');
   const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url;
-  a.download = `diarias-de-${new Date().toISOString().slice(0,10)}.csv`;
+  a.href = URL.createObjectURL(blob);
+  a.download = `diarias-de-${anoDiariaSelecionado}.csv`;
   a.click();
 }
 
@@ -1951,142 +2097,255 @@ function renderMilitaresGratModal() {
   `).join('');
 }
 
-function sugerirProximoNumeroOS(ano) {
-  let maior = 0;
-  const lista = [...dadosGratificacao, ...dadosControle];
-  lista.forEach(item => {
-    const num = String(item.num_os || item.num || '');
-    const match = num.match(/^(\d+)/);
-    if (match) {
-      const n = parseInt(match[1]);
-      if (n > maior) maior = n;
-    }
-  });
-  return maior > 0 ? (maior + 1) : 24;
+/* ══════════════════════════════════════════════════════════════
+   MODAL DA ORDEM DE MISSÃO (cria OMIS + OS de qualquer modalidade)
+   ══════════════════════════════════════════════════════════════ */
+
+function preencherSelectAnos() {
+  const sel = document.getElementById('fg-ano');
+  if (!sel) return;
+  const atual = sel.value;
+  const anos = new Set(anosComRegistro());
+  anos.add(ANO_CORRENTE); anos.add(ANO_CORRENTE + 1);
+  sel.innerHTML = [...anos].sort((a, b) => b - a)
+    .map(a => `<option value="${a}">${a}</option>`).join('');
+  sel.value = atual || ANO_CORRENTE;
 }
 
-function sugerirProximoNumeroOMIS(ano) {
-  let maior = 0;
-  const lista = [...dadosGratificacao, ...dadosControle];
-  lista.forEach(item => {
-    const num = String(item.num_omis || '');
-    const match = num.match(/^(\d+)/);
-    if (match) {
-      const n = parseInt(match[1]);
-      if (n > maior) maior = n;
-    }
-  });
-  return maior > 0 ? (maior + 1) : 1;
+function aoTrocarModalidade() {
+  const mod = document.getElementById('fg-modalidade').value;
+  const blocoDiaria = document.getElementById('bloco-diaria');
+  const campoEnq = document.getElementById('campo-enquadramento');
+
+  blocoDiaria.style.display = mod === 'diaria' ? 'block' : 'none';
+  campoEnq.style.display = mod === 'sem_custo' ? 'none' : 'block';
+
+  if (mod === 'sem_custo') {
+    document.getElementById('fg-enquadramento').value = 'Sem Custo (apenas OMIS)';
+  } else if (mod === 'diaria') {
+    document.getElementById('fg-enquadramento').value = 'Diária de Viagem — Lei nº 5.809/72';
+  } else if (/sem custo|diária de viagem/i.test(document.getElementById('fg-enquadramento').value)) {
+    document.getElementById('fg-enquadramento').value = 'Art 5°, Inc II (Viagem de Instrução)';
+  }
+  recalcularNumeracao();
 }
 
-function abrirModalGratificacao(id) {
+/* Coração da regra: mantém OMIS e OS espelhadas, salvo modo retroativo. */
+function recalcularNumeracao() {
+  const id = document.getElementById('fg-id').value;
+  const ano = Number(document.getElementById('fg-ano').value) || ANO_CORRENTE;
+  const mod = document.getElementById('fg-modalidade').value;
+  const geraOs = MODALIDADES[mod].geraOs;
+  const retro = document.getElementById('fg-toggle-retroativo').checked;
+
+  const dispOmis = document.getElementById('fg-omis-display');
+  const dispOs   = document.getElementById('fg-os-display');
+  const inpOmis  = document.getElementById('fg-omis-input');
+  const inpOs    = document.getElementById('fg-os-input');
+  const aviso    = document.getElementById('num-aviso');
+  const elo      = document.getElementById('num-elo');
+
+  /* ── modo retroativo: os dois campos abrem ── */
+  inpOmis.style.display = retro ? 'block' : 'none';
+  dispOmis.style.display = retro ? 'none' : 'flex';
+  inpOs.style.display = (retro && geraOs) ? 'block' : 'none';
+  dispOs.style.display = (retro && geraOs) ? 'none' : 'flex';
+
+  let omisSeq, osSeq;
+
+  if (retro) {
+    if (!inpOmis.value) inpOmis.value = document.getElementById('fg-omis-seq').value || proximoOmisSeq(ano);
+    omisSeq = parseInt(inpOmis.value, 10) || null;
+    if (geraOs) {
+      if (!inpOs.value) inpOs.value = document.getElementById('fg-os-seq').value || omisSeq || '';
+      osSeq = parseInt(inpOs.value, 10) || null;
+    } else {
+      osSeq = null; inpOs.value = '';
+    }
+  } else {
+    omisSeq = parseInt(document.getElementById('fg-omis-seq').value, 10) || proximoOmisSeq(ano);
+    osSeq = geraOs ? omisSeq : null;          // ← a OS herda o número da OMIS
+    inpOmis.value = omisSeq;
+    inpOs.value = osSeq || '';
+  }
+
+  document.getElementById('fg-omis-seq').value = omisSeq || '';
+  document.getElementById('fg-os-seq').value = osSeq || '';
+  document.getElementById('fg-num-omis').value = fmtNum(omisSeq, ano);
+  document.getElementById('fg-num').value = geraOs ? fmtNum(osSeq, ano) : fmtNum(omisSeq, ano);
+
+  dispOmis.textContent = omisSeq ? fmtNum(omisSeq, ano) : '—';
+  dispOmis.className = 'num-val';
+  if (geraOs) {
+    dispOs.textContent = osSeq ? fmtNum(osSeq, ano) : '—';
+    dispOs.className = 'num-val';
+    elo.style.opacity = '1';
+    elo.innerHTML = '&#10230;';
+  } else {
+    dispOs.textContent = 'não gera OS';
+    dispOs.className = 'num-val vazio';
+    elo.style.opacity = '.3';
+    elo.innerHTML = '&#10005;';
+  }
+
+  /* ── mensagens de estado ── */
+  const cOmis = conflitoOmis(ano, omisSeq, id);
+  const cOs   = geraOs ? conflitoOs(ano, osSeq, id) : null;
+  aviso.className = 'num-aviso';
+
+  if (!omisSeq) {
+    aviso.classList.add('show', 'erro');
+    aviso.innerHTML = '⚠️ Informe o número da OMIS.';
+  } else if (cOmis) {
+    aviso.classList.add('show', 'erro');
+    aviso.innerHTML = `⚠️ A <b>OMIS ${omisSeq}/${ano}</b> já existe (${esc(cOmis.servico_local || '').slice(0,60)}…). Escolha outro número.`;
+  } else if (cOs) {
+    aviso.classList.add('show', 'erro');
+    aviso.innerHTML = `⚠️ A <b>OS ${osSeq}/${ano}</b> já está vinculada à OMIS ${cOs.omis_seq}. Escolha outro número.`;
+  } else if (retro && geraOs && osSeq !== omisSeq) {
+    aviso.classList.add('show', 'legado');
+    aviso.innerHTML = `🏷️ <b>Numeração legada.</b> A OMIS ${omisSeq} vai gerar a OS ${osSeq} — divergente da regra atual. O registro ficará marcado e a numeração travada após salvar.`;
+  } else if (retro) {
+    aviso.classList.add('show', 'legado');
+    aviso.innerHTML = '🏷️ <b>Lançamento retroativo.</b> A numeração ficará travada após salvar.';
+  } else if (!geraOs) {
+    aviso.classList.add('show', 'ok');
+    aviso.innerHTML = `✔️ Missão sem custo. A <b>OMIS ${omisSeq}</b> não consome número na série de OS — o número ${omisSeq} ficará vago em OS, e isso é o correto.`;
+  } else {
+    aviso.classList.add('show', 'ok');
+    aviso.innerHTML = `✔️ <b>OMIS ${omisSeq} → OS ${osSeq}</b>. Numeração vinculada automaticamente.`;
+  }
+}
+
+function calcUnitarioOmis() {
+  const q = parseFloat(document.getElementById('fg-qtd-diarias').value);
+  const v = parseM(document.getElementById('fg-valor-total').value);
+  const el = document.getElementById('calc-omis');
+  el.textContent = (q > 0 && v > 0)
+    ? `Valor unitário: ${fmtM(v / q)} · ${fmtQtd(q)} diária(s)`
+    : 'Valor unitário: —';
+}
+
+function abrirModalOmis(id, modalidadePadrao) {
   limparErrosGrat();
   preencherSelectsEfetivo();
-  
+  preencherSelectAnos();
+
+  const retro = document.getElementById('fg-toggle-retroativo');
+  const inpOmis = document.getElementById('fg-omis-input');
+  const inpOs = document.getElementById('fg-os-input');
+  inpOmis.value = ''; inpOs.value = '';
+
   if (id) {
     const g = dadosGratificacao.find(x => String(x.id) === String(id));
     if (!g) return;
-    document.getElementById('modal-grat-title').textContent = 'Editar Gratificação de Representação';
+    normalizarMissao(g);
+
+    document.getElementById('modal-grat-title').textContent =
+      'Editar ' + (g.gera_os ? 'Ordem de Missão / OS' : 'Ordem de Missão');
     document.getElementById('fg-id').value = g.id;
-    document.getElementById('fg-num').value = g.num_os || '';
-    document.getElementById('fg-num-omis').value = g.num_omis || '';
+    document.getElementById('fg-modalidade').value = g.modalidade;
+    preencherSelectAnos();
+    document.getElementById('fg-ano').value = g.ano;
+    document.getElementById('fg-omis-seq').value = g.omis_seq || '';
+    document.getElementById('fg-os-seq').value = g.os_seq || '';
+    inpOmis.value = g.omis_seq || '';
+    inpOs.value = g.os_seq || '';
+    retro.checked = !!g.numeracao_legada;
+
+    document.getElementById('fg-enquadramento').value = g.enquadramento_legal || '';
     document.getElementById('fg-servico').value = g.servico_local || '';
-    document.getElementById('fg-enquadramento').value = g.enquadramento_legal || 'Art 5°, Inc II (Viagem de Instrução)';
-    document.getElementById('fg-apoio').value = g.apoio_recebido || 'O apoio de transporte será fornecido pela AFA e a hospedagem e o rancho serão fornecidos pela OM de destino.';
+    document.getElementById('fg-apoio').value = g.apoio_recebido || '';
+    document.getElementById('fg-qtd-diarias').value = g.qtd_diarias || '';
+    document.getElementById('fg-valor-total').value = g.valor_total ? fmtM(g.valor_total) : '';
 
-    const chkPrazo = document.getElementById('fg-toggle-prazo');
-    chkPrazo.checked = !!g.fora_prazo;
+    document.getElementById('fg-toggle-prazo').checked = !!g.fora_prazo;
+    document.getElementById('fg-toggle-antecipado').checked = !!g.pagamento_antecipado;
+    document.getElementById('fg-toggle-retorno').checked = !!g.teve_alteracao_retorno;
+    if (g.justificativa_prazo && g.justificativa_prazo !== 'Não se aplica.')
+      document.getElementById('fg-just-prazo').value = g.justificativa_prazo;
+    if (g.justificativa_antecipacao && !/não se aplica/i.test(g.justificativa_antecipacao))
+      document.getElementById('fg-just-antecipado').value = g.justificativa_antecipacao;
+    if (g.justificativa_alteracao_retorno && g.justificativa_alteracao_retorno !== 'Não se aplica.')
+      document.getElementById('fg-just-retorno').value = g.justificativa_alteracao_retorno;
     alternarAccordion('fg-toggle-prazo', 'acc-prazo');
-    if (g.justificativa_prazo) document.getElementById('fg-just-prazo').value = g.justificativa_prazo;
-
-    const chkAntecipado = document.getElementById('fg-toggle-antecipado');
-    chkAntecipado.checked = !!g.pagamento_antecipado;
     alternarAccordion('fg-toggle-antecipado', 'acc-antecipado');
-    if (g.justificativa_antecipacao) document.getElementById('fg-just-antecipado').value = g.justificativa_antecipacao;
-
-    const chkRetorno = document.getElementById('fg-toggle-retorno');
-    chkRetorno.checked = !!g.teve_alteracao_retorno;
     alternarAccordion('fg-toggle-retorno', 'acc-retorno');
-    if (g.justificativa_alteracao_retorno) document.getElementById('fg-just-retorno').value = g.justificativa_alteracao_retorno;
 
-    if (Array.isArray(g.militares) && g.militares.length > 0) {
-      listaMilitaresGratModal = JSON.parse(JSON.stringify(g.militares));
-    } else {
-      listaMilitaresGratModal = [{
-        posto_grad: g.posto_grad || '',
-        especialidade: g.especialidade || '',
-        nome: g.nome || '',
-        nome_guerra: g.nome_guerra || '',
-        cpf: g.cpf || '',
-        saram: g.saram || '',
-        om: g.om || 'AFA',
-        data_inicio: g.data_inicio || '2026-08-01',
-        hora_inicio: g.hora_inicio || '04:00',
-        data_fim: g.data_fim || '2026-08-05',
-        hora_fim: g.hora_fim || '16:00',
-        dias: g.dias || 5,
-        passagem: g.passagem || 'NÃO'
-      }];
-    }
+    listaMilitaresGratModal = (Array.isArray(g.militares) && g.militares.length)
+      ? JSON.parse(JSON.stringify(g.militares))
+      : [{
+          posto_grad: g.posto_grad || '', especialidade: g.especialidade || '',
+          nome: g.nome || '', nome_guerra: g.nome_guerra || '',
+          cpf: g.cpf || '', saram: g.saram || '', om: g.om || 'AFA',
+          data_inicio: g.data_inicio, hora_inicio: g.hora_inicio || '04:00',
+          data_fim: g.data_fim, hora_fim: g.hora_fim || '16:00',
+          dias: g.dias || 1, passagem: g.passagem || 'NÃO'
+        }];
+
+    /* numeração legada é imutável */
+    travarNumeracaoLegada(!!g.numeracao_legada);
+
   } else {
-    document.getElementById('modal-grat-title').textContent = 'Nova Gratificação de Representação';
+    document.getElementById('modal-grat-title').textContent = 'Nova Ordem de Missão';
     document.getElementById('fg-id').value = '';
-    
-    // Sugere próximo número de OS e OMIS sequenciais independentes
-    const anoAtual = new Date().getFullYear();
-    const proxNumOS = sugerirProximoNumeroOS(anoAtual);
-    const proxNumOMIS = sugerirProximoNumeroOMIS(anoAtual);
-    document.getElementById('fg-num').value = `${proxNumOS}/DE/${anoAtual}`;
-    document.getElementById('fg-num-omis').value = `${proxNumOMIS}/DE/${anoAtual}`;
+    document.getElementById('fg-omis-seq').value = '';
+    document.getElementById('fg-os-seq').value = '';
+    document.getElementById('fg-modalidade').value = modalidadePadrao || 'gratificacao';
+    document.getElementById('fg-ano').value = ANO_CORRENTE;
+    retro.checked = false;
+    travarNumeracaoLegada(false);
+
     document.getElementById('fg-servico').value = '';
-    document.getElementById('fg-apoio').value = 'O apoio de transporte será fornecido pela AFA e a hospedagem e o rancho serão fornecidos pela OM de destino.';
+    document.getElementById('fg-qtd-diarias').value = '';
+    document.getElementById('fg-valor-total').value = '';
+    document.getElementById('fg-apoio').value =
+      'O apoio de transporte será fornecido pela AFA e a hospedagem e o rancho serão fornecidos pela OM de destino.';
 
     ['fg-toggle-prazo', 'fg-toggle-antecipado', 'fg-toggle-retorno'].forEach(t => {
-      const chk = document.getElementById(t);
-      if (chk) chk.checked = false;
+      const chk = document.getElementById(t); if (chk) chk.checked = false;
     });
     alternarAccordion('fg-toggle-prazo', 'acc-prazo');
     alternarAccordion('fg-toggle-antecipado', 'acc-antecipado');
     alternarAccordion('fg-toggle-retorno', 'acc-retorno');
 
     listaMilitaresGratModal = [{
-      posto_grad: '',
-      especialidade: '',
-      nome: '',
-      nome_guerra: '',
-      cpf: '',
-      saram: '',
-      om: 'AFA',
-      data_inicio: new Date().toISOString().slice(0,10),
-      hora_inicio: '04:00',
-      data_fim: new Date(Date.now() + 4*86400000).toISOString().slice(0,10),
-      hora_fim: '16:00',
-      dias: 5,
-      passagem: 'NÃO'
+      posto_grad: '', especialidade: '', nome: '', nome_guerra: '', cpf: '', saram: '', om: 'AFA',
+      data_inicio: new Date().toISOString().slice(0, 10), hora_inicio: '04:00',
+      data_fim: new Date(Date.now() + 4 * 86400000).toISOString().slice(0, 10), hora_fim: '16:00',
+      dias: 5, passagem: 'NÃO'
     }];
   }
 
+  aoTrocarModalidade();
+  calcUnitarioOmis();
   renderMilitaresGratModal();
   document.getElementById('backdrop-grat').classList.add('open');
 }
+
+/* Impede alteração da numeração de um processo já tramitado */
+function travarNumeracaoLegada(travar) {
+  const retro = document.getElementById('fg-toggle-retroativo');
+  ['fg-omis-input', 'fg-os-input'].forEach(i => {
+    const el = document.getElementById(i);
+    if (el) { el.readOnly = travar; el.style.opacity = travar ? '.6' : '1'; el.style.cursor = travar ? 'not-allowed' : 'text'; }
+  });
+  if (retro) { retro.disabled = travar; }
+  const sel = document.getElementById('fg-ano');
+  if (sel) sel.disabled = travar;
+}
+
+/* Aliases mantidos para os pontos de chamada existentes */
+function abrirModalGratificacao(id) { abrirModalOmis(id, 'gratificacao'); }
+function abrirModalNovaOmisSemCusto() { abrirModalOmis(null, 'sem_custo'); }
+function abrirModalNovaDiaria() { abrirModalOmis(null, 'diaria'); }
 
 function fecharModalGrat() {
   document.getElementById('backdrop-grat').classList.remove('open');
 }
 
-function abrirModalNovaOmisSemCusto() {
-  const anoAtual = new Date().getFullYear();
-  const proxNumOMIS = sugerirProximoNumeroOMIS(anoAtual);
-  
-  abrirModalGratificacao();
-  document.getElementById('modal-grat-title').textContent = 'Nova Ordem de Missão (Sem Custo)';
-  document.getElementById('fg-num').value = `SEM CUSTO (${proxNumOMIS}/DE/${anoAtual})`;
-  document.getElementById('fg-num-omis').value = `${proxNumOMIS}/DE/${anoAtual}`;
-  document.getElementById('fg-enquadramento').value = 'Sem Custo (apenas OMIS)';
-}
-
 function limparErrosGrat() {
-  ['eg-num','eg-servico','eg-militares'].forEach(i => {
+  ['eg-num', 'eg-servico', 'eg-militares', 'eg-diaria'].forEach(i => {
     const el = document.getElementById(i);
     if (el) el.classList.remove('show');
   });
@@ -2094,38 +2353,65 @@ function limparErrosGrat() {
 
 async function salvarGratificacao() {
   limparErrosGrat();
+  recalcularNumeracao();
+
   const id = document.getElementById('fg-id').value;
-  const num_os = document.getElementById('fg-num').value.trim();
-  const num_omis = document.getElementById('fg-num-omis').value.trim();
+  const ano = Number(document.getElementById('fg-ano').value) || ANO_CORRENTE;
+  const modalidade = document.getElementById('fg-modalidade').value;
+  const gera_os = MODALIDADES[modalidade].geraOs;
+  const omis_seq = parseInt(document.getElementById('fg-omis-seq').value, 10) || null;
+  const os_seq = gera_os ? (parseInt(document.getElementById('fg-os-seq').value, 10) || null) : null;
+  const retro = document.getElementById('fg-toggle-retroativo').checked;
   const servico_local = document.getElementById('fg-servico').value.trim();
 
   let erro = false;
-  const marcar = k => { document.getElementById(k).classList.add('show'); erro = true; };
-  if (!num_os) marcar('eg-num');
+  const marcar = (k, msg) => {
+    const el = document.getElementById(k);
+    if (el) { if (msg) el.textContent = msg; el.classList.add('show'); }
+    erro = true;
+  };
+
+  /* ── validação da numeração ── */
+  if (!omis_seq) marcar('eg-num', 'Informe o número da OMIS.');
+  else if (conflitoOmis(ano, omis_seq, id)) marcar('eg-num', `A OMIS ${omis_seq}/${ano} já existe.`);
+  else if (gera_os && !os_seq) marcar('eg-num', 'Informe o número da OS.');
+  else if (gera_os && conflitoOs(ano, os_seq, id)) marcar('eg-num', `A OS ${os_seq}/${ano} já está em uso.`);
+  else if (gera_os && !retro && os_seq !== omis_seq)
+    marcar('eg-num', 'Fora do modo retroativo, a OS deve ter o mesmo número da OMIS.');
+
   if (!servico_local) marcar('eg-servico');
-  if (!listaMilitaresGratModal || listaMilitaresGratModal.length === 0 || !listaMilitaresGratModal[0].nome) {
+  if (!listaMilitaresGratModal || !listaMilitaresGratModal.length || !listaMilitaresGratModal[0].nome)
     marcar('eg-militares');
+
+  let qtd_diarias = null, valor_total = null;
+  if (modalidade === 'diaria') {
+    qtd_diarias = parseFloat(document.getElementById('fg-qtd-diarias').value) || 0;
+    valor_total = parseM(document.getElementById('fg-valor-total').value);
+    if (!(qtd_diarias > 0) || !(valor_total > 0)) marcar('eg-diaria');
   }
+
   if (erro) return;
 
   const prim = listaMilitaresGratModal[0] || {};
-  const data_inicio = prim.data_inicio || new Date().toISOString().slice(0,10);
-  const hora_inicio = prim.hora_inicio || '04:00';
-  const data_fim = prim.data_fim || new Date(Date.now() + 4*86400000).toISOString().slice(0,10);
-  const hora_fim = prim.hora_fim || '16:00';
-  const ano = parseInt(data_inicio.split('-')[0]) || new Date().getFullYear();
-  const dias = prim.dias || 5;
+  const data_inicio = prim.data_inicio || new Date().toISOString().slice(0, 10);
+  const data_fim = prim.data_fim || new Date(Date.now() + 4 * 86400000).toISOString().slice(0, 10);
 
   const fora_prazo = document.getElementById('fg-toggle-prazo').checked;
   const pagamento_antecipado = document.getElementById('fg-toggle-antecipado').checked;
   const teve_alteracao_retorno = document.getElementById('fg-toggle-retorno').checked;
-
   const cfg = window.AppConfig ? window.AppConfig.getOsConfig() : {};
 
   const reg = {
     ano,
-    num_os,
-    num_omis,
+    modalidade,
+    gera_os,
+    omis_seq,
+    os_seq,
+    numeracao_legada: retro,
+    num_omis: fmtNum(omis_seq, ano),
+    num_os: gera_os ? fmtNum(os_seq, ano) : fmtNum(omis_seq, ano),
+    qtd_diarias,
+    valor_total,
     posto_grad: prim.posto_grad || '',
     especialidade: prim.especialidade || '',
     nome: prim.nome || '',
@@ -2134,7 +2420,9 @@ async function salvarGratificacao() {
     saram: prim.saram || '',
     om: prim.om || 'AFA',
     servico_local,
-    data_inicio, hora_inicio, data_fim, hora_fim, dias,
+    data_inicio, hora_inicio: prim.hora_inicio || '04:00',
+    data_fim,   hora_fim: prim.hora_fim || '16:00',
+    dias: prim.dias || 1,
     passagem: prim.passagem || 'NÃO',
     fora_prazo,
     justificativa_prazo: fora_prazo ? document.getElementById('fg-just-prazo').value.trim() : 'Não se aplica.',
@@ -2157,31 +2445,31 @@ async function salvarGratificacao() {
 
   try {
     if (id) {
-      if (configurado) {
-        await sb.from('gratificacao_representacao').update(reg).eq('id', id);
+      if (configurado && !String(id).startsWith('temp_')) {
+        const { error } = await sb.from('gratificacao_representacao').update(reg).eq('id', id);
+        if (error) throw error;
       }
       const idx = dadosGratificacao.findIndex(x => String(x.id) === String(id));
-      if (idx >= 0) dadosGratificacao[idx] = { id, ...reg };
-      toast('Gratificação atualizada');
+      if (idx >= 0) dadosGratificacao[idx] = normalizarMissao({ ...dadosGratificacao[idx], id, ...reg });
+      toast(`OMIS ${omis_seq}/${ano} atualizada`);
     } else {
       if (configurado) {
         const { data, error } = await sb.from('gratificacao_representacao').insert([reg]).select().single();
         if (error) throw error;
-        dadosGratificacao.unshift(data);
+        dadosGratificacao.unshift(normalizarMissao(data));
       } else {
         reg.id = 'temp_' + Date.now();
-        dadosGratificacao.unshift(reg);
+        dadosGratificacao.unshift(normalizarMissao(reg));
       }
-      toast('Gratificação lançada');
+      toast(gera_os
+        ? `OMIS ${omis_seq}/${ano} lançada → OS ${os_seq}/${ano}`
+        : `OMIS ${omis_seq}/${ano} lançada (sem custo, sem OS)`);
     }
 
-    // Atualiza ou insere na esteira de Controle OS
-    sincronizarProcessoComControle(reg);
+    if (gera_os) sincronizarProcessoComControle(reg);
 
     gravarCacheGrat();
-    renderGratificacao();
-    renderOmis();
-    renderControle();
+    renderTudoMissoes();
     fecharModalGrat();
   } catch (e) {
     console.error(e);
@@ -2189,6 +2477,15 @@ async function salvarGratificacao() {
   } finally {
     btn.disabled = false;
   }
+}
+
+/* Redesenha todas as visões que dependem das missões */
+function renderTudoMissoes() {
+  normalizarTodas();
+  renderOmis();
+  renderGratificacao();
+  render();
+  renderControle();
 }
 
 function sincronizarProcessoComControle(reg) {
@@ -2202,7 +2499,8 @@ function sincronizarProcessoComControle(reg) {
       ano: reg.ano,
       num_os: reg.num_os,
       num_omis: reg.num_omis || '',
-      modalidade: reg.enquadramento_legal && reg.enquadramento_legal.includes('Sem Custo') ? 'Sem Custo' : 'Gratificação',
+      modalidade: reg.modalidade === 'diaria' ? 'Diária'
+                : reg.modalidade === 'sem_custo' ? 'Sem Custo' : 'Gratificação',
       coordenador: coord,
       militares_resumo: milsResumo,
       servico_local: reg.servico_local,
@@ -2239,11 +2537,10 @@ function sincronizarProcessoComControle(reg) {
 async function excluirGratificacao(id) {
   const g = dadosGratificacao.find(x => String(x.id) === String(id));
   if (!g) return;
-  if (!confirm(`Excluir a Gratificação OS ${g.num_os}?`)) return;
+  if (!confirm(`Excluir a OMIS ${g.num_omis}${g.gera_os ? ' e a OS ' + g.num_os : ''}?`)) return;
 
   dadosGratificacao = dadosGratificacao.filter(x => String(x.id) !== String(id));
-  renderGratificacao();
-  renderOmis();
+  renderTudoMissoes();
 
   try {
     if (configurado && !String(id).startsWith('temp_')) {
@@ -2257,124 +2554,262 @@ async function excluirGratificacao(id) {
 }
 
 function renderGratificacao() {
-  document.getElementById('badge-diarias-count').textContent = dados.ordens.length;
-  document.getElementById('badge-grat-count').textContent = dadosGratificacao.length;
+  const selAno = document.getElementById('grat-ano');
+  if (selAno) {
+    const anos = anosComRegistro();
+    const atual = Number(selAno.value) || ANO_CORRENTE;
+    selAno.innerHTML = anos.map(a => `<option value="${a}">Exercício ${a}</option>`).join('');
+    selAno.value = anos.includes(atual) ? atual : anos[0];
+  }
+  const anoSel = Number(selAno?.value) || ANO_CORRENTE;
+  const termo = (document.getElementById('grat-busca')?.value || '').toLowerCase().trim();
 
-  const anoSel = parseInt(document.getElementById('grat-ano').value) || 2026;
-  const termo = (document.getElementById('grat-busca').value || '').toLowerCase().trim();
-
-  let lista = dadosGratificacao.filter(g => (g.ano || 2026) === anoSel);
+  let lista = dadosGratificacao.filter(g => g.modalidade === 'gratificacao' && Number(g.ano) === anoSel);
   if (termo) {
     lista = lista.filter(g => {
-      const mils = Array.isArray(g.militares) ? g.militares : [{ nome: g.nome, cpf: g.cpf, saram: g.saram }];
-      return [g.num_os, g.num_omis, g.servico_local, ...mils.map(m => m.nome + ' ' + m.cpf + ' ' + m.saram)].some(c => (c || '').toLowerCase().includes(termo));
+      const mils = Array.isArray(g.militares) ? g.militares : [];
+      return [g.num_os, g.num_omis, g.servico_local, ...mils.map(m => `${m.nome} ${m.cpf} ${m.saram}`)]
+        .some(c => (c || '').toLowerCase().includes(termo));
     });
   }
+  lista.sort((a, b) => (b.omis_seq || 0) - (a.omis_seq || 0));
+
+  document.getElementById('badge-grat-count').textContent =
+    dadosGratificacao.filter(g => g.modalidade === 'gratificacao').length;
 
   const totalDias = lista.reduce((s, g) => {
-    const mils = Array.isArray(g.militares) && g.militares.length > 0 ? g.militares : [{ dias: g.dias }];
-    return s + mils.reduce((ms, m) => ms + (Number(m.dias || g.dias) || 0), 0);
+    const mils = Array.isArray(g.militares) && g.militares.length ? g.militares : [{ dias: g.dias }];
+    return s + mils.reduce((x, m) => x + (Number(m.dias) || 0), 0);
   }, 0);
+  const totalMils = lista.reduce((s, g) => s + (Array.isArray(g.militares) ? g.militares.length : 1), 0);
 
-  const nomesUnicos = new Set();
-  lista.forEach(g => {
-    if (Array.isArray(g.militares) && g.militares.length > 0) {
-      g.militares.forEach(m => m.nome && nomesUnicos.add(m.nome));
-    } else if (g.nome) {
-      nomesUnicos.add(g.nome);
-    }
-  });
-
-  document.getElementById('sg-qtd').textContent = lista.length;
-  document.getElementById('sg-dias').textContent = totalDias;
-  document.getElementById('sg-militares').textContent = nomesUnicos.size;
+  const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+  set('sg-qtd', lista.length);
+  set('sg-dias', totalDias);
+  set('sg-militares', totalMils);
 
   const alvo = document.getElementById('lista-gratificacao');
+  if (!alvo) return;
+
   if (!lista.length) {
     alvo.innerHTML = `
       <div class="empty">
         <img src="assets/cocar-fab.png" alt="" />
-        <p>${dadosGratificacao.length ? `Nenhuma gratificação encontrada para o ano de ${anoSel}.` : 'Nenhum processo de gratificação cadastrado ainda.'}</p>
-        <button class="btn btn-primary" onclick="abrirModalGratificacao()">Lançar a primeira Gratificação</button>
+        <p>Nenhuma gratificação de representação no exercício de ${anoSel}.</p>
+        <button class="btn btn-primary" onclick="abrirModalOmis(null,'gratificacao')">Lançar a primeira</button>
       </div>`;
     return;
   }
 
-  alvo.innerHTML = lista.map(g => {
-    const mils = (Array.isArray(g.militares) && g.militares.length > 0)
-      ? g.militares
-      : [{ posto_grad: g.posto_grad, nome: g.nome, saram: g.saram, data_inicio: g.data_inicio, hora_inicio: g.hora_inicio, data_fim: g.data_fim, hora_fim: g.hora_fim, dias: g.dias }];
+  alvo.innerHTML = lista.map(g => cardMissao(g, 'grat')).join('');
+}
 
-    const primMilitar = mils[0] || {};
-    const textoMilitares = mils.length === 1 
-      ? `<b>${esc(primMilitar.posto_grad)} ${esc(primMilitar.nome_guerra || primMilitar.nome)}</b>`
-      : `<b>${mils.length} Militares</b> (Coord: ${esc(primMilitar.posto_grad)} ${esc(primMilitar.nome_guerra || primMilitar.nome)})`;
+/* ══════════════════════════════════════════════════════════════
+   CARD ÚNICO DE MISSÃO — usado nas abas OMIS, Gratificação e Diárias
+   ══════════════════════════════════════════════════════════════ */
+function cardMissao(g, contexto) {
+  const mils = (Array.isArray(g.militares) && g.militares.length)
+    ? g.militares
+    : [{ posto_grad: g.posto_grad, nome: g.nome, nome_guerra: g.nome_guerra, dias: g.dias,
+         data_inicio: g.data_inicio, data_fim: g.data_fim, hora_inicio: g.hora_inicio, hora_fim: g.hora_fim }];
+  const prim = mils[0] || {};
+  const jsonStr = JSON.stringify(g).replace(/'/g, '&apos;').replace(/"/g, '&quot;');
+  const M = MODALIDADES[g.modalidade] || MODALIDADES.gratificacao;
 
-    const jsonStr = JSON.stringify(g).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+  /* ── selo de numeração ── */
+  let seloNum;
+  if (!g.gera_os) {
+    seloNum = `<span class="os-badge badge-semos">SEM OS</span>`;
+  } else if (g.numeracao_legada) {
+    seloNum = `<span class="os-badge badge-legada" title="Processo já tramitado sob a numeração antiga">🏷️ LEGADA</span>`;
+  } else {
+    seloNum = `<span class="os-badge badge-curso">OMIS = OS</span>`;
+  }
 
-    return `
-    <article class="os st-curso" style="border-top-color:var(--gold-500)">
-      <div class="os-acts">
-        <button class="icon-btn" onclick="abrirModalGratificacao('${g.id}')" aria-label="Editar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
-        </button>
-        <button class="icon-btn del" onclick="excluirGratificacao('${g.id}')" aria-label="Excluir">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
-        </button>
+  const linhaNum = g.gera_os
+    ? `OMIS ${esc(g.num_omis)} <span style="color:var(--gold-500)">→</span> OS ${esc(g.num_os)}`
+    : `OMIS ${esc(g.num_omis)} · sem OS`;
+
+  const silomsBadge = g.siloms_numero
+    ? `<span class="os-badge badge-siloms-ok">SILOMS ${esc(g.siloms_numero)}</span>`
+    : `<span class="os-badge badge-siloms-pend">SILOMS pendente</span>`;
+
+  const textoMils = mils.length === 1
+    ? `<b>${esc(prim.posto_grad)} ${esc(prim.nome_guerra || prim.nome)}</b>`
+    : `<b>${mils.length} militares</b> · coord. ${esc(prim.posto_grad)} ${esc(prim.nome_guerra || prim.nome)}`;
+
+  const financeiro = (g.modalidade === 'diaria' && g.valor_total)
+    ? `<div class="os-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+         <b>${fmtM(g.valor_total)}</b> <u>${fmtQtd(g.qtd_diarias)} diária(s)</u></div>`
+    : '';
+
+  /* ── botões de documento por modalidade ── */
+  let docs = `<button class="btn-doc gold" onclick='CompiladorDoc.gerarOMIS(${jsonStr})'>📄 OMIS</button>`;
+  if (g.modalidade === 'gratificacao') {
+    docs += `
+      <button class="btn-doc" onclick='CompiladorDoc.compilarPacoteInicial(${jsonStr})' title="OS + Autorização para montagem do processo SIGADAER">📦 Processo inicial</button>
+      <button class="btn-doc" onclick='CompiladorDoc.gerarOSGratificacao(${jsonStr})'>📄 OS</button>
+      <button class="btn-doc" onclick='CompiladorDoc.gerarAutorizacaoGratificacao(${jsonStr})'>📄 Autorização</button>
+      <button class="btn-doc" onclick='CompiladorDoc.gerarFichaApresentacaoGratificacao(${jsonStr})'>📄 Ficha de retorno</button>`;
+  }
+  if (g.pdf_retorno_assinado) {
+    docs += `<a class="btn-doc green" target="_blank" href="${urlPdf(g.pdf_retorno_assinado)}">✔ PDF assinado Gov.br</a>`;
+  }
+  docs += `<button class="btn-doc purple" onclick='abrirModalSiloms(${jsonStr})'>📝 SILOMS</button>`;
+
+  const classeTopo = g.numeracao_legada ? 'legada' : (g.gera_os ? 'st-curso' : '');
+
+  return `
+  <article class="os ${classeTopo}" id="omis-card-${g.omis_seq}-${g.ano}">
+    <div class="os-acts">
+      <button class="icon-btn" onclick="abrirModalOmis('${g.id}')" aria-label="Editar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+      </button>
+      <button class="icon-btn del" onclick="excluirGratificacao('${g.id}')" aria-label="Excluir">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
+      </button>
+    </div>
+    <div class="os-head">
+      <div class="os-num">${linhaNum}<span>${esc(M.rotulo)} · ${g.ano}</span></div>
+      ${seloNum}
+    </div>
+    <p class="os-desc">${esc(g.servico_local)}</p>
+    <div class="os-meta">
+      <div class="os-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        ${textoMils}
       </div>
-      <div class="os-head">
-        <div class="os-num">OS ${esc(g.num_os)}<span>Gratificação de Representação</span></div>
-        <span class="os-badge badge-futura">${mils.length} ${mils.length === 1 ? 'militar' : 'militares'} · ${primMilitar.dias || g.dias} dias</span>
+      <div class="os-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        ${fmtData(prim.data_inicio || g.data_inicio)} → ${fmtData(prim.data_fim || g.data_fim)}
+        <u>${silomsBadge.replace(/<[^>]+>/g, '')}</u>
       </div>
-      <p class="os-desc">${esc(g.servico_local)}</p>
-      <div class="os-meta">
-        <div class="os-row">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          ${textoMilitares}
-        </div>
-        <div class="os-row">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-          ${fmtData(primMilitar.data_inicio || g.data_inicio)} (${primMilitar.hora_inicio || g.hora_inicio || '04:00'}) → ${fmtData(primMilitar.data_fim || g.data_fim)} (${primMilitar.hora_fim || g.hora_fim || '16:00'})
-        </div>
-      </div>
-      <div class="grat-actions">
-        <button class="btn-doc gold" onclick='CompiladorDoc.compilarPacoteInicial(${jsonStr})' title="Baixa OS e Autorização para montagem do processo SIGADAER">📦 Baixar Processo Inicial (OS + Autorização)</button>
-        <button class="btn-doc" onclick='CompiladorDoc.gerarOSGratificacao(${jsonStr})'>📄 OS</button>
-        <button class="btn-doc" onclick='CompiladorDoc.gerarAutorizacaoGratificacao(${jsonStr})'>📄 Autorização</button>
-        <button class="btn-doc" onclick='CompiladorDoc.gerarFichaApresentacaoGratificacao(${jsonStr})'>📄 Ficha Retorno</button>
-        <button class="btn-doc" onclick='CompiladorDoc.gerarOMIS(${jsonStr})'>📄 OMIS</button>
-        ${g.pdf_retorno_assinado ? `<a class="btn-doc" style="background:#15803d;color:#fff;text-decoration:none;font-weight:700" target="_blank" href="${urlPdf(g.pdf_retorno_assinado)}">📄 PDF Assinado Gov.br</a>` : ''}
-        <button class="btn-doc purple" onclick='abrirModalSiloms(${jsonStr})'>📝 Tramitar SILOMS</button>
-      </div>
-    </article>`;
-  }).join('');
+      ${financeiro}
+    </div>
+    <div class="grat-actions">${docs}</div>
+  </article>`;
 }
 
 /* ══════════════════════════════════════════════════════════════
    5 · ORDENS DE MISSÃO (OMIS - ABA 3) & FLUXO SILOMS
    ══════════════════════════════════════════════════════════════ */
-function renderOmis() {
-  const termo = (document.getElementById('omis-busca') ? document.getElementById('omis-busca').value : '').toLowerCase().trim();
-  
-  let lista = dadosGratificacao.map(g => ({
-    ...g,
-    tipoOrigem: 'Gratificação',
-    modalidade_label: g.enquadramento_legal && g.enquadramento_legal.includes('Sem Custo') ? 'SEM CUSTO' : 'GRATIFICAÇÃO DE REPRESENTAÇÃO'
-  }));
+function preencherSelectAnoOmis() {
+  const sel = document.getElementById('omis-ano');
+  if (!sel) return;
+  const anos = anosComRegistro();
+  if (!anos.includes(anoOmisSelecionado)) anoOmisSelecionado = anos[0];
+  sel.innerHTML = anos.map(a => `<option value="${a}">Exercício ${a}</option>`).join('');
+  sel.value = anoOmisSelecionado;
+}
 
-  if (termo) {
-    lista = lista.filter(o => [o.num_os, o.num_omis, o.siloms_numero, o.servico_local, o.nome, o.posto_grad].some(c => (c||'').toLowerCase().includes(termo)));
+function selecionarSeqRegua(seq) {
+  filtroReguaSeq = (filtroReguaSeq === seq) ? null : seq;
+  renderOmis();
+}
+
+function limparFiltroRegua() {
+  filtroReguaSeq = null;
+  renderOmis();
+}
+
+/* ═══ RÉGUA DE SEQUÊNCIA DO EXERCÍCIO ═══ */
+function renderRegua(ano) {
+  const a = analisarSequencia(ano);
+  const grid = document.getElementById('regua-grid');
+  const box = document.getElementById('regua-alertas');
+  const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+
+  set('regua-ano', ano);
+  set('regua-proxima', `${proximoOmisSeq(ano)}/DE/${ano}`);
+
+  if (!grid) return a;
+
+  if (!a.maior) {
+    grid.innerHTML = `<div class="regua-vazia">Nenhuma OMIS lançada no exercício de ${ano}. A primeira será a <b style="color:var(--gold-400)">1/DE/${ano}</b>.</div>`;
+  } else {
+    grid.innerHTML = a.itens.map(it => {
+      const sel = filtroReguaSeq === it.seq ? 'box-shadow:0 0 0 2px var(--gold-500);transform:scale(1.06)' : '';
+      let sub = '', titulo = '';
+      if (it.estado === 'lacuna') {
+        sub = '—'; titulo = `Número ${it.seq}: nenhuma OMIS lançada. Verifique se ficou um processo de fora.`;
+      } else if (it.estado === 'semos') {
+        sub = 'S/OS'; titulo = `OMIS ${it.seq}: missão sem custo, não gera OS.\n${it.missao.servico_local || ''}`;
+      } else if (it.estado === 'legada') {
+        sub = `OS${it.missao.os_seq}`; titulo = `OMIS ${it.seq} → OS ${it.missao.os_seq} (numeração legada).\n${it.missao.servico_local || ''}`;
+      } else {
+        sub = `OS${it.seq}`; titulo = `OMIS ${it.seq} → OS ${it.seq}.\n${it.missao.servico_local || ''}`;
+      }
+      return `<div class="rg ${it.estado}" style="${sel}" title="${esc(titulo)}" onclick="selecionarSeqRegua(${it.seq})">
+                ${it.seq}<small>${sub}</small>
+              </div>`;
+    }).join('');
   }
 
-  const badgeEl = document.getElementById('badge-omis-count');
-  if (badgeEl) badgeEl.textContent = lista.length;
+  /* faixa de alertas */
+  const problemas = [];
+  if (a.lacunas.length) {
+    problemas.push(`<b>${a.lacunas.length} lacuna(s)</b> na sequência: nº ${a.lacunas.map(i => i.seq).join(', ')}. Nenhuma OMIS foi lançada com esses números — confira se algum processo ficou de fora do sistema.`);
+  }
+  if (a.duplicadas.length) {
+    problemas.push(`<b>Numeração duplicada</b> na(s) OMIS nº ${a.duplicadas.join(', ')}. Isso não deveria acontecer — abra os registros e corrija.`);
+  }
+  if (box) {
+    if (problemas.length) {
+      box.style.display = 'block';
+      box.innerHTML = problemas.map(p =>
+        `<div class="warn" style="margin-top:.4rem">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+           <span>${p}</span>
+         </div>`).join('');
+    } else {
+      box.style.display = 'block';
+      box.innerHTML = a.maior
+        ? `<div class="warn" style="margin-top:.4rem;background:rgba(62,207,154,.08);border-color:rgba(62,207,154,.3);color:var(--green-500)">
+             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>
+             <span>Sequência íntegra: ${a.maior} OMIS emitidas, sem lacunas nem duplicidades.${a.legadas.length ? ` ${a.legadas.length} registro(s) com numeração legada, preservados como estão.` : ''}</span>
+           </div>`
+        : '';
+    }
+  }
+  return a;
+}
 
-  document.getElementById('so-qtd').textContent = lista.length;
-  document.getElementById('so-siloms-ok').textContent = lista.filter(x => x.siloms_numero).length;
-  document.getElementById('so-enviadas').textContent = lista.filter(x => x.omis_enviada).length;
-  
-  const totalMils = lista.reduce((s, o) => s + (Array.isArray(o.militares) ? o.militares.length : 1), 0);
-  document.getElementById('so-mils').textContent = totalMils;
+/* ═══ ABA DE ORDENS DE MISSÃO ═══ */
+function renderOmis() {
+  preencherSelectAnoOmis();
+  const ano = Number(document.getElementById('omis-ano')?.value) || ANO_CORRENTE;
+  anoOmisSelecionado = ano;
+
+  const a = renderRegua(ano);
+
+  const termo = (document.getElementById('omis-busca')?.value || '').toLowerCase().trim();
+  const filtro = document.getElementById('omis-filtro')?.value || 'TODOS';
+
+  let lista = missoesDoAno(ano);
+
+  const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+  set('badge-omis-count', lista.length);
+  set('so-qtd', lista.length);
+  set('so-com-os', lista.filter(g => g.gera_os).length);
+  set('so-sem-os', lista.filter(g => !g.gera_os).length);
+  set('so-siloms-ok', lista.filter(g => g.siloms_numero).length);
+  set('so-alertas', a.lacunas.length + a.legadas.length + a.duplicadas.length);
+
+  if (filtro === '__ALERTA') lista = lista.filter(g => g.numeracao_legada || !g.siloms_numero);
+  else if (filtro !== 'TODOS') lista = lista.filter(g => g.modalidade === filtro);
+
+  if (filtroReguaSeq) lista = lista.filter(g => Number(g.omis_seq) === filtroReguaSeq);
+
+  if (termo) {
+    lista = lista.filter(g => [g.num_os, g.num_omis, g.siloms_numero, g.servico_local, g.nome, g.posto_grad,
+      ...(Array.isArray(g.militares) ? g.militares.map(m => m.nome) : [])]
+      .some(c => (c || '').toLowerCase().includes(termo)));
+  }
+
+  lista.sort((x, y) => (y.omis_seq || 0) - (x.omis_seq || 0));
+
+  const btnLimpar = document.getElementById('btn-limpar-regua');
+  if (btnLimpar) btnLimpar.style.display = filtroReguaSeq ? 'inline-flex' : 'none';
 
   const alvo = document.getElementById('lista-omis');
   if (!alvo) return;
@@ -2383,45 +2818,17 @@ function renderOmis() {
     alvo.innerHTML = `
       <div class="empty">
         <img src="assets/cocar-fab.png" alt="" />
-        <p>Nenhuma Ordem de Missão (OMIS) registrada.</p>
-        <button class="btn btn-primary" onclick="abrirModalNovaOmisSemCusto()">+ Nova OMIS (Sem Custo)</button>
+        <p>${filtroReguaSeq
+            ? `Nenhuma OMIS com o número ${filtroReguaSeq} no exercício de ${ano} — esta é uma lacuna da sequência.`
+            : `Nenhuma Ordem de Missão registrada no exercício de ${ano}.`}</p>
+        <button class="btn btn-primary" onclick="abrirModalOmis()">+ Nova Ordem de Missão</button>
       </div>`;
     return;
   }
 
-  alvo.innerHTML = lista.map(o => {
-    const mils = Array.isArray(o.militares) && o.militares.length ? o.militares : [{ posto_grad: o.posto_grad, nome: o.nome }];
-    const prim = mils[0] || {};
-    const numOmisDisplay = o.num_omis || o.num_os || 'OMIS';
-    const silomsBadge = o.siloms_numero
-      ? `<span class="os-badge badge-siloms-ok">SILOMS: ${esc(o.siloms_numero)}</span>`
-      : `<span class="os-badge badge-siloms-pend">⚠️ SILOMS Pendente</span>`;
-    const jsonStr = JSON.stringify(o).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
-
-    return `
-    <article class="os st-curso" style="border-top-color:var(--navy-600)">
-      <div class="os-head">
-        <div class="os-num">OMIS Nº ${esc(numOmisDisplay)}<span>${esc(o.modalidade_label)} · OS: ${esc(o.num_os)}</span></div>
-        ${silomsBadge}
-      </div>
-      <p class="os-desc">${esc(o.servico_local)}</p>
-      <div class="os-meta">
-        <div class="os-row">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          <b>Coord: ${esc(prim.posto_grad)} ${esc(prim.nome_guerra || prim.nome)}</b> ${mils.length > 1 ? `(+${mils.length - 1})` : ''}
-        </div>
-        <div class="os-row">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-          Período: ${fmtData(prim.data_inicio || o.data_inicio)} → ${fmtData(prim.data_fim || o.data_fim)}
-        </div>
-      </div>
-      <div class="grat-actions">
-        <button class="btn-doc gold" onclick='CompiladorDoc.gerarOMIS(${jsonStr})'>📄 Baixar OMIS</button>
-        <button class="btn-doc purple" onclick='abrirModalSiloms(${jsonStr})'>📝 Inserir SILOMS & Disparar E-mail</button>
-      </div>
-    </article>`;
-  }).join('');
+  alvo.innerHTML = lista.map(g => cardMissao(g, 'omis')).join('');
 }
+
 
 function abrirModalSiloms(omisObj) {
   omisEmEdicaoSiloms = omisObj;
@@ -2481,8 +2888,7 @@ async function salvarSilomsApenas() {
 
   gravarCacheGrat();
   gravarCacheControle();
-  renderOmis();
-  renderControle();
+  renderTudoMissoes();
   fecharModalSiloms();
   toast('Número do SILOMS salvo com sucesso!');
 }
@@ -2762,8 +3168,8 @@ async function aprovarSolicitacao(id) {
   if (!solic) return;
 
   if (solic.modalidade === 'gratificacao' || solic.modalidade === 'omis' || solic.modalidade === 'sem_custo') {
-    trocarAba('gratificacao');
-    abrirModalGratificacao();
+    trocarAba('omis');
+    abrirModalOmis(null, solic.modalidade === 'gratificacao' ? 'gratificacao' : 'sem_custo');
     document.getElementById('fg-servico').value = solic.servico_local || '';
     if (solic.apoio_recebido) document.getElementById('fg-apoio').value = solic.apoio_recebido;
 
@@ -2782,13 +3188,14 @@ async function aprovarSolicitacao(id) {
       renderMilitaresGratModal();
     }
   } else {
-    trocarAba('diarias');
-    abrirModal();
-    const prim = Array.isArray(solic.militares) && solic.militares[0] ? solic.militares[0] : {};
-    document.getElementById('f-serv').value = `${prim.posto_grad || ''} ${prim.nome || ''}`.trim();
-    document.getElementById('f-desc').value = solic.servico_local || '';
-    document.getElementById('f-ini').value = solic.data_inicio || '';
-    document.getElementById('f-fim').value = solic.data_fim || '';
+    trocarAba('omis');
+    abrirModalOmis(null, 'diaria');
+    document.getElementById('fg-servico').value = solic.servico_local || '';
+    if (solic.apoio_recebido) document.getElementById('fg-apoio').value = solic.apoio_recebido;
+    if (Array.isArray(solic.militares) && solic.militares.length) {
+      listaMilitaresGratModal = JSON.parse(JSON.stringify(solic.militares));
+      renderMilitaresGratModal();
+    }
   }
 
   try {
@@ -3008,7 +3415,7 @@ function renderControle() {
       <td>${getStatusBadge(c.status)}${linkPdfRetorno}</td>
       <td><span style="font-family:var(--f-mono);font-size:.76rem;color:#1e40af">${esc(c.nup || '—')}</span></td>
       <td><span style="font-family:var(--f-mono);font-size:.76rem;color:#6b21a8">${esc(c.bca_numero || '—')}</span></td>
-      <td><small style="color:${c.status==='Corrigir'?'#991b1b':'var(--gray-500)'};font-weight:${c.status==='Corrigir'?'700':'400'}">${esc(c.auditoria || '—')}</small></td>
+      <td><small style="color:${c.status==='Corrigir'?'var(--red-500)':'var(--gray-500)'};font-weight:${c.status==='Corrigir'?'700':'400'}">${esc(c.auditoria || '—')}</small></td>
       <td style="text-align:right;white-space:nowrap">
         <button class="icon-btn" onclick="abrirModalControle('${c.id}')" title="Editar / Corrigir processo na esteira"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
         <button class="icon-btn del" onclick="excluirControleProcesso('${c.id}')" title="Excluir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>
@@ -3124,6 +3531,7 @@ function trocarAba(aba) {
 
   if (aba === 'gratificacao') renderGratificacao();
   if (aba === 'omis') renderOmis();
+  if (aba === 'diarias') render();
   if (aba === 'solicitacoes') renderSolicitacoes();
   if (aba === 'controle') renderControle();
 }
@@ -3173,14 +3581,12 @@ async function recarregarTudo() {
       sb.from('controle_os_processos').select('*').order('created_at', { ascending: false })
     ]);
 
-    if (resGrat.data) { dadosGratificacao = resGrat.data; gravarCacheGrat(); }
+    if (resGrat.data) { dadosGratificacao = resGrat.data; normalizarTodas(); gravarCacheGrat(); }
     if (resSolic.data) { dadosSolicitacoes = resSolic.data; gravarCacheSolicitacoes(); }
     if (resCtrl.data) { dadosControle = resCtrl.data; gravarCacheControle(); }
 
-    renderGratificacao();
-    renderOmis();
+    renderTudoMissoes();
     renderSolicitacoes();
-    renderControle();
   } catch (e) {
     console.error('Falha ao sincronizar:', e);
   }
@@ -3258,15 +3664,21 @@ function bloquearSessaoMissoes() {
 /* ══════════════════════════════════════════════════════════════
    13 · INICIALIZAÇÃO
    ══════════════════════════════════════════════════════════════ */
+console.log('%cGestão de Missões & OS · v2.0 (OMIS como documento originador · numeração vinculada)',
+            'color:#d4a84b;font-weight:bold');
+
 checarAutenticacaoPIN();
 montarGauge();
 lerCache();
 lerCacheGrat();
 lerCacheSolicitacoes();
 lerCacheControle();
+normalizarTodas();
+preencherSelectAnoOmis();
 carregarEfetivo();
 carregarMilitaresExternos();
 recarregar();
+renderTudoMissoes();
 recarregarTudo();
 ouvirRealtimeTudo();
 </script>
