@@ -263,7 +263,28 @@
     }
 
     footer { text-align: center; padding: 1.5rem; font-size: .75rem; color: var(--gray-500); margin-top: auto; }
-  </style>
+  
+    .vinculo-fork{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--linha,rgba(207,228,255,.12));
+      border-radius:12px;overflow:hidden;margin-bottom:1.1rem}
+    @media(max-width:520px){.vinculo-fork{grid-template-columns:1fr}}
+    .vinculo-op{display:flex;align-items:center;gap:.7rem;padding:.9rem 1rem;cursor:pointer;
+      background:rgba(6,13,29,.5);border:none;color:#8fa9cf;text-align:left;font-family:inherit;
+      transition:background .22s,color .22s}
+    .vinculo-op + .vinculo-op{border-left:1px solid rgba(207,228,255,.12)}
+    @media(max-width:520px){.vinculo-op + .vinculo-op{border-left:none;border-top:1px solid rgba(207,228,255,.12)}}
+    .vinculo-op:hover{background:rgba(207,228,255,.07);color:#cfe4ff}
+    .vinculo-op svg{width:20px;height:20px;flex-shrink:0;opacity:.8}
+    .vinculo-op b{display:block;font-size:.86rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;line-height:1.1}
+    .vinculo-op small{display:block;font-size:.63rem;margin-top:3px;opacity:.85;line-height:1.35}
+    .vinculo-op.on{color:#060d1d}
+    .vinculo-op.on.mil{background:#d4a84b}
+    .vinculo-op.on.civ{background:#5aa2e0}
+    .vinculo-op.on svg{opacity:1}
+    .badge-vinc{font-family:ui-monospace,monospace;font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;
+      padding:.18rem .5rem;border-radius:99px;border:1px solid transparent}
+    .badge-vinc.mil{background:rgba(212,168,75,.15);color:#e8c56f;border-color:rgba(212,168,75,.35)}
+    .badge-vinc.civ{background:rgba(90,162,224,.15);color:#5aa2e0;border-color:rgba(90,162,224,.35)}
+</style>
 </head>
 <body>
 
@@ -512,10 +533,22 @@
       <h3 style="font-family:var(--f-display);font-size:1.2rem;text-transform:uppercase;color:var(--navy-900);border-bottom:2px solid var(--gold-500);padding-bottom:.4rem;margin-bottom:1rem">
         Cadastrar Militar Externo
       </h3>
-      <p style="font-size:.78rem;color:var(--gray-500);margin-bottom:1rem">Informe os dados do militar que não pertence ao efetivo interno da Divisão de Ensino.</p>
+      <p style="font-size:.78rem;color:var(--gray-500);margin-bottom:1rem;line-height:1.55">Informe os dados de quem não pertence ao efetivo interno da Divisão de Ensino — militar de outra OM ou professor civil.</p>
+
+      <div class="vinculo-fork">
+        <button type="button" class="vinculo-op mil on" id="vinc-mil" onclick="definirVinculoExterno('militar')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span><b>Militar</b><small>Posto, especialidade, SARAM e OM</small></span>
+        </button>
+        <button type="button" class="vinculo-op civ" id="vinc-civ" onclick="definirVinculoExterno('civil')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg>
+          <span><b>Civil</b><small>Titulação, área, SIAPE e instituição</small></span>
+        </button>
+      </div>
+      <input type="hidden" id="ext-vinculo" value="militar" />
 
       <div class="grid2">
-        <div class="field">
+        <div class="field" id="campo-ext-posto-mil">
           <label>Posto / Graduação *</label>
           <select id="ext-posto">
             <option value="Cel">Coronel (Cel)</option>
@@ -535,8 +568,20 @@
             <option value="CV">Civil (CV)</option>
           </select>
         </div>
+        <div class="field" id="campo-ext-posto-civ" style="display:none">
+          <label>Titulação / Tratamento *</label>
+          <input type="text" id="ext-titulacao" list="lista-titulacoes" placeholder="Ex.: Prof. Dr. ou Prof.ª Me." />
+          <datalist id="lista-titulacoes">
+            <option value="Prof."></option><option value="Prof.ª"></option>
+            <option value="Prof. Dr."></option><option value="Prof.ª Dr.ª"></option>
+            <option value="Prof. Me."></option><option value="Prof.ª Me."></option>
+            <option value="Dr."></option><option value="Dr.ª"></option>
+            <option value="Me."></option><option value="Esp."></option>
+            <option value="Sr."></option><option value="Sr.ª"></option>
+          </datalist>
+        </div>
         <div class="field">
-          <label>Especialidade</label>
+          <label id="lbl-ext-esp">Especialidade</label>
           <input type="text" id="ext-esp" placeholder="Ex.: AV, INT, PED, MDR" />
         </div>
       </div>
@@ -546,7 +591,7 @@
           <label>Nome Completo *</label>
           <input type="text" id="ext-nome" placeholder="Nome completo do militar" />
         </div>
-        <div class="field">
+        <div class="field" id="campo-ext-guerra">
           <label>Nome de Guerra *</label>
           <input type="text" id="ext-guerra" placeholder="Ex.: SILVA" />
         </div>
@@ -558,14 +603,14 @@
           <input type="text" id="ext-cpf" placeholder="000.000.000-00" />
         </div>
         <div class="field">
-          <label>SARAM *</label>
+          <label id="lbl-ext-saram">SARAM *</label>
           <input type="text" id="ext-saram" placeholder="7430540" />
         </div>
       </div>
 
       <div class="grid2">
         <div class="field">
-          <label>OM de Origem *</label>
+          <label id="lbl-ext-om">OM de Origem *</label>
           <input type="text" id="ext-om" value="AFA" placeholder="Ex.: AFA, EPCAR, CIAAR" />
         </div>
         <div class="field">
@@ -576,7 +621,7 @@
 
       <div style="margin-top:1.5rem;display:flex;gap:.6rem;justify-content:flex-end">
         <button class="btn btn-ghost btn-sm" onclick="fecharModalExterno()">Cancelar</button>
-        <button class="btn btn-primary btn-sm" onclick="salvarMilitarExterno()">Salvar e Adicionar</button>
+        <button class="btn btn-primary btn-sm" onclick="salvarMilitarExterno()" id="btn-salvar-ext">Salvar e adicionar</button>
       </div>
     </div>
   </div>
@@ -924,7 +969,7 @@
               </optgroup>
               ${listaExternos.length ? `
                 <optgroup label="Militares Externos Cadastrados">
-                  ${listaExternos.map((ex, exIdx) => `<option value="ext_${exIdx}" ${ex.nome_completo === m.nome ? 'selected' : ''}>${esc(ex.posto_grad)} ${esc(ex.nome_guerra || ex.nome_completo)} — ${esc(ex.om)}</option>`).join('')}
+                  ${listaExternos.map((ex, exIdx) => `<option value="ext_${exIdx}" ${ex.nome_completo === m.nome ? 'selected' : ''}>${ex.vinculo === 'civil' ? '\u{1F393} ' : ''}${esc(ex.posto_grad)} ${esc(ex.nome_guerra || ex.nome_completo)} — ${esc(ex.om)}</option>`).join('')}
                 </optgroup>
               ` : ''}
             </select>
@@ -993,23 +1038,80 @@
       document.getElementById('modal-externo').classList.remove('open');
     }
 
+    /* ── Vínculo: militar ou civil ──
+       Os dois gravam nos mesmos campos. posto_grad guarda o posto do
+       militar ou a titulação do civil; saram guarda SARAM ou SIAPE. */
+    function vinculoAtualExterno() {
+      const el = document.getElementById('ext-vinculo');
+      return (el && el.value === 'civil') ? 'civil' : 'militar';
+    }
+
+    function definirVinculoExterno(v) {
+      const civ = v === 'civil';
+      document.getElementById('ext-vinculo').value = v;
+      document.getElementById('vinc-mil').classList.toggle('on', !civ);
+      document.getElementById('vinc-civ').classList.toggle('on', civ);
+
+      document.getElementById('campo-ext-posto-mil').style.display = civ ? 'none' : 'block';
+      document.getElementById('campo-ext-posto-civ').style.display = civ ? 'block' : 'none';
+      document.getElementById('campo-ext-guerra').style.display = civ ? 'none' : 'block';
+
+      const lblEsp = document.getElementById('lbl-ext-esp');
+      const inpEsp = document.getElementById('ext-esp');
+      lblEsp.textContent = civ ? 'Área / Disciplina' : 'Especialidade';
+      inpEsp.placeholder = civ ? 'Ex.: História, Cálculo, Direito' : 'Ex.: AV, INT, PED, MDR';
+
+      const lblSaram = document.getElementById('lbl-ext-saram');
+      const inpSaram = document.getElementById('ext-saram');
+      lblSaram.textContent = civ ? 'SIAPE / Matrícula *' : 'SARAM *';
+      inpSaram.placeholder = civ ? 'Ex.: 1234567' : '7430540';
+
+      const lblOm = document.getElementById('lbl-ext-om');
+      const inpOm = document.getElementById('ext-om');
+      lblOm.textContent = civ ? 'Instituição de Origem *' : 'OM de Origem *';
+      inpOm.placeholder = civ ? 'Ex.: USP, UNESP, IFSP' : 'Ex.: AFA, EPCAR, CIAAR';
+      if (civ && inpOm.value === 'AFA') inpOm.value = '';
+      if (!civ && !inpOm.value) inpOm.value = 'AFA';
+
+      document.getElementById('ext-nome').placeholder = civ
+        ? 'Nome completo do professor' : 'Nome completo do militar';
+      document.getElementById('ext-email').placeholder = civ
+        ? 'professor@instituicao.br' : 'militar@fab.mil.br';
+    }
+
     async function salvarMilitarExterno() {
-      const posto = document.getElementById('ext-posto').value;
+      const vinculo = vinculoAtualExterno();
+      const civ = vinculo === 'civil';
+
       const esp = document.getElementById('ext-esp').value.trim();
       const nome = document.getElementById('ext-nome').value.trim();
-      const guerra = document.getElementById('ext-guerra').value.trim() || nome.split(' ')[0];
       const cpf = formatarCPF(document.getElementById('ext-cpf').value.trim());
-      const saram = formatarSARAM(document.getElementById('ext-saram').value.trim());
-      const om = document.getElementById('ext-om').value.trim() || 'AFA';
+      const matricula = document.getElementById('ext-saram').value.trim();
+      const om = document.getElementById('ext-om').value.trim() || (civ ? '' : 'AFA');
       const email = document.getElementById('ext-email').value.trim();
 
-      if (!nome || !cpf || !saram) {
-        alert('Preencha os campos obrigatórios (Nome, CPF e SARAM).');
+      const titulo = civ
+        ? document.getElementById('ext-titulacao').value.trim()
+        : document.getElementById('ext-posto').value;
+
+      const guerra = civ
+        ? (nome.split(' ').pop() || '').toUpperCase()
+        : (document.getElementById('ext-guerra').value.trim() || nome.split(' ')[0]);
+
+      if (!titulo || !nome || !cpf || !matricula || !om) {
+        alert(civ
+          ? 'Preencha titulação, nome completo, CPF, SIAPE e instituição.'
+          : 'Preencha posto, nome completo, CPF, SARAM e OM.');
         return;
       }
 
+      /* SIAPE não segue o formato de 7 dígitos do SARAM */
+      const saram = civ ? matricula : formatarSARAM(matricula);
+      const posto_grad = civ ? titulo : (titulo + ' ' + esp).trim();
+
       const novo = {
-        posto_grad: (posto + ' ' + esp).trim(),
+        vinculo,
+        posto_grad,
         especialidade: esp,
         nome_completo: nome,
         nome_guerra: guerra,
@@ -1020,17 +1122,15 @@
       listaExternos.unshift(novo);
       localStorage.setItem('afa_externos_cache_v1', JSON.stringify(listaExternos));
 
-      try {
-        await sb.from('militares_externos').insert([novo]);
-      } catch(e) {}
+      try { await sb.from('militares_externos').insert([novo]); } catch(e) {}
 
-      // Adiciona direto à lista de militares na tela
       adicionarMilitar({
-        posto_grad: novo.posto_grad,
+        posto_grad,
         especialidade: esp,
-        nome: novo.nome_completo,
-        nome_guerra: novo.nome_guerra,
+        nome,
+        nome_guerra: guerra,
         cpf, saram, om,
+        vinculo,
         is_externo: true,
         data_inicio: new Date().toISOString().slice(0,10),
         hora_inicio: '04:00',
@@ -1040,14 +1140,22 @@
       });
 
       fecharModalExterno();
+      limparFormExterno();
+
+    }
+
+    function limparFormExterno() {
+      ['ext-esp','ext-nome','ext-guerra','ext-cpf','ext-saram','ext-email','ext-titulacao']
+        .forEach(i => { const e = document.getElementById(i); if (e) e.value = ''; });
+      definirVinculoExterno(vinculoAtualExterno());
     }
 
     function abrirConfirmExterno(ext) {
       const det = document.getElementById('confirm-externo-detalhes');
       det.innerHTML = `
-        <div><b>Militar:</b> ${esc(ext.posto_grad)} ${esc(ext.nome_completo)}</div>
-        <div><b>Nome de Guerra:</b> ${esc(ext.nome_guerra || '—')} | <b>OM:</b> ${esc(ext.om || 'AFA')}</div>
-        <div><b>CPF:</b> ${esc(ext.cpf)} | <b>SARAM:</b> ${esc(ext.saram)}</div>
+        <div><b>${ext.vinculo === 'civil' ? 'Civil' : 'Militar'}:</b> ${esc(ext.posto_grad)} ${esc(ext.nome_completo)}</div>
+        <div><b>${ext.vinculo === 'civil' ? 'Instituição' : 'Nome de Guerra'}:</b> ${esc(ext.vinculo === 'civil' ? (ext.om || '—') : (ext.nome_guerra || '—'))}${ext.vinculo === 'civil' ? '' : ' | <b>OM:</b> ' + esc(ext.om || 'AFA')}</div>
+        <div><b>CPF:</b> ${esc(ext.cpf)} | <b>${ext.vinculo === 'civil' ? 'SIAPE' : 'SARAM'}:</b> ${esc(ext.saram)}</div>
       `;
       document.getElementById('modal-confirm-externo').classList.add('open');
     }
