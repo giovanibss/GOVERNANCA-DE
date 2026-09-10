@@ -433,6 +433,35 @@ input:checked + .slider:before{transform:translateX(16px);background-color:var(-
 .omis-mils li .ord{font-family:var(--f-mono);font-size:.62rem;color:var(--gold-500);min-width:16px}
 .omis-body-foot{display:flex;justify-content:space-between;align-items:flex-end;gap:.75rem;flex-wrap:wrap;margin-top:.2rem}
 
+
+/* ═══ BIFURCAÇÃO DE VÍNCULO (militar / civil) ═══ */
+.vinculo-fork{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--linha);
+  border-radius:12px;overflow:hidden;margin-bottom:1.1rem}
+@media(max-width:520px){.vinculo-fork{grid-template-columns:1fr}}
+.vinculo-op{display:flex;align-items:center;gap:.7rem;padding:.9rem 1rem;cursor:pointer;
+  background:rgba(6,13,29,.5);border:none;color:var(--gray-500);text-align:left;
+  font-family:var(--f-body);transition:background .22s,color .22s}
+.vinculo-op + .vinculo-op{border-left:1px solid var(--linha)}
+@media(max-width:520px){.vinculo-op + .vinculo-op{border-left:none;border-top:1px solid var(--linha)}}
+.vinculo-op:hover{background:rgba(207,228,255,.07);color:var(--navy-700)}
+.vinculo-op svg{width:20px;height:20px;flex-shrink:0;opacity:.8}
+.vinculo-op b{display:block;font-family:var(--f-display);font-size:.86rem;font-weight:600;letter-spacing:.05em;line-height:1.1}
+.vinculo-op small{display:block;font-size:.63rem;margin-top:3px;opacity:.85;line-height:1.35}
+.vinculo-op.on{color:var(--navy-0)}
+.vinculo-op.on.mil{background:var(--gold-500)}
+.vinculo-op.on.mil:hover{background:var(--gold-400)}
+.vinculo-op.on.civ{background:var(--ceu)}
+.vinculo-op.on.civ:hover{background:#78b6ec}
+.vinculo-op.on svg{opacity:1}
+
+.form-externo{background:var(--card-2);border:1px solid var(--linha);border-left:4px solid var(--gold-500);
+  border-radius:12px;padding:1.1rem;margin-bottom:1.2rem;transition:border-left-color .22s}
+.form-externo.civ{border-left-color:var(--ceu)}
+.badge-vinc{font-family:var(--f-mono);font-size:.58rem;letter-spacing:.08em;text-transform:uppercase;
+  padding:.18rem .5rem;border-radius:99px;border:1px solid transparent;white-space:nowrap}
+.badge-vinc.mil{background:rgba(212,168,75,.15);color:var(--gold-400);border-color:rgba(212,168,75,.35)}
+.badge-vinc.civ{background:rgba(90,162,224,.15);color:var(--ceu);border-color:rgba(90,162,224,.35)}
+
 /* ═══ MODAL ═══ */
 .backdrop{
   position:fixed;inset:0;background:rgba(3,8,18,.78);backdrop-filter:blur(4px);
@@ -500,9 +529,9 @@ footer img{height:16px;opacity:.45}
       Hub
     </a>
     <div class="sync ok" id="sync"><i id="sync-dot"></i><span id="sync-txt">Sincronizado</span></div>
-    <button class="hbtn" onclick="abrirModalExternos()" title="Gerenciar Militares Externos">
+    <button class="hbtn" onclick="abrirModalExternos()" title="Gerenciar Pessoal Externo">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      Militares Externos
+      Pessoal Externo
     </button>
     <button class="hbtn" onclick="abrirModalConfig()" title="Configurações de Assinantes e SMTP">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -664,10 +693,10 @@ footer img{height:16px;opacity:.45}
 <!-- ABA 1: ORDENS DE MISSÃO (OMIS) — documento originador -->
 <div id="view-omis">
   <div class="summary">
-    <div class="scard gold"><div><div class="scount" id="so-qtd">0</div><div class="slabel">OMIS emitidas no ano</div></div></div>
+    <div class="scard gold"><div><div class="scount" id="so-qtd">0</div><div class="slabel" id="so-qtd-label">OMIS emitidas no ano</div></div></div>
     <div class="scard green"><div><div class="scount" id="so-com-os">0</div><div class="slabel">Com OS vinculada</div></div></div>
     <div class="scard ceu"><div><div class="scount" id="so-sem-os">0</div><div class="slabel">Sem OS (sem custo)</div></div></div>
-    <div class="scard purple"><div><div class="scount" id="so-fantasma">0</div><div class="slabel">OMIS fantasma</div></div></div>
+    <div class="scard purple"><div><div class="scount" id="so-fantasma">0</div><div class="slabel">OS sem OMIS (fantasma)</div></div></div>
     <div class="scard navy" style="margin-left:0"><div><div class="scount" id="so-siloms-ok">0</div><div class="slabel">Protocoladas SILOMS</div></div></div>
     <div class="scard red" style="margin-left:auto"><div><div class="scount" id="so-alertas">0</div><div class="slabel">Lacunas e divergências</div></div></div>
   </div>
@@ -749,6 +778,8 @@ footer img{height:16px;opacity:.45}
         <span>Solicitações Pendentes de Homologação</span>
         <input class="search" id="solic-busca" type="search" placeholder="Buscar por protocolo, militar ou missão..." oninput="renderSolicitacoes()" style="width:280px" />
       </div>
+      <div id="aviso-orfas" style="display:none;margin-bottom:1rem"></div>
+
       <div class="os-grid" id="lista-solicitacoes" style="margin-bottom:2rem">
         <div class="skel"></div><div class="skel"></div>
       </div>
@@ -838,7 +869,7 @@ footer img{height:16px;opacity:.45}
 
 <footer>
   <img src="assets/cocar-fab.png" alt="" />
-  <span>Governança DE · Academia da Força Aérea — módulo Missões &amp; OS · <b style="color:var(--gold-400)">v2.3</b>
+  <span>Governança DE · Academia da Força Aérea — módulo Missões &amp; OS · <b style="color:var(--gold-400)">v2.4</b>
   <br><small style="opacity:.7;text-transform:none;letter-spacing:0">OMIS como documento originador · numeração de OS vinculada à OMIS</small></span>
   <img src="assets/cocar-fab.png" alt="" />
 </footer>
@@ -859,6 +890,7 @@ footer img{height:16px;opacity:.45}
     </div>
     <div class="modal-body">
       <input type="hidden" id="fg-id" />
+      <input type="hidden" id="fg-solicitacao-id" />
       <input type="hidden" id="fg-omis-seq" />
       <input type="hidden" id="fg-os-seq" />
       <input type="hidden" id="fg-num" />
@@ -1318,35 +1350,54 @@ footer img{height:16px;opacity:.45}
   <div class="modal" style="max-width:780px" role="dialog" aria-modal="true">
     <div class="modal-head">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      <h2>Cadastro & Gestão de Militares Externos</h2>
+      <h2>Pessoal Externo à AFA</h2>
       <button class="icon-btn" onclick="fecharModalExternos()" aria-label="Fechar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
     </div>
     <div class="modal-body">
       
-      <!-- FORMULÁRIO DE NOVO / EDIÇÃO MILITAR EXTERNO -->
-      <div style="background:var(--navy-50);padding:1rem;border-radius:8px;border:1px solid var(--navy-200);margin-bottom:1.2rem">
+      <!-- BIFURCAÇÃO DE VÍNCULO -->
+      <p style="font-size:.78rem;color:var(--gray-500);line-height:1.55;margin-bottom:.9rem">
+        Quem entra numa Ordem de Missão sem pertencer ao efetivo da AFA é cadastrado aqui — militar de outra OM
+        ou professor civil. Escolha o vínculo: o formulário se ajusta ao que cada um precisa informar.
+      </p>
+
+      <div class="vinculo-fork">
+        <button type="button" class="vinculo-op mil on" id="vinc-mil" onclick="definirVinculoExterno('militar')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span><b>Militar</b><small>Posto, especialidade, SARAM e OM de origem</small></span>
+        </button>
+        <button type="button" class="vinculo-op civ" id="vinc-civ" onclick="definirVinculoExterno('civil')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1"><path d="M22 10 12 5 2 10l10 5 10-5z"/><path d="M6 12v5c0 1.7 2.7 3 6 3s6-1.3 6-3v-5"/></svg>
+          <span><b>Civil</b><small>Titulação, área, SIAPE e instituição</small></span>
+        </button>
+      </div>
+
+      <!-- FORMULÁRIO -->
+      <div class="form-externo" id="form-externo">
         <input type="hidden" id="fe-id" />
-        <div style="font-weight:700;font-size:.82rem;color:var(--navy-900);text-transform:uppercase;margin-bottom:.6rem" id="fe-form-title">
-          + Cadastrar / Atualizar Militar Externo
+        <input type="hidden" id="fe-vinculo" value="militar" />
+        <div style="font-weight:700;font-size:.82rem;color:var(--navy-900);text-transform:uppercase;margin-bottom:.7rem" id="fe-form-title">
+          Cadastrar militar externo
         </div>
         <div class="grid3">
           <div class="field">
-            <label>Posto / Graduação *</label>
-            <input type="text" id="fe-posto" placeholder="Ex.: 1T ou Maj" />
+            <label id="lbl-fe-posto">Posto / Graduação *</label>
+            <input type="text" id="fe-posto" list="lista-titulacoes" placeholder="Ex.: 1T ou Maj" />
+            <datalist id="lista-titulacoes"></datalist>
           </div>
           <div class="field">
-            <label>Especialidade</label>
+            <label id="lbl-fe-esp">Especialidade</label>
             <input type="text" id="fe-esp" placeholder="Ex.: PED, AV, INT" />
           </div>
-          <div class="field">
-            <label>Nome de Guerra</label>
+          <div class="field" id="campo-fe-guerra">
+            <label id="lbl-fe-guerra">Nome de Guerra</label>
             <input type="text" id="fe-guerra" placeholder="Ex.: SILVA" />
           </div>
         </div>
         <div class="field">
-          <label>Nome Completo *</label>
+          <label id="lbl-fe-nome">Nome Completo *</label>
           <input type="text" id="fe-nome" placeholder="Nome completo do militar" />
         </div>
         <div class="grid3">
@@ -1355,43 +1406,51 @@ footer img{height:16px;opacity:.45}
             <input type="text" id="fe-cpf" placeholder="000.000.000-00" />
           </div>
           <div class="field">
-            <label>SARAM *</label>
+            <label id="lbl-fe-saram">SARAM *</label>
             <input type="text" id="fe-saram" placeholder="7430540" />
           </div>
           <div class="field">
-            <label>OM de Origem *</label>
+            <label id="lbl-fe-om">OM de Origem *</label>
             <input type="text" id="fe-om" placeholder="Ex.: CINDACTA I ou GAP-SJ" />
           </div>
         </div>
         <div class="grid2">
           <div class="field" style="margin-bottom:0">
-            <label>E-mail de Contato</label>
+            <label id="lbl-fe-email">E-mail de Contato</label>
             <input type="email" id="fe-email" placeholder="militar@fab.mil.br" />
           </div>
           <div style="display:flex;align-items:flex-end;gap:.5rem">
-            <button class="btn btn-primary" style="flex:1" onclick="salvarMilitarExterno()">Salvar Militar</button>
+            <button class="btn btn-primary" style="flex:1" onclick="salvarMilitarExterno()" id="btn-salvar-externo">Salvar militar</button>
             <button class="btn btn-ghost" onclick="limparFormExterno()">Limpar</button>
           </div>
         </div>
       </div>
 
-      <!-- LISTA DE MILITARES EXTERNOS -->
-      <div style="font-weight:700;font-size:.78rem;color:var(--navy-700);text-transform:uppercase;margin-bottom:.5rem">
-        Militares Externos Registrados no Banco
+      <!-- LISTA -->
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:.6rem;margin-bottom:.5rem;flex-wrap:wrap">
+        <div style="font-weight:700;font-size:.78rem;color:var(--navy-700);text-transform:uppercase">
+          Pessoal externo cadastrado
+        </div>
+        <select class="search" style="flex:0 0 auto;min-width:160px;padding:.4rem .7rem;font-size:.75rem" id="fe-filtro" onchange="renderTabelaExternos()">
+          <option value="TODOS">Todos os vínculos</option>
+          <option value="militar">Só militares</option>
+          <option value="civil">Só civis</option>
+        </select>
       </div>
       <div class="table-controle-wrap">
         <table class="table-controle" style="min-width:650px">
           <thead>
             <tr>
-              <th>Posto / Nome</th>
-              <th>OM</th>
-              <th>CPF / SARAM</th>
+              <th>Vínculo</th>
+              <th>Identificação</th>
+              <th>Origem</th>
+              <th>CPF / Matrícula</th>
               <th>E-mail</th>
               <th style="text-align:right">Ações</th>
             </tr>
           </thead>
           <tbody id="tbody-externos">
-            <tr><td colspan="5" style="text-align:center;padding:1.5rem">Carregando militares externos...</td></tr>
+            <tr><td colspan="6" style="text-align:center;padding:1.5rem">Carregando pessoal externo…</td></tr>
           </tbody>
         </table>
       </div>
@@ -2145,8 +2204,8 @@ function renderMilitaresGratModal() {
             ${listaEfetivo.map((ef, eIdx) => `<option value="${eIdx}" ${ef.nome_completo === m.nome || ef.nome === m.nome ? 'selected' : ''}>${esc(ef.posto)} ${esc(ef.esp)} ${esc(ef.nome)}</option>`).join('')}
           </optgroup>
           ${listaExternos.length ? `
-            <optgroup label="Militares Externos Cadastrados">
-              ${listaExternos.map((ex, exIdx) => `<option value="ext_${exIdx}" ${ex.nome_completo === m.nome ? 'selected' : ''}>${esc(ex.posto_grad)} ${esc(ex.nome_guerra || ex.nome_completo)} — ${esc(ex.om)}</option>`).join('')}
+            <optgroup label="Pessoal Externo Cadastrados">
+              ${listaExternos.map((ex, exIdx) => `<option value="ext_${exIdx}" ${ex.nome_completo === m.nome ? 'selected' : ''}>${ex.vinculo === 'civil' ? '\u{1F393} ' : ''}${esc(ex.posto_grad)} ${esc(ex.nome_guerra || ex.nome_completo)} — ${esc(ex.om)}</option>`).join('')}
             </optgroup>
           ` : ''}
         </select>
@@ -2383,6 +2442,7 @@ function abrirModalOmis(id, modalidadePadrao) {
   preencherSelectsEfetivo();
   preencherSelectAnos();
 
+  document.getElementById('fg-solicitacao-id').value = '';
   const retro = document.getElementById('fg-toggle-retroativo');
   const inpOmis = document.getElementById('fg-omis-input');
   const inpOs = document.getElementById('fg-os-input');
@@ -2502,6 +2562,7 @@ function abrirModalNovaDiaria() { abrirModalOmis(null, 'diaria'); }
 
 function fecharModalGrat() {
   document.getElementById('backdrop-grat').classList.remove('open');
+  document.getElementById('fg-solicitacao-id').value = '';
 }
 
 function limparErrosGrat() {
@@ -2522,6 +2583,7 @@ async function salvarGratificacao() {
                         && document.getElementById('fg-toggle-retroativo').checked;
   const numeracao_duplicada = document.getElementById('fg-toggle-duplicada').checked
                         && document.getElementById('fg-toggle-retroativo').checked;
+  const solicitacaoId = document.getElementById('fg-solicitacao-id').value || null;
   const gera_os = omis_fantasma ? true : MODALIDADES[modalidade].geraOs;
   const omis_seq = omis_fantasma ? null : (parseInt(document.getElementById('fg-omis-seq').value, 10) || null);
   const os_seq = gera_os ? (parseInt(document.getElementById('fg-os-seq').value, 10) || null) : null;
@@ -2579,6 +2641,7 @@ async function salvarGratificacao() {
     numeracao_legada: retro || omis_fantasma,
     omis_fantasma,
     numeracao_duplicada,
+    solicitacao_id: solicitacaoId,
     num_omis: fmtNum(omis_seq, ano),
     num_os: gera_os ? fmtNum(os_seq, ano) : fmtNum(omis_seq, ano),
     qtd_diarias,
@@ -2648,6 +2711,9 @@ async function salvarGratificacao() {
 
     /* a esteira acompanha TODO processo, inclusive missão sem custo */
     if (gravado) await sincronizarProcessoComControle(gravado);
+
+    /* só agora a solicitação vira homologada */
+    if (solicitacaoId && gravado) await homologarSolicitacao(solicitacaoId, gravado);
 
     gravarCacheGrat();
     renderTudoMissoes();
@@ -3178,10 +3244,22 @@ function renderOmis() {
   let lista = missoesDoAno(ano);
 
   const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+  /* Uma OMIS fantasma não é uma OMIS emitida — nenhum documento saiu.
+     O contador passa a medir documentos de OMIS expedidos, não cards. */
+  const comOmis = lista.filter(g => !g.omis_fantasma);
   set('badge-omis-count', lista.length);
-  set('so-qtd', lista.length);
-  set('so-com-os', lista.filter(g => g.gera_os).length);
-  set('so-sem-os', lista.filter(g => !g.gera_os).length);
+  set('so-qtd', comOmis.length);
+  set('so-com-os', comOmis.filter(g => g.gera_os).length);
+  set('so-sem-os', comOmis.filter(g => !g.gera_os).length);
+
+  const rotuloQtd = document.getElementById('so-qtd-label');
+  if (rotuloQtd) {
+    const partes = [];
+    if (a.maior) partes.push(`nº 1 a ${a.maior}`);
+    if (a.duplicadas.length) partes.push(`${a.duplicadas.length} nº duplicado(s)`);
+    rotuloQtd.innerHTML = 'OMIS emitidas no ano' +
+      (partes.length ? `<br><span style="opacity:.75;text-transform:none;letter-spacing:0">${partes.join(' · ')}</span>` : '');
+  }
   set('so-siloms-ok', lista.filter(g => g.siloms_numero).length);
   set('so-fantasma', lista.filter(g => g.omis_fantasma).length);
   set('so-alertas', a.lacunas.length + a.duplicadas.length);
@@ -3331,6 +3409,7 @@ async function confirmarDisparoSilomsSMTP() {
    6 · GESTÃO DE MILITARES EXTERNOS (MODAL 6)
    ══════════════════════════════════════════════════════════════ */
 function abrirModalExternos() {
+  definirVinculoExterno('militar');
   limparFormExterno();
   renderTabelaExternos();
   document.getElementById('backdrop-externos').classList.add('open');
@@ -3340,22 +3419,89 @@ function fecharModalExternos() {
   document.getElementById('backdrop-externos').classList.remove('open');
 }
 
+/* ── Rótulos por vínculo ──
+   Os campos do banco são os mesmos para os dois; o que muda é o que
+   cada um significa. posto_grad guarda o posto do militar ou a
+   titulação do civil, e é esse campo que o CompiladorDoc imprime
+   antes do nome — por isso "Prof. Dr." sai correto nos documentos. */
+const ROTULOS_VINCULO = {
+  militar: {
+    titulo: 'Cadastrar militar externo',
+    botao: 'Salvar militar',
+    posto: { label: 'Posto / Graduação *', ph: 'Ex.: 1T ou Maj' },
+    esp:   { label: 'Especialidade',       ph: 'Ex.: PED, AV, INT' },
+    guerra:{ label: 'Nome de Guerra',      ph: 'Ex.: SILVA', visivel: true },
+    nome:  { label: 'Nome Completo *',     ph: 'Nome completo do militar' },
+    saram: { label: 'SARAM *',             ph: '7430540' },
+    om:    { label: 'OM de Origem *',      ph: 'Ex.: CINDACTA I ou GAP-SJ' },
+    email: { label: 'E-mail de Contato',   ph: 'militar@fab.mil.br' },
+    sugestoes: ['Cel','TC','Maj','Cap','1T','2T','Asp','SO','1S','2S','3S','CB','S1','S2']
+  },
+  civil: {
+    titulo: 'Cadastrar professor ou servidor civil',
+    botao: 'Salvar civil',
+    posto: { label: 'Titulação / Tratamento *', ph: 'Ex.: Prof. Dr. ou Prof.ª Me.' },
+    esp:   { label: 'Área / Disciplina',        ph: 'Ex.: História, Cálculo, Direito' },
+    guerra:{ label: '', ph: '', visivel: false },
+    nome:  { label: 'Nome Completo *',          ph: 'Nome completo do professor' },
+    saram: { label: 'SIAPE / Matrícula *',      ph: 'Ex.: 1234567' },
+    om:    { label: 'Instituição de Origem *',  ph: 'Ex.: USP, UNESP, IFSP' },
+    email: { label: 'E-mail de Contato',        ph: 'professor@instituicao.br' },
+    sugestoes: ['Prof.','Prof.ª','Prof. Dr.','Prof.ª Dr.ª','Prof. Me.','Prof.ª Me.','Dr.','Dr.ª','Me.','Esp.','Sr.','Sr.ª']
+  }
+};
+
+function vinculoAtualExterno() {
+  const el = document.getElementById('fe-vinculo');
+  return (el && el.value === 'civil') ? 'civil' : 'militar';
+}
+
+function definirVinculoExterno(v) {
+  const cfg = ROTULOS_VINCULO[v] || ROTULOS_VINCULO.militar;
+  document.getElementById('fe-vinculo').value = v;
+
+  document.getElementById('vinc-mil').classList.toggle('on', v === 'militar');
+  document.getElementById('vinc-civ').classList.toggle('on', v === 'civil');
+  document.getElementById('form-externo').classList.toggle('civ', v === 'civil');
+
+  const por = (idLabel, idInput, spec) => {
+    const l = document.getElementById(idLabel);
+    const inp = document.getElementById(idInput);
+    if (l && spec.label) l.textContent = spec.label;
+    if (inp) inp.placeholder = spec.ph;
+  };
+  por('lbl-fe-posto', 'fe-posto', cfg.posto);
+  por('lbl-fe-esp',   'fe-esp',   cfg.esp);
+  por('lbl-fe-nome',  'fe-nome',  cfg.nome);
+  por('lbl-fe-saram', 'fe-saram', cfg.saram);
+  por('lbl-fe-om',    'fe-om',    cfg.om);
+  por('lbl-fe-email', 'fe-email', cfg.email);
+
+  const campoGuerra = document.getElementById('campo-fe-guerra');
+  if (campoGuerra) campoGuerra.style.display = cfg.guerra.visivel ? 'block' : 'none';
+  if (!cfg.guerra.visivel) document.getElementById('fe-guerra').value = '';
+
+  document.getElementById('lista-titulacoes').innerHTML =
+    cfg.sugestoes.map(s => `<option value="${esc(s)}"></option>`).join('');
+
+  const t = document.getElementById('fe-form-title');
+  if (t && !document.getElementById('fe-id').value) t.textContent = cfg.titulo;
+  const b = document.getElementById('btn-salvar-externo');
+  if (b) b.textContent = cfg.botao;
+}
+
 function limparFormExterno() {
-  document.getElementById('fe-id').value = '';
-  document.getElementById('fe-posto').value = '';
-  document.getElementById('fe-esp').value = '';
-  document.getElementById('fe-guerra').value = '';
-  document.getElementById('fe-nome').value = '';
-  document.getElementById('fe-cpf').value = '';
-  document.getElementById('fe-saram').value = '';
-  document.getElementById('fe-om').value = '';
-  document.getElementById('fe-email').value = '';
-  document.getElementById('fe-form-title').textContent = '+ Cadastrar Novo Militar Externo';
+  ['fe-id','fe-posto','fe-esp','fe-guerra','fe-nome','fe-cpf','fe-saram','fe-om','fe-email']
+    .forEach(i => { const e = document.getElementById(i); if (e) e.value = ''; });
+  definirVinculoExterno(vinculoAtualExterno());
+  document.getElementById('fe-form-title').textContent = ROTULOS_VINCULO[vinculoAtualExterno()].titulo;
 }
 
 function editarMilitarExterno(idx) {
-  const ex = listaExternos[idx];
+  const ex = listaExternosFiltrados()[idx];
   if (!ex) return;
+  const v = ex.vinculo === 'civil' ? 'civil' : 'militar';
+  definirVinculoExterno(v);
   document.getElementById('fe-id').value = ex.id || '';
   document.getElementById('fe-posto').value = ex.posto_grad || '';
   document.getElementById('fe-esp').value = ex.especialidade || '';
@@ -3365,29 +3511,38 @@ function editarMilitarExterno(idx) {
   document.getElementById('fe-saram').value = ex.saram || '';
   document.getElementById('fe-om').value = ex.om || '';
   document.getElementById('fe-email').value = ex.email || '';
-  document.getElementById('fe-form-title').textContent = `✏️ Editando: ${ex.posto_grad} ${ex.nome_guerra || ex.nome_completo}`;
+  document.getElementById('fe-form-title').textContent =
+    `Editando: ${ex.posto_grad || ''} ${ex.nome_guerra || ex.nome_completo || ''}`.trim();
 }
 
 async function salvarMilitarExterno() {
+  const vinculo = vinculoAtualExterno();
+  const ehCivil = vinculo === 'civil';
+  const cfg = ROTULOS_VINCULO[vinculo];
+
   const id = document.getElementById('fe-id').value;
   const posto_grad = document.getElementById('fe-posto').value.trim();
   const especialidade = document.getElementById('fe-esp').value.trim();
-  const nome_guerra = document.getElementById('fe-guerra').value.trim();
   const nome_completo = document.getElementById('fe-nome').value.trim();
+  const nome_guerra = ehCivil
+    ? (nome_completo.split(' ').pop() || '').toUpperCase()
+    : document.getElementById('fe-guerra').value.trim();
   const cpf = document.getElementById('fe-cpf').value.trim();
-  const saram = document.getElementById('fe-saram').value.trim();
+  const matricula = document.getElementById('fe-saram').value.trim();
   const om = document.getElementById('fe-om').value.trim();
   const email = document.getElementById('fe-email').value.trim();
 
   if (!posto_grad || !nome_completo || !cpf || !om) {
-    alert('Preencha pelo menos Posto/Graduação, Nome Completo, CPF e OM de Origem.');
+    toast(`Preencha ${cfg.posto.label.replace(' *','')}, nome completo, CPF e ${cfg.om.label.replace(' *','')}.`, true);
     return;
   }
 
   const payload = {
+    vinculo,
     posto_grad, especialidade, nome_guerra, nome_completo,
     cpf: formatarCPF(cpf),
-    saram: formatarSARAM(saram),
+    /* SIAPE não tem o formato de 7 dígitos do SARAM — não pode ser normalizado */
+    saram: ehCivil ? matricula : formatarSARAM(matricula),
     om, email,
     ativo: true,
     updated_at: new Date().toISOString()
@@ -3395,34 +3550,41 @@ async function salvarMilitarExterno() {
 
   try {
     if (id && !id.startsWith('ext_')) {
-      if (configurado) await sb.from('militares_externos').update(payload).eq('id', id);
+      if (configurado) {
+        const { error } = await sb.from('militares_externos').update(payload).eq('id', id);
+        if (error) throw error;
+      }
       const idx = listaExternos.findIndex(x => String(x.id) === String(id));
       if (idx >= 0) listaExternos[idx] = { id, ...payload };
     } else {
       if (configurado) {
-        const { data } = await sb.from('militares_externos').insert([payload]).select().single();
-        listaExternos.unshift(data || payload);
+        const { data, error } = await sb.from('militares_externos').insert([payload]).select().single();
+        if (error) throw error;
+        listaExternos.unshift(data);
       } else {
-        payload.id = 'ext_' + Date.now();
-        listaExternos.unshift(payload);
+        listaExternos.unshift({ ...payload, id: 'ext_' + Date.now() });
       }
     }
     localStorage.setItem(CACHE_EXTERNOS_KEY, JSON.stringify(listaExternos));
     renderTabelaExternos();
     limparFormExterno();
-    toast('Militar externo salvo com sucesso!');
-  } catch(e) {
-    toast('Erro ao salvar militar: ' + (e.message || 'erro'), true);
+    toast(ehCivil ? 'Civil cadastrado' : 'Militar externo cadastrado');
+  } catch (e) {
+    const falta = /vinculo/i.test(e.message || '');
+    toast(falta
+      ? 'Falta a coluna "vinculo" na tabela militares_externos. Rode o SQL da v2.4.'
+      : 'Erro ao salvar: ' + (e.message || 'erro'), true);
   }
 }
 
 async function excluirMilitarExterno(idx) {
-  const ex = listaExternos[idx];
+  const ex = listaExternosFiltrados()[idx];
   if (!ex) return;
-  if (!confirm(`Deseja excluir o militar externo ${ex.posto_grad} ${ex.nome_completo}?`)) return;
+  if (!confirm(`Excluir ${ex.posto_grad} ${ex.nome_completo} do cadastro externo?`)) return;
 
   const id = ex.id;
-  listaExternos.splice(idx, 1);
+  const real = listaExternos.findIndex(x => String(x.id) === String(id));
+  if (real >= 0) listaExternos.splice(real, 1);
   localStorage.setItem(CACHE_EXTERNOS_KEY, JSON.stringify(listaExternos));
   renderTabelaExternos();
 
@@ -3430,30 +3592,44 @@ async function excluirMilitarExterno(idx) {
     if (configurado && id && !String(id).startsWith('ext_')) {
       await sb.from('militares_externos').delete().eq('id', id);
     }
-    toast('Militar externo excluído');
-  } catch(e) {}
+    toast('Cadastro excluído');
+  } catch (e) {}
+}
+
+function listaExternosFiltrados() {
+  const f = document.getElementById('fe-filtro');
+  const v = f ? f.value : 'TODOS';
+  if (v === 'TODOS') return listaExternos;
+  return listaExternos.filter(ex => (ex.vinculo === 'civil' ? 'civil' : 'militar') === v);
 }
 
 function renderTabelaExternos() {
   const tbody = document.getElementById('tbody-externos');
   if (!tbody) return;
-  if (!listaExternos.length) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:1.5rem;color:var(--gray-400)">Nenhum militar externo registrado. Use o formulário acima para cadastrar.</td></tr>`;
+
+  const lista = listaExternosFiltrados();
+  if (!lista.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:1.5rem;color:var(--gray-400)">
+      Nenhum registro para este vínculo. Use o formulário acima para cadastrar.</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = listaExternos.map((ex, idx) => `
+  tbody.innerHTML = lista.map((ex, idx) => {
+    const civ = ex.vinculo === 'civil';
+    const rotuloMatricula = civ ? 'SIAPE' : 'SARAM';
+    return `
     <tr>
-      <td><b>${esc(ex.posto_grad)} ${esc(ex.especialidade || '')}</b><br>${esc(ex.nome_completo)}</td>
-      <td><span class="os-badge badge-analise">${esc(ex.om)}</span></td>
-      <td><span style="font-family:var(--f-mono);font-size:.76rem">${esc(ex.cpf)}<br>SARAM: ${esc(ex.saram || '—')}</span></td>
+      <td><span class="badge-vinc ${civ ? 'civ' : 'mil'}">${civ ? 'Civil' : 'Militar'}</span></td>
+      <td><b>${esc(ex.posto_grad)}${ex.especialidade ? ' · ' + esc(ex.especialidade) : ''}</b><br>${esc(ex.nome_completo)}</td>
+      <td><span class="os-badge ${civ ? 'badge-semos' : 'badge-analise'}">${esc(ex.om)}</span></td>
+      <td><span style="font-family:var(--f-mono);font-size:.76rem">${esc(ex.cpf)}<br>${rotuloMatricula}: ${esc(ex.saram || '—')}</span></td>
       <td><small style="color:var(--gray-500)">${esc(ex.email || '—')}</small></td>
-      <td style="text-align:right">
-        <button class="icon-btn" onclick="editarMilitarExterno(${idx})" title="Editar militar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
-        <button class="icon-btn del" onclick="excluirMilitarExterno(${idx})" title="Excluir militar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>
+      <td style="text-align:right;white-space:nowrap">
+        <button class="icon-btn" onclick="editarMilitarExterno(${idx})" title="Editar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
+        <button class="icon-btn del" onclick="excluirMilitarExterno(${idx})" title="Excluir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>
       </td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -3477,6 +3653,7 @@ function renderSolicitacoes() {
   const badgeEl = document.getElementById('badge-solic-count');
   if (badgeEl) badgeEl.textContent = pendentes.length;
 
+  const orfas = dadosSolicitacoes.filter(solicitacaoOrfa);
   const aprovadas = dadosSolicitacoes.filter(s => s.status === 'aprovado').length;
   const rejeitadas = dadosSolicitacoes.filter(s => s.status === 'rejeitado').length;
 
@@ -3484,6 +3661,18 @@ function renderSolicitacoes() {
   document.getElementById('ss-aprovadas').textContent = aprovadas;
   document.getElementById('ss-rejeitadas').textContent = rejeitadas;
   document.getElementById('ss-total').textContent = dadosSolicitacoes.length;
+
+  const avisoOrfas = document.getElementById('aviso-orfas');
+  if (avisoOrfas) {
+    if (orfas.length) {
+      avisoOrfas.style.display = 'block';
+      avisoOrfas.innerHTML = `<div class="warn" style="background:rgba(232,177,63,.10);border-color:rgba(232,177,63,.35);color:var(--yellow-500)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+        <span><b>${orfas.length} solicitação(ões) marcada(s) como homologada(s) sem Ordem de Missão correspondente.</b>
+        Role até o histórico: cada uma tem os botões <b>Relançar a OMIS</b> e <b>Devolver para pendentes</b>.</span>
+      </div>`;
+    } else avisoOrfas.style.display = 'none';
+  }
 
   const alvoPend = document.getElementById('lista-solicitacoes');
   const alvoHist = document.getElementById('lista-solicitacoes-historico');
@@ -3539,12 +3728,27 @@ function renderSolicitacoes() {
         const mils = Array.isArray(s.militares) && s.militares.length > 0 ? s.militares : [{ posto_grad: '', nome: 'Militar' }];
         const primMilitar = mils[0] || {};
         const stAprov = s.status === 'aprovado';
+        const orfa = solicitacaoOrfa(s);
+
+        const selo = orfa
+          ? '<span class="os-badge badge-duplicada">⚠️ Homologada sem OMIS</span>'
+          : `<span class="os-badge ${stAprov ? 'badge-paga' : 'badge-futura'}">${stAprov ? '✅ Homologada' : '❌ Rejeitada'}</span>`;
+
+        const acoes = orfa
+          ? `<div class="grat-actions" style="margin-top:.8rem">
+               <button class="btn-doc gold" onclick="aprovarSolicitacao('${s.id}')">↻ Relançar a OMIS</button>
+               <button class="btn-doc" onclick="reabrirSolicitacao('${s.id}')">↩ Devolver para pendentes</button>
+             </div>`
+          : (stAprov && s.os_gerada_num
+              ? `<div class="os-row" style="margin-top:.6rem;font-size:.72rem;color:var(--green-500)">
+                   Gerou <b style="font-family:var(--f-mono)">${esc(s.os_gerada_num)}</b>
+                 </div>` : '');
 
         return `
-        <article class="os ${stAprov ? 'st-concluida' : 'st-cancelada'}" style="opacity:.85;border-top-color:${stAprov ? '#22c55e' : '#ef4444'}">
+        <article class="os ${orfa ? 'legada' : (stAprov ? 'st-concluida' : 'st-cancelada')}" style="opacity:${orfa ? '1' : '.85'};border-top-color:${orfa ? 'var(--yellow-500)' : (stAprov ? 'var(--green-500)' : 'var(--red-500)')}">
           <div class="os-head">
             <div class="os-num">${esc(s.protocolo)}<span>${s.modalidade}</span></div>
-            <span class="os-badge ${stAprov ? 'badge-paga' : 'badge-futura'}">${stAprov ? '✅ Homologada' : '❌ Rejeitada'}</span>
+            ${selo}
           </div>
           <p class="os-desc">${esc(s.servico_local)}</p>
           <div class="os-meta">
@@ -3557,56 +3761,108 @@ function renderSolicitacoes() {
               Período: ${fmtData(s.data_inicio)} → ${fmtData(s.data_fim)}
             </div>
           </div>
+          ${acoes}
         </article>`;
       }).join('');
     }
   }
 }
 
-async function aprovarSolicitacao(id) {
+/* Homologar deixou de ser um ato isolado: a solicitação só muda de
+   status quando a Ordem de Missão é efetivamente salva. Antes o
+   status virava "aprovado" na abertura do modal — se você fechasse
+   sem salvar, a solicitação ficava homologada sem OMIS nenhuma e
+   sem como relançar. */
+function aprovarSolicitacao(id) {
   const solic = dadosSolicitacoes.find(x => String(x.id) === String(id));
   if (!solic) return;
 
-  if (solic.modalidade === 'gratificacao' || solic.modalidade === 'omis' || solic.modalidade === 'sem_custo') {
-    trocarAba('omis');
-    abrirModalOmis(null, solic.modalidade === 'gratificacao' ? 'gratificacao' : 'sem_custo');
-    document.getElementById('fg-servico').value = solic.servico_local || '';
-    if (solic.apoio_recebido) document.getElementById('fg-apoio').value = solic.apoio_recebido;
+  const ehDiaria = solic.modalidade === 'diaria';
+  const modalidade = ehDiaria ? 'diaria'
+                   : (solic.modalidade === 'gratificacao' ? 'gratificacao' : 'sem_custo');
 
-    if (solic.fora_prazo) {
-      document.getElementById('fg-toggle-prazo').checked = true;
-      alternarAccordion('fg-toggle-prazo', 'acc-prazo');
-      if (solic.justificativa_prazo) document.getElementById('fg-just-prazo').value = solic.justificativa_prazo;
-    }
-    if (solic.pagamento_antecipado) {
-      document.getElementById('fg-toggle-antecipado').checked = true;
-      alternarAccordion('fg-toggle-antecipado', 'acc-antecipado');
-      if (solic.justificativa_antecipacao) document.getElementById('fg-just-antecipado').value = solic.justificativa_antecipacao;
-    }
-    if (Array.isArray(solic.militares) && solic.militares.length > 0) {
-      listaMilitaresGratModal = JSON.parse(JSON.stringify(solic.militares));
-      renderMilitaresGratModal();
-    }
-  } else {
-    trocarAba('omis');
-    abrirModalOmis(null, 'diaria');
-    document.getElementById('fg-servico').value = solic.servico_local || '';
-    if (solic.apoio_recebido) document.getElementById('fg-apoio').value = solic.apoio_recebido;
-    if (Array.isArray(solic.militares) && solic.militares.length) {
-      listaMilitaresGratModal = JSON.parse(JSON.stringify(solic.militares));
-      renderMilitaresGratModal();
-    }
+  trocarAba('omis');
+  abrirModalOmis(null, modalidade);
+
+  document.getElementById('fg-solicitacao-id').value = solic.id;
+  document.getElementById('fg-servico').value = solic.servico_local || '';
+  if (solic.apoio_recebido) document.getElementById('fg-apoio').value = solic.apoio_recebido;
+
+  if (solic.fora_prazo) {
+    document.getElementById('fg-toggle-prazo').checked = true;
+    alternarAccordion('fg-toggle-prazo', 'acc-prazo');
+    if (solic.justificativa_prazo) document.getElementById('fg-just-prazo').value = solic.justificativa_prazo;
+  }
+  if (solic.pagamento_antecipado) {
+    document.getElementById('fg-toggle-antecipado').checked = true;
+    alternarAccordion('fg-toggle-antecipado', 'acc-antecipado');
+    if (solic.justificativa_antecipacao) document.getElementById('fg-just-antecipado').value = solic.justificativa_antecipacao;
+  }
+  if (Array.isArray(solic.militares) && solic.militares.length > 0) {
+    listaMilitaresGratModal = JSON.parse(JSON.stringify(solic.militares));
+    renderMilitaresGratModal();
   }
 
+  const titulo = document.getElementById('modal-grat-title');
+  titulo.innerHTML = `Nova Ordem de Missão <span style="font-family:var(--f-mono);font-size:.7rem;color:var(--gold-400);text-transform:none;letter-spacing:0">· do protocolo ${esc(solic.protocolo || '')}</span>`;
+
+  toast('Dados carregados. A solicitação só será homologada quando você salvar.');
+}
+
+/* Chamado após o salvamento bem-sucedido da OMIS. */
+async function homologarSolicitacao(solicId, missao) {
+  const solic = dadosSolicitacoes.find(x => String(x.id) === String(solicId));
+  if (!solic) return;
+
+  const patch = {
+    status: 'aprovado',
+    os_gerada_num: missao.gera_os ? (missao.num_os || '') : (missao.num_omis || ''),
+    missao_id: missao.id ? String(missao.id) : null
+  };
+
   try {
-    if (configurado && !String(id).startsWith('loc_')) {
-      await sb.from('solicitacoes_missao').update({ status: 'aprovado' }).eq('id', id);
+    if (configurado && !String(solicId).startsWith('loc_')) {
+      const { error } = await sb.from('solicitacoes_missao').update(patch).eq('id', solicId);
+      if (error) throw error;
     }
-  } catch(e){}
-  solic.status = 'aprovado';
+  } catch (e) {
+    console.error('Falha ao marcar a solicitação como homologada:', e);
+    toast('A OMIS foi salva, mas o protocolo não foi marcado como homologado.', true);
+  }
+
+  Object.assign(solic, patch);
   gravarCacheSolicitacoes();
   renderSolicitacoes();
-  toast('Solicitação homologada e pré-carregada!');
+}
+
+/* Uma solicitação homologada que não gerou missão nenhuma. */
+function solicitacaoOrfa(s) {
+  if (s.status !== 'aprovado') return false;
+  if (s.missao_id && (dadosGratificacao || []).some(g => String(g.id) === String(s.missao_id))) return false;
+  if (s.os_gerada_num && (dadosGratificacao || []).some(g => g.num_os === s.os_gerada_num || g.num_omis === s.os_gerada_num)) return false;
+  return !(dadosGratificacao || []).some(g => String(g.solicitacao_id || '') === String(s.id));
+}
+
+/* Devolve a solicitação para a fila de pendentes. */
+async function reabrirSolicitacao(id) {
+  const solic = dadosSolicitacoes.find(x => String(x.id) === String(id));
+  if (!solic) return;
+  if (!confirm(`Devolver o protocolo ${solic.protocolo} para a fila de pendentes?`)) return;
+
+  const patch = { status: 'pendente', os_gerada_num: '', missao_id: null };
+  try {
+    if (configurado && !String(id).startsWith('loc_')) {
+      const { error } = await sb.from('solicitacoes_missao').update(patch).eq('id', id);
+      if (error) throw error;
+    }
+  } catch (e) {
+    toast('Erro ao reabrir: ' + (e.message || 'erro'), true);
+    return;
+  }
+  Object.assign(solic, patch);
+  gravarCacheSolicitacoes();
+  renderSolicitacoes();
+  toast(`Protocolo ${solic.protocolo} devolvido para homologação`);
 }
 
 async function rejeitarSolicitacao(id) {
