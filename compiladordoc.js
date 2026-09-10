@@ -24,6 +24,8 @@ const CompiladorDoc = (function() {
 
   const logoAfa = 'assets/brasao-afa.jpg';
   const logoFab = 'assets/cocar-fab.png';
+  /* Na OMIS: brasão da Divisão de Ensino à esquerda, brasão da AFA à direita. */
+  const logoDe = 'assets/brasao-de.png';
 
   const estiloBase = `
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -208,133 +210,182 @@ const CompiladorDoc = (function() {
   // 1. ORDEM DE MISSÃO (OMIS)
   // Modelos: OMIS 24.DE.2026 / OMIS 25.DE.2026
   // ══════════════════════════════════════════════════════════════
+
+  /* Estilo exclusivo da Ordem de Missão — reproduz o formulário
+     preenchido à mão hoje: moldura externa única e contínua,
+     sem caixas soltas nem espaçamento entre blocos. */
+  function estiloOmisOficial() {
+    return `
+      @import url('https://fonts.googleapis.com/css2?family=Arial&display=swap');
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:Arial,Helvetica,sans-serif;color:#000;background:#fff;
+           padding:10mm 12mm;font-size:8.5pt;line-height:1.25}
+
+      .folha{border:1pt solid #000}
+
+      .omis-topo{display:flex;align-items:center;justify-content:space-between;
+                 gap:4mm;padding:3mm 5mm 1mm 5mm}
+      .omis-topo img{width:19mm;height:19mm;object-fit:contain;flex-shrink:0}
+      .omis-titulos{flex:1;text-align:center}
+      .omis-titulos div{font-size:10pt;font-weight:700;text-transform:uppercase;line-height:1.3}
+      .omis-numero{text-align:center;font-size:9.5pt;font-weight:700;text-transform:uppercase;
+                   padding:2mm 0 3mm 0}
+      .omis-numero span{border-bottom:1pt solid #000;padding-bottom:.4mm}
+
+      table.omis{width:100%;border-collapse:collapse;table-layout:fixed}
+      table.omis td, table.omis th{border:1pt solid #000;padding:1.2mm 2mm;color:#000;
+        font-size:8pt;text-align:center;vertical-align:middle;word-wrap:break-word}
+      table.omis th{background:#d9d9d9;font-weight:700;text-transform:uppercase;font-size:7.6pt}
+      table.omis td.esq, table.omis th.esq{text-align:left}
+      table.omis tr.faixa th{background:#d9d9d9;font-size:8.2pt;letter-spacing:.02em}
+      table.omis tr.vao td{border-left:none;border-right:none;border-top:none;
+        border-bottom:none;height:2.6mm;padding:0}
+      table.omis td.item{text-align:left;font-size:8pt;font-weight:700;text-transform:uppercase}
+      table.omis td.item span{font-weight:400;text-transform:none}
+      table.omis td.linha-livre{height:7.5mm}
+      table.omis td.rodape{text-align:left;font-size:8pt;padding:3mm 2mm;vertical-align:bottom;
+        height:18mm;white-space:nowrap}
+      table.omis td.assina{text-align:center;font-size:8pt;padding:2mm;vertical-align:bottom;height:16mm}
+      .risco{display:inline-block;border-bottom:1pt solid #000;min-width:18mm}
+      .assina-linha{border-top:1pt solid #000;width:76%;margin:0 auto 1.2mm auto;height:0}
+      .assina-nome{font-weight:700;text-transform:uppercase;font-size:8pt}
+      .assina-cargo{font-size:7.5pt}
+      .assina-tag{font-size:7.5pt;margin-bottom:1mm}
+
+      @media print{
+        @page{size:A4 portrait;margin:8mm}
+        body{padding:0}
+        .nao-imprimir{display:none!important}
+      }
+    `;
+  }
+
   function gerarOMISHtml(d) {
     const cfg = getOsConfig();
-    const numOmis = d.num_omis || d.num_os || '24/DE/2026';
+    const numOmis = d.num_omis || d.num_os || '';
     const militares = extrairMilitares(d);
     const prim = militares[0] || {};
     const teveAlteracao = !!d.teve_alteracao_retorno;
-    const ano = d.ano || new Date().getFullYear();
+    const ano = d.ano || (prim.data_inicio ? String(prim.data_inicio).slice(0, 4) : new Date().getFullYear());
 
     let modalidadeLabel = 'GRATIFICAÇÃO DE REPRESENTAÇÃO';
     if (d.modalidade === 'diaria') modalidadeLabel = 'DIÁRIA DE VIAGEM';
-    else if (d.modalidade === 'sem_custo' || d.modalidade === 'omis' || (d.enquadramento_legal && d.enquadramento_legal.includes('Sem Custo'))) modalidadeLabel = 'SEM CUSTO';
+    else if (d.modalidade === 'sem_custo' || d.modalidade === 'omis' ||
+             (d.enquadramento_legal && d.enquadramento_legal.includes('Sem Custo'))) modalidadeLabel = 'SEM CUSTO';
 
     const autoridadeNome = d.omis_autoridade || cfg.omis_autoridade_nome;
     const autoridadeCargo = d.omis_cargo || cfg.omis_autoridade_cargo;
 
-    const linhasMilitares = militares.map((m, idx) => `
-      <tr>
-        <td style="width:24px;text-align:center">${idx + 1}</td>
-        <td class="left">${m.posto_grad} ${m.especialidade ? m.especialidade + ' ' : ''}${m.nome}</td>
-        <td>${m.nome_guerra || m.nome}</td>
-        <td>${m.cpf || '—'}</td>
-        <td>${m.saram || '—'}</td>
-      </tr>
-    `).join('');
+    const up = t => String(t || '').toUpperCase();
 
-    const justAlteracao = teveAlteracao
-      ? (d.justificativa_alteracao_retorno || 'Por motivos de serviço/trânsito.')
-      : '';
+    /* No formulário manual a identificação vem toda em caixa alta e centralizada. */
+    const linhasMilitares = militares.map((m, idx) => `
+        <tr>
+          <td>${idx + 1}</td>
+          <td colspan="4">${up(m.posto_grad)}${m.especialidade ? ' ' + up(m.especialidade) : ''} ${up(m.nome)}</td>
+          <td>${up(m.nome_guerra || m.nome)}</td>
+          <td>${m.cpf || ''}</td>
+          <td>${m.saram || ''}</td>
+        </tr>`).join('');
+
+    /* Campos 4 e 5 são preenchidos no retorno da missão. Quando a OMIS é
+       expedida ainda não há resposta — por isso o manual sai com as duas
+       caixas vazias. Só marcamos quando a secretaria já registrou alteração. */
+    const marcaSim = teveAlteracao ? 'X' : '&nbsp;&nbsp;';
+    const marcaNao = teveAlteracao ? '&nbsp;&nbsp;' : '&nbsp;&nbsp;';
+    const justAlteracao = teveAlteracao ? (d.justificativa_alteracao_retorno || '') : '';
+
+    const linhasLivres = Array.from({ length: 5 }, (_, i) => `
+        <tr><td class="linha-livre esq" colspan="8">${i === 0 && justAlteracao ? justAlteracao : '&nbsp;'}</td></tr>`).join('');
+
+    const destino = d.local_destino || d.servico_local || '';
+    const missao = d.servico_local || '';
 
     return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">
     <title>OMIS ${limparNumOs(numOmis)} ${modalidadeLabel} ${prim.posto_grad} ${prim.nome_guerra || prim.nome}</title>
-    <style>${estiloOficialOS()}</style></head><body>
-    
-    <div class="header-container">
-      <img src="${logoAfa}" class="header-logo" alt="AFA" />
-      <div class="header-title-box">
-        <h1>ACADEMIA DA FORÇA AÉREA</h1>
-        <h2>DIVISÃO DE ENSINO</h2>
-        <h2 style="margin-top:1mm">ORDEM DE MISSÃO</h2>
-        <div class="header-doc-num">ORDEM DE MISSÃO Nº ${numOmis}</div>
-      </div>
-      <img src="${logoFab}" class="header-logo" alt="FAB" />
-    </div>
+    <style>${estiloOmisOficial()}</style></head><body>
 
-    <div class="sec-header">MILITAR(ES)</div>
-    <table class="table-doc">
-      <thead>
+    <div class="folha">
+
+      <div class="omis-topo">
+        <img src="${logoDe}" alt="Divisão de Ensino" />
+        <div class="omis-titulos">
+          <div>Academia da Força Aérea</div>
+          <div>Divisão de Ensino</div>
+          <div>Ordem de Missão</div>
+        </div>
+        <img src="${logoAfa}" alt="AFA" />
+      </div>
+
+      <div class="omis-numero"><span>ORDEM DE MISSÃO Nº ${numOmis}</span></div>
+
+      <table class="omis">
+        <colgroup>
+          <col style="width:5%"><col style="width:11%"><col style="width:11%">
+          <col style="width:11%"><col style="width:16%"><col style="width:16%">
+          <col style="width:15%"><col style="width:15%">
+        </colgroup>
+
+        <tr class="faixa"><th colspan="8">Militar(es)</th></tr>
         <tr>
-          <th style="width:24px">#</th>
-          <th>POSTO/GRADUAÇÃO/ESPECIALIDADE/NOME COMPLETO</th>
-          <th>NOME DE GUERRA</th>
+          <th>#</th>
+          <th colspan="4">Posto/Graduação/Especialidade/Nome Completo</th>
+          <th>Nome de Guerra</th>
           <th>CPF</th>
           <th>SARAM</th>
         </tr>
-      </thead>
-      <tbody>
         ${linhasMilitares}
-      </tbody>
-    </table>
 
-    <div class="sec-header">DESLOCAMENTO</div>
-    <table class="table-doc">
-      <thead>
+        <tr class="vao"><td colspan="8"></td></tr>
+
+        <tr class="faixa"><th colspan="8">Deslocamento</th></tr>
         <tr>
-          <th style="width:50%">DATA / HORÁRIO DE IDA</th>
-          <th style="width:50%">LOCAL DE REALIZAÇÃO DO SERVIÇO</th>
+          <th colspan="4">Data / Horário de Ida</th>
+          <th colspan="4">Local de Realização do Serviço</th>
         </tr>
-      </thead>
-      <tbody>
         <tr>
-          <td>${prim.data_inicio_fmt} às ${prim.hora_inicio || '04:00'}</td>
-          <td>${d.local_destino || d.servico_local || 'Local da Missão'}</td>
+          <td colspan="4">${prim.data_inicio_fmt} às ${prim.hora_inicio || '04:00'}</td>
+          <td colspan="4">${destino}</td>
         </tr>
-      </tbody>
-      <thead>
         <tr>
-          <th>DATA / HORÁRIO DE RETORNO</th>
-          <th>LOCAL DO RETORNO</th>
+          <th colspan="4">Data / Horário de Retorno</th>
+          <th colspan="4">Local do Retorno</th>
         </tr>
-      </thead>
-      <tbody>
         <tr>
-          <td>${prim.data_fim_fmt} às ${prim.hora_fim || '16:00'}</td>
-          <td>Pirassununga - SP</td>
+          <td colspan="4">${prim.data_fim_fmt} às ${prim.hora_fim || '16:00'}</td>
+          <td colspan="4">Pirassununga - SP</td>
         </tr>
-      </tbody>
-    </table>
 
-    <div class="sec-header">DETALHAMENTO DA MISSÃO</div>
-    <div class="box-field">
-      <strong>1- MISSÃO:</strong> ${d.servico_local || 'Participar de missão a serviço da Academia da Força Aérea.'}
-    </div>
-    <div class="box-field">
-      <strong>2- COORDENADOR(A):</strong> ${prim.posto_grad} ${prim.nome_guerra || prim.nome}
-    </div>
-    <div class="box-field">
-      <strong>3- MODALIDADE DE PAGAMENTO:</strong> ${modalidadeLabel}
-    </div>
-    <div class="box-field">
-      <strong>4- OCORRERAM, POR MOTIVO DE FORÇA MAIOR, ALTERAÇÕES NO LOCAL DE REALIZAÇÃO DO SERVIÇO E/OU NAS DATAS DE INÍCIO/RETORNO AUTORIZADOS INICIALMENTE?</strong> &nbsp;
-      [ ${teveAlteracao ? 'X' : '&nbsp;'} ] SIM &nbsp;&nbsp;&nbsp; [ ${!teveAlteracao ? 'X' : '&nbsp;'} ] NÃO
-    </div>
-    <div class="box-field">
-      <strong>5- EM CASO POSITIVO JUSTIFICAR (UTILIZAR O VERSO, SE NECESSÁRIO):</strong><br>
-      <span style="font-size:7.5pt;color:#333">${justAlteracao || 'Não se aplica.'}</span>
-    </div>
+        <tr class="vao"><td colspan="8"></td></tr>
 
-    <div style="margin-top:6mm;font-size:8pt">
-      Pirassununga/SP, ${dataPorExtenso(d.data_os || prim.data_inicio)}
-    </div>
+        <tr class="faixa"><th colspan="8">Deslocamento</th></tr>
+        <tr><td class="item" colspan="8">1- Missão: <span>${missao}</span></td></tr>
+        <tr><td class="item" colspan="8">2- Coordenador(a): <span>${up(prim.posto_grad)}${prim.especialidade ? ' ' + up(prim.especialidade) : ''} ${up(prim.nome_guerra || prim.nome)}</span></td></tr>
+        <tr><td class="item" colspan="8">3- Modalidade de Pagamento: <span>${modalidadeLabel}</span></td></tr>
+        <tr><td class="item" colspan="8">4- Ocorreram, por motivo de força maior, alterações no local de realização do serviço e/ou nas datas de início/retorno autorizados inicialmente? &nbsp;&nbsp; [ ${marcaSim} ] SIM &nbsp; [ ${marcaNao} ] NÃO</td></tr>
+        <tr><td class="item" colspan="8">5- Em caso positivo justificar (utilizar o verso, se necessário)</td></tr>
+        ${linhasLivres}
 
-    <div class="signatures-grid" style="margin-top:6mm">
-      <div class="sig-box">
-        <div class="ass-digital-tag">Assinado Eletronicamente</div>
-        <div class="line" style="margin-top:6mm">
-          ${prim.nome} ${prim.posto_grad}<br>
-          <small>(Responsável pelo serviço)</small>
-        </div>
-      </div>
+        <tr>
+          <td class="rodape" colspan="4">
+            Pirassununga/SP, <span class="risco">&nbsp;</span> de <span class="risco">&nbsp;</span> de ${ano}
+          </td>
+          <td class="assina" colspan="4">
+            <div class="assina-linha"></div>
+            <span class="assina-nome">${up(prim.nome)} ${up(prim.posto_grad)}${prim.especialidade ? ' ' + up(prim.especialidade) : ''}</span><br>
+            <span class="assina-cargo">(Responsável pelo serviço)</span>
+          </td>
+        </tr>
 
-      <div class="sig-box">
-        <div class="ass-digital-tag">Assinado Eletronicamente</div>
-        <div class="line" style="margin-top:6mm">
-          ${autoridadeNome}<br>
-          <small>${autoridadeCargo}</small>
-        </div>
-      </div>
+        <tr>
+          <td class="assina" colspan="8">
+            <div class="assina-tag">Assinado Eletronicamente</div>
+            <div class="assina-linha" style="width:52%"></div>
+            <span class="assina-nome">${autoridadeNome}</span><br>
+            <span class="assina-cargo">${autoridadeCargo}</span>
+          </td>
+        </tr>
+      </table>
     </div>
 
     <script>window.onload=()=>window.print();<\/script>
