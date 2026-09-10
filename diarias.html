@@ -769,11 +769,19 @@ footer img{height:16px;opacity:.45}
           <button class="btn btn-primary" onclick="abrirModalControle()">
             + Novo Processo na Esteira
           </button>
+          <button class="btn btn-ghost" onclick="ressincronizarEsteira()">
+            🔄 Reconstruir a partir das OMIS
+          </button>
           <button class="btn btn-ghost" onclick="exportarControleCSV()">
-            📥 Exportar CONTROLE OS 2026 (CSV)
+            📥 Exportar CSV
+          </button>
+          <button class="btn btn-ghost" onclick="diagnosticarEsteira()" title="Testa a conexão com a tabela controle_os_processos">
+            🩺 Diagnóstico
           </button>
         </div>
       </div>
+
+      <div id="esteira-diag" style="display:none;margin-bottom:1rem"></div>
 
       <div class="toolbar">
         <select class="search" style="flex:0 0 auto;min-width:140px;font-weight:700" id="ctrl-status-filtro" onchange="renderControle()">
@@ -820,7 +828,7 @@ footer img{height:16px;opacity:.45}
 
 <footer>
   <img src="assets/cocar-fab.png" alt="" />
-  <span>Governança DE · Academia da Força Aérea — módulo Missões &amp; OS · <b style="color:var(--gold-400)">v2.1</b>
+  <span>Governança DE · Academia da Força Aérea — módulo Missões &amp; OS · <b style="color:var(--gold-400)">v2.2</b>
   <br><small style="opacity:.7;text-transform:none;letter-spacing:0">OMIS como documento originador · numeração de OS vinculada à OMIS</small></span>
   <img src="assets/cocar-fab.png" alt="" />
 </footer>
@@ -2610,13 +2618,14 @@ function renderTudoMissoes() {
    ora vir vazia.
    Agora o id é gerado pelo banco e o resultado é conferido.
    ══════════════════════════════════════════════════════════════ */
-async function sincronizarProcessoComControle(reg) {
+async function sincronizarProcessoComControle(reg, silencioso) {
   const coord = `${reg.posto_grad || ''} ${reg.nome_guerra || reg.nome || ''}`.trim();
   const milsResumo = Array.isArray(reg.militares)
     ? reg.militares.map(m => m.nome_guerra || m.nome).join(', ')
     : coord;
 
   const existe = dadosControle.find(c => c.num_os === reg.num_os && Number(c.ano) === Number(reg.ano));
+  ultimoErroEsteira = null;
 
   /* payload SEM id — quem gera é o banco */
   const payload = {
@@ -2662,6 +2671,7 @@ async function sincronizarProcessoComControle(reg) {
     gravarCacheControle();
     renderControle();
   } catch (e) {
+    ultimoErroEsteira = e;
     console.error('Falha ao sincronizar com a esteira:', e);
     /* mantém a linha localmente e sinaliza — não some mais silenciosamente */
     if (!existe) {
@@ -2675,7 +2685,14 @@ async function sincronizarProcessoComControle(reg) {
     }
     gravarCacheControle();
     renderControle();
-    toast('A OS foi salva, mas não entrou na esteira: ' + (e.message || 'erro de sincronização'), true);
+    if (!silencioso) {
+      /* o toast some rápido; o painel da aba Esteira guarda o erro cru */
+      toast('A OS foi salva, mas não entrou na esteira. Abra a aba Esteira de Processos.', true);
+      painelEsteira(
+        `<b>❌ A OS ${esc(reg.num_os || '')} não entrou na esteira.</b> A Ordem de Missão foi salva normalmente — a falha é só na gravação desta tabela.` +
+        formatarErroSb(e) +
+        `<br>Rode o <b>🩺 Diagnóstico</b> aqui em cima para ver a causa.`, 'erro');
+    }
   }
 }
 
@@ -3659,7 +3676,15 @@ function renderControle() {
   if (!tbody) return;
 
   if (!lista.length) {
-    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center;padding:2.5rem;color:var(--gray-400)">Nenhum processo no controle para os filtros selecionados.</td></tr>`;
+    const osLancadas = (dadosGratificacao || []).filter(g => g.gera_os && g.num_os).length;
+    const semFiltro = statusFiltro === 'TODOS' && !termo;
+    tbody.innerHTML = (semFiltro && osLancadas)
+      ? `<tr><td colspan="10" style="text-align:center;padding:2.5rem;color:var(--gray-400)">
+           Existem <b style="color:var(--gold-400)">${osLancadas} OS</b> lançadas nas Ordens de Missão, mas nenhuma chegou aqui.<br>
+           <button class="btn btn-primary" style="margin-top:1rem" onclick="ressincronizarEsteira()">🔄 Reconstruir a partir das OMIS</button>
+           <button class="btn btn-ghost" style="margin-top:1rem" onclick="diagnosticarEsteira()">🩺 Diagnóstico</button>
+         </td></tr>`
+      : `<tr><td colspan="10" style="text-align:center;padding:2.5rem;color:var(--gray-400)">Nenhum processo no controle para os filtros selecionados.</td></tr>`;
     return;
   }
 
@@ -3710,6 +3735,161 @@ function renderControle() {
       </td>
     </tr>
   `;}).join('');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DIAGNÓSTICO E RECONSTRUÇÃO DA ESTEIRA
+   ──────────────────────────────────────────────────────────────
+   Um erro do Postgres num toast some antes de ser lido. Aqui ele
+   fica na tela, com código, mensagem, detalhe e dica.
+   ══════════════════════════════════════════════════════════════ */
+
+let ultimoErroEsteira = null;
+
+function painelEsteira(html, cor) {
+  const box = document.getElementById('esteira-diag');
+  if (!box) return;
+  const paleta = {
+    erro:  ['rgba(224,90,90,.10)',  'rgba(224,90,90,.4)',  'var(--red-500)'],
+    ok:    ['rgba(62,207,154,.10)', 'rgba(62,207,154,.35)','var(--green-500)'],
+    aviso: ['rgba(232,177,63,.10)', 'rgba(232,177,63,.38)','var(--yellow-500)'],
+    info:  ['rgba(90,162,224,.10)', 'rgba(90,162,224,.35)','var(--ceu)']
+  }[cor] || ['rgba(90,162,224,.10)', 'rgba(90,162,224,.35)', 'var(--ceu)'];
+
+  box.style.display = 'block';
+  box.innerHTML = `
+    <div style="background:${paleta[0]};border:1px solid ${paleta[1]};border-radius:12px;padding:1rem 1.15rem;color:${paleta[2]};font-size:.8rem;line-height:1.6">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem">
+        <div style="flex:1;min-width:0">${html}</div>
+        <button class="icon-btn" style="color:${paleta[2]};flex-shrink:0" onclick="document.getElementById('esteira-diag').style.display='none'">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>`;
+}
+
+function formatarErroSb(e) {
+  if (!e) return '<i>sem detalhe</i>';
+  const campos = [
+    ['código',  e.code],
+    ['mensagem', e.message],
+    ['detalhe', e.details],
+    ['dica',    e.hint]
+  ].filter(([, v]) => v);
+  return `<div style="font-family:var(--f-mono);font-size:.72rem;background:rgba(6,13,29,.5);border-radius:8px;padding:.6rem .75rem;margin-top:.5rem">
+    ${campos.map(([k, v]) => `<div><b>${k}:</b> ${esc(String(v))}</div>`).join('')}
+  </div>`;
+}
+
+/* Sonda a tabela: leitura, escrita e remoção do registro de teste. */
+async function diagnosticarEsteira() {
+  if (!configurado) { painelEsteira('Supabase não configurado neste arquivo.', 'erro'); return; }
+  painelEsteira('🩺 Testando a tabela <b>controle_os_processos</b>…', 'info');
+
+  const partes = [];
+  let falhou = false;
+
+  /* 1 — leitura */
+  const leitura = await sb.from('controle_os_processos').select('*').limit(1);
+  if (leitura.error) {
+    falhou = true;
+    partes.push(`<b>❌ Leitura falhou.</b>${formatarErroSb(leitura.error)}`);
+  } else {
+    partes.push(`<b>✅ Leitura ok.</b> A tabela existe e o anon key consegue ler.`);
+    const cols = leitura.data && leitura.data[0] ? Object.keys(leitura.data[0]) : null;
+    if (cols) {
+      partes.push(`Colunas encontradas: <span style="font-family:var(--f-mono);font-size:.72rem">${cols.join(', ')}</span>`);
+      const faltando = ['ano','num_os','num_omis','modalidade','coordenador','servico_local','status']
+        .filter(c => !cols.includes(c));
+      if (faltando.length) {
+        falhou = true;
+        partes.push(`<b>⚠️ Colunas ausentes:</b> <span style="font-family:var(--f-mono)">${faltando.join(', ')}</span> — o módulo grava esses campos.`);
+      }
+      if (!cols.includes('created_at')) {
+        partes.push(`<b>⚠️</b> A tabela não tem <span style="font-family:var(--f-mono)">created_at</span>. A leitura já contorna isso, mas vale acrescentar.`);
+      }
+    } else {
+      partes.push(`A tabela está vazia — não dá para inspecionar as colunas por aqui.`);
+    }
+  }
+
+  /* 2 — escrita (insere e remove) */
+  const sonda = {
+    ano: 1900, num_os: '__DIAGNOSTICO__', num_omis: '__DIAGNOSTICO__',
+    modalidade: 'Gratificação', coordenador: 'Teste', militares_resumo: 'Teste',
+    servico_local: 'Registro de diagnóstico — pode apagar', status: 'Pendente',
+    auditoria: '', sigad_numero: '', siloms_numero: '', comgep_linha: '',
+    nup: '', bca_numero: '', bi_numero: '',
+    periodo_inicio: '1900-01-01', periodo_fim: '1900-01-01'
+  };
+  const escrita = await sb.from('controle_os_processos').insert([sonda]).select().single();
+  if (escrita.error) {
+    falhou = true;
+    partes.push(`<b>❌ Escrita falhou.</b> É por isso que as OMIS não chegam na esteira.${formatarErroSb(escrita.error)}`);
+    const c = escrita.error.code;
+    if (c === '42501') partes.push(`<b>Causa provável:</b> RLS. A tabela tem Row Level Security ligada sem policy de INSERT para o papel <span style="font-family:var(--f-mono)">anon</span>.`);
+    else if (c === '23502') partes.push(`<b>Causa provável:</b> alguma coluna NOT NULL sem valor padrão. Veja o campo "detalhe" acima.`);
+    else if (c === '42703') partes.push(`<b>Causa provável:</b> o módulo está gravando uma coluna que não existe na tabela.`);
+    else if (c === '22P02' || c === '23505') partes.push(`<b>Causa provável:</b> tipo ou chave do <span style="font-family:var(--f-mono)">id</span>. Confirme que a coluna tem <span style="font-family:var(--f-mono)">DEFAULT gen_random_uuid()</span>.`);
+  } else {
+    partes.push(`<b>✅ Escrita ok.</b> id gerado pelo banco: <span style="font-family:var(--f-mono);font-size:.72rem">${esc(String(escrita.data.id))}</span>`);
+    const limpeza = await sb.from('controle_os_processos').delete().eq('id', escrita.data.id);
+    partes.push(limpeza.error
+      ? `<b>⚠️ Não consegui remover o registro de teste.</b> Apague a linha com num_os = __DIAGNOSTICO__.${formatarErroSb(limpeza.error)}`
+      : `<b>✅ Remoção ok.</b> O registro de teste foi apagado.`);
+  }
+
+  if (!falhou) {
+    partes.push(`<hr style="border:none;border-top:1px dashed currentColor;opacity:.3;margin:.7rem 0">
+      A tabela responde a tudo. Se mesmo assim as OMIS não aparecem, use <b>🔄 Reconstruir a partir das OMIS</b> — ele cria as linhas que faltam para as missões já lançadas.`);
+  }
+
+  painelEsteira(partes.join('<br>'), falhou ? 'erro' : 'ok');
+}
+
+/* Cria na esteira uma linha para cada OMIS com OS que ainda não tenha. */
+async function ressincronizarEsteira() {
+  const comOs = (dadosGratificacao || []).filter(g => g.gera_os && g.num_os);
+  if (!comOs.length) {
+    painelEsteira('Não há nenhuma OMIS com OS lançada para enviar à esteira.', 'aviso');
+    return;
+  }
+
+  const existentes = new Set(dadosControle.map(c => `${c.ano}|${c.num_os}`));
+  const faltantes = comOs.filter(g => !existentes.has(`${g.ano}|${g.num_os}`));
+
+  if (!faltantes.length) {
+    painelEsteira(`Nada a fazer: as ${comOs.length} OS já constam na esteira.`, 'ok');
+    return;
+  }
+
+  painelEsteira(`🔄 Enviando ${faltantes.length} processo(s) para a esteira…`, 'info');
+
+  let ok = 0;
+  const erros = [];
+  for (const g of faltantes) {
+    try {
+      await sincronizarProcessoComControle(g, true);
+      const entrou = dadosControle.find(c => c.num_os === g.num_os && Number(c.ano) === Number(g.ano) && !c._local);
+      if (entrou) ok++;
+      else erros.push({ os: g.num_os, erro: ultimoErroEsteira });
+    } catch (e) {
+      erros.push({ os: g.num_os, erro: e });
+    }
+  }
+
+  renderControle();
+
+  if (!erros.length) {
+    painelEsteira(`<b>✅ ${ok} processo(s) enviados para a esteira.</b>`, 'ok');
+  } else {
+    painelEsteira(
+      `<b>${ok} enviado(s), ${erros.length} com falha.</b><br>` +
+      `Não foi possível gravar: <span style="font-family:var(--f-mono);font-size:.72rem">${erros.map(e => esc(e.os)).join(', ')}</span>` +
+      formatarErroSb(erros[0].erro) +
+      `<br>Rode o <b>🩺 Diagnóstico</b> para identificar a causa na tabela.`,
+      'erro');
+  }
 }
 
 function exportarControleCSV() {
@@ -3863,10 +4043,22 @@ function gravarCacheControle() {
 async function recarregarTudo() {
   if (!configurado) return;
   try {
+    /* Se a tabela não tiver a coluna created_at, o .order() derruba o SELECT
+       inteiro e a aba fica vazia sem explicação. Por isso a leitura tenta
+       ordenar e, ao falhar, repete sem ordenação. */
+    const lerTabela = async (tabela) => {
+      let r = await sb.from(tabela).select('*').order('created_at', { ascending: false });
+      if (r.error) {
+        console.warn(`${tabela}: ordenação por created_at falhou (${r.error.message}). Relendo sem ordenar.`);
+        r = await sb.from(tabela).select('*');
+      }
+      return r;
+    };
+
     const [resGrat, resSolic, resCtrl] = await Promise.all([
-      sb.from('gratificacao_representacao').select('*').order('created_at', { ascending: false }),
-      sb.from('solicitacoes_missao').select('*').order('created_at', { ascending: false }),
-      sb.from('controle_os_processos').select('*').order('created_at', { ascending: false })
+      lerTabela('gratificacao_representacao'),
+      lerTabela('solicitacoes_missao'),
+      lerTabela('controle_os_processos')
     ]);
 
     if (resGrat.error) console.error('gratificacao_representacao:', resGrat.error);
