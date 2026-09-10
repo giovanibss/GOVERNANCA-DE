@@ -381,13 +381,22 @@ input:checked + .slider:before{transform:translateX(16px);background-color:var(-
 
 /* ═══ OMIS FANTASMA ═══ */
 .rg.fantasma{background:rgba(167,139,250,.18);color:var(--purple-500);border-color:rgba(167,139,250,.5)}
+.rg.duplicada{background:rgba(232,177,63,.24);color:var(--yellow-500);border:2px solid var(--yellow-500)}
+.rg-sep{width:100%;display:flex;align-items:center;gap:.6rem;margin:.7rem 0 .2rem;
+  font-size:.64rem;text-transform:uppercase;letter-spacing:.1em;color:var(--purple-500);font-weight:700}
+.rg-sep::after{content:'';flex:1;height:1px;background:rgba(167,139,250,.3)}
+.badge-duplicada{background:rgba(232,177,63,.18);color:var(--yellow-500);border-color:rgba(232,177,63,.5);font-weight:700}
+.omis-row.duplicada{border-left-color:var(--yellow-500)}
 .badge-fantasma{background:rgba(167,139,250,.16);color:var(--purple-500);border-color:rgba(167,139,250,.45);font-weight:700}
 
 /* ═══ LINHAS DE OMIS (retangulares, empilhadas, expansíveis) ═══ */
 .omis-lista{display:flex;flex-direction:column;gap:.55rem}
-.omis-row{background:var(--card);border:1px solid var(--linha);border-left:3px solid var(--navy-300);
-  border-radius:10px;overflow:hidden;backdrop-filter:blur(6px);transition:border-color .2s,box-shadow .2s}
+.omis-row{background:var(--card);border:1px solid var(--linha);border-left:10px solid var(--navy-300);
+  border-radius:10px;overflow:hidden;backdrop-filter:blur(6px);
+  transition:border-color .2s,box-shadow .2s,border-left-width .15s}
+.omis-row:hover{border-left-width:14px}
 .omis-row:hover{border-color:var(--navy-200)}
+.omis-row.aberta{border-left-width:14px}
 .omis-row.aberta{border-color:rgba(212,168,75,.4);box-shadow:0 12px 30px -18px rgba(0,0,0,.85)}
 .omis-row.ok{border-left-color:var(--green-500)}
 .omis-row.legada{border-left-color:var(--yellow-500)}
@@ -709,6 +718,7 @@ footer img{height:16px;opacity:.45}
           <option value="diaria">Diária de Viagem</option>
           <option value="sem_custo">Sem custo (só OMIS)</option>
           <option value="__FANTASMA">👻 Só OMIS fantasma</option>
+          <option value="__DUPLICADA">⧻ Só numeração duplicada</option>
           <option value="__ALERTA">⚠️ Só divergências e pendências</option>
         </select>
         <input class="search" id="omis-busca" type="search" placeholder="Buscar por OMIS, OS, SILOMS, coordenador ou destino…" oninput="renderOmis()" />
@@ -828,7 +838,7 @@ footer img{height:16px;opacity:.45}
 
 <footer>
   <img src="assets/cocar-fab.png" alt="" />
-  <span>Governança DE · Academia da Força Aérea — módulo Missões &amp; OS · <b style="color:var(--gold-400)">v2.2</b>
+  <span>Governança DE · Academia da Força Aérea — módulo Missões &amp; OS · <b style="color:var(--gold-400)">v2.3</b>
   <br><small style="opacity:.7;text-transform:none;letter-spacing:0">OMIS como documento originador · numeração de OS vinculada à OMIS</small></span>
   <img src="assets/cocar-fab.png" alt="" />
 </footer>
@@ -895,6 +905,17 @@ footer img{height:16px;opacity:.45}
           </div>
           <label class="switch" onclick="event.stopPropagation()">
             <input type="checkbox" id="fg-toggle-fantasma" onchange="recalcularNumeracao()" />
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="toggle-row" onclick="toggleSwitch('fg-toggle-duplicada')" id="linha-duplicada" style="display:none;margin-top:.6rem;padding-top:.6rem;border-top:1px dashed var(--navy-200)">
+          <div>
+            <div class="toggle-title" style="font-size:.72rem;color:var(--yellow-500)">&#8891; Numeração duplicada (foi assim mesmo)</div>
+            <div class="toggle-sub">Libera o lançamento com um número já usado. O registro fica etiquetado e não interfere em nada além da régua.</div>
+          </div>
+          <label class="switch" onclick="event.stopPropagation()">
+            <input type="checkbox" id="fg-toggle-duplicada" onchange="recalcularNumeracao()" />
             <span class="slider"></span>
           </label>
         </div>
@@ -1503,7 +1524,14 @@ function normalizarMissao(g) {
   if (!g.gera_os) g.os_seq = null;
 
   if (typeof g.omis_fantasma !== 'boolean') g.omis_fantasma = false;
-  if (g.omis_fantasma) g.gera_os = true;          /* fantasma existe só para hospedar uma OS */
+  if (typeof g.numeracao_duplicada !== 'boolean') g.numeracao_duplicada = false;
+
+  /* A fantasma não ocupa lugar nenhum na sequência — ela é, literalmente,
+     uma OS sem OMIS. omis_seq fica nulo e ela some da régua numérica. */
+  if (g.omis_fantasma) {
+    g.gera_os = true;
+    g.omis_seq = null;
+  }
 
   if (typeof g.numeracao_legada !== 'boolean') {
     g.numeracao_legada = !!(g.gera_os && g.os_seq && g.omis_seq && g.os_seq !== g.omis_seq);
@@ -1511,9 +1539,8 @@ function normalizarMissao(g) {
   if (g.omis_fantasma) g.numeracao_legada = true;
 
   /* strings de exibição, consumidas pelo CompiladorDoc e pelo AppConfig */
-  g.num_omis = fmtNum(g.omis_seq, g.ano) || g.num_omis || '';
-  if (g.omis_fantasma) g.num_omis_exibicao = 'sem OMIS';
-  else g.num_omis_exibicao = g.num_omis;
+  g.num_omis = g.omis_fantasma ? '' : (fmtNum(g.omis_seq, g.ano) || g.num_omis || '');
+  g.num_omis_exibicao = g.omis_fantasma ? 'sem OMIS' : g.num_omis;
   if (g.gera_os && g.os_seq) g.num_os = fmtNum(g.os_seq, g.ano);
   else if (!g.gera_os) g.num_os = g.num_omis;
 
@@ -1544,8 +1571,10 @@ function proximoOmisSeq(ano) {
 
 /* Conflitos de numeração — usado na validação do modal */
 function conflitoOmis(ano, seq, idIgnorar) {
+  if (!seq) return null;                         /* fantasma não ocupa lugar */
   return missoesDoAno(ano).find(g =>
-    String(g.id) !== String(idIgnorar || '') && Number(g.omis_seq) === Number(seq));
+    String(g.id) !== String(idIgnorar || '') &&
+    !g.omis_fantasma && Number(g.omis_seq) === Number(seq));
 }
 function conflitoOs(ano, seq, idIgnorar) {
   if (!seq) return null;
@@ -1557,38 +1586,39 @@ function conflitoOs(ano, seq, idIgnorar) {
    Devolve um item por número de 1 até o maior emitido. */
 function analisarSequencia(ano) {
   const lista = missoesDoAno(ano);
-  const maior = lista.reduce((m, g) => Math.max(m, Number(g.omis_seq) || 0), 0);
+  const fantasmas = lista.filter(g => g.omis_fantasma);
+  const comLugar = lista.filter(g => !g.omis_fantasma && g.omis_seq);
+
+  const maior = comLugar.reduce((m, g) => Math.max(m, Number(g.omis_seq) || 0), 0);
+
+  /* um lugar pode hospedar mais de uma missão — numeração duplicada */
   const porSeq = new Map();
-  lista.forEach(g => { if (g.omis_seq) porSeq.set(Number(g.omis_seq), g); });
+  comLugar.forEach(g => {
+    const n = Number(g.omis_seq);
+    if (!porSeq.has(n)) porSeq.set(n, []);
+    porSeq.get(n).push(g);
+  });
 
   const itens = [];
   for (let n = 1; n <= maior; n++) {
-    const g = porSeq.get(n);
-    if (!g) {
-      itens.push({ seq: n, estado: 'lacuna', missao: null });
-    } else if (g.omis_fantasma) {
-      itens.push({ seq: n, estado: 'fantasma', missao: g });
-    } else if (!g.gera_os) {
-      itens.push({ seq: n, estado: 'semos', missao: g });
-    } else if (g.numeracao_legada || (g.os_seq && g.os_seq !== n)) {
-      itens.push({ seq: n, estado: 'legada', missao: g });
-    } else {
-      itens.push({ seq: n, estado: 'ok', missao: g });
-    }
+    const grupo = porSeq.get(n) || [];
+    const g = grupo[0] || null;
+    let estado;
+    if (!g)                                        estado = 'lacuna';
+    else if (grupo.length > 1)                     estado = 'duplicada';
+    else if (!g.gera_os)                           estado = 'semos';
+    else if (g.numeracao_legada || (g.os_seq && g.os_seq !== n)) estado = 'legada';
+    else                                           estado = 'ok';
+    itens.push({ seq: n, estado, missao: g, missoes: grupo });
   }
 
   return {
-    ano, maior, itens,
-    lacunas:      itens.filter(i => i.estado === 'lacuna'),
-    legadas:      itens.filter(i => i.estado === 'legada'),
-    fantasmas:    itens.filter(i => i.estado === 'fantasma'),
-    semOs:        itens.filter(i => i.estado === 'semos'),
-    conformes:    itens.filter(i => i.estado === 'ok'),
-    duplicadas:   (() => {
-      const cont = {};
-      lista.forEach(g => { if (g.omis_seq) cont[g.omis_seq] = (cont[g.omis_seq] || 0) + 1; });
-      return Object.keys(cont).filter(k => cont[k] > 1).map(Number);
-    })()
+    ano, maior, itens, fantasmas,
+    lacunas:    itens.filter(i => i.estado === 'lacuna'),
+    legadas:    itens.filter(i => i.estado === 'legada'),
+    semOs:      itens.filter(i => i.estado === 'semos'),
+    conformes:  itens.filter(i => i.estado === 'ok'),
+    duplicadas: itens.filter(i => i.estado === 'duplicada')
   };
 }
 
@@ -2011,6 +2041,9 @@ function exportarDiariasCSV(){
 let listaMilitaresGratModal = [];
 
 function adicionarMilitarGratItem(m) {
+  /* O novo militar herda período e passagem do coordenador (item 1).
+     Quase sempre a tropa viaja junto — quando não, é só editar. */
+  const coord = listaMilitaresGratModal[0] || {};
   const item = m || {
     posto_grad: '',
     especialidade: '',
@@ -2019,15 +2052,18 @@ function adicionarMilitarGratItem(m) {
     cpf: '',
     saram: '',
     om: 'AFA',
-    data_inicio: new Date().toISOString().slice(0,10),
-    hora_inicio: '04:00',
-    data_fim: new Date(Date.now() + 4*86400000).toISOString().slice(0,10),
-    hora_fim: '16:00',
-    dias: 5,
-    passagem: 'NÃO'
+    data_inicio: coord.data_inicio || new Date().toISOString().slice(0,10),
+    hora_inicio: coord.hora_inicio || '04:00',
+    data_fim:    coord.data_fim    || new Date(Date.now() + 4*86400000).toISOString().slice(0,10),
+    hora_fim:    coord.hora_fim    || '16:00',
+    dias:        coord.dias        || 5,
+    passagem:    coord.passagem    || 'NÃO'
   };
   listaMilitaresGratModal.push(item);
   renderMilitaresGratModal();
+  toast(listaMilitaresGratModal.length > 1
+    ? 'Militar adicionado com o mesmo período do coordenador'
+    : 'Militar adicionado');
 }
 
 function removerMilitarGratItem(idx) {
@@ -2220,12 +2256,15 @@ function recalcularNumeracao() {
   const mod = document.getElementById('fg-modalidade').value;
   const retro = document.getElementById('fg-toggle-retroativo').checked;
 
-  /* fantasma só existe em lançamento retroativo */
   const linhaFant = document.getElementById('linha-fantasma');
-  const chkFant = document.getElementById('fg-toggle-fantasma');
+  const linhaDup  = document.getElementById('linha-duplicada');
+  const chkFant   = document.getElementById('fg-toggle-fantasma');
+  const chkDup    = document.getElementById('fg-toggle-duplicada');
+
   linhaFant.style.display = retro ? 'flex' : 'none';
-  if (!retro) chkFant.checked = false;
+  if (!retro) { chkFant.checked = false; chkDup.checked = false; }
   const fantasma = chkFant.checked;
+  const duplicada = chkDup.checked;
 
   const geraOs = fantasma ? true : MODALIDADES[mod].geraOs;
 
@@ -2237,44 +2276,48 @@ function recalcularNumeracao() {
   const elo      = document.getElementById('num-elo');
   const celOmis  = document.getElementById('cel-omis');
 
-  inpOmis.style.display = retro ? 'block' : 'none';
-  dispOmis.style.display = retro ? 'none' : 'flex';
-  inpOs.style.display = (retro && geraOs) ? 'block' : 'none';
-  dispOs.style.display = (retro && geraOs) ? 'none' : 'flex';
+  /* fantasma: some com o campo de OMIS, não há número a informar */
+  celOmis.style.opacity = fantasma ? '.55' : '1';
+  celOmis.querySelector('label').textContent = fantasma ? 'Ordem de Missão' : 'Ordem de Missão (OMIS)';
 
-  celOmis.querySelector('label').textContent = fantasma
-    ? 'Lugar reservado na sequência (OMIS não expedida)'
-    : 'Ordem de Missão (OMIS)';
+  inpOmis.style.display  = (retro && !fantasma) ? 'block' : 'none';
+  dispOmis.style.display = (retro && !fantasma) ? 'none' : 'flex';
+  inpOs.style.display    = (retro && geraOs) ? 'block' : 'none';
+  dispOs.style.display   = (retro && geraOs) ? 'none' : 'flex';
 
-  let omisSeq, osSeq;
+  let omisSeq = null, osSeq = null;
 
-  if (retro) {
+  if (fantasma) {
+    inpOmis.value = '';
+    if (!inpOs.value) inpOs.value = document.getElementById('fg-os-seq').value || '';
+    osSeq = parseInt(inpOs.value, 10) || null;
+  } else if (retro) {
     if (!inpOmis.value) inpOmis.value = document.getElementById('fg-omis-seq').value || proximoOmisSeq(ano);
     omisSeq = parseInt(inpOmis.value, 10) || null;
     if (geraOs) {
       if (!inpOs.value) inpOs.value = document.getElementById('fg-os-seq').value || omisSeq || '';
       osSeq = parseInt(inpOs.value, 10) || null;
-    } else { osSeq = null; inpOs.value = ''; }
+    } else { inpOs.value = ''; }
   } else {
     omisSeq = parseInt(document.getElementById('fg-omis-seq').value, 10) || proximoOmisSeq(ano);
-    osSeq = geraOs ? omisSeq : null;          /* a OS herda o número da OMIS */
+    osSeq = geraOs ? omisSeq : null;
     inpOmis.value = omisSeq;
     inpOs.value = osSeq || '';
   }
 
   document.getElementById('fg-omis-seq').value = omisSeq || '';
   document.getElementById('fg-os-seq').value = osSeq || '';
-  document.getElementById('fg-num-omis').value = fmtNum(omisSeq, ano);
+  document.getElementById('fg-num-omis').value = fantasma ? '' : fmtNum(omisSeq, ano);
   document.getElementById('fg-num').value = geraOs ? fmtNum(osSeq, ano) : fmtNum(omisSeq, ano);
 
-  dispOmis.textContent = fantasma ? '\u{1F47B} sem OMIS' : (omisSeq ? fmtNum(omisSeq, ano) : '\u2014');
+  dispOmis.textContent = fantasma ? '\u{1F47B} não existe' : (omisSeq ? fmtNum(omisSeq, ano) : '\u2014');
   dispOmis.className = fantasma ? 'num-val vazio' : 'num-val';
 
   if (geraOs) {
     dispOs.textContent = osSeq ? fmtNum(osSeq, ano) : '\u2014';
     dispOs.className = 'num-val';
-    elo.style.opacity = '1';
-    elo.innerHTML = fantasma ? '&#8674;' : '&#10230;';
+    elo.style.opacity = fantasma ? '.3' : '1';
+    elo.innerHTML = fantasma ? '&#10005;' : '&#10230;';
   } else {
     dispOs.textContent = 'não gera OS';
     dispOs.className = 'num-val vazio';
@@ -2282,47 +2325,48 @@ function recalcularNumeracao() {
     elo.innerHTML = '&#10005;';
   }
 
-  const cOmis = conflitoOmis(ano, omisSeq, id);
+  /* conflitos — o toggle de duplicada só aparece quando há um de verdade */
+  const cOmis = fantasma ? null : conflitoOmis(ano, omisSeq, id);
   const cOs   = geraOs ? conflitoOs(ano, osSeq, id) : null;
-  aviso.className = 'num-aviso';
+  const haConflito = !!(cOmis || cOs);
+  linhaDup.style.display = (retro && haConflito) ? 'flex' : 'none';
+  if (!haConflito) chkDup.checked = false;
 
-  if (!omisSeq) {
-    aviso.classList.add('show', 'erro');
-    aviso.innerHTML = '\u26A0\uFE0F Informe o número da OMIS.';
-  } else if (cOmis) {
-    aviso.classList.add('show', 'erro');
-    aviso.innerHTML = `\u26A0\uFE0F O lugar <b>${omisSeq}/${ano}</b> já está ocupado por outro registro. Escolha outro número.`;
+  const pintar = (classe, extra, html) => {
+    aviso.className = 'num-aviso show ' + classe;
+    aviso.style.background = extra ? extra[0] : '';
+    aviso.style.borderColor = extra ? extra[1] : '';
+    aviso.style.color = extra ? extra[2] : '';
+    aviso.innerHTML = html;
+  };
+  const roxo  = ['rgba(167,139,250,.12)', 'rgba(167,139,250,.4)', 'var(--purple-500)'];
+
+  if (fantasma && !osSeq) {
+    pintar('erro', null, '\u26A0\uFE0F Informe o número da OS que foi emitida sem OMIS.');
+  } else if (!fantasma && !omisSeq) {
+    pintar('erro', null, '\u26A0\uFE0F Informe o número da OMIS.');
   } else if (geraOs && !osSeq) {
-    aviso.classList.add('show', 'erro');
-    aviso.innerHTML = '\u26A0\uFE0F Informe o número da OS.';
-  } else if (cOs) {
-    aviso.classList.add('show', 'erro');
-    aviso.innerHTML = `\u26A0\uFE0F A <b>OS ${osSeq}/${ano}</b> já está vinculada ao nº ${cOs.omis_seq}. Escolha outro número.`;
+    pintar('erro', null, '\u26A0\uFE0F Informe o número da OS.');
+  } else if (haConflito && !duplicada) {
+    const qual = cOmis
+      ? `A <b>OMIS ${omisSeq}/${ano}</b> já existe`
+      : `A <b>OS ${osSeq}/${ano}</b> já existe`;
+    pintar('erro', null, retro
+      ? `\u26A0\uFE0F ${qual}. Se a duplicidade é real, ligue <b>Numeração duplicada</b> acima.`
+      : `\u26A0\uFE0F ${qual}. Escolha outro número.`);
   } else if (fantasma) {
-    aviso.classList.add('show', 'legado');
-    aviso.style.background = 'rgba(167,139,250,.12)';
-    aviso.style.borderColor = 'rgba(167,139,250,.4)';
-    aviso.style.color = 'var(--purple-500)';
-    aviso.innerHTML = `\u{1F47B} <b>OMIS fantasma.</b> A <b>OS ${osSeq}/${ano}</b> será registrada sem OMIS de origem, ocupando o lugar ${omisSeq} na sequência apenas para efeito de cômputo. Nenhum documento de OMIS será gerado.`;
-    return;
+    pintar('legado', roxo, `\u{1F47B} <b>OMIS fantasma.</b> A <b>OS ${osSeq}/${ano}</b> será registrada sem OMIS de origem e <b>sem ocupar lugar na sequência</b>. Nenhum documento de OMIS será gerado.`);
+  } else if (duplicada) {
+    pintar('legado', null, `\u8891 <b>Numeração duplicada.</b> Este registro divide o número com outro já lançado. Fica etiquetado na régua e na lista — o restante do sistema o trata como qualquer outro processo.`);
+  } else if (retro && geraOs && osSeq !== omisSeq) {
+    pintar('legado', null, `\u{1F3F7}\uFE0F <b>Numeração legada.</b> A OMIS ${omisSeq} gerou a OS ${osSeq} — divergente da regra atual. Fica marcada e travada após salvar.`);
+  } else if (retro) {
+    pintar('legado', null, '\u{1F3F7}\uFE0F <b>Lançamento retroativo.</b> A numeração ficará travada após salvar.');
+  } else if (!geraOs) {
+    pintar('ok', null, `\u2714\uFE0F Missão sem custo. A <b>OMIS ${omisSeq}</b> não consome número na série de OS — o nº ${omisSeq} fica vago em OS, e isso é o correto.`);
   } else {
-    aviso.style.background = ''; aviso.style.borderColor = ''; aviso.style.color = '';
-    if (retro && geraOs && osSeq !== omisSeq) {
-      aviso.classList.add('show', 'legado');
-      aviso.innerHTML = `\u{1F3F7}\uFE0F <b>Numeração legada.</b> A OMIS ${omisSeq} gerou a OS ${osSeq} — divergente da regra atual. Fica marcada e travada após salvar.`;
-    } else if (retro) {
-      aviso.classList.add('show', 'legado');
-      aviso.innerHTML = '\u{1F3F7}\uFE0F <b>Lançamento retroativo.</b> A numeração ficará travada após salvar.';
-    } else if (!geraOs) {
-      aviso.classList.add('show', 'ok');
-      aviso.innerHTML = `\u2714\uFE0F Missão sem custo. A <b>OMIS ${omisSeq}</b> não consome número na série de OS — o nº ${omisSeq} fica vago em OS, e isso é o correto.`;
-    } else {
-      aviso.classList.add('show', 'ok');
-      aviso.innerHTML = `\u2714\uFE0F <b>OMIS ${omisSeq} \u2192 OS ${osSeq}</b>. Numeração vinculada automaticamente.`;
-    }
-    return;
+    pintar('ok', null, `\u2714\uFE0F <b>OMIS ${omisSeq} \u2192 OS ${osSeq}</b>. Numeração vinculada automaticamente.`);
   }
-  aviso.style.background = ''; aviso.style.borderColor = ''; aviso.style.color = '';
 }
 
 function calcUnitarioOmis() {
@@ -2359,8 +2403,9 @@ function abrirModalOmis(id, modalidadePadrao) {
     document.getElementById('fg-os-seq').value = g.os_seq || '';
     inpOmis.value = g.omis_seq || '';
     inpOs.value = g.os_seq || '';
-    retro.checked = !!(g.numeracao_legada || g.omis_fantasma);
+    retro.checked = !!(g.numeracao_legada || g.omis_fantasma || g.numeracao_duplicada);
     document.getElementById('fg-toggle-fantasma').checked = !!g.omis_fantasma;
+    document.getElementById('fg-toggle-duplicada').checked = !!g.numeracao_duplicada;
 
     document.getElementById('fg-enquadramento').value = g.enquadramento_legal || '';
     document.getElementById('fg-servico').value = g.servico_local || '';
@@ -2393,7 +2438,7 @@ function abrirModalOmis(id, modalidadePadrao) {
         }];
 
     /* numeração de processo já tramitado é imutável */
-    travarNumeracaoLegada(!!(g.numeracao_legada || g.omis_fantasma));
+    travarNumeracaoLegada(!!(g.numeracao_legada || g.omis_fantasma || g.numeracao_duplicada));
 
   } else {
     document.getElementById('modal-grat-title').textContent = 'Nova Ordem de Missão';
@@ -2404,6 +2449,7 @@ function abrirModalOmis(id, modalidadePadrao) {
     document.getElementById('fg-ano').value = ANO_CORRENTE;
     retro.checked = false;
     document.getElementById('fg-toggle-fantasma').checked = false;
+    document.getElementById('fg-toggle-duplicada').checked = false;
     travarNumeracaoLegada(false);
 
     document.getElementById('fg-servico').value = '';
@@ -2443,6 +2489,8 @@ function travarNumeracaoLegada(travar) {
   if (retro) retro.disabled = travar;
   const fant = document.getElementById('fg-toggle-fantasma');
   if (fant) fant.disabled = travar;
+  const dup = document.getElementById('fg-toggle-duplicada');
+  if (dup) dup.disabled = travar;
   const sel = document.getElementById('fg-ano');
   if (sel) sel.disabled = travar;
 }
@@ -2472,8 +2520,10 @@ async function salvarGratificacao() {
   const modalidade = document.getElementById('fg-modalidade').value;
   const omis_fantasma = document.getElementById('fg-toggle-fantasma').checked
                         && document.getElementById('fg-toggle-retroativo').checked;
+  const numeracao_duplicada = document.getElementById('fg-toggle-duplicada').checked
+                        && document.getElementById('fg-toggle-retroativo').checked;
   const gera_os = omis_fantasma ? true : MODALIDADES[modalidade].geraOs;
-  const omis_seq = parseInt(document.getElementById('fg-omis-seq').value, 10) || null;
+  const omis_seq = omis_fantasma ? null : (parseInt(document.getElementById('fg-omis-seq').value, 10) || null);
   const os_seq = gera_os ? (parseInt(document.getElementById('fg-os-seq').value, 10) || null) : null;
   const retro = document.getElementById('fg-toggle-retroativo').checked;
   const servico_local = document.getElementById('fg-servico').value.trim();
@@ -2486,11 +2536,14 @@ async function salvarGratificacao() {
   };
 
   /* ── validação da numeração ── */
-  if (!omis_seq) marcar('eg-num', 'Informe o número da OMIS.');
-  else if (conflitoOmis(ano, omis_seq, id)) marcar('eg-num', `O lugar ${omis_seq}/${ano} da sequência já está ocupado.`);
+  if (omis_fantasma && !os_seq) marcar('eg-num', 'Informe o número da OS emitida sem OMIS.');
+  else if (!omis_fantasma && !omis_seq) marcar('eg-num', 'Informe o número da OMIS.');
   else if (gera_os && !os_seq) marcar('eg-num', 'Informe o número da OS.');
-  else if (gera_os && conflitoOs(ano, os_seq, id)) marcar('eg-num', `A OS ${os_seq}/${ano} já está em uso.`);
-  else if (gera_os && !retro && os_seq !== omis_seq)
+  else if (!numeracao_duplicada && conflitoOmis(ano, omis_seq, id))
+    marcar('eg-num', `O lugar ${omis_seq}/${ano} já está ocupado. Ligue "Numeração duplicada" se foi assim mesmo.`);
+  else if (!numeracao_duplicada && gera_os && conflitoOs(ano, os_seq, id))
+    marcar('eg-num', `A OS ${os_seq}/${ano} já está em uso. Ligue "Numeração duplicada" se foi assim mesmo.`);
+  else if (gera_os && !retro && !omis_fantasma && os_seq !== omis_seq)
     marcar('eg-num', 'Fora do modo retroativo, a OS deve ter o mesmo número da OMIS.');
   else if (omis_fantasma && modalidade === 'sem_custo')
     marcar('eg-num', 'Uma OMIS fantasma existe para hospedar uma OS — escolha Gratificação ou Diária.');
@@ -2525,6 +2578,7 @@ async function salvarGratificacao() {
     os_seq,
     numeracao_legada: retro || omis_fantasma,
     omis_fantasma,
+    numeracao_duplicada,
     num_omis: fmtNum(omis_seq, ano),
     num_os: gera_os ? fmtNum(os_seq, ano) : fmtNum(omis_seq, ano),
     qtd_diarias,
@@ -2560,6 +2614,8 @@ async function salvarGratificacao() {
   const btn = document.getElementById('btn-salvar-grat');
   btn.disabled = true;
 
+  let gravado = null;
+
   try {
     if (id) {
       if (configurado && !String(id).startsWith('temp_')) {
@@ -2567,25 +2623,31 @@ async function salvarGratificacao() {
         if (error) throw error;
       }
       const idx = dadosGratificacao.findIndex(x => String(x.id) === String(id));
-      if (idx >= 0) dadosGratificacao[idx] = normalizarMissao({ ...dadosGratificacao[idx], id, ...reg });
-      toast(`OMIS ${omis_seq}/${ano} atualizada`);
+      if (idx >= 0) {
+        dadosGratificacao[idx] = normalizarMissao({ ...dadosGratificacao[idx], id, ...reg });
+        gravado = dadosGratificacao[idx];
+      }
+      toast(`${omis_fantasma ? 'OS ' + os_seq : 'OMIS ' + omis_seq}/${ano} atualizada`);
     } else {
       if (configurado) {
         const { data, error } = await sb.from('gratificacao_representacao').insert([reg]).select().single();
         if (error) throw error;
-        dadosGratificacao.unshift(normalizarMissao(data));
+        gravado = normalizarMissao(data);
+        dadosGratificacao.unshift(gravado);
       } else {
         reg.id = 'temp_' + Date.now();
-        dadosGratificacao.unshift(normalizarMissao(reg));
+        gravado = normalizarMissao(reg);
+        dadosGratificacao.unshift(gravado);
       }
       toast(omis_fantasma
-        ? `OS ${os_seq}/${ano} lançada sem OMIS (fantasma no lugar ${omis_seq})`
+        ? `OS ${os_seq}/${ano} lançada sem OMIS (fantasma, sem lugar na sequência)`
         : gera_os
           ? `OMIS ${omis_seq}/${ano} lançada → OS ${os_seq}/${ano}`
           : `OMIS ${omis_seq}/${ano} lançada (sem custo, sem OS)`);
     }
 
-    if (gera_os) await sincronizarProcessoComControle(reg);
+    /* a esteira acompanha TODO processo, inclusive missão sem custo */
+    if (gravado) await sincronizarProcessoComControle(gravado);
 
     gravarCacheGrat();
     renderTudoMissoes();
@@ -2624,13 +2686,25 @@ async function sincronizarProcessoComControle(reg, silencioso) {
     ? reg.militares.map(m => m.nome_guerra || m.nome).join(', ')
     : coord;
 
-  const existe = dadosControle.find(c => c.num_os === reg.num_os && Number(c.ano) === Number(reg.ano));
+  /* A chave é o id da missão, não o número da OS.
+     Com numeração duplicada e OMIS fantasma, ano+num_os deixou de ser único
+     e processos distintos se sobrescreviam — era essa a causa de faltarem
+     lançamentos na esteira. */
+  const existe = dadosControle.find(c =>
+    (reg.id && c.missao_id && String(c.missao_id) === String(reg.id)) ||
+    (!c.missao_id && c.num_os === reg.num_os && Number(c.ano) === Number(reg.ano))
+  );
   ultimoErroEsteira = null;
 
-  /* payload SEM id — quem gera é o banco */
+  const etiquetas = [];
+  if (reg.omis_fantasma) etiquetas.push('OS sem OMIS de origem (fantasma).');
+  if (reg.numeracao_duplicada) etiquetas.push('Numeração duplicada na origem.');
+  if (!reg.gera_os) etiquetas.push('Missão sem custo — não gera OS.');
+
   const payload = {
+    missao_id: reg.id ? String(reg.id) : null,
     ano: reg.ano,
-    num_os: reg.num_os,
+    num_os: reg.gera_os ? reg.num_os : '',
     num_omis: reg.omis_fantasma ? '' : (reg.num_omis || ''),
     modalidade: reg.modalidade === 'diaria' ? 'Diária'
               : reg.modalidade === 'sem_custo' ? 'Sem Custo' : 'Gratificação',
@@ -2648,19 +2722,19 @@ async function sincronizarProcessoComControle(reg, silencioso) {
       const novo = {
         ...payload,
         status: 'Pendente',
-        auditoria: reg.omis_fantasma ? 'OS sem OMIS de origem (fantasma).' : '',
+        auditoria: etiquetas.join(' '),
         sigad_numero: '', nup: '', bca_numero: '', bi_numero: ''
       };
-
       if (configurado) {
         const { data, error } = await sb.from('controle_os_processos')
           .insert([novo]).select().single();
         if (error) throw error;
         dadosControle.unshift(data);
       } else {
-        dadosControle.unshift({ ...novo, id: 'ctrl_' + Date.now(), _local: true });
+        dadosControle.unshift({ ...novo, id: 'ctrl_' + Date.now() + Math.random().toString(36).slice(2,6), _local: true });
       }
     } else {
+      /* não sobrescreve o que a secretaria já preencheu na esteira */
       Object.assign(existe, payload);
       if (configurado && !existe._local) {
         const { error } = await sb.from('controle_os_processos')
@@ -2673,11 +2747,10 @@ async function sincronizarProcessoComControle(reg, silencioso) {
   } catch (e) {
     ultimoErroEsteira = e;
     console.error('Falha ao sincronizar com a esteira:', e);
-    /* mantém a linha localmente e sinaliza — não some mais silenciosamente */
     if (!existe) {
       dadosControle.unshift({
-        ...payload, id: 'ctrl_' + Date.now(), _local: true,
-        status: 'Pendente', auditoria: 'Não sincronizado com o servidor.',
+        ...payload, id: 'ctrl_' + Date.now() + Math.random().toString(36).slice(2,6), _local: true,
+        status: 'Pendente', auditoria: etiquetas.concat('Não sincronizado com o servidor.').join(' '),
         sigad_numero: '', nup: '', bca_numero: '', bi_numero: ''
       });
     } else {
@@ -2686,10 +2759,9 @@ async function sincronizarProcessoComControle(reg, silencioso) {
     gravarCacheControle();
     renderControle();
     if (!silencioso) {
-      /* o toast some rápido; o painel da aba Esteira guarda o erro cru */
       toast('A OS foi salva, mas não entrou na esteira. Abra a aba Esteira de Processos.', true);
       painelEsteira(
-        `<b>❌ A OS ${esc(reg.num_os || '')} não entrou na esteira.</b> A Ordem de Missão foi salva normalmente — a falha é só na gravação desta tabela.` +
+        `<b>❌ O processo ${esc(reg.num_os || reg.num_omis || '')} não entrou na esteira.</b> A Ordem de Missão foi salva normalmente — a falha é só na gravação desta tabela.` +
         formatarErroSb(e) +
         `<br>Rode o <b>🩺 Diagnóstico</b> aqui em cima para ver a causa.`, 'erro');
     }
@@ -2875,6 +2947,7 @@ function expandirTodasOmis(abrir) {
 
 function estadoDaMissao(g) {
   if (g.omis_fantasma) return 'fantasma';
+  if (g.numeracao_duplicada) return 'duplicada';
   if (!g.gera_os) return 'semos';
   if (g.numeracao_legada) return 'legada';
   return 'ok';
@@ -2896,7 +2969,7 @@ function linhaMissao(g) {
   let numeros, subNum;
   if (g.omis_fantasma) {
     numeros = `<span style="color:var(--purple-500)">&#128123; sem OMIS</span><span class="seta">&#8674;</span>OS ${g.os_seq}`;
-    subNum = `lugar ${g.omis_seq} na sequência · ${g.ano}`;
+    subNum = `fora da sequência · ${g.ano}`;
   } else if (!g.gera_os) {
     numeros = `OMIS ${g.omis_seq}`;
     subNum = `sem OS · ${g.ano}`;
@@ -2908,9 +2981,11 @@ function linhaMissao(g) {
   /* ── selos ── */
   const selos = [];
   if (g.omis_fantasma) selos.push('<span class="os-badge badge-fantasma">&#128123; FANTASMA</span>');
-  else if (g.numeracao_legada) selos.push('<span class="os-badge badge-legada">&#127991; LEGADA</span>');
-  else if (!g.gera_os) selos.push('<span class="os-badge badge-semos">SEM OS</span>');
-  else selos.push('<span class="os-badge badge-curso">OMIS = OS</span>');
+  if (g.numeracao_duplicada) selos.push('<span class="os-badge badge-duplicada" title="Compartilha o número com outro processo">&#8891; DUPLICADA</span>');
+  if (!g.omis_fantasma && !g.numeracao_duplicada && g.numeracao_legada) selos.push('<span class="os-badge badge-legada">&#127991; LEGADA</span>');
+  if (!g.omis_fantasma && !g.gera_os) selos.push('<span class="os-badge badge-semos">SEM OS</span>');
+  if (!g.omis_fantasma && !g.numeracao_duplicada && !g.numeracao_legada && g.gera_os)
+    selos.push('<span class="os-badge badge-curso">OMIS = OS</span>');
   selos.push(g.siloms_numero
     ? `<span class="os-badge badge-siloms-ok">SILOMS ${esc(g.siloms_numero)}</span>`
     : '<span class="os-badge badge-siloms-pend">SILOMS pendente</span>');
@@ -2936,7 +3011,7 @@ function linhaMissao(g) {
   const avisoFantasma = g.omis_fantasma
     ? `<div class="warn" style="background:rgba(167,139,250,.10);border-color:rgba(167,139,250,.35);color:var(--purple-500);margin:0 0 .9rem 0">
          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
-         <span>Esta OS foi emitida sem OMIS de origem. O registro ocupa o lugar ${g.omis_seq} da sequência apenas para efeito de cômputo — nenhuma Ordem de Missão foi expedida, e o documento de OMIS não pode ser gerado.</span>
+         <span>Esta OS foi emitida sem OMIS de origem e não ocupa lugar na sequência. Nenhuma Ordem de Missão foi expedida, e o documento de OMIS não pode ser gerado. Em tudo o mais — esteira, documentos da OS, SILOMS — o processo segue normal.</span>
        </div>` : '';
 
   const financeiro = (g.modalidade === 'diaria' && g.valor_total)
@@ -2989,6 +3064,7 @@ function preencherSelectAnoOmis() {
 }
 
 function selecionarSeqRegua(seq) {
+  if (seq === null) return;
   filtroReguaSeq = (filtroReguaSeq === seq) ? null : seq;
   renderOmis();
 }
@@ -3010,57 +3086,82 @@ function renderRegua(ano) {
 
   if (!grid) return a;
 
-  if (!a.maior) {
-    grid.innerHTML = `<div class="regua-vazia">Nenhuma OMIS lançada no exercício de ${ano}. A primeira será a <b style="color:var(--gold-400)">1/DE/${ano}</b>.</div>`;
-  } else {
-    grid.innerHTML = a.itens.map(it => {
-      const sel = filtroReguaSeq === it.seq ? 'box-shadow:0 0 0 2px var(--gold-500);transform:scale(1.06)' : '';
-      let sub = '', titulo = '';
-      if (it.estado === 'lacuna') {
-        sub = '—'; titulo = `Número ${it.seq}: nenhuma OMIS lançada. Verifique se ficou um processo de fora.`;
-      } else if (it.estado === 'fantasma') {
-        sub = `OS${it.missao.os_seq}`;
-        titulo = `Lugar ${it.seq}: OMIS FANTASMA.\nA OS ${it.missao.os_seq} foi emitida sem OMIS de origem.\n${it.missao.servico_local || ''}`;
-      } else if (it.estado === 'semos') {
-        sub = 'S/OS'; titulo = `OMIS ${it.seq}: missão sem custo, não gera OS.\n${it.missao.servico_local || ''}`;
-      } else if (it.estado === 'legada') {
-        sub = `OS${it.missao.os_seq}`; titulo = `OMIS ${it.seq} → OS ${it.missao.os_seq} (numeração legada).\n${it.missao.servico_local || ''}`;
-      } else {
-        sub = `OS${it.seq}`; titulo = `OMIS ${it.seq} → OS ${it.seq}.\n${it.missao.servico_local || ''}`;
-      }
-      return `<div class="rg ${it.estado}" style="${sel}" title="${esc(titulo)}" onclick="selecionarSeqRegua(${it.seq})">
-                ${it.seq}<small>${sub}</small>
-              </div>`;
-    }).join('');
-  }
+  const quadro = (classe, rotulo, sub, titulo, seq) => {
+    const sel = filtroReguaSeq === seq ? 'box-shadow:0 0 0 2px var(--gold-500);transform:scale(1.06)' : '';
+    return `<div class="rg ${classe}" style="${sel}" title="${esc(titulo)}" onclick="selecionarSeqRegua(${seq === null ? 'null' : seq})">
+              ${rotulo}<small>${sub}</small>
+            </div>`;
+  };
 
-  /* faixa de alertas */
+  let html = '';
+
+  if (!a.maior && !a.fantasmas.length) {
+    html = `<div class="regua-vazia">Nenhuma OMIS lançada no exercício de ${ano}. A primeira será a <b style="color:var(--gold-400)">1/DE/${ano}</b>.</div>`;
+  } else {
+    html = a.itens.map(it => {
+      if (it.estado === 'lacuna')
+        return quadro('lacuna', it.seq, '—', `Número ${it.seq}: nenhuma OMIS lançada. Verifique se ficou um processo de fora.`, it.seq);
+      if (it.estado === 'duplicada') {
+        const oss = it.missoes.map(m => m.os_seq || '—').join(' / ');
+        return quadro('duplicada', it.seq, `×${it.missoes.length}`,
+          `Lugar ${it.seq}: NUMERAÇÃO DUPLICADA — ${it.missoes.length} registros.\nOS: ${oss}\n` +
+          it.missoes.map(m => '• ' + (m.servico_local || '')).join('\n'), it.seq);
+      }
+      if (it.estado === 'semos')
+        return quadro('semos', it.seq, 'S/OS', `OMIS ${it.seq}: missão sem custo, não gera OS.\n${it.missao.servico_local || ''}`, it.seq);
+      if (it.estado === 'legada')
+        return quadro('legada', it.seq, `OS${it.missao.os_seq}`, `OMIS ${it.seq} → OS ${it.missao.os_seq} (numeração legada).\n${it.missao.servico_local || ''}`, it.seq);
+      return quadro('ok', it.seq, `OS${it.seq}`, `OMIS ${it.seq} → OS ${it.seq}.\n${it.missao.servico_local || ''}`, it.seq);
+    }).join('');
+
+    /* fantasmas ficam fora da régua: não ocupam número nenhum */
+    if (a.fantasmas.length) {
+      html += `<div class="rg-sep">&#128123; sem lugar na sequência — ${a.fantasmas.length} OS sem OMIS</div>`;
+      html += a.fantasmas.map(g =>
+        `<div class="rg fantasma" title="${esc(`OS ${g.os_seq}: emitida sem OMIS de origem.\n${g.servico_local || ''}`)}"
+              onclick="selecionarFantasma('${g.id}')">
+           &#128123;<small>OS${g.os_seq}</small>
+         </div>`).join('');
+    }
+  }
+  grid.innerHTML = html;
+
+  /* ── faixa de alertas ── */
   const problemas = [];
-  if (a.lacunas.length) {
+  if (a.lacunas.length)
     problemas.push(`<b>${a.lacunas.length} lacuna(s)</b> na sequência: nº ${a.lacunas.map(i => i.seq).join(', ')}. Nenhuma OMIS foi lançada com esses números — confira se algum processo ficou de fora do sistema.`);
-  }
-  if (a.duplicadas.length) {
-    problemas.push(`<b>Numeração duplicada</b> na(s) OMIS nº ${a.duplicadas.join(', ')}. Isso não deveria acontecer — abra os registros e corrija.`);
-  }
+  if (a.duplicadas.length)
+    problemas.push(`<b>${a.duplicadas.length} número(s) duplicado(s)</b>: nº ${a.duplicadas.map(i => `${i.seq} (×${i.missoes.length})`).join(', ')}. Registrado como veio da tramitação; não afeta a esteira nem os documentos.`);
+
   if (box) {
+    box.style.display = 'block';
     if (problemas.length) {
-      box.style.display = 'block';
       box.innerHTML = problemas.map(p =>
         `<div class="warn" style="margin-top:.4rem">
            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
            <span>${p}</span>
          </div>`).join('');
-    } else {
-      box.style.display = 'block';
-      box.innerHTML = a.maior
-        ? `<div class="warn" style="margin-top:.4rem;background:rgba(62,207,154,.08);border-color:rgba(62,207,154,.3);color:var(--green-500)">
-             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>
-             <span>Sequência íntegra: ${a.maior} lugar(es) ocupado(s), sem lacunas nem duplicidades.${a.legadas.length ? ` ${a.legadas.length} com numeração legada.` : ''}${a.fantasmas.length ? ` ${a.fantasmas.length} OMIS fantasma.` : ''}</span>
-           </div>`
-        : '';
-    }
+    } else if (a.maior || a.fantasmas.length) {
+      const notas = [];
+      if (a.legadas.length) notas.push(`${a.legadas.length} com numeração legada`);
+      if (a.fantasmas.length) notas.push(`${a.fantasmas.length} OMIS fantasma`);
+      box.innerHTML = `<div class="warn" style="margin-top:.4rem;background:rgba(62,207,154,.08);border-color:rgba(62,207,154,.3);color:var(--green-500)">
+           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6 9 17l-5-5"/></svg>
+           <span>Sequência íntegra: ${a.maior} lugar(es) ocupado(s), sem lacunas nem duplicidades.${notas.length ? ' ' + notas.join(' e ') + ', preservados como estão.' : ''}</span>
+         </div>`;
+    } else box.innerHTML = '';
   }
   return a;
+}
+
+function selecionarFantasma(id) {
+  filtroReguaSeq = null;
+  const f = document.getElementById('omis-filtro');
+  if (f) f.value = '__FANTASMA';
+  renderOmis();
+  if (!omisExpandidas.has(String(id))) alternarLinhaOmis(String(id));
+  const el = document.getElementById('linha-omis-' + id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
 /* ═══ ABA DE ORDENS DE MISSÃO ═══ */
@@ -3083,15 +3184,16 @@ function renderOmis() {
   set('so-sem-os', lista.filter(g => !g.gera_os).length);
   set('so-siloms-ok', lista.filter(g => g.siloms_numero).length);
   set('so-fantasma', lista.filter(g => g.omis_fantasma).length);
-  set('so-alertas', a.lacunas.length + a.legadas.length + a.duplicadas.length);
+  set('so-alertas', a.lacunas.length + a.duplicadas.length);
   set('so-com-os', lista.filter(g => g.gera_os).length);
   set('so-sem-os', lista.filter(g => !g.gera_os).length);
 
-  if (filtro === '__ALERTA') lista = lista.filter(g => g.numeracao_legada || g.omis_fantasma || !g.siloms_numero);
+  if (filtro === '__ALERTA') lista = lista.filter(g => g.numeracao_legada || g.omis_fantasma || g.numeracao_duplicada || !g.siloms_numero);
   else if (filtro === '__FANTASMA') lista = lista.filter(g => g.omis_fantasma);
+  else if (filtro === '__DUPLICADA') lista = lista.filter(g => g.numeracao_duplicada);
   else if (filtro !== 'TODOS') lista = lista.filter(g => g.modalidade === filtro);
 
-  if (filtroReguaSeq) lista = lista.filter(g => Number(g.omis_seq) === filtroReguaSeq);
+  if (filtroReguaSeq) lista = lista.filter(g => !g.omis_fantasma && Number(g.omis_seq) === filtroReguaSeq);
 
   if (termo) {
     lista = lista.filter(g => [g.num_os, g.num_omis, g.siloms_numero, g.servico_local, g.nome, g.posto_grad,
@@ -3100,7 +3202,11 @@ function renderOmis() {
       .some(c => (c || '').toLowerCase().includes(termo)));
   }
 
-  lista.sort((x, y) => (y.omis_seq || 0) - (x.omis_seq || 0));
+  lista.sort((x, y) => {
+    if (x.omis_fantasma !== y.omis_fantasma) return x.omis_fantasma ? 1 : -1;
+    if (x.omis_fantasma) return (y.os_seq || 0) - (x.os_seq || 0);
+    return (y.omis_seq || 0) - (x.omis_seq || 0);
+  });
 
   const btnLimpar = document.getElementById('btn-limpar-regua');
   if (btnLimpar) btnLimpar.style.display = filtroReguaSeq ? 'inline-flex' : 'none';
@@ -3676,11 +3782,11 @@ function renderControle() {
   if (!tbody) return;
 
   if (!lista.length) {
-    const osLancadas = (dadosGratificacao || []).filter(g => g.gera_os && g.num_os).length;
+    const osLancadas = (dadosGratificacao || []).length;
     const semFiltro = statusFiltro === 'TODOS' && !termo;
     tbody.innerHTML = (semFiltro && osLancadas)
       ? `<tr><td colspan="10" style="text-align:center;padding:2.5rem;color:var(--gray-400)">
-           Existem <b style="color:var(--gold-400)">${osLancadas} OS</b> lançadas nas Ordens de Missão, mas nenhuma chegou aqui.<br>
+           Existem <b style="color:var(--gold-400)">${osLancadas} Ordens de Missão</b> lançadas, mas nenhuma chegou aqui.<br>
            <button class="btn btn-primary" style="margin-top:1rem" onclick="ressincronizarEsteira()">🔄 Reconstruir a partir das OMIS</button>
            <button class="btn btn-ghost" style="margin-top:1rem" onclick="diagnosticarEsteira()">🩺 Diagnóstico</button>
          </td></tr>`
@@ -3799,11 +3905,15 @@ async function diagnosticarEsteira() {
     const cols = leitura.data && leitura.data[0] ? Object.keys(leitura.data[0]) : null;
     if (cols) {
       partes.push(`Colunas encontradas: <span style="font-family:var(--f-mono);font-size:.72rem">${cols.join(', ')}</span>`);
-      const faltando = ['ano','num_os','num_omis','modalidade','coordenador','servico_local','status']
+      const faltando = ['ano','num_omis','modalidade','coordenador','servico_local','status']
         .filter(c => !cols.includes(c));
       if (faltando.length) {
         falhou = true;
         partes.push(`<b>⚠️ Colunas ausentes:</b> <span style="font-family:var(--f-mono)">${faltando.join(', ')}</span> — o módulo grava esses campos.`);
+      }
+      if (!cols.includes('missao_id')) {
+        falhou = true;
+        partes.push(`<b>⚠️ Falta a coluna <span style="font-family:var(--f-mono)">missao_id</span>.</b> Sem ela, processos com numeração duplicada se sobrescrevem na esteira. Rode o SQL da v2.3.`);
       }
       if (!cols.includes('created_at')) {
         partes.push(`<b>⚠️</b> A tabela não tem <span style="font-family:var(--f-mono)">created_at</span>. A leitura já contorna isso, mas vale acrescentar.`);
@@ -3849,17 +3959,23 @@ async function diagnosticarEsteira() {
 
 /* Cria na esteira uma linha para cada OMIS com OS que ainda não tenha. */
 async function ressincronizarEsteira() {
-  const comOs = (dadosGratificacao || []).filter(g => g.gera_os && g.num_os);
-  if (!comOs.length) {
-    painelEsteira('Não há nenhuma OMIS com OS lançada para enviar à esteira.', 'aviso');
+  const ano = Number(document.getElementById('omis-ano')?.value) || ANO_CORRENTE;
+  const todas = (dadosGratificacao || []).filter(g => g.id);
+
+  if (!todas.length) {
+    painelEsteira('Não há nenhuma Ordem de Missão lançada para enviar à esteira.', 'aviso');
     return;
   }
 
-  const existentes = new Set(dadosControle.map(c => `${c.ano}|${c.num_os}`));
-  const faltantes = comOs.filter(g => !existentes.has(`${g.ano}|${g.num_os}`));
+  /* chave por id da missão; a chave antiga (ano+num_os) fica como
+     compatibilidade para as linhas gravadas antes desta versão */
+  const porId = new Set(dadosControle.filter(c => c.missao_id).map(c => String(c.missao_id)));
+  const porNum = new Set(dadosControle.filter(c => !c.missao_id).map(c => `${c.ano}|${c.num_os}`));
+  const faltantes = todas.filter(g =>
+    !porId.has(String(g.id)) && !porNum.has(`${g.ano}|${g.num_os}`));
 
   if (!faltantes.length) {
-    painelEsteira(`Nada a fazer: as ${comOs.length} OS já constam na esteira.`, 'ok');
+    painelEsteira(`Nada a fazer: as ${todas.length} Ordens de Missão já constam na esteira.`, 'ok');
     return;
   }
 
@@ -3868,24 +3984,20 @@ async function ressincronizarEsteira() {
   let ok = 0;
   const erros = [];
   for (const g of faltantes) {
-    try {
-      await sincronizarProcessoComControle(g, true);
-      const entrou = dadosControle.find(c => c.num_os === g.num_os && Number(c.ano) === Number(g.ano) && !c._local);
-      if (entrou) ok++;
-      else erros.push({ os: g.num_os, erro: ultimoErroEsteira });
-    } catch (e) {
-      erros.push({ os: g.num_os, erro: e });
-    }
+    await sincronizarProcessoComControle(g, true);
+    const entrou = dadosControle.find(c => String(c.missao_id) === String(g.id) && !c._local);
+    if (entrou) ok++;
+    else erros.push({ ref: g.num_os || g.num_omis || g.servico_local, erro: ultimoErroEsteira });
   }
 
   renderControle();
 
   if (!erros.length) {
-    painelEsteira(`<b>✅ ${ok} processo(s) enviados para a esteira.</b>`, 'ok');
+    painelEsteira(`<b>✅ ${ok} processo(s) enviados para a esteira.</b> A aba passa a refletir todas as ${todas.length} Ordens de Missão.`, 'ok');
   } else {
     painelEsteira(
       `<b>${ok} enviado(s), ${erros.length} com falha.</b><br>` +
-      `Não foi possível gravar: <span style="font-family:var(--f-mono);font-size:.72rem">${erros.map(e => esc(e.os)).join(', ')}</span>` +
+      `Não foi possível gravar: <span style="font-family:var(--f-mono);font-size:.72rem">${erros.map(e => esc(String(e.ref))).join(', ')}</span>` +
       formatarErroSb(erros[0].erro) +
       `<br>Rode o <b>🩺 Diagnóstico</b> para identificar a causa na tabela.`,
       'erro');
