@@ -462,6 +462,114 @@ input:checked + .slider:before{transform:translateX(16px);background-color:var(-
 .badge-vinc.mil{background:rgba(212,168,75,.15);color:var(--gold-400);border-color:rgba(212,168,75,.35)}
 .badge-vinc.civ{background:rgba(90,162,224,.15);color:var(--ceu);border-color:rgba(90,162,224,.35)}
 
+
+/* ═══ ESTEIRA: CARDS DE PROCESSO COM LINHA DO TEMPO ═══ */
+.proc-lista{display:flex;flex-direction:column;gap:.75rem}
+.proc{background:var(--card);border:1px solid var(--linha);border-left:10px solid var(--navy-300);
+  border-radius:12px;overflow:hidden;backdrop-filter:blur(6px);transition:border-color .2s,box-shadow .2s}
+.proc:hover{border-color:var(--navy-200)}
+.proc.aberta{box-shadow:0 14px 34px -18px rgba(0,0,0,.85);border-left-width:14px}
+.proc.andamento{border-left-color:var(--gold-500)}
+.proc.correcao{border-left-color:var(--red-500)}
+.proc.concluido{border-left-color:var(--green-500)}
+.proc.parado{border-left-color:var(--ceu)}
+
+.proc-head{display:grid;grid-template-columns:22px minmax(150px,auto) 1fr auto;gap:.9rem;
+  align-items:center;padding:.85rem 1rem;cursor:pointer;user-select:none}
+@media(max-width:860px){.proc-head{grid-template-columns:22px 1fr;row-gap:.5rem}}
+.proc-caret{color:var(--gold-500);transition:transform .2s;display:flex;justify-content:center;font-size:.8rem}
+.proc.aberta .proc-caret{transform:rotate(90deg)}
+.proc-num{font-family:var(--f-mono);font-size:.92rem;font-weight:700;color:#fff;white-space:nowrap;line-height:1.3}
+.proc-num small{display:block;font-family:var(--f-body);font-size:.6rem;font-weight:500;color:var(--gray-500);
+  text-transform:uppercase;letter-spacing:.08em;margin-top:3px}
+.proc-resumo{min-width:0}
+.proc-resumo .tit{font-size:.85rem;color:var(--navy-900);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.proc-resumo .sub{font-size:.68rem;color:var(--gray-500);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.proc-selos{display:flex;gap:.35rem;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+@media(max-width:860px){.proc-selos{grid-column:1/-1;justify-content:flex-start}}
+
+/* ── trilho compacto (cartão fechado) ── */
+.trilho{padding:0 1rem 1rem 1rem;overflow-x:auto}
+.trilho::-webkit-scrollbar{height:5px}
+.trilho-linha{display:flex;align-items:flex-start;min-width:max-content;padding-top:.45rem}
+.trilho-no{display:flex;flex-direction:column;align-items:center;gap:.35rem;position:relative;
+  width:66px;flex:0 0 66px}
+.trilho-bola{width:17px;height:17px;border-radius:50%;border:2px solid var(--navy-300);
+  background:rgba(6,13,29,.6);display:flex;align-items:center;justify-content:center;
+  font-family:var(--f-mono);font-size:.55rem;font-weight:700;color:var(--gray-500);
+  flex-shrink:0;z-index:2;transition:all .2s;cursor:pointer}
+.trilho-bola:hover{transform:scale(1.22)}
+.trilho-no.feito .trilho-bola{background:var(--green-500);border-color:var(--green-500);color:var(--navy-0)}
+.trilho-no.atual .trilho-bola{background:var(--gold-500);border-color:var(--gold-500);color:var(--navy-0);
+  box-shadow:0 0 0 4px rgba(212,168,75,.22);width:21px;height:21px;font-size:.6rem}
+.trilho-no.alerta .trilho-bola{background:var(--red-500);border-color:var(--red-500);color:#fff;
+  box-shadow:0 0 0 4px rgba(224,90,90,.2)}
+.trilho-rotulo{font-size:.55rem;line-height:1.25;text-align:center;color:var(--gray-500);
+  max-width:66px;text-transform:uppercase;letter-spacing:.03em}
+.trilho-no.atual .trilho-rotulo{color:var(--gold-400);font-weight:700}
+.trilho-no.feito .trilho-rotulo{color:var(--gray-700)}
+.trilho-tra{flex:1 1 auto;height:2px;background:rgba(207,228,255,.22);margin:8px -3px 0 -3px;min-width:12px;align-self:flex-start}
+.trilho-tra.feito{background:var(--green-500)}
+.trilho-marca{position:absolute;top:-4px;right:16px;width:8px;height:8px;border-radius:50%;
+  background:var(--ceu);border:1.5px solid var(--navy-1);z-index:3}
+
+/* ── linha do tempo detalhada (cartão aberto) ── */
+.proc-corpo{display:none;padding:.2rem 1rem 1.1rem 1rem;border-top:1px dashed var(--navy-200);margin:0 1rem}
+.proc.aberta .proc-corpo{display:block}
+
+.tl{list-style:none;position:relative;margin:.9rem 0 0 0;padding-left:30px}
+.tl::before{content:'';position:absolute;left:9px;top:6px;bottom:10px;width:2px;background:var(--navy-200)}
+.tl-item{position:relative;padding:0 0 .95rem 0}
+.tl-bola{position:absolute;left:-30px;top:1px;width:20px;height:20px;border-radius:50%;
+  border:2px solid var(--navy-300);background:var(--navy-1);display:flex;align-items:center;justify-content:center;
+  font-family:var(--f-mono);font-size:.58rem;font-weight:700;color:var(--gray-500);z-index:2}
+.tl-item.feito .tl-bola{background:var(--green-500);border-color:var(--green-500);color:var(--navy-0)}
+.tl-item.atual .tl-bola{background:var(--gold-500);border-color:var(--gold-500);color:var(--navy-0);
+  box-shadow:0 0 0 4px rgba(212,168,75,.2)}
+.tl-item.alerta .tl-bola{background:var(--red-500);border-color:var(--red-500);color:#fff}
+.tl-tit{font-size:.8rem;font-weight:600;color:var(--navy-900);line-height:1.4}
+.tl-item.pendente .tl-tit{color:var(--gray-500);font-weight:500}
+.tl-desc{font-size:.7rem;color:var(--gray-500);line-height:1.5;margin-top:3px}
+.tl-data{font-family:var(--f-mono);font-size:.62rem;color:var(--green-500);margin-top:3px}
+.tl-acoes{display:flex;gap:.35rem;flex-wrap:wrap;margin-top:.5rem}
+
+/* ramo paralelo pendurado na etapa */
+.tl-ramo{margin-top:.5rem;margin-left:.2rem;padding:.55rem .7rem;border-left:2px solid var(--ceu);
+  background:rgba(90,162,224,.07);border-radius:0 8px 8px 0;font-size:.7rem;color:var(--gray-700);
+  display:flex;align-items:center;gap:.55rem;flex-wrap:wrap}
+.tl-ramo b{color:var(--ceu);font-weight:700}
+.tl-ramo.ok{border-left-color:var(--green-500);background:rgba(62,207,154,.07)}
+.tl-ramo.ok b{color:var(--green-500)}
+
+/* bifurcação de resultado */
+.tl-ramificacao{display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-top:.55rem}
+@media(max-width:520px){.tl-ramificacao{grid-template-columns:1fr}}
+.tl-opcao{padding:.55rem .7rem;border:1px solid var(--linha);border-radius:8px;background:rgba(6,13,29,.45);
+  cursor:pointer;font-size:.72rem;color:var(--gray-500);text-align:center;transition:all .18s}
+.tl-opcao:hover{border-color:var(--navy-300);color:var(--navy-900)}
+.tl-opcao.on.aprovado{background:rgba(62,207,154,.16);border-color:var(--green-500);color:var(--green-500);font-weight:700}
+.tl-opcao.on.correcao{background:rgba(224,90,90,.16);border-color:var(--red-500);color:var(--red-500);font-weight:700}
+
+/* checklist de anexos */
+.tl-anexos{display:flex;flex-direction:column;gap:.4rem;margin-top:.5rem}
+.tl-anexo{display:flex;align-items:center;gap:.55rem;font-size:.72rem;color:var(--gray-700);
+  padding:.45rem .6rem;border:1px solid var(--linha);border-radius:8px;background:rgba(6,13,29,.4)}
+.tl-anexo .cx{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--navy-300);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:.62rem;cursor:pointer}
+.tl-anexo.ok .cx{background:var(--green-500);border-color:var(--green-500);color:var(--navy-0)}
+.tl-anexo.ok{color:var(--navy-900)}
+.tl-anexo input.mini{width:150px;padding:.3rem .5rem;border-radius:6px;border:1px solid var(--navy-200);
+  background:rgba(6,13,29,.6);color:var(--navy-900);font-family:var(--f-mono);font-size:.7rem;margin-left:auto}
+.tl-anexo .aviso-militar{margin-left:auto;font-family:var(--f-mono);font-size:.62rem;padding:.16rem .5rem;border-radius:99px}
+.tl-anexo .aviso-militar.sim{background:rgba(62,207,154,.15);color:var(--green-500)}
+.tl-anexo .aviso-militar.nao{background:rgba(232,177,63,.14);color:var(--yellow-500)}
+
+.proc-campos{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.6rem;margin-top:.9rem;
+  padding-top:.8rem;border-top:1px dashed var(--navy-200)}
+.proc-campo{background:rgba(6,13,29,.45);border:1px solid var(--linha);border-radius:8px;padding:.55rem .7rem}
+.proc-campo dt{font-size:.55rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gray-500);font-weight:700;margin-bottom:.25rem}
+.proc-campo dd{font-size:.76rem;color:var(--navy-900);font-family:var(--f-mono)}
+
 /* ═══ MODAL ═══ */
 .backdrop{
   position:fixed;inset:0;background:rgba(3,8,18,.78);backdrop-filter:blur(4px);
@@ -792,84 +900,59 @@ footer img{height:16px;opacity:.45}
   </main>
 </div>
 
-<!-- ABA 5: CONTROLE OS 2026 (ESTEIRA & AUDITORIA) -->
+<!-- ABA 5: ESTEIRA DE PROCESSOS -->
 <div id="view-controle" style="display:none">
   <div class="summary">
-    <div class="scard gold"><div><div class="scount" id="sc-pend">0</div><div class="slabel">Em Tramitação</div></div></div>
-    <div class="scard" style="border-color:#0ea5e9;--scard-accent:#0ea5e9"><div><div class="scount" id="sc-missao">0</div><div class="slabel">Em Missão / Retorno</div></div></div>
-    <div class="scard red"><div><div class="scount" id="sc-corrigir">0</div><div class="slabel">Com Pendência (Corrigir)</div></div></div>
-    <div class="scard purple"><div><div class="scount" id="sc-bca">0</div><div class="slabel">Aguardando BCA</div></div></div>
-    <div class="scard green"><div><div class="scount" id="sc-conf">0</div><div class="slabel">Confeccionadas</div></div></div>
+    <div class="scard navy"><div><div class="scount" id="sc-total">0</div><div class="slabel">Processos na esteira</div></div></div>
+    <div class="scard gold"><div><div class="scount" id="sc-andamento">0</div><div class="slabel">Em andamento</div></div></div>
+    <div class="scard ceu"><div><div class="scount" id="sc-parado">0</div><div class="slabel">Aguardando terceiros</div></div></div>
+    <div class="scard red"><div><div class="scount" id="sc-correcao">0</div><div class="slabel">Retornados para correção</div></div></div>
+    <div class="scard green" style="margin-left:auto"><div><div class="scount" id="sc-concluido">0</div><div class="slabel">Concluídos</div></div></div>
   </div>
 
   <main style="grid-template-columns:1fr;max-width:1500px">
     <div>
       <div class="section-title" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem">
-        <span>Acompanhamento da Esteira de Processos (SIGADAER / SILOMS / BCA / BI)</span>
-        <div style="display:flex;gap:.5rem">
-          <button class="btn btn-primary" onclick="abrirModalControle()">
-            + Novo Processo na Esteira
-          </button>
-          <button class="btn btn-ghost" onclick="ressincronizarEsteira()">
-            🔄 Reconstruir a partir das OMIS
-          </button>
-          <button class="btn btn-ghost" onclick="exportarControleCSV()">
-            📥 Exportar CSV
-          </button>
-          <button class="btn btn-ghost" onclick="diagnosticarEsteira()" title="Testa a conexão com a tabela controle_os_processos">
-            🩺 Diagnóstico
-          </button>
+        <span>Esteira de processos — tramitação passo a passo</span>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="abrirModalControle()">+ Novo processo</button>
+          <button class="btn btn-ghost" onclick="ressincronizarEsteira()">🔄 Reconstruir a partir das OMIS</button>
+          <button class="btn btn-ghost" onclick="exportarControleCSV()">📥 Exportar CSV</button>
+          <button class="btn btn-ghost" onclick="diagnosticarEsteira()" title="Testa a conexão com a tabela controle_os_processos">🩺 Diagnóstico</button>
         </div>
       </div>
+
+      <p style="font-size:.76rem;color:var(--gray-500);line-height:1.55;margin:-.4rem 0 1rem 0">
+        Cada processo segue a linha do tempo da sua modalidade — nove etapas para Gratificação de Representação,
+        onze para Diária. Clique numa bolinha do trilho para saltar até a etapa, ou abra o card para ver o detalhe,
+        marcar as tarefas em paralelo e registrar os anexos.
+      </p>
 
       <div id="esteira-diag" style="display:none;margin-bottom:1rem"></div>
 
       <div class="toolbar">
-        <select class="search" style="flex:0 0 auto;min-width:140px;font-weight:700" id="ctrl-status-filtro" onchange="renderControle()">
-          <option value="TODOS">Todos os Status</option>
-          <option value="Pendente">🕒 Pendente</option>
-          <option value="Em Análise">🔍 Em Análise</option>
-          <option value="Missão Aprovada">✈️ Missão Aprovada</option>
-          <option value="Apresentado">📥 Apresentado</option>
-          <option value="Despachado">📤 Despachado</option>
-          <option value="Corrigir">⚠️ Corrigir (Auditoria)</option>
-          <option value="Aguardando BCA">⏳ Aguardando BCA</option>
-          <option value="Confeccionado">📝 Confeccionado</option>
-          <option value="Publicado">🎉 Publicado</option>
+        <select class="search" style="flex:0 0 auto;min-width:180px;font-weight:700" id="controle-filtro-status" onchange="renderControle()">
+          <option value="TODOS">Todas as situações</option>
+          <option value="andamento">🔧 Em andamento</option>
+          <option value="parado">⏳ Aguardando terceiros</option>
+          <option value="correcao">⚠️ Retornado para correção</option>
+          <option value="concluido">✅ Concluído</option>
         </select>
-        <input class="search" id="ctrl-busca" type="search" placeholder="Buscar por OS, SIGADAER, SILOMS, NUP, BCA, coordenador ou pendência..." oninput="renderControle()" />
+        <input class="search" id="controle-busca" type="search" placeholder="Buscar por OS, OMIS, SIGADAER, SILOMS, NUP, PCDP ou coordenador…" oninput="renderControle()" />
+        <button class="btn btn-ghost" onclick="expandirTodosProc(true)" title="Expandir todos">⤢ Expandir</button>
+        <button class="btn btn-ghost" onclick="expandirTodosProc(false)" title="Retrair todos">⤡ Retrair</button>
       </div>
 
-      <div class="table-controle-wrap">
-        <table class="table-controle">
-          <thead>
-            <tr>
-              <th>OS / OMIS</th>
-              <th>Modalidade</th>
-              <th>Coordenador / Militares</th>
-              <th>Período / Destino</th>
-              <th>SIGADAER / SILOMS</th>
-              <th>Status</th>
-              <th>NUP (Col X)</th>
-              <th>BCA (Col AB)</th>
-              <th>Auditoria / Pendências</th>
-              <th style="text-align:right">Ações</th>
-            </tr>
-          </thead>
-          <tbody id="tbody-controle">
-            <tr><td colspan="10" style="text-align:center;padding:2rem">Carregando processos da esteira...</td></tr>
-          </tbody>
-        </table>
+      <div class="proc-lista" id="lista-controle">
+        <div class="skel"></div><div class="skel"></div>
       </div>
     </div>
   </main>
 </div>
 
-</div><!-- FECHAMENTO DE missoesContent -->
-
 <footer>
   <img src="assets/cocar-fab.png" alt="" />
-  <span>Governança DE · Academia da Força Aérea — módulo Missões &amp; OS · <b style="color:var(--gold-400)">v2.4</b>
+  <span>Governança DE · Academia da Força Aérea — módulo Missões &amp; OS · <b style="color:var(--gold-400)">v2.5</b>
   <br><small style="opacity:.7;text-transform:none;letter-spacing:0">OMIS como documento originador · numeração de OS vinculada à OMIS</small></span>
   <img src="assets/cocar-fab.png" alt="" />
 </footer>
@@ -1081,7 +1164,7 @@ footer img{height:16px;opacity:.45}
   <div class="modal" style="max-width:640px" role="dialog" aria-modal="true">
     <div class="modal-head">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-      <h2 id="modal-ctrl-title">Processo na Esteira (CONTROLE OS 2026)</h2>
+      <h2 id="modal-ctrl-title">Processo na Esteira</h2>
       <button class="icon-btn" onclick="fecharModalControle()" aria-label="Fechar">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg>
       </button>
@@ -1100,7 +1183,7 @@ footer img{height:16px;opacity:.45}
         </div>
         <div class="field">
           <label for="fc-modalidade">Modalidade</label>
-          <select id="fc-modalidade">
+          <select id="fc-modalidade" onchange="atualizarCamposStatusControle()">
             <option value="Gratificação">Gratificação de Representação</option>
             <option value="Diária">Diária de Viagem</option>
             <option value="Sem Custo">Sem Custo (apenas OMIS)</option>
@@ -1136,18 +1219,9 @@ footer img{height:16px;opacity:.45}
 
       <div class="grid2">
         <div class="field">
-          <label for="fc-status">Status do Processo na Esteira *</label>
-          <select id="fc-status" onchange="atualizarCamposStatusControle()">
-            <option value="Pendente">🕒 Pendente / Triagem</option>
-            <option value="Em Análise">🔍 Em Análise (SIGADAER inicial & COMGEP)</option>
-            <option value="Missão Aprovada">✈️ Missão Aprovada (Aguardando Retorno)</option>
-            <option value="Apresentado">📥 Apresentado (Upload Gov.br Recebido)</option>
-            <option value="Despachado">📤 Despachado (SIGADAER final com Ficha)</option>
-            <option value="Corrigir">⚠️ Corrigir (Devolvido com Auditoria)</option>
-            <option value="Aguardando BCA">⏳ Aguardando Publicação BCA (NUP)</option>
-            <option value="Confeccionado">📝 Confeccionado (BI em confecção)</option>
-            <option value="Publicado">🎉 Publicado (Finalizado)</option>
-          </select>
+          <label for="fc-status">Etapa atual da tramitação *</label>
+          <select id="fc-status" onchange="atualizarCamposStatusControle()"></select>
+          <div class="hint">As etapas mudam conforme a modalidade. O caminho normal é avançar pela linha do tempo no card.</div>
         </div>
         <div class="field">
           <label for="fc-nup">NUP (Coluna X)</label>
@@ -1162,8 +1236,27 @@ footer img{height:16px;opacity:.45}
 
       <div class="grid2">
         <div class="field">
-          <label for="fc-bca">Nº e Data do BCA (Coluna AB)</label>
+          <label for="fc-bca">Nº e Data do BCA</label>
           <input id="fc-bca" type="text" placeholder="Ex.: BCA nº 142 de 10/08/2026" />
+        </div>
+        <div class="field">
+          <label for="fc-9914">Boletim do Item 9914 publicado</label>
+          <input id="fc-9914" type="text" placeholder="Ex.: BI nº 140 de 02/08/2026" />
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <label for="fc-pcdp">Nº PCDP (gerado pelo SCDP)</label>
+          <input id="fc-pcdp" type="text" placeholder="Ex.: 000123/26" />
+        </div>
+        <div class="field">
+          <label for="fc-retorno">Retorno da DIRENS</label>
+          <select id="fc-retorno" onchange="atualizarCamposStatusControle()">
+            <option value="">— ainda não retornou —</option>
+            <option value="aprovado">✔ Retornou aprovado</option>
+            <option value="correcao">⚠ Retornou para correção</option>
+          </select>
         </div>
       </div>
 
@@ -2785,9 +2878,12 @@ async function sincronizarProcessoComControle(reg, silencioso) {
 
   try {
     if (!existe) {
+      const fx = FLUXOS[fluxoDoProcesso(payload)];
       const novo = {
         ...payload,
-        status: 'Pendente',
+        etapa: fx.etapas[0].chave,
+        etapas_concluidas: {},
+        status: fx.etapas[0].curto,
         auditoria: etiquetas.join(' '),
         sigad_numero: '', nup: '', bca_numero: '', bi_numero: ''
       };
@@ -2816,7 +2912,9 @@ async function sincronizarProcessoComControle(reg, silencioso) {
     if (!existe) {
       dadosControle.unshift({
         ...payload, id: 'ctrl_' + Date.now() + Math.random().toString(36).slice(2,6), _local: true,
-        status: 'Pendente', auditoria: etiquetas.concat('Não sincronizado com o servidor.').join(' '),
+        etapa: FLUXOS[fluxoDoProcesso(payload)].etapas[0].chave, etapas_concluidas: {},
+        status: FLUXOS[fluxoDoProcesso(payload)].etapas[0].curto,
+        auditoria: etiquetas.concat('Não sincronizado com o servidor.').join(' '),
         sigad_numero: '', nup: '', bca_numero: '', bi_numero: ''
       });
     } else {
@@ -3884,45 +3982,50 @@ async function rejeitarSolicitacao(id) {
 /* ══════════════════════════════════════════════════════════════
    8 · CONTROLE OS 2026 (ESTEIRA / SIGADAER / AUDITORIA - ABA 5)
    ══════════════════════════════════════════════════════════════ */
+function preencherEtapasModal(modalidadeTexto, selecionada) {
+  const fx = FLUXOS[fluxoDoProcesso({ modalidade: modalidadeTexto })];
+  const sel = document.getElementById('fc-status');
+  sel.innerHTML = fx.etapas.map((e, i) =>
+    `<option value="${e.chave}">${i + 1}. ${esc(e.curto)} — ${esc(e.titulo)}</option>`).join('');
+  sel.value = fx.etapas.some(e => e.chave === selecionada) ? selecionada : fx.etapas[0].chave;
+}
+
 function abrirModalControle(id) {
+  const g = i => document.getElementById(i);
   if (id) {
     const c = dadosControle.find(x => String(x.id) === String(id));
     if (!c) return;
-    document.getElementById('modal-ctrl-title').textContent = 'Editar Processo na Esteira';
-    document.getElementById('fc-id').value = c.id;
-    document.getElementById('fc-num').value = c.num_os || '';
-    document.getElementById('fc-num-omis').value = c.num_omis || '';
-    document.getElementById('fc-modalidade').value = c.modalidade || 'Gratificação';
-    document.getElementById('fc-coord').value = c.coordenador || '';
-    document.getElementById('fc-servico').value = c.servico_local || '';
-    document.getElementById('fc-sigad').value = c.sigad_numero || '';
-    document.getElementById('fc-siloms').value = c.siloms_numero || '';
-    document.getElementById('fc-comgep').value = c.comgep_linha || '';
-    document.getElementById('fc-status').value = c.status || 'Pendente';
-    document.getElementById('fc-auditoria').value = c.auditoria || '';
-    document.getElementById('fc-nup').value = c.nup || '';
-    document.getElementById('fc-bca').value = c.bca_numero || '';
-    document.getElementById('fc-bi').value = c.bi_numero || '';
-    document.getElementById('fc-ano').value = c.ano || 2026;
+    g('modal-ctrl-title').textContent = 'Editar processo na esteira';
+    g('fc-id').value = c.id;
+    g('fc-num').value = c.num_os || '';
+    g('fc-num-omis').value = c.num_omis || '';
+    g('fc-modalidade').value = c.modalidade || 'Gratificação';
+    g('fc-coord').value = c.coordenador || '';
+    g('fc-servico').value = c.servico_local || '';
+    g('fc-sigad').value = c.sigad_numero || '';
+    g('fc-siloms').value = c.siloms_numero || '';
+    g('fc-comgep').value = c.comgep_linha || '';
+    g('fc-auditoria').value = c.auditoria || '';
+    g('fc-nup').value = c.nup || '';
+    g('fc-bca').value = c.bca_numero || '';
+    g('fc-bi').value = c.bi_numero || '';
+    g('fc-9914').value = c.boletim_9914 || '';
+    g('fc-pcdp').value = c.pcdp_numero || '';
+    g('fc-retorno').value = c.retorno_direns || '';
+    g('fc-ano').value = c.ano || ANO_CORRENTE;
+    preencherEtapasModal(c.modalidade, c.etapa);
   } else {
-    document.getElementById('modal-ctrl-title').textContent = 'Novo Processo na Esteira';
-    document.getElementById('fc-id').value = '';
-    document.getElementById('fc-num').value = '';
-    document.getElementById('fc-num-omis').value = '';
-    document.getElementById('fc-coord').value = '';
-    document.getElementById('fc-servico').value = '';
-    document.getElementById('fc-sigad').value = '';
-    document.getElementById('fc-siloms').value = '';
-    document.getElementById('fc-comgep').value = '';
-    document.getElementById('fc-status').value = 'Pendente';
-    document.getElementById('fc-auditoria').value = '';
-    document.getElementById('fc-nup').value = '';
-    document.getElementById('fc-bca').value = '';
-    document.getElementById('fc-bi').value = '';
-    document.getElementById('fc-ano').value = 2026;
+    g('modal-ctrl-title').textContent = 'Novo processo na esteira';
+    ['fc-id','fc-num','fc-num-omis','fc-coord','fc-servico','fc-sigad','fc-siloms',
+     'fc-comgep','fc-auditoria','fc-nup','fc-bca','fc-bi','fc-9914','fc-pcdp']
+      .forEach(k => { const e = g(k); if (e) e.value = ''; });
+    g('fc-retorno').value = '';
+    g('fc-modalidade').value = 'Gratificação';
+    g('fc-ano').value = ANO_CORRENTE;
+    preencherEtapasModal('Gratificação', null);
   }
   atualizarCamposStatusControle();
-  document.getElementById('backdrop-controle').classList.add('open');
+  g('backdrop-controle').classList.add('open');
 }
 
 function fecharModalControle() {
@@ -3930,11 +4033,17 @@ function fecharModalControle() {
 }
 
 function atualizarCamposStatusControle() {
-  const st = document.getElementById('fc-status').value;
+  const mod = document.getElementById('fc-modalidade').value;
+  const atual = document.getElementById('fc-status').value;
+  preencherEtapasModal(mod, atual);
+
+  const fluxo = fluxoDoProcesso({ modalidade: mod });
+  const retorno = document.getElementById('fc-retorno');
+  const boxRet = retorno ? retorno.closest('.field') : null;
+  if (boxRet) boxRet.style.display = fluxo === 'gratificacao' ? 'block' : 'none';
+
   const boxAud = document.getElementById('box-fc-auditoria');
-  if (boxAud) {
-    boxAud.style.display = (st === 'Corrigir') ? 'block' : 'none';
-  }
+  if (boxAud) boxAud.style.display = (retorno && retorno.value === 'correcao') ? 'block' : 'none';
 }
 
 async function salvarControleProcesso() {
@@ -3942,28 +4051,46 @@ async function salvarControleProcesso() {
   const num_os = document.getElementById('fc-num').value.trim();
   const num_omis = document.getElementById('fc-num-omis').value.trim();
   const coordenador = document.getElementById('fc-coord').value.trim();
-  const status = document.getElementById('fc-status').value;
+  const etapa = document.getElementById('fc-status').value;
+  const modalidade = document.getElementById('fc-modalidade').value;
+  const fx = FLUXOS[fluxoDoProcesso({ modalidade })];
+  const etapaObj = fx.etapas.find(e => e.chave === etapa) || fx.etapas[0];
 
-  if (!num_os || !coordenador) {
-    alert('Informe o número da OS e o Coordenador.');
+  if (!num_os && !num_omis) {
+    alert('Informe o número da OS ou da OMIS.');
     return;
   }
+  if (!coordenador) { alert('Informe o coordenador.'); return; }
+
+  /* ao mudar de etapa manualmente, tudo que vem antes é dado por cumprido */
+  const anterior = dadosControle.find(x => String(x.id) === String(id));
+  const feitas = anterior ? concluidas(anterior) : {};
+  const alvo = fx.etapas.findIndex(e => e.chave === etapaObj.chave);
+  fx.etapas.forEach((e, i) => {
+    if (i < alvo && !feitas[e.chave]) feitas[e.chave] = new Date().toISOString();
+    if (i >= alvo) delete feitas[e.chave];
+  });
 
   const payload = {
     num_os,
     num_omis,
     ano: parseInt(document.getElementById('fc-ano').value) || 2026,
-    modalidade: document.getElementById('fc-modalidade').value,
+    modalidade,
     coordenador,
     servico_local: document.getElementById('fc-servico').value.trim(),
     sigad_numero: document.getElementById('fc-sigad').value.trim(),
     siloms_numero: document.getElementById('fc-siloms').value.trim(),
     comgep_linha: document.getElementById('fc-comgep').value.trim(),
-    status,
+    etapa: etapaObj.chave,
+    etapas_concluidas: feitas,
+    status: etapaObj.curto,
+    retorno_direns: document.getElementById('fc-retorno').value || '',
     auditoria: document.getElementById('fc-auditoria').value.trim(),
     nup: document.getElementById('fc-nup').value.trim(),
     bca_numero: document.getElementById('fc-bca').value.trim(),
     bi_numero: document.getElementById('fc-bi').value.trim(),
+    boletim_9914: document.getElementById('fc-9914').value.trim(),
+    pcdp_numero: document.getElementById('fc-pcdp').value.trim(),
     updated_at: new Date().toISOString()
   };
 
@@ -4013,100 +4140,461 @@ async function excluirControleProcesso(id) {
   toast('Registro excluído');
 }
 
+
+/* ══════════════════════════════════════════════════════════════
+   FLUXOS DA ESTEIRA — etapas reais de tramitação
+   ──────────────────────────────────────────────────────────────
+   Cada modalidade tem sua própria linha do tempo. A etapa corrente
+   fica em `etapa`; `etapas_concluidas` guarda a data de conclusão
+   de cada uma, o que dá o histórico do processo sem tabela extra.
+
+   Tipos de marcação numa etapa:
+     paralela  — tarefa que corre junto, fora da linha principal
+     ramo      — bifurcação de resultado (aprovado / correção)
+     anexos    — checklist de documentos a juntar ao processo
+   ══════════════════════════════════════════════════════════════ */
+
+const FLUXOS = {
+  gratificacao: {
+    rotulo: 'Gratificação de Representação',
+    etapas: [
+      { chave: 'p1_docs', curto: 'OMIS / OS / Autorização', titulo: 'Confeccionar e solicitar assinatura de OMIS, OS e Doc de Autorização',
+        desc: 'Os três documentos saem do módulo e vão para assinatura no SILOMS.' },
+      { chave: 'p2_oficio', curto: 'Ofício DIRENS', titulo: 'Confeccionar Ofício para a DIRENS',
+        desc: 'Anexar ao ofício os documentos assinados do passo anterior.' },
+      { chave: 'p3_despacho', curto: 'Despacho ACI', titulo: 'Despacho do Ofício da DIRENS para o ACI (minuta)',
+        desc: 'Minuta do despacho encaminhada ao ACI.',
+        paralela: { chave: 'comgep_lancado', rotulo: 'Inserir os dados deste documento na planilha on-line do COMGEP',
+                    campo: 'comgep_linha', campoRotulo: 'Linha' } },
+      { chave: 'p4_aguarda', curto: 'Aguarda DIRENS', titulo: 'Aguardar o processo retornar da DIRENS',
+        desc: 'Etapa de espera — nenhuma ação da secretaria.' },
+      { chave: 'p5_retorno', curto: 'Retorno DIRENS', titulo: 'Processo retornado pela DIRENS',
+        desc: 'Registre como o processo voltou.',
+        ramo: { campo: 'retorno_direns',
+                opcoes: [ { valor: 'aprovado', rotulo: '✔ Retornou aprovado' },
+                          { valor: 'correcao', rotulo: '⚠ Retornou para correção' } ] } },
+      { chave: 'p6_anexos', curto: 'Anexar docs', titulo: 'Anexar ao processo os documentos do retorno',
+        desc: 'Sem os três itens abaixo o processo não segue ao ACI.',
+        anexos: [
+          { chave: 'item_9914', rotulo: 'Item 9914 publicado', campo: 'boletim_9914', campoRotulo: 'Nº do Boletim' },
+          { chave: 'ficha_retorno', rotulo: 'Ficha de Apresentação por Retorno de Missão assinada', militar: true },
+          { chave: 'print_4487', rotulo: 'Print do Item 4487 confeccionado' }
+        ] },
+      { chave: 'p7_remeter', curto: 'Remeter ao ACI', titulo: 'Remeter o processo com os anexos ao ACI',
+        desc: 'Processo completo segue para o ACI.' },
+      { chave: 'p8_aguarda_aci', curto: 'Aguarda ACI', titulo: 'Aguardando aprovação do ACI para publicação do pagamento',
+        desc: 'Etapa de espera — acompanhar a publicação.' },
+      { chave: 'p9_arquivar', curto: 'Arquivar', titulo: 'Anexar Item 4487 publicado e arquivar',
+        desc: 'Encerramento do processo.',
+        anexos: [ { chave: 'item_4487_pub', rotulo: 'Item 4487 publicado', campo: 'bi_numero', campoRotulo: 'Nº do BI' } ] }
+    ]
+  },
+
+  diaria: {
+    rotulo: 'Diária de Viagem',
+    etapas: [
+      { chave: 'd1_omis', curto: 'OMIS', titulo: 'Confeccionar e solicitar assinatura de OMIS',
+        desc: 'A OMIS sai do módulo e vai para assinatura.' },
+      { chave: 'd2_onix', curto: 'ONIX', titulo: 'Estruturar o processo no Sistema ONIX',
+        desc: 'Abertura do processo de diária no ONIX.',
+        paralela: { chave: 'da_lancado', rotulo: 'Inserir a solicitação de diária na planilha da DA' } },
+      { chave: 'd3_baixar', curto: 'Baixar OS/FACD/SAD', titulo: 'Baixar no ONIX a OS, a FACD e a SAD',
+        desc: 'Os três documentos gerados pelo ONIX.' },
+      { chave: 'd4_numerar', curto: 'Numerar', titulo: 'Editar a numeração da OS, da FACD e da SAD',
+        desc: 'Ajustar a numeração conforme a série da Divisão de Ensino.' },
+      { chave: 'd5_siloms', curto: 'Inserir SILOMS', titulo: 'Inserir OS, FACD e SAD no SILOMS',
+        desc: 'Protocolo dos três documentos para assinatura.' },
+      { chave: 'd6_assin', curto: 'Aguarda assinaturas', titulo: 'Aguardando assinaturas no SILOMS',
+        desc: 'Etapa de espera — acompanhar o protocolo.' },
+      { chave: 'd7_ficha', curto: 'Ficha de retorno', titulo: 'Ficha de Apresentação por Retorno de Missão assinada',
+        desc: 'O militar confecciona e anexa pelo portal de retorno.',
+        anexos: [ { chave: 'ficha_retorno', rotulo: 'Ficha de Apresentação por Retorno de Missão assinada', militar: true } ] },
+      { chave: 'd8_scdp', curto: 'Cadastro SCDP', titulo: 'Confeccionar o cadastro da viagem no SCDP',
+        desc: 'Cadastro da viagem no sistema de concessão de diárias.' },
+      { chave: 'd9_anexar', curto: 'Anexar no SILOMS', titulo: 'Anexar os documentos assinados no SILOMS',
+        desc: 'OS, FACD, SAD e Ficha de Apresentação por Retorno de Missão.' },
+      { chave: 'd10_encaminhar', curto: 'Encaminhar SCDP', titulo: 'Encaminhar o processo no SCDP',
+        desc: 'O encaminhamento gera o número PCDP.',
+        anexos: [ { chave: 'pcdp', rotulo: 'Número PCDP gerado', campo: 'pcdp_numero', campoRotulo: 'PCDP' } ] },
+      { chave: 'd11_pagamento', curto: 'Pagamento', titulo: 'Acompanhar a efetivação do pagamento ao militar',
+        desc: 'Encerramento do processo.' }
+    ]
+  },
+
+  sem_custo: {
+    rotulo: 'Sem custo (apenas OMIS)',
+    etapas: [
+      { chave: 's1_omis', curto: 'OMIS', titulo: 'Confeccionar e solicitar assinatura da OMIS',
+        desc: 'Missão sem pagamento — o processo se encerra na OMIS assinada.' },
+      { chave: 's2_assin', curto: 'Aguarda assinatura', titulo: 'Aguardando assinatura no SILOMS', desc: '' },
+      { chave: 's3_arquivar', curto: 'Arquivar', titulo: 'Arquivar o processo', desc: '' }
+    ]
+  }
+};
+
+function fluxoDoProcesso(c) {
+  const m = String(c.modalidade || '').toLowerCase();
+  if (m.includes('diária') || m.includes('diaria')) return 'diaria';
+  if (m.includes('sem custo')) return 'sem_custo';
+  return 'gratificacao';
+}
+
+function etapasDoProcesso(c) {
+  return FLUXOS[fluxoDoProcesso(c)].etapas;
+}
+
+function indiceEtapa(c) {
+  const etapas = etapasDoProcesso(c);
+  const i = etapas.findIndex(e => e.chave === c.etapa);
+  return i >= 0 ? i : 0;
+}
+
+function concluidas(c) {
+  if (!c.etapas_concluidas) return {};
+  if (typeof c.etapas_concluidas === 'string') {
+    try { return JSON.parse(c.etapas_concluidas); } catch (e) { return {}; }
+  }
+  return c.etapas_concluidas;
+}
+
+/* A ficha de apresentação é anexada pelo militar no portal de retorno;
+   o dado vive na missão, não na esteira. */
+function fichaDoMilitar(c) {
+  const m = (dadosGratificacao || []).find(g =>
+    (c.missao_id && String(g.id) === String(c.missao_id)) ||
+    (!c.missao_id && g.num_os === c.num_os && Number(g.ano) === Number(c.ano)));
+  return m && m.pdf_retorno_assinado ? m.pdf_retorno_assinado : null;
+}
+
+function estadoProcesso(c) {
+  const etapas = etapasDoProcesso(c);
+  const i = indiceEtapa(c);
+  const feitas = concluidas(c);
+  if (c.retorno_direns === 'correcao' && !feitas[etapas[i] && etapas[i].chave]) return 'correcao';
+  if (i >= etapas.length - 1 && feitas[etapas[etapas.length - 1].chave]) return 'concluido';
+  const etapa = etapas[i] || {};
+  if (/aguard/i.test(etapa.titulo || '')) return 'parado';
+  return 'andamento';
+}
+
+let procExpandidos = new Set();
+
+function alternarProc(id) {
+  if (procExpandidos.has(String(id))) procExpandidos.delete(String(id));
+  else procExpandidos.add(String(id));
+  const el = document.getElementById('proc-' + id);
+  if (el) el.classList.toggle('aberta', procExpandidos.has(String(id)));
+}
+
+function expandirTodosProc(abrir) {
+  document.querySelectorAll('.proc').forEach(el => {
+    const id = el.dataset.id;
+    if (abrir) procExpandidos.add(id); else procExpandidos.delete(id);
+    el.classList.toggle('aberta', abrir);
+  });
+}
+
+/* ── mutações de etapa ── */
+async function irParaEtapa(id, chave) {
+  const c = dadosControle.find(x => String(x.id) === String(id));
+  if (!c) return;
+  const etapas = etapasDoProcesso(c);
+  const alvo = etapas.findIndex(e => e.chave === chave);
+  if (alvo < 0) return;
+
+  /* tudo que vem antes da etapa escolhida é dado por cumprido */
+  const feitas = concluidas(c);
+  etapas.forEach((e, i) => { if (i < alvo && !feitas[e.chave]) feitas[e.chave] = new Date().toISOString(); });
+  etapas.forEach((e, i) => { if (i >= alvo) delete feitas[e.chave]; });
+
+  c.etapa = chave;
+  c.etapas_concluidas = feitas;
+  c.status = etapas[alvo].curto;
+  await persistirProcesso(c, { etapa: c.etapa, etapas_concluidas: feitas, status: c.status });
+  renderControle();
+}
+
+async function concluirEtapa(id) {
+  const c = dadosControle.find(x => String(x.id) === String(id));
+  if (!c) return;
+  const etapas = etapasDoProcesso(c);
+  const i = indiceEtapa(c);
+  const feitas = concluidas(c);
+  feitas[etapas[i].chave] = new Date().toISOString();
+
+  const prox = Math.min(i + 1, etapas.length - 1);
+  c.etapa = etapas[prox].chave;
+  c.etapas_concluidas = feitas;
+  c.status = etapas[prox].curto;
+  await persistirProcesso(c, { etapa: c.etapa, etapas_concluidas: feitas, status: c.status });
+  renderControle();
+  toast(i === etapas.length - 1 ? 'Processo concluído' : `Avançou para: ${etapas[prox].curto}`);
+}
+
+async function alternarParalela(id, campo) {
+  const c = dadosControle.find(x => String(x.id) === String(id));
+  if (!c) return;
+  c[campo] = !c[campo];
+  await persistirProcesso(c, { [campo]: c[campo] });
+  renderControle();
+}
+
+async function alternarAnexo(id, chave) {
+  const c = dadosControle.find(x => String(x.id) === String(id));
+  if (!c) return;
+  const marcados = Array.isArray(c.anexos_ok) ? c.anexos_ok.slice()
+                 : (typeof c.anexos_ok === 'string' ? JSON.parse(c.anexos_ok || '[]') : []);
+  const i = marcados.indexOf(chave);
+  if (i >= 0) marcados.splice(i, 1); else marcados.push(chave);
+  c.anexos_ok = marcados;
+  await persistirProcesso(c, { anexos_ok: marcados });
+  renderControle();
+}
+
+async function definirRamo(id, campo, valor) {
+  const c = dadosControle.find(x => String(x.id) === String(id));
+  if (!c) return;
+  c[campo] = (c[campo] === valor) ? '' : valor;
+  await persistirProcesso(c, { [campo]: c[campo] });
+  renderControle();
+}
+
+async function gravarCampoProcesso(id, campo, valor) {
+  const c = dadosControle.find(x => String(x.id) === String(id));
+  if (!c) return;
+  c[campo] = valor;
+  await persistirProcesso(c, { [campo]: valor });
+}
+
+async function persistirProcesso(c, patch) {
+  gravarCacheControle();
+  if (!configurado || c._local || String(c.id).startsWith('ctrl_')) return;
+  try {
+    const { error } = await sb.from('controle_os_processos').update(patch).eq('id', c.id);
+    if (error) throw error;
+  } catch (e) {
+    ultimoErroEsteira = e;
+    console.error('Falha ao gravar a etapa:', e);
+    toast('Etapa alterada na tela, mas não gravada no servidor.', true);
+  }
+}
+
+/* ── trilho compacto ── */
+function trilhoCompacto(c) {
+  const etapas = etapasDoProcesso(c);
+  const atual = indiceEtapa(c);
+  const feitas = concluidas(c);
+  const correcao = c.retorno_direns === 'correcao';
+
+  const pecas = [];
+  etapas.forEach((e, i) => {
+    const feito = !!feitas[e.chave];
+    let cls = feito ? 'feito' : (i === atual ? 'atual' : '');
+    if (i === atual && correcao) cls = 'alerta';
+    const marca = e.paralela && c[e.paralela.chave]
+      ? '<span class="trilho-marca" title="Tarefa em paralelo concluída"></span>' : '';
+
+    pecas.push(`<div class="trilho-no ${cls}">
+        ${marca}
+        <div class="trilho-bola" title="${esc(e.titulo)}" onclick="event.stopPropagation();irParaEtapa('${c.id}','${e.chave}')">${feito ? '\u2713' : i + 1}</div>
+        <div class="trilho-rotulo">${esc(e.curto)}</div>
+      </div>`);
+
+    if (i < etapas.length - 1) {
+      pecas.push(`<div class="trilho-tra ${i < atual ? 'feito' : ''}"></div>`);
+    }
+  });
+  return `<div class="trilho"><div class="trilho-linha">${pecas.join('')}</div></div>`;
+}
+
+/* ── linha do tempo detalhada ── */
+function linhaDoTempo(c) {
+  const etapas = etapasDoProcesso(c);
+  const atual = indiceEtapa(c);
+  const feitas = concluidas(c);
+  const marcados = Array.isArray(c.anexos_ok) ? c.anexos_ok
+                 : (typeof c.anexos_ok === 'string' ? (JSON.parse(c.anexos_ok || '[]')) : []);
+  const pdfFicha = fichaDoMilitar(c);
+
+  return `<ul class="tl">` + etapas.map((e, i) => {
+    const feito = !!feitas[e.chave];
+    const ehAtual = i === atual;
+    let cls = feito ? 'feito' : (ehAtual ? 'atual' : 'pendente');
+    if (ehAtual && c.retorno_direns === 'correcao') cls = 'alerta';
+
+    let extra = '';
+
+    if (e.paralela) {
+      const ok = !!c[e.paralela.chave];
+      extra += `<div class="tl-ramo ${ok ? 'ok' : ''}">
+          <span class="cx" style="width:16px;height:16px;border-radius:4px;border:1.5px solid ${ok ? 'var(--green-500)' : 'var(--ceu)'};background:${ok ? 'var(--green-500)' : 'transparent'};color:var(--navy-0);display:flex;align-items:center;justify-content:center;font-size:.62rem;cursor:pointer"
+                onclick="alternarParalela('${c.id}','${e.paralela.chave}')">${ok ? '✓' : ''}</span>
+          <span><b>Em paralelo:</b> ${esc(e.paralela.rotulo)}</span>
+          ${e.paralela.campo ? `<input class="mini" style="width:120px;padding:.25rem .45rem;border-radius:6px;border:1px solid var(--navy-200);background:rgba(6,13,29,.6);color:var(--navy-900);font-family:var(--f-mono);font-size:.7rem;margin-left:auto"
+             placeholder="${esc(e.paralela.campoRotulo)}" value="${esc(c[e.paralela.campo] || '')}"
+             onchange="gravarCampoProcesso('${c.id}','${e.paralela.campo}',this.value)" />` : ''}
+        </div>`;
+    }
+
+    if (e.ramo) {
+      const v = c[e.ramo.campo] || '';
+      extra += `<div class="tl-ramificacao">` + e.ramo.opcoes.map(o =>
+        `<div class="tl-opcao ${o.valor} ${v === o.valor ? 'on' : ''}"
+              onclick="definirRamo('${c.id}','${e.ramo.campo}','${o.valor}')">${esc(o.rotulo)}</div>`).join('') + `</div>`;
+      if (v === 'correcao') {
+        extra += `<div class="tl-ramo" style="border-left-color:var(--red-500);background:rgba(224,90,90,.08)">
+            <span><b style="color:var(--red-500)">Pendências:</b></span>
+            <input class="mini" style="flex:1;min-width:160px;padding:.25rem .45rem;border-radius:6px;border:1px solid var(--navy-200);background:rgba(6,13,29,.6);color:var(--navy-900);font-size:.7rem"
+              placeholder="O que a DIRENS pediu para corrigir" value="${esc(c.auditoria || '')}"
+              onchange="gravarCampoProcesso('${c.id}','auditoria',this.value)" />
+          </div>`;
+      }
+    }
+
+    if (e.anexos) {
+      extra += `<div class="tl-anexos">` + e.anexos.map(a => {
+        if (a.militar) {
+          const temPdf = !!pdfFicha;
+          return `<div class="tl-anexo ${temPdf ? 'ok' : ''}">
+              <span class="cx">${temPdf ? '✓' : ''}</span>
+              <span>${esc(a.rotulo)}</span>
+              ${temPdf
+                ? `<a class="aviso-militar sim" target="_blank" href="${urlPdf(pdfFicha)}" style="text-decoration:none">✔ militar já anexou — abrir</a>`
+                : `<span class="aviso-militar nao">⏳ o militar ainda não anexou</span>`}
+            </div>`;
+        }
+        const ok = marcados.includes(a.chave);
+        return `<div class="tl-anexo ${ok ? 'ok' : ''}">
+            <span class="cx" onclick="alternarAnexo('${c.id}','${a.chave}')">${ok ? '✓' : ''}</span>
+            <span>${esc(a.rotulo)}</span>
+            ${a.campo ? `<input class="mini" placeholder="${esc(a.campoRotulo)}" value="${esc(c[a.campo] || '')}"
+               onchange="gravarCampoProcesso('${c.id}','${a.campo}',this.value)" />` : ''}
+          </div>`;
+      }).join('') + `</div>`;
+    }
+
+    const acoes = ehAtual
+      ? `<div class="tl-acoes">
+           <button class="btn-doc gold" onclick="concluirEtapa('${c.id}')">✓ Concluir e avançar</button>
+           ${i > 0 ? `<button class="btn-doc" onclick="irParaEtapa('${c.id}','${etapas[i - 1].chave}')">↩ Voltar uma etapa</button>` : ''}
+         </div>`
+      : (feito ? '' : `<div class="tl-acoes"><button class="btn-doc" onclick="irParaEtapa('${c.id}','${e.chave}')">Ir para esta etapa</button></div>`);
+
+    return `<li class="tl-item ${cls}">
+        <div class="tl-bola">${feito ? '✓' : i + 1}</div>
+        <div class="tl-tit">${i + 1}. ${esc(e.titulo)}</div>
+        ${e.desc ? `<div class="tl-desc">${esc(e.desc)}</div>` : ''}
+        ${feito ? `<div class="tl-data">concluída em ${fmtDataHora(feitas[e.chave])}</div>` : ''}
+        ${extra}
+        ${acoes}
+      </li>`;
+  }).join('') + `</ul>`;
+}
+
+function fmtDataHora(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (isNaN(d)) return '—';
+  return d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+
 function renderControle() {
-  const termo = (document.getElementById('ctrl-busca') ? document.getElementById('ctrl-busca').value : '').toLowerCase().trim();
-  const statusFiltro = document.getElementById('ctrl-status-filtro') ? document.getElementById('ctrl-status-filtro').value : 'TODOS';
+  const termo = (document.getElementById('controle-busca')?.value || '').toLowerCase().trim();
+  const statusFiltro = document.getElementById('controle-filtro-status')?.value || 'TODOS';
+  const alvo = document.getElementById('lista-controle');
+  if (!alvo) return;
 
-  let lista = [...dadosControle];
+  let lista = (dadosControle || []).slice();
 
-  if (statusFiltro !== 'TODOS') {
-    lista = lista.filter(c => (c.status || 'Pendente') === statusFiltro);
-  }
+  const porEstado = { andamento: 0, parado: 0, correcao: 0, concluido: 0 };
+  lista.forEach(c => { const e = estadoProcesso(c); porEstado[e] = (porEstado[e] || 0) + 1; });
+  const set = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+  set('badge-controle-count', lista.length);
+  set('sc-total', lista.length);
+  set('sc-andamento', porEstado.andamento);
+  set('sc-parado', porEstado.parado);
+  set('sc-correcao', porEstado.correcao);
+  set('sc-concluido', porEstado.concluido);
 
+  if (statusFiltro !== 'TODOS') lista = lista.filter(c => estadoProcesso(c) === statusFiltro);
   if (termo) {
-    lista = lista.filter(c => [c.num_os, c.num_omis, c.coordenador, c.servico_local, c.sigad_numero, c.siloms_numero, c.comgep_linha, c.nup, c.bca_numero, c.auditoria].some(x => (x||'').toLowerCase().includes(termo)));
+    lista = lista.filter(c => [c.num_os, c.num_omis, c.coordenador, c.servico_local,
+      c.sigad_numero, c.siloms_numero, c.nup, c.militares_resumo, c.pcdp_numero]
+      .some(x => (x || '').toLowerCase().includes(termo)));
   }
 
-  document.getElementById('badge-controle-count').textContent = dadosControle.length;
-  document.getElementById('sc-pend').textContent = dadosControle.filter(c => c.status === 'Pendente' || c.status === 'Em Análise').length;
-  document.getElementById('sc-missao').textContent = dadosControle.filter(c => c.status === 'Missão Aprovada' || c.status === 'Apresentado' || c.status === 'Despachado').length;
-  document.getElementById('sc-corrigir').textContent = dadosControle.filter(c => c.status === 'Corrigir').length;
-  document.getElementById('sc-bca').textContent = dadosControle.filter(c => c.status === 'Aguardando BCA').length;
-  document.getElementById('sc-conf').textContent = dadosControle.filter(c => c.status === 'Confeccionado' || c.status === 'Publicado').length;
-
-  const tbody = document.getElementById('tbody-controle');
-  if (!tbody) return;
+  lista.sort((a, b) => String(b.num_os || '').localeCompare(String(a.num_os || ''), 'pt-BR', { numeric: true }));
 
   if (!lista.length) {
-    const osLancadas = (dadosGratificacao || []).length;
+    const total = (dadosGratificacao || []).length;
     const semFiltro = statusFiltro === 'TODOS' && !termo;
-    tbody.innerHTML = (semFiltro && osLancadas)
-      ? `<tr><td colspan="10" style="text-align:center;padding:2.5rem;color:var(--gray-400)">
-           Existem <b style="color:var(--gold-400)">${osLancadas} Ordens de Missão</b> lançadas, mas nenhuma chegou aqui.<br>
-           <button class="btn btn-primary" style="margin-top:1rem" onclick="ressincronizarEsteira()">🔄 Reconstruir a partir das OMIS</button>
-           <button class="btn btn-ghost" style="margin-top:1rem" onclick="diagnosticarEsteira()">🩺 Diagnóstico</button>
-         </td></tr>`
-      : `<tr><td colspan="10" style="text-align:center;padding:2.5rem;color:var(--gray-400)">Nenhum processo no controle para os filtros selecionados.</td></tr>`;
+    alvo.innerHTML = (semFiltro && total)
+      ? `<div class="empty">
+           <img src="assets/cocar-fab.png" alt="" />
+           <p>Existem <b style="color:var(--gold-400)">${total} Ordens de Missão</b> lançadas, mas nenhuma chegou aqui.</p>
+           <button class="btn btn-primary" onclick="ressincronizarEsteira()">🔄 Reconstruir a partir das OMIS</button>
+           <button class="btn btn-ghost" onclick="diagnosticarEsteira()">🩺 Diagnóstico</button>
+         </div>`
+      : `<div class="empty"><p>Nenhum processo para os filtros selecionados.</p></div>`;
     return;
   }
 
-  const marcaLocal = c => c._local
-    ? ` <span class="badge-st" style="background:rgba(224,90,90,.14);color:var(--red-500);border-color:rgba(224,90,90,.4)" title="Este processo ainda não subiu para o servidor">&#9888; fora de sincronia</span>`
-    : '';
+  alvo.innerHTML = lista.map(c => {
+    const etapas = etapasDoProcesso(c);
+    const i = indiceEtapa(c);
+    const feitas = concluidas(c);
+    const estado = estadoProcesso(c);
+    const aberta = procExpandidos.has(String(c.id)) ? ' aberta' : '';
+    const fluxo = FLUXOS[fluxoDoProcesso(c)];
+    const qtdFeitas = etapas.filter(e => feitas[e.chave]).length;
 
-  const getStatusBadge = st => {
-    switch (st) {
-      case 'Corrigir': return `<span class="badge-st st-corrigir">⚠️ Corrigir</span>`;
-      case 'Em Análise': return `<span class="badge-st st-analise">🔍 Em Análise</span>`;
-      case 'Missão Aprovada': return `<span class="badge-st st-aprovada">✈️ Missão Aprovada</span>`;
-      case 'Apresentado': return `<span class="badge-st st-apresentado">📥 Apresentado</span>`;
-      case 'Despachado': return `<span class="badge-st st-despachado">📤 Despachado</span>`;
-      case 'Aceito': return `<span class="badge-st st-aceito">✅ Aceito (NUP)</span>`;
-      case 'Aguardando BCA': return `<span class="badge-st st-aguardando-bca">⏳ Aguardando BCA</span>`;
-      case 'Confeccionado': return `<span class="badge-st st-confeccionado">📝 Confeccionado</span>`;
-      case 'Publicado': return `<span class="badge-st st-publicado">🎉 Publicado</span>`;
-      default: return `<span class="badge-st st-pendente">🕒 Pendente</span>`;
-    }
-  };
+    const selos = [];
+    selos.push(`<span class="os-badge ${estado === 'concluido' ? 'badge-paga' : 'badge-curso'}"
+                  style="${estado === 'correcao' ? 'background:rgba(224,90,90,.16);color:var(--red-500);border-color:rgba(224,90,90,.4)' : ''}">
+                  ${qtdFeitas}/${etapas.length} · ${esc(etapas[i].curto)}</span>`);
+    if (c._local) selos.push('<span class="os-badge" style="background:rgba(224,90,90,.14);color:var(--red-500);border-color:rgba(224,90,90,.4)">&#9888; fora de sincronia</span>');
+    if (c.siloms_numero) selos.push(`<span class="os-badge badge-siloms-ok">SILOMS ${esc(c.siloms_numero)}</span>`);
+    if (fichaDoMilitar(c)) selos.push('<span class="os-badge badge-paga">&#10004; FICHA ANEXADA</span>');
 
-  tbody.innerHTML = lista.map(c => {
-    const sigadOuSiloms = [
-      c.sigad_numero ? `SIGAD: <b>${esc(c.sigad_numero)}</b>` : '',
-      c.siloms_numero ? `SILOMS: <b>${esc(c.siloms_numero)}</b>` : '',
-      c.comgep_linha ? `<small style="color:var(--gold-500);font-weight:700">COMGEP: ${esc(c.comgep_linha)}</small>` : ''
-    ].filter(Boolean).join('<br>') || '—';
-
-    const linkPdfRetorno = c.pdf_retorno_assinado 
-      ? `<br><a href="${urlPdf(c.pdf_retorno_assinado)}" target="_blank" style="display:inline-flex;align-items:center;gap:3px;font-size:.68rem;color:var(--green-500);font-weight:700;margin-top:4px">📄 PDF Gov.br</a>`
-      : '';
+    const campos = [
+      ['SIGADAER', c.sigad_numero], ['NUP', c.nup], ['SILOMS', c.siloms_numero],
+      ['Linha COMGEP', c.comgep_linha], ['Boletim 9914', c.boletim_9914],
+      ['BCA', c.bca_numero], ['BI', c.bi_numero], ['PCDP', c.pcdp_numero]
+    ].filter(([, v]) => v && String(v).trim());
 
     return `
-    <tr>
-      <td><b>OS ${esc(c.num_os)}</b>${marcaLocal(c)}${c.num_omis ? `<br><small style="color:var(--gold-500);font-weight:700">OMIS: ${esc(c.num_omis)}</small>` : ''}</td>
-      <td><span class="os-badge badge-futura">${esc(c.modalidade || 'Gratificação')}</span></td>
-      <td><b>${esc(c.coordenador)}</b><br><small style="color:var(--gray-400)">${esc(c.militares_resumo || '')}</small></td>
-      <td>${fmtData(c.periodo_inicio)} → ${fmtData(c.periodo_fim)}<br><small style="color:var(--gray-500)">${esc(c.servico_local || '—')}</small></td>
-      <td><span style="font-family:var(--f-mono);font-size:.76rem">${sigadOuSiloms}</span></td>
-      <td>${getStatusBadge(c.status)}${linkPdfRetorno}</td>
-      <td><span style="font-family:var(--f-mono);font-size:.76rem;color:#1e40af">${esc(c.nup || '—')}</span></td>
-      <td><span style="font-family:var(--f-mono);font-size:.76rem;color:#6b21a8">${esc(c.bca_numero || '—')}</span></td>
-      <td><small style="color:${c.status==='Corrigir'?'var(--red-500)':'var(--gray-500)'};font-weight:${c.status==='Corrigir'?'700':'400'}">${esc(c.auditoria || '—')}</small></td>
-      <td style="text-align:right;white-space:nowrap">
-        <button class="icon-btn" onclick="abrirModalControle('${c.id}')" title="Editar / Corrigir processo na esteira"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></button>
-        <button class="icon-btn del" onclick="excluirControleProcesso('${c.id}')" title="Excluir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>
-      </td>
-    </tr>
-  `;}).join('');
+    <article class="proc ${estado}${aberta}" id="proc-${c.id}" data-id="${c.id}">
+      <div class="proc-head" onclick="alternarProc('${c.id}')">
+        <div class="proc-caret">&#9654;</div>
+        <div class="proc-num">${c.num_os ? 'OS ' + esc(c.num_os) : 'sem OS'}<small>${c.num_omis ? 'OMIS ' + esc(c.num_omis) : 'sem OMIS'} &middot; ${esc(fluxo.rotulo)}</small></div>
+        <div class="proc-resumo">
+          <div class="tit">${esc(c.servico_local || '—')}</div>
+          <div class="sub">${esc(c.coordenador || '—')}</div>
+        </div>
+        <div class="proc-selos">${selos.join('')}</div>
+      </div>
+
+      ${trilhoCompacto(c)}
+
+      <div class="proc-corpo">
+        ${linhaDoTempo(c)}
+        ${campos.length ? `<div class="proc-campos">${campos.map(([k, v]) =>
+          `<div class="proc-campo"><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</div>` : ''}
+        <div class="tl-acoes" style="margin-top:.9rem">
+          <button class="btn-doc" onclick="abrirModalControle('${c.id}')">&#9998; Editar dados do processo</button>
+          <button class="btn-doc" style="color:var(--red-500);border-color:rgba(224,90,90,.35)" onclick="excluirControleProcesso('${c.id}')">&#128465; Excluir da esteira</button>
+        </div>
+      </div>
+    </article>`;
+  }).join('');
 }
+
 
 /* ══════════════════════════════════════════════════════════════
    DIAGNÓSTICO E RECONSTRUÇÃO DA ESTEIRA
-   ──────────────────────────────────────────────────────────────
    Um erro do Postgres num toast some antes de ser lido. Aqui ele
    fica na tela, com código, mensagem, detalhe e dica.
    ══════════════════════════════════════════════════════════════ */
-
-let ultimoErroEsteira = null;
 
 function painelEsteira(html, cor) {
   const box = document.getElementById('esteira-diag');
@@ -4132,18 +4620,13 @@ function painelEsteira(html, cor) {
 
 function formatarErroSb(e) {
   if (!e) return '<i>sem detalhe</i>';
-  const campos = [
-    ['código',  e.code],
-    ['mensagem', e.message],
-    ['detalhe', e.details],
-    ['dica',    e.hint]
-  ].filter(([, v]) => v);
+  const campos = [['código', e.code], ['mensagem', e.message], ['detalhe', e.details], ['dica', e.hint]]
+    .filter(([, v]) => v);
   return `<div style="font-family:var(--f-mono);font-size:.72rem;background:rgba(6,13,29,.5);border-radius:8px;padding:.6rem .75rem;margin-top:.5rem">
     ${campos.map(([k, v]) => `<div><b>${k}:</b> ${esc(String(v))}</div>`).join('')}
   </div>`;
 }
 
-/* Sonda a tabela: leitura, escrita e remoção do registro de teste. */
 async function diagnosticarEsteira() {
   if (!configurado) { painelEsteira('Supabase não configurado neste arquivo.', 'erro'); return; }
   painelEsteira('🩺 Testando a tabela <b>controle_os_processos</b>…', 'info');
@@ -4151,39 +4634,31 @@ async function diagnosticarEsteira() {
   const partes = [];
   let falhou = false;
 
-  /* 1 — leitura */
   const leitura = await sb.from('controle_os_processos').select('*').limit(1);
   if (leitura.error) {
     falhou = true;
     partes.push(`<b>❌ Leitura falhou.</b>${formatarErroSb(leitura.error)}`);
   } else {
-    partes.push(`<b>✅ Leitura ok.</b> A tabela existe e o anon key consegue ler.`);
+    partes.push('<b>✅ Leitura ok.</b> A tabela existe e o anon key consegue ler.');
     const cols = leitura.data && leitura.data[0] ? Object.keys(leitura.data[0]) : null;
     if (cols) {
-      partes.push(`Colunas encontradas: <span style="font-family:var(--f-mono);font-size:.72rem">${cols.join(', ')}</span>`);
-      const faltando = ['ano','num_omis','modalidade','coordenador','servico_local','status']
-        .filter(c => !cols.includes(c));
+      partes.push(`Colunas: <span style="font-family:var(--f-mono);font-size:.72rem">${cols.join(', ')}</span>`);
+      const precisa = ['missao_id','etapa','etapas_concluidas','retorno_direns',
+                       'comgep_lancado','da_lancado','anexos_ok','boletim_9914','pcdp_numero'];
+      const faltando = precisa.filter(c => !cols.includes(c));
       if (faltando.length) {
         falhou = true;
-        partes.push(`<b>⚠️ Colunas ausentes:</b> <span style="font-family:var(--f-mono)">${faltando.join(', ')}</span> — o módulo grava esses campos.`);
-      }
-      if (!cols.includes('missao_id')) {
-        falhou = true;
-        partes.push(`<b>⚠️ Falta a coluna <span style="font-family:var(--f-mono)">missao_id</span>.</b> Sem ela, processos com numeração duplicada se sobrescrevem na esteira. Rode o SQL da v2.3.`);
-      }
-      if (!cols.includes('created_at')) {
-        partes.push(`<b>⚠️</b> A tabela não tem <span style="font-family:var(--f-mono)">created_at</span>. A leitura já contorna isso, mas vale acrescentar.`);
+        partes.push(`<b>⚠️ Faltam colunas da linha do tempo:</b> <span style="font-family:var(--f-mono)">${faltando.join(', ')}</span> — rode o SQL da v2.5.`);
       }
     } else {
-      partes.push(`A tabela está vazia — não dá para inspecionar as colunas por aqui.`);
+      partes.push('A tabela está vazia — não dá para inspecionar as colunas por aqui.');
     }
   }
 
-  /* 2 — escrita (insere e remove) */
   const sonda = {
     ano: 1900, num_os: '__DIAGNOSTICO__', num_omis: '__DIAGNOSTICO__',
     modalidade: 'Gratificação', coordenador: 'Teste', militares_resumo: 'Teste',
-    servico_local: 'Registro de diagnóstico — pode apagar', status: 'Pendente',
+    servico_local: 'Registro de diagnóstico — pode apagar', status: 'Teste',
     auditoria: '', sigad_numero: '', siloms_numero: '', comgep_linha: '',
     nup: '', bca_numero: '', bi_numero: '',
     periodo_inicio: '1900-01-01', periodo_fim: '1900-01-01'
@@ -4193,42 +4668,35 @@ async function diagnosticarEsteira() {
     falhou = true;
     partes.push(`<b>❌ Escrita falhou.</b> É por isso que as OMIS não chegam na esteira.${formatarErroSb(escrita.error)}`);
     const c = escrita.error.code;
-    if (c === '42501') partes.push(`<b>Causa provável:</b> RLS. A tabela tem Row Level Security ligada sem policy de INSERT para o papel <span style="font-family:var(--f-mono)">anon</span>.`);
-    else if (c === '23502') partes.push(`<b>Causa provável:</b> alguma coluna NOT NULL sem valor padrão. Veja o campo "detalhe" acima.`);
-    else if (c === '42703') partes.push(`<b>Causa provável:</b> o módulo está gravando uma coluna que não existe na tabela.`);
-    else if (c === '22P02' || c === '23505') partes.push(`<b>Causa provável:</b> tipo ou chave do <span style="font-family:var(--f-mono)">id</span>. Confirme que a coluna tem <span style="font-family:var(--f-mono)">DEFAULT gen_random_uuid()</span>.`);
+    if (c === '42501') partes.push('<b>Causa provável:</b> RLS sem policy de INSERT para o papel <span style="font-family:var(--f-mono)">anon</span>.');
+    else if (c === '23502') partes.push('<b>Causa provável:</b> coluna NOT NULL sem valor padrão — veja o "detalhe" acima.');
+    else if (c === '42703') partes.push('<b>Causa provável:</b> o módulo grava uma coluna que não existe na tabela.');
+    else if (c === '22P02' || c === '23505') partes.push('<b>Causa provável:</b> tipo ou chave do <span style="font-family:var(--f-mono)">id</span>. Confirme o <span style="font-family:var(--f-mono)">DEFAULT gen_random_uuid()</span>.');
   } else {
     partes.push(`<b>✅ Escrita ok.</b> id gerado pelo banco: <span style="font-family:var(--f-mono);font-size:.72rem">${esc(String(escrita.data.id))}</span>`);
     const limpeza = await sb.from('controle_os_processos').delete().eq('id', escrita.data.id);
     partes.push(limpeza.error
       ? `<b>⚠️ Não consegui remover o registro de teste.</b> Apague a linha com num_os = __DIAGNOSTICO__.${formatarErroSb(limpeza.error)}`
-      : `<b>✅ Remoção ok.</b> O registro de teste foi apagado.`);
+      : '<b>✅ Remoção ok.</b> O registro de teste foi apagado.');
   }
 
   if (!falhou) {
     partes.push(`<hr style="border:none;border-top:1px dashed currentColor;opacity:.3;margin:.7rem 0">
-      A tabela responde a tudo. Se mesmo assim as OMIS não aparecem, use <b>🔄 Reconstruir a partir das OMIS</b> — ele cria as linhas que faltam para as missões já lançadas.`);
+      A tabela responde a tudo. Se ainda assim faltarem processos, use <b>🔄 Reconstruir a partir das OMIS</b>.`);
   }
-
   painelEsteira(partes.join('<br>'), falhou ? 'erro' : 'ok');
 }
 
-/* Cria na esteira uma linha para cada OMIS com OS que ainda não tenha. */
 async function ressincronizarEsteira() {
-  const ano = Number(document.getElementById('omis-ano')?.value) || ANO_CORRENTE;
   const todas = (dadosGratificacao || []).filter(g => g.id);
-
   if (!todas.length) {
     painelEsteira('Não há nenhuma Ordem de Missão lançada para enviar à esteira.', 'aviso');
     return;
   }
 
-  /* chave por id da missão; a chave antiga (ano+num_os) fica como
-     compatibilidade para as linhas gravadas antes desta versão */
   const porId = new Set(dadosControle.filter(c => c.missao_id).map(c => String(c.missao_id)));
   const porNum = new Set(dadosControle.filter(c => !c.missao_id).map(c => `${c.ano}|${c.num_os}`));
-  const faltantes = todas.filter(g =>
-    !porId.has(String(g.id)) && !porNum.has(`${g.ano}|${g.num_os}`));
+  const faltantes = todas.filter(g => !porId.has(String(g.id)) && !porNum.has(`${g.ano}|${g.num_os}`));
 
   if (!faltantes.length) {
     painelEsteira(`Nada a fazer: as ${todas.length} Ordens de Missão já constam na esteira.`, 'ok');
@@ -4249,14 +4717,13 @@ async function ressincronizarEsteira() {
   renderControle();
 
   if (!erros.length) {
-    painelEsteira(`<b>✅ ${ok} processo(s) enviados para a esteira.</b> A aba passa a refletir todas as ${todas.length} Ordens de Missão.`, 'ok');
+    painelEsteira(`<b>✅ ${ok} processo(s) enviados.</b> A esteira passa a refletir todas as ${todas.length} Ordens de Missão.`, 'ok');
   } else {
     painelEsteira(
       `<b>${ok} enviado(s), ${erros.length} com falha.</b><br>` +
       `Não foi possível gravar: <span style="font-family:var(--f-mono);font-size:.72rem">${erros.map(e => esc(String(e.ref))).join(', ')}</span>` +
       formatarErroSb(erros[0].erro) +
-      `<br>Rode o <b>🩺 Diagnóstico</b> para identificar a causa na tabela.`,
-      'erro');
+      `<br>Rode o <b>🩺 Diagnóstico</b> para identificar a causa.`, 'erro');
   }
 }
 
