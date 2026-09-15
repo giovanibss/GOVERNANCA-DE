@@ -779,6 +779,643 @@ const CompiladorDoc = (function() {
   }
 
   // ══════════════════════════════════════════════════════════════
+  // 5. MOTOR DE PDF NATIVO (pdf-lib)
+  //    ──────────────────────────────────────────────────────────
+  //    Os documentos de apresentação por retorno vão para assinatura
+  //    no GOV.BR, que só aceita PDF. Gerar HTML e pedir "imprimir em
+  //    PDF" obriga o militar a passar pelo diálogo de impressão — que
+  //    no celular nem sempre existe. Aqui o arquivo já nasce PDF A4
+  //    vetorial, pronto para assinar e subir.
+  // ══════════════════════════════════════════════════════════════
+
+  const PDFLIB_CDN = 'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js';
+
+  let promessaPdfLib = null;
+  function garantirPdfLib() {
+    if (window.PDFLib) return Promise.resolve(window.PDFLib);
+    if (promessaPdfLib) return promessaPdfLib;
+    promessaPdfLib = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = PDFLIB_CDN;
+      s.async = true;
+      s.onload = () => window.PDFLib
+        ? resolve(window.PDFLib)
+        : reject(new Error('pdf-lib carregou mas não inicializou'));
+      s.onerror = () => reject(new Error('Falha ao carregar a biblioteca de PDF (pdf-lib). Verifique a conexão.'));
+      document.head.appendChild(s);
+    });
+    return promessaPdfLib;
+  }
+
+  /* As fontes padrão do PDF usam WinAnsi, que cobre todo o Latin-1 —
+     acentos do português inclusive — mas estoura em aspas tipográficas,
+     travessão longo e reticências. Um único caractere fora da tabela
+     derruba a geração inteira, então normalizamos antes de desenhar. */
+  const MAPA_WINANSI = {
+    '\u2018': "'", '\u2019': "'", '\u201A': "'", '\u201B': "'",
+    '\u201C': '"', '\u201D': '"', '\u201E': '"',
+    '\u2013': '-', '\u2014': '-', '\u2015': '-', '\u2212': '-',
+    '\u2026': '...', '\u00A0': ' ', '\u2022': '-',
+    '\u2039': '<', '\u203A': '>', '\u02C6': '^', '\u02DC': '~',
+    '\u2122': 'TM', '\u20AC': 'EUR', '\u2265': '>=', '\u2264': '<='
+  };
+
+  function san(txt) {
+    if (txt === null || txt === undefined) return '';
+    let out = '';
+    for (const ch of String(txt)) {
+      if (MAPA_WINANSI[ch] !== undefined) { out += MAPA_WINANSI[ch]; continue; }
+      if (ch === '\n') { out += '\n'; continue; }
+      const cod = ch.codePointAt(0);
+      if (cod < 32 || (cod >= 127 && cod <= 159) || cod > 255) continue;
+      out += ch;
+    }
+    return out;
+  }
+
+  const A4 = { larg: 595.28, alt: 841.89 };
+  const MARGEM_X = 42.5;
+  const MARGEM_TOPO = 42;
+  const MARGEM_BASE = 40;
+  const LARG_UTIL = A4.larg - MARGEM_X * 2;   /* 510,28 pt */
+
+  function preto() { return window.PDFLib.rgb(0, 0, 0); }
+  function cinzaClaro() { return window.PDFLib.rgb(0.93, 0.94, 0.96); }
+  function cinzaTexto() { return window.PDFLib.rgb(0.35, 0.35, 0.35); }
+
+  /* Fatia uma palavra nos separadores '/' e '-', mantendo o separador
+     no fim do pedaço. É o que evita "Aérea/Rodoviária" + "s" solto no
+     cabeçalho da coluna de passagens. */
+  function fatiarPorSeparador(palavra) {
+    const partes = [];
+    let atual = '';
+    for (const ch of palavra) {
+      atual += ch;
+      if (ch === '/' || ch === '-') { partes.push(atual); atual = ''; }
+    }
+    if (atual) partes.push(atual);
+    return partes;
+  }
+
+  /* Quebra de linha respeitando a largura real da fonte. Palavra maior
+     que a célula é partida primeiro em '/' ou '-' e, só em último caso,
+     no caractere — senão ela vaza a borda. */
+  function quebrarLinhas(txt, fonte, tam, largMax) {
+    const bruto = san(txt).replace(/\r/g, '');
+    const linhas = [];
+    bruto.split('\n').forEach(paragrafo => {
+      const palavras = paragrafo.split(/\s+/).filter(p => p !== '');
+      if (!palavras.length) { linhas.push(''); return; }
+      let atual = '';
+      palavras.forEach(palavra => {
+        const tentativa = atual ? atual + ' ' + palavra : palavra;
+        if (fonte.widthOfTextAtSize(tentativa, tam) <= largMax) { atual = tentativa; return; }
+        if (atual) { linhas.push(atual); atual = ''; }
+        let pedaco = '';
+        fatiarPorSeparador(palavra).forEach(parte => {
+          if (!pedaco || fonte.widthOfTextAtSize(pedaco + parte, tam) <= largMax) {
+            pedaco += parte;
+            return;
+          }
+          linhas.push(pedaco);
+          pedaco = parte;
+        });
+        /* ainda não coube: aí sim parte no caractere */
+        if (fonte.widthOfTextAtSize(pedaco, tam) > largMax) {
+          let buffer = '';
+          for (const ch of pedaco) {
+            if (buffer && fonte.widthOfTextAtSize(buffer + ch, tam) > largMax) {
+              linhas.push(buffer);
+              buffer = ch;
+            } else {
+              buffer += ch;
+            }
+          }
+          pedaco = buffer;
+        }
+        atual = pedaco;
+      });
+      if (atual) linhas.push(atual);
+    });
+    return linhas.length ? linhas : [''];
+  }
+
+  function posX(linha, fonte, tam, x, larg, alinhamento, padX) {
+    if (alinhamento === 'center') return x + (larg - fonte.widthOfTextAtSize(linha, tam)) / 2;
+    if (alinhamento === 'right')  return x + larg - padX - fonte.widthOfTextAtSize(linha, tam);
+    return x + padX;
+  }
+
+  /* Escreve um bloco de texto já quebrado. `y` é a linha de base da
+     primeira linha; devolve a linha de base da linha seguinte. */
+  function escreverBloco(page, linhas, cfg) {
+    const { x, y, larg, fonte, tam, lh, alinhamento = 'left', padX = 0, cor } = cfg;
+    let base = y;
+    linhas.forEach(linha => {
+      const opc = { x: posX(linha, fonte, tam, x, larg, alinhamento, padX), y: base, size: tam, font: fonte };
+      if (cor) opc.color = cor;
+      page.drawText(linha, opc);
+      base -= lh;
+    });
+    return base;
+  }
+
+  function escreverTexto(page, txt, cfg) {
+    const larg = cfg.larg === undefined ? LARG_UTIL : cfg.larg;
+    const linhas = quebrarLinhas(txt, cfg.fonte, cfg.tam, larg - (cfg.padX || 0) * 2);
+    return escreverBloco(page, linhas, Object.assign({}, cfg, { larg }));
+  }
+
+  /* Uma palavra em negrito no meio de um parágrafo normal (o número da
+     OS no cabeçalho da ficha). Mede a linha misturando as duas fontes
+     para que a centralização continue correta. */
+  function medirMista(linha, token, fonte, fonteToken, tam) {
+    const idx = token ? linha.indexOf(token) : -1;
+    if (idx < 0) return fonte.widthOfTextAtSize(linha, tam);
+    return fonte.widthOfTextAtSize(linha.slice(0, idx), tam)
+         + fonteToken.widthOfTextAtSize(token, tam)
+         + fonte.widthOfTextAtSize(linha.slice(idx + token.length), tam);
+  }
+
+  function escreverBlocoComToken(page, linhas, cfg) {
+    const { x, y, larg, fonte, fonteToken, tam, lh, token } = cfg;
+    let base = y;
+    linhas.forEach(linha => {
+      let px = x + (larg - medirMista(linha, token, fonte, fonteToken, tam)) / 2;
+      const idx = token ? linha.indexOf(token) : -1;
+      if (idx < 0) {
+        page.drawText(linha, { x: px, y: base, size: tam, font: fonte });
+      } else {
+        const antes = linha.slice(0, idx);
+        const depois = linha.slice(idx + token.length);
+        page.drawText(antes, { x: px, y: base, size: tam, font: fonte });
+        px += fonte.widthOfTextAtSize(antes, tam);
+        page.drawText(token, { x: px, y: base, size: tam, font: fonteToken });
+        px += fonteToken.widthOfTextAtSize(token, tam);
+        page.drawText(depois, { x: px, y: base, size: tam, font: fonte });
+      }
+      base -= lh;
+    });
+    return base;
+  }
+
+  function desenharCaixa(page, x, yTopo, larg, alt, opc) {
+    const o = opc || {};
+    const ret = {
+      x, y: yTopo - alt, width: larg, height: alt,
+      borderColor: preto(),
+      borderWidth: o.espessura === undefined ? 0.8 : o.espessura
+    };
+    if (o.fundo) ret.color = o.fundo;
+    page.drawRectangle(ret);
+  }
+
+  /* Altura que uma linha de tabela vai ocupar, sem desenhar nada —
+     usada para decidir a quebra de página antes de começar a linha. */
+  function alturaLinhaTabela(colunas, fonte, tam, lh, padY, altMin) {
+    const maxLinhas = colunas.reduce((m, c) => Math.max(
+      m, quebrarLinhas(c.texto, c.fonte || fonte, c.tam || tam, c.larg - (c.padX || 3) * 2).length), 1);
+    return Math.max(altMin || 0, maxLinhas * lh + padY * 2);
+  }
+
+  /* Desenha uma linha de tabela com bordas. Devolve o novo topo. */
+  function linhaTabela(page, cfg) {
+    const { x, yTopo, colunas, fonte, tam, lh, padY = 3, altMin = 0, fundo } = cfg;
+    const alt = alturaLinhaTabela(colunas, fonte, tam, lh, padY, altMin);
+    let cx = x;
+    colunas.forEach(c => {
+      const f = c.fonte || fonte;
+      const t = c.tam || tam;
+      const padX = c.padX === undefined ? 3 : c.padX;
+      desenharCaixa(page, cx, yTopo, c.larg, alt, { fundo: c.fundo || fundo });
+      const linhas = quebrarLinhas(c.texto, f, t, c.larg - padX * 2);
+      const bloco = linhas.length * lh;
+      let base = yTopo - (alt - bloco) / 2 - t * 0.82;
+      linhas.forEach(linha => {
+        page.drawText(linha, {
+          x: posX(linha, f, t, cx, c.larg, c.alinhamento || 'center', padX),
+          y: base, size: t, font: f
+        });
+        base -= lh;
+      });
+      cx += c.larg;
+    });
+    return yTopo - alt;
+  }
+
+  /* Barra de seção numerada do Relatório de Viagem (1. VIAGEM, 2. PROPOSTO…) */
+  function barraSecao(page, texto, cfg) {
+    const { x, yTopo, larg, fonte, tam } = cfg;
+    const alt = 14;
+    desenharCaixa(page, x, yTopo, larg, alt, { fundo: cinzaClaro() });
+    page.drawText(san(texto), { x: x + 4, y: yTopo - alt + 4.2, size: tam, font: fonte });
+    return yTopo - alt;
+  }
+
+  function mesCapitalizado(iso) {
+    const txt = dataPorExtenso(iso);
+    return txt.replace(/ de ([a-zç]+) de /i, (todo, mes) =>
+      ' de ' + mes.charAt(0).toUpperCase() + mes.slice(1) + ' de ');
+  }
+
+  function nomeArquivoSeguro(txt) {
+    return String(txt || '').replace(/[\\/:*?"<>|]/g, '-').replace(/\s+/g, ' ').trim();
+  }
+
+  async function salvarPdf(pdfDoc, nomeArquivo, baixar) {
+    const bytes = await pdfDoc.save();
+    const blob = new Blob([bytes], { type: 'application/pdf' });
+    if (baixar) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = nomeArquivo;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 4000);
+    }
+    return {
+      blob, bytes, fileName: nomeArquivo,
+      file: new File([blob], nomeArquivo, { type: 'application/pdf' })
+    };
+  }
+
+  /* Datas efetivamente cumpridas: quando houve alteração de força maior,
+     o documento tem de refletir o que aconteceu, não o que foi autorizado. */
+  function periodoEfetivo(m, teveAlteracao) {
+    if (teveAlteracao) {
+      return {
+        dataIni: m.retorno_inicio_fmt || m.data_inicio_fmt || '',
+        horaIni: m.retorno_hora_inicio || m.hora_inicio || '04:00',
+        dataFim: m.retorno_fim_fmt || m.data_fim_fmt || '',
+        horaFim: m.retorno_hora_fim || m.hora_fim || '16:00',
+        dias: m.dias_retorno || m.dias || 1
+      };
+    }
+    return {
+      dataIni: m.data_inicio_fmt || '',
+      horaIni: m.hora_inicio || '04:00',
+      dataFim: m.data_fim_fmt || '',
+      horaFim: m.hora_fim || '16:00',
+      dias: m.dias || 1
+    };
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // 5.1 FICHA DE APRESENTAÇÃO POR RETORNO — GRATIFICAÇÃO / SEM CUSTO
+  //     Modelo: "Ficha de Apresentação por Retorno de Missão
+  //     referente à Ordem de Serviço de designação específica nº X"
+  // ──────────────────────────────────────────────────────────────
+  const COLS_FICHA = [
+    { chave: 'ordem',    rotulo: 'Ordem',                      larg: 34 },
+    { chave: 'posto',    rotulo: 'Posto Grad/Esp',             larg: 62 },
+    { chave: 'nome',     rotulo: 'Nome Completo / CPF',        larg: 138, alinhamento: 'left' },
+    { chave: 'saram',    rotulo: 'Saram',                      larg: 48 },
+    { chave: 'om',       rotulo: 'OM',                         larg: 34 },
+    { chave: 'periodo',  rotulo: 'Período (data/hora)',        larg: 104 },
+    { chave: 'dias',     rotulo: 'DIAS',                       larg: 30 },
+    { chave: 'passagem', rotulo: 'Passagem Aérea/Rodoviárias', larg: 60.28 }
+  ];
+
+  async function gerarFichaApresentacaoPdfDoc(d) {
+    const PDFLib = await garantirPdfLib();
+    const { PDFDocument, StandardFonts } = PDFLib;
+
+    const numOs = d.num_os || d.num_omis || d.protocolo || '—';
+    const teveAlteracao = !!d.teve_alteracao_retorno;
+    const militares = extrairMilitares(d);
+    const prim = militares[0] || {};
+
+    const doc = await PDFDocument.create();
+    doc.setTitle('Ficha de Apresentação por Retorno de Missão — ' + numOs);
+    doc.setAuthor('Academia da Força Aérea — Divisão de Ensino');
+    doc.setProducer('Governança DE');
+
+    const normal  = await doc.embedFont(StandardFonts.Helvetica);
+    const negrito = await doc.embedFont(StandardFonts.HelveticaBold);
+    const italico = await doc.embedFont(StandardFonts.HelveticaOblique);
+
+    let page = doc.addPage([A4.larg, A4.alt]);
+    let y = A4.alt - MARGEM_TOPO;
+
+    /* Cabeçalho */
+    y = escreverTexto(page, 'COMANDO DA AERONÁUTICA',
+      { x: MARGEM_X, y, fonte: negrito, tam: 10, lh: 12, alinhamento: 'center' });
+    y = escreverTexto(page, 'ACADEMIA DA FORÇA AÉREA',
+      { x: MARGEM_X, y, fonte: negrito, tam: 9.5, lh: 12, alinhamento: 'center' });
+
+    y -= 8;
+    const frase = 'Ficha de Apresentação por Retorno de Missão referente à Ordem de Serviço '
+                + 'de designação específica nº ' + numOs;
+    const linhasFrase = quebrarLinhas(frase, normal, 9, LARG_UTIL - 24);
+    y = escreverBlocoComToken(page, linhasFrase, {
+      x: MARGEM_X, y, larg: LARG_UTIL, fonte: normal, fonteToken: negrito,
+      tam: 9, lh: 11.5, token: san(numOs)
+    });
+
+    /* Relato */
+    y -= 10;
+    y = escreverTexto(page, 'RELATO DO RESPONSÁVEL PELO SERVIÇO:',
+      { x: MARGEM_X, y, fonte: negrito, tam: 8.5, lh: 11 });
+
+    y -= 3;
+    const pergunta = 'Ocorreram, por motivo de força maior, alterações no local de realização do '
+                   + 'serviço e/ou nas datas de início/retorno autorizados inicialmente?';
+    const justTxt = teveAlteracao
+      ? (d.justificativa_alteracao_retorno || 'Conforme tabela abaixo.')
+      : 'Não se aplica.';
+
+    const linhasPergunta = quebrarLinhas(pergunta, normal, 8, LARG_UTIL - 12);
+    const linhasJust = quebrarLinhas('JUSTIFICATIVA: ' + justTxt, normal, 8, LARG_UTIL - 12);
+    const altBox = 6 + linhasPergunta.length * 10 + 4 + 11 + 4 + linhasJust.length * 10 + 6;
+
+    desenharCaixa(page, MARGEM_X, y, LARG_UTIL, altBox, {});
+    let yb = y - 6 - 8 * 0.82;
+    yb = escreverBloco(page, linhasPergunta,
+      { x: MARGEM_X + 6, y: yb, larg: LARG_UTIL - 12, fonte: normal, tam: 8, lh: 10 });
+    yb -= 4;
+    const marcaSim = teveAlteracao ? 'X' : ' ';
+    const marcaNao = teveAlteracao ? ' ' : 'X';
+    page.drawText(san('( ' + marcaSim + ' ) SIM, CONFORME TABELA ABAIXO'),
+      { x: MARGEM_X + 6, y: yb, size: 8, font: negrito });
+    page.drawText(san('( ' + marcaNao + ' ) NÃO'),
+      { x: MARGEM_X + 240, y: yb, size: 8, font: negrito });
+    yb -= 15;
+    page.drawText('JUSTIFICATIVA:', { x: MARGEM_X + 6, y: yb, size: 8, font: negrito });
+    const recuo = negrito.widthOfTextAtSize('JUSTIFICATIVA:', 8) + 4;
+    const linhasJustTexto = quebrarLinhas(justTxt, normal, 8, LARG_UTIL - 12 - recuo);
+    escreverBloco(page, [linhasJustTexto[0] || ''],
+      { x: MARGEM_X + 6 + recuo, y: yb, larg: LARG_UTIL, fonte: normal, tam: 8, lh: 10 });
+    if (linhasJustTexto.length > 1) {
+      escreverBloco(page, linhasJustTexto.slice(1),
+        { x: MARGEM_X + 6, y: yb - 10, larg: LARG_UTIL - 12, fonte: normal, tam: 8, lh: 10 });
+    }
+    y -= altBox + 10;
+
+    /* Tabela */
+    const cabecalho = () => linhaTabela(page, {
+      x: MARGEM_X, yTopo: y, fonte: negrito, tam: 6.6, lh: 8, padY: 4, altMin: 20,
+      fundo: cinzaClaro(),
+      colunas: COLS_FICHA.map(c => ({ larg: c.larg, texto: c.rotulo }))
+    });
+    y = cabecalho();
+
+    const linhas = [];
+    if (!teveAlteracao) {
+      linhas.push({ ordem: '', posto: '', nome: '', saram: '', om: '', periodo: '', dias: '', passagem: '' });
+    } else {
+      const base = (Array.isArray(d.retorno_dados_alteracao) && d.retorno_dados_alteracao.length)
+        ? d.retorno_dados_alteracao
+        : militares;
+      base.forEach((m, idx) => {
+        const p = periodoEfetivo(m, true);
+        linhas.push({
+          ordem: String(idx + 1),
+          posto: [m.posto_grad, m.especialidade].filter(Boolean).join(' '),
+          nome: (m.nome || '') + ' / ' + (m.cpf || '—'),
+          saram: m.saram || '—',
+          om: m.om || 'AFA',
+          periodo: p.dataIni + '\n' + p.horaIni + '\na ' + p.dataFim + '\n' + p.horaFim,
+          dias: String(p.dias),
+          passagem: m.passagem || 'NÃO'
+        });
+      });
+    }
+
+    linhas.forEach(reg => {
+      const colunas = COLS_FICHA.map(c => ({
+        larg: c.larg,
+        texto: reg[c.chave] === undefined ? '' : reg[c.chave],
+        alinhamento: c.alinhamento,
+        fonte: c.chave === 'dias' ? negrito : normal
+      }));
+      const alt = alturaLinhaTabela(colunas, normal, 7, 8.5, 3, 22);
+      if (y - alt < MARGEM_BASE + 90) {
+        page = doc.addPage([A4.larg, A4.alt]);
+        y = A4.alt - MARGEM_TOPO;
+        y = linhaTabela(page, {
+          x: MARGEM_X, yTopo: y, fonte: negrito, tam: 6.6, lh: 8, padY: 4, altMin: 20,
+          fundo: cinzaClaro(),
+          colunas: COLS_FICHA.map(c => ({ larg: c.larg, texto: c.rotulo }))
+        });
+      }
+      y = linhaTabela(page, {
+        x: MARGEM_X, yTopo: y, fonte: normal, tam: 7, lh: 8.5, padY: 3, altMin: 22, colunas
+      });
+    });
+
+    /* Local, data e assinatura */
+    y -= 20;
+    const dataDoc = d.data_retorno
+      || (Array.isArray(d.retorno_dados_alteracao) && d.retorno_dados_alteracao[0]
+          && d.retorno_dados_alteracao[0].retorno_fim)
+      || prim.data_fim;
+    y = escreverTexto(page, 'Pirassununga-SP, ' + mesCapitalizado(dataDoc) + '.',
+      { x: MARGEM_X, y, fonte: normal, tam: 8.5, lh: 11 });
+
+    y -= 18;
+    y = escreverTexto(page, 'Responsável pelo serviço:',
+      { x: MARGEM_X, y, larg: LARG_UTIL, fonte: normal, tam: 8.5, lh: 11, alinhamento: 'right' });
+    y -= 16;
+    y = escreverTexto(page, 'assinado digitalmente',
+      { x: MARGEM_X, y, larg: LARG_UTIL, fonte: italico, tam: 7.5, lh: 10,
+        alinhamento: 'right', cor: cinzaTexto() });
+    escreverTexto(page, ((prim.nome || '') + ' ' + (prim.posto_grad || '')).toUpperCase(),
+      { x: MARGEM_X, y, larg: LARG_UTIL, fonte: negrito, tam: 8.5, lh: 11, alinhamento: 'right' });
+
+    const fileName = nomeArquivoSeguro('FICHA DE APRESENTAÇÃO ' + limparNumOs(numOs)) + '.pdf';
+    return { doc, fileName };
+  }
+
+  // ──────────────────────────────────────────────────────────────
+  // 5.2 RELATÓRIO DE VIAGEM NACIONAL E INTERNACIONAL — DIÁRIA
+  //     Modelo: Anexo B / Sistema de Concessão de Diárias e Passagens.
+  //     Documento individual: uma página por proposto.
+  // ──────────────────────────────────────────────────────────────
+  function paginaRelatorioViagem(doc, page, m, d, fontes) {
+    const { normal, negrito } = fontes;
+    const teveAlteracao = !!d.teve_alteracao_retorno;
+    const p = periodoEfetivo(m, teveAlteracao);
+
+    const numOrdem = limparNumOs(d.num_os || d.num_omis || d.protocolo || '');
+    const origem = (d.viagem_cidade_origem || 'PIRASSUNUNGA - SP').toUpperCase();
+    const destino = (d.viagem_cidade_destino || '').toUpperCase();
+    const internacional = !!d.viagem_internacional;
+    const descricao = d.viagem_descricao || d.servico_local || '';
+
+    let y = A4.alt - MARGEM_TOPO;
+
+    /* Identificação do anexo, como no formulário oficial */
+    y = escreverTexto(page, 'Anexo B - Relatório de Viagem Nacional e Internacional',
+      { x: MARGEM_X, y, fonte: normal, tam: 7.5, lh: 10, cor: cinzaTexto() });
+    y -= 8;
+
+    y = escreverTexto(page, 'COMANDO DA AERONÁUTICA',
+      { x: MARGEM_X, y, fonte: negrito, tam: 10, lh: 12, alinhamento: 'center' });
+    y = escreverTexto(page, 'ACADEMIA DA FORÇA AÉREA',
+      { x: MARGEM_X, y, fonte: negrito, tam: 9.5, lh: 12, alinhamento: 'center' });
+    y = escreverTexto(page, 'SISTEMA DE CONCESSÃO DE DIÁRIAS E PASSAGENS',
+      { x: MARGEM_X, y, fonte: negrito, tam: 9, lh: 12, alinhamento: 'center' });
+    y -= 4;
+    y = escreverTexto(page, 'RELATÓRIO DE VIAGEM NACIONAL E INTERNACIONAL',
+      { x: MARGEM_X, y, fonte: negrito, tam: 10, lh: 13, alinhamento: 'center' });
+
+    y -= 12;
+
+    /* 1. VIAGEM */
+    y = barraSecao(page, '1. VIAGEM', { x: MARGEM_X, yTopo: y, larg: LARG_UTIL, fonte: negrito, tam: 8.2 });
+    y = linhaTabela(page, {
+      x: MARGEM_X, yTopo: y, fonte: negrito, tam: 8.5, lh: 11, padY: 5, altMin: 22,
+      colunas: [
+        { larg: LARG_UTIL / 2, texto: '( ' + (internacional ? ' ' : 'X') + ' ) NACIONAL' },
+        { larg: LARG_UTIL / 2, texto: '( ' + (internacional ? 'X' : ' ') + ' ) INTERNACIONAL' }
+      ]
+    });
+
+    y -= 8;
+
+    /* 2. PROPOSTO */
+    y = barraSecao(page, '2. PROPOSTO', { x: MARGEM_X, yTopo: y, larg: LARG_UTIL, fonte: negrito, tam: 8.2 });
+    const LAB = 185, VAL = LARG_UTIL - LAB;
+    const postoLinha = [m.posto_grad, m.especialidade].filter(Boolean).join(' ')
+                     + ' / ' + numOrdem + ' / ' + (m.saram || '—');
+    const propostoLinhas = [
+      ['Posto ou Graduação / Nr Ordem / SARAM', postoLinha],
+      ['Nome Completo', (m.nome || '').toUpperCase()],
+      ['CPF', m.cpf || '—'],
+      ['OM', m.om || 'AFA']
+    ];
+    propostoLinhas.forEach(([rotulo, valor]) => {
+      y = linhaTabela(page, {
+        x: MARGEM_X, yTopo: y, fonte: normal, tam: 8, lh: 10, padY: 4, altMin: 18,
+        colunas: [
+          { larg: LAB, texto: rotulo, alinhamento: 'left', fonte: normal, fundo: cinzaClaro() },
+          { larg: VAL, texto: valor, alinhamento: 'left', fonte: negrito }
+        ]
+      });
+    });
+
+    y -= 8;
+
+    /* 3. DESLOCAMENTO */
+    y = barraSecao(page, '3. DESLOCAMENTO', { x: MARGEM_X, yTopo: y, larg: LARG_UTIL, fonte: negrito, tam: 8.2 });
+    y = linhaTabela(page, {
+      x: MARGEM_X, yTopo: y, fonte: normal, tam: 8, lh: 10, padY: 4, altMin: 18,
+      colunas: [
+        { larg: LAB, texto: 'Circuito - Cidades de origem e destino(s)', alinhamento: 'left', fundo: cinzaClaro() },
+        { larg: VAL, texto: destino ? origem + ' / ' + destino : origem, alinhamento: 'left', fonte: negrito }
+      ]
+    });
+
+    const C = [72, 158, 140, LARG_UTIL - 72 - 158 - 140];
+    y = linhaTabela(page, {
+      x: MARGEM_X, yTopo: y, fonte: negrito, tam: 7.4, lh: 9, padY: 4, altMin: 18, fundo: cinzaClaro(),
+      colunas: [
+        { larg: C[0], texto: '' },
+        { larg: C[1], texto: 'OM Origem (Cidade)' },
+        { larg: C[2], texto: 'Data (dia/mês/ano)' },
+        { larg: C[3], texto: 'Hora (00:00 h)' }
+      ]
+    });
+    y = linhaTabela(page, {
+      x: MARGEM_X, yTopo: y, fonte: normal, tam: 8, lh: 10, padY: 4, altMin: 18,
+      colunas: [
+        { larg: C[0], texto: 'Saída', fonte: negrito, fundo: cinzaClaro() },
+        { larg: C[1], texto: (m.om || 'AFA') + ' - ' + origem },
+        { larg: C[2], texto: p.dataIni },
+        { larg: C[3], texto: p.horaIni }
+      ]
+    });
+    y = linhaTabela(page, {
+      x: MARGEM_X, yTopo: y, fonte: normal, tam: 8, lh: 10, padY: 4, altMin: 18,
+      colunas: [
+        { larg: C[0], texto: 'Retorno', fonte: negrito, fundo: cinzaClaro() },
+        { larg: C[1], texto: destino || origem },
+        { larg: C[2], texto: p.dataFim },
+        { larg: C[3], texto: p.horaFim }
+      ]
+    });
+
+    y -= 8;
+
+    /* 4. DESCRIÇÃO DA VIAGEM */
+    y = barraSecao(page, '4. DESCRIÇÃO DA VIAGEM', { x: MARGEM_X, yTopo: y, larg: LARG_UTIL, fonte: negrito, tam: 8.2 });
+    y = linhaTabela(page, {
+      x: MARGEM_X, yTopo: y, fonte: normal, tam: 8, lh: 10.5, padY: 5, altMin: 42,
+      colunas: [
+        { larg: 160, texto: p.dataIni + ' - ' + p.horaIni + ' / ' + p.dataFim + ' - ' + p.horaFim,
+          fundo: cinzaClaro() },
+        { larg: LARG_UTIL - 160, texto: String(descricao).toUpperCase(), alinhamento: 'left', padX: 5 }
+      ]
+    });
+
+    y -= 8;
+
+    /* 5. ASSINATURAS */
+    y = barraSecao(page, '5. ASSINATURAS', { x: MARGEM_X, yTopo: y, larg: LARG_UTIL, fonte: negrito, tam: 8.2 });
+
+    const blocoAssinatura = (yTopo, legenda) => {
+      const alt = 52;
+      desenharCaixa(page, MARGEM_X, yTopo, LARG_UTIL, alt, {});
+      page.drawText('Data:', { x: MARGEM_X + 8, y: yTopo - 16, size: 8, font: normal });
+      page.drawText('_____/_____/______', { x: MARGEM_X + 8, y: yTopo - 34, size: 8, font: normal });
+      const xLinha = MARGEM_X + 190;
+      const largLinha = LARG_UTIL - 200;
+      page.drawLine({
+        start: { x: xLinha, y: yTopo - 32 },
+        end: { x: xLinha + largLinha, y: yTopo - 32 },
+        thickness: 0.8, color: preto()
+      });
+      escreverTexto(page, legenda,
+        { x: xLinha, y: yTopo - 42, larg: largLinha, fonte: normal, tam: 7.6, lh: 9, alinhamento: 'center' });
+      return yTopo - alt;
+    };
+
+    y = blocoAssinatura(y, 'Assinatura do Responsável pelo serviço/missão');
+    y = blocoAssinatura(y, 'Assinatura do Chefe de Divisão/Comando');
+
+    return y;
+  }
+
+  async function gerarRelatorioViagemPdfDoc(d) {
+    const PDFLib = await garantirPdfLib();
+    const { PDFDocument, StandardFonts } = PDFLib;
+
+    const numOs = d.num_os || d.num_omis || d.protocolo || '—';
+    const militares = extrairMilitares(d);
+
+    /* Quando houve alteração, as datas efetivas chegam em
+       retorno_dados_alteracao — casamos por CPF/SARAM/ordem. */
+    const alts = Array.isArray(d.retorno_dados_alteracao) ? d.retorno_dados_alteracao : [];
+    const casar = (m, idx) => {
+      if (!alts.length) return m;
+      const achado = alts.find(a =>
+        (a.cpf && m.cpf && String(a.cpf) === String(m.cpf)) ||
+        (a.saram && m.saram && String(a.saram) === String(m.saram))) || alts[idx] || alts[0];
+      return Object.assign({}, m, achado || {});
+    };
+
+    const doc = await PDFDocument.create();
+    doc.setTitle('Relatório de Viagem — ' + numOs);
+    doc.setAuthor('Academia da Força Aérea — Divisão de Ensino');
+    doc.setProducer('Governança DE');
+
+    const fontes = {
+      normal:  await doc.embedFont(StandardFonts.Helvetica),
+      negrito: await doc.embedFont(StandardFonts.HelveticaBold)
+    };
+
+    militares.forEach((m, idx) => {
+      const page = doc.addPage([A4.larg, A4.alt]);
+      paginaRelatorioViagem(doc, page, casar(m, idx), d, fontes);
+    });
+
+    const fileName = nomeArquivoSeguro('RELATÓRIO DE VIAGEM ' + limparNumOs(numOs)) + '.pdf';
+    return { doc, fileName };
+  }
+
+  // ══════════════════════════════════════════════════════════════
   // MÉTODOS PÚBLICOS DO MOTOR
   // ══════════════════════════════════════════════════════════════
   return {
@@ -825,6 +1462,32 @@ const CompiladorDoc = (function() {
       return { html, fileName };
     },
 
+    /* ── Documentos de apresentação por retorno — PDF nativo ──
+       Roteia pela modalidade da missão: diária sai no Anexo B
+       (Relatório de Viagem Nacional e Internacional); gratificação e
+       sem custo saem na Ficha de Apresentação por Retorno de Missão.
+       São assíncronos: a pdf-lib é carregada sob demanda. */
+    gerarDocumentoApresentacaoRetorno: async function(d, baixar) {
+      if (baixar === undefined) baixar = true;
+      var mod = String(d.modalidade_documento || d.modalidade || '').toLowerCase();
+      var ehDiaria = mod.indexOf('diar') >= 0 || mod.indexOf('diár') >= 0;
+      return ehDiaria
+        ? this.gerarRelatorioViagemDiaria(d, baixar)
+        : this.gerarFichaApresentacaoRetorno(d, baixar);
+    },
+
+    gerarFichaApresentacaoRetorno: async function(d, baixar) {
+      if (baixar === undefined) baixar = true;
+      var r = await gerarFichaApresentacaoPdfDoc(d);
+      return salvarPdf(r.doc, r.fileName, baixar);
+    },
+
+    gerarRelatorioViagemDiaria: async function(d, baixar) {
+      if (baixar === undefined) baixar = true;
+      var r = await gerarRelatorioViagemPdfDoc(d);
+      return salvarPdf(r.doc, r.fileName, baixar);
+    },
+
     // Compila os 2 documentos iniciais do processo SIGADAER (OS + Autorização)
     compilarPacoteInicial: function(d) {
       this.gerarOSGratificacao(d, true);
@@ -842,3 +1505,11 @@ const CompiladorDoc = (function() {
     }
   };
 })();
+
+/* `const` em script clássico cria binding global mas NÃO vira propriedade
+   de window — era por isso que `window.CompiladorDoc.gerar…()` no
+   retorno.html estourava "Cannot read properties of undefined". */
+window.CompiladorDoc = CompiladorDoc;
+
+console.log('%c compiladordoc.js v2.0 \u00b7 PDF nativo (pdf-lib) ativo ',
+            'background:#0a192f;color:#d4a84b;font-weight:700');
