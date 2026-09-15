@@ -7,6 +7,7 @@
   <link rel="icon" href="assets/cocar-fab.png" type="image/png" />
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
   <script src="compiladordoc.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -92,6 +93,7 @@
       padding: .75rem 1.5rem; font-family: var(--f-display); font-size: .95rem; font-weight: 600;
       letter-spacing: .05em; text-transform: uppercase; border-radius: 6px; border: none; cursor: pointer; transition: all .2s;
     }
+    .btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
     .btn-primary { background: var(--gold-500); color: var(--navy-900); }
     .btn-primary:hover { background: var(--gold-400); transform: translateY(-1px); }
     .btn-navy { background: var(--navy-700); color: #fff; }
@@ -125,12 +127,34 @@
     .alert-box.info { background: #e0f2fe; border: 1px solid #bae6fd; color: #0369a1; }
     .alert-box.success { background: #dcfce7; border: 1px solid #bbf7d0; color: #15803d; }
     .alert-box.warn { background: #fef3c7; border: 1px solid #fde68a; color: #92400e; }
+    .alert-box.erro { background: var(--red-50); border: 1px solid #fecaca; color: #b91c1c; }
+
+    /* Etiquetas de modalidade e de estado da missão */
+    .tag {
+      display: inline-block; font-family: var(--f-mono); font-size: .65rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .04em; padding: .18rem .45rem;
+      border-radius: 4px; vertical-align: middle;
+    }
+    .tag-diaria { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+    .tag-grat   { background: var(--gold-100); color: #854d0e; border: 1px solid #fde047; }
+    .tag-semcusto { background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); }
+    .tag-dup    { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+    .tag-feito  { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+
+    .separador {
+      display: flex; align-items: center; gap: .75rem; margin: 1.25rem 0 1rem;
+      font-size: .7rem; text-transform: uppercase; letter-spacing: .1em; color: var(--gray-400);
+      font-weight: 600;
+    }
+    .separador::before, .separador::after {
+      content: ''; flex: 1; height: 1px; background: var(--navy-100);
+    }
 
     .toast {
       position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--navy-900); color: #fff;
       padding: .75rem 1.25rem; border-radius: 6px; font-size: .82rem; box-shadow: 0 10px 25px rgba(0,0,0,.25);
       border-left: 4px solid var(--gold-500); z-index: 300; opacity: 0; transform: translateY(10px);
-      transition: all .25s; pointer-events: none;
+      transition: all .25s; pointer-events: none; max-width: 90vw;
     }
     .toast.show { opacity: 1; transform: translateY(0); }
 
@@ -154,13 +178,28 @@
   </header>
 
   <main>
-    
+
     <!-- PASSO 1: LOCALIZAR MISSÃO -->
     <div class="card-box" id="box-busca">
       <div class="card-title">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         1. Localizar a Missão Realizada
       </div>
+
+      <!-- 1a. Seleção direta na lista de missões pendentes -->
+      <div class="field">
+        <label>Ordens de Serviço disponíveis para apresentação</label>
+        <select id="sel-missoes" onchange="selecionarDoSeletor(this.value)">
+          <option value="">Carregando missões…</option>
+        </select>
+        <div class="hint" id="hint-seletor">
+          A lista traz apenas missões já iniciadas e ainda sem apresentação registrada.
+          Quando dois processos dividem o mesmo número de OS, os dois aparecem — confira o período.
+        </div>
+      </div>
+
+      <div class="separador">ou localize manualmente</div>
+
       <p style="font-size:.82rem;color:var(--gray-500);margin-bottom:1rem">
         Informe o <b>Número do Protocolo</b> (ex.: SOL-2026-0001), <b>Número da OS</b> (ex.: 24/DE/2026), <b>CPF</b> ou <b>SARAM</b> do Coordenador da Missão.
       </p>
@@ -180,6 +219,16 @@
       </div>
 
       <div class="card-militar-resumo" id="resumo-missao-selecionada"></div>
+
+      <div class="field">
+        <label>Modalidade da missão (define o documento gerado) *</label>
+        <select id="f-modalidade-doc" onchange="alternarCamposDiaria()">
+          <option value="gratificacao">Gratificação de Representação — Ficha de Apresentação por Retorno de Missão</option>
+          <option value="diaria">Diária de Viagem — Relatório de Viagem Nacional e Internacional (Anexo B)</option>
+          <option value="sem_custo">Sem custo — Ficha de Apresentação por Retorno de Missão</option>
+        </select>
+        <div class="hint">Vem preenchida pelo cadastro da missão. Só altere se estiver divergente do processo.</div>
+      </div>
 
       <div class="field">
         <label>Ocorreram, por motivo de força maior, alterações no local de realização do serviço e/ou nas datas de início/retorno autorizados inicialmente? *</label>
@@ -218,26 +267,55 @@
         </div>
       </div>
 
-      <!-- PASSO 3: GERAR E BAIXAR FICHA -->
+      <!-- CAMPOS EXCLUSIVOS DA DIÁRIA (ANEXO B) -->
+      <div id="box-campos-diaria" style="display:none;background:#f0f9ff;padding:1rem;border-radius:8px;border:1px solid #bae6fd;margin-bottom:1rem">
+        <div style="font-weight:700;font-size:.82rem;color:#0369a1;text-transform:uppercase;margin-bottom:.6rem">
+          Dados do Relatório de Viagem (Anexo B)
+        </div>
+
+        <div class="grid2">
+          <div class="field">
+            <label>Cidade de origem</label>
+            <input type="text" id="f-cidade-origem" value="PIRASSUNUNGA - SP" />
+          </div>
+          <div class="field">
+            <label>Cidade(s) de destino *</label>
+            <input type="text" id="f-cidade-destino" placeholder="Ex.: RIO DE JANEIRO - RJ" />
+            <div class="hint" id="hint-destino">Sugestão extraída do objeto da missão — confira e corrija se preciso.</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Descrição da viagem</label>
+          <textarea id="f-descricao-viagem" rows="2"></textarea>
+        </div>
+
+        <label style="display:flex;align-items:center;gap:.5rem;font-size:.82rem;color:var(--navy-900);cursor:pointer">
+          <input type="checkbox" id="f-internacional" style="width:auto" />
+          Viagem internacional (por padrão o relatório sai marcado como <b>NACIONAL</b>)
+        </label>
+      </div>
+
+      <!-- PASSO 3: GERAR E BAIXAR O DOCUMENTO -->
       <div style="background:#fefce8;border:1px solid #fde047;border-radius:8px;padding:1.2rem;margin-bottom:1.5rem">
         <h4 style="font-family:var(--f-display);font-size:.95rem;text-transform:uppercase;color:#854d0e;margin-bottom:.4rem">
           Etapas para Conclusão da Apresentação:
         </h4>
         <ol style="margin-left:1.4rem;font-size:.82rem;color:#713f12;line-height:1.6">
-          <li>Clique no botão abaixo para <b>gerar e baixar a Ficha de Apresentação</b> preenchida.</li>
-          <li>Acesse o portal do <b>GOV.BR (Assinador Eletrônico)</b> e assine digitalmente o documento baixado.</li>
+          <li>Clique no botão abaixo para <b>gerar e baixar o documento em PDF</b> já preenchido.</li>
+          <li>Acesse o portal do <b>GOV.BR (Assinador Eletrônico)</b> e assine digitalmente o PDF baixado.</li>
           <li>Faça o <b>upload do PDF já assinado</b> na área abaixo para enviar à Divisão de Ensino.</li>
         </ol>
         <div style="margin-top:1rem">
-          <button class="btn btn-navy" onclick="baixarFichaApresentacaoPreenchida()">
-            📄 1º Passo: Gerar & Baixar Ficha de Apresentação (.html / PDF)
+          <button class="btn btn-navy" id="btn-gerar-doc" onclick="gerarDocumentoRetorno()">
+            📄 1º Passo: Gerar &amp; Baixar <span id="rotulo-doc">Ficha de Apresentação</span> (PDF)
           </button>
         </div>
       </div>
 
       <!-- PASSO 4: UPLOAD DO PDF ASSINADO -->
       <div class="field">
-        <label>Anexar Ficha de Apresentação Assinada (GOV.BR) *</label>
+        <label>Anexar documento assinado (GOV.BR) *</label>
         <div class="dropzone" id="dropzoneRetorno" onclick="document.getElementById('arquivoPdfAssinado').click()">
           <div class="dropzone-icon">📎</div>
           <div class="dropzone-title" id="dropzone-txt">Clique ou arraste aqui o PDF assinado no GOV.BR</div>
@@ -264,6 +342,7 @@
       <p style="font-size:.88rem;color:var(--gray-700);max-width:550px;margin:0 auto 1.5rem;line-height:1.5">
         O documento assinado via GOV.BR foi recebido pela Divisão de Ensino (DE). O operador anexará a ficha ao processo <b>SIGADAER</b> para despacho e publicação em <b>BCA</b>.
       </p>
+      <div id="sucesso-alerta" style="max-width:600px;margin:0 auto 1.25rem;text-align:left"></div>
       <div id="sucesso-detalhes" style="font-family:var(--f-mono);font-size:.85rem;background:var(--navy-50);padding:1rem;border-radius:6px;display:inline-block;margin-bottom:1.5rem"></div>
       <div>
         <a href="index.html" class="btn btn-navy">Voltar ao Início</a>
@@ -273,7 +352,7 @@
   </main>
 
   <footer>
-    Academia da Força Aérea · Divisão de Ensino (AFA / DE)
+    Academia da Força Aérea · Divisão de Ensino (AFA / DE) · retorno.html v2.0
   </footer>
 
   <div class="toast" id="toast"></div>
@@ -281,11 +360,34 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/app-config.js"></script>
   <script>
+    /* ══════════════════════════════════════════════════════════════
+       APRESENTAÇÃO POR RETORNO DE MISSÃO — v2.0
+       ──────────────────────────────────────────────────────────────
+       Mudanças desta versão:
+       1. A deduplicação da busca passou a usar a identidade do
+          registro (tabela + id). Antes a chave era o número da OS, e
+          como numeração duplicada é estado legítimo no módulo de
+          missões, a segunda OS de mesmo número sumia do resultado.
+       2. Seletor com as OS pendentes, para o militar não precisar
+          acertar o termo de busca.
+       3. O documento gerado segue a modalidade: diária sai no
+          Relatório de Viagem (Anexo B); gratificação e sem custo saem
+          na Ficha de Apresentação. Ambos em PDF nativo.
+       4. A gravação final deixou de usar num_os como chave (marcava
+          as duas OS duplicadas de uma vez) e passou a usar o id.
+       ══════════════════════════════════════════════════════════════ */
+
     const SUPABASE_URL  = 'https://sovrgsbdhdpxsaomspsp.supabase.co';
     const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg';
     const configurado = !SUPABASE_URL.startsWith('COLE_') && !SUPABASE_ANON.startsWith('COLE_');
     const sb = configurado ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
 
+    const TAB_MISSAO = 'gratificacao_representacao';
+    const TAB_SOLIC  = 'solicitacoes_missao';
+    const TAB_ESTEIRA = 'controle_os_processos';
+
+    let catalogoMissoes = [];     /* todas as missões, já consolidadas */
+    let resultadosBusca = [];     /* recorte exibido no passo 1 */
     let missaoSelecionada = null;
     let arquivoPdfParaUpload = null;
 
@@ -295,126 +397,322 @@
       t.textContent = msg;
       t.style.borderLeftColor = erro ? 'var(--red-500)' : 'var(--gold-500)';
       t.classList.add('show');
-      setTimeout(()=>t.classList.remove('show'), 3500);
+      setTimeout(()=>t.classList.remove('show'), 4500);
     }
 
     const esc = s => (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    function fmtData(iso){ if (!iso) return '—'; const [a,m,d] = iso.split('-'); return `${d}/${m}/${a}`; }
+    function fmtData(iso){ if (!iso) return '—'; const [a,m,d] = String(iso).split('-'); return (d&&m&&a) ? `${d}/${m}/${a}` : iso; }
+    function soDigitos(v){ return String(v || '').replace(/\D/g, ''); }
+    function hojeIso(){ const h = new Date(); return new Date(h.getTime() - h.getTimezoneOffset()*60000).toISOString().slice(0,10); }
 
+    /* ══════════════════════════════════════════════════════════════
+       CATÁLOGO DE MISSÕES
+       ══════════════════════════════════════════════════════════════ */
+
+    /* Modalidade resolvida com tolerância: a coluna pode vir com
+       rótulo ('Diária de Viagem') ou com chave ('diaria'), e em
+       registros antigos pode não vir. */
+    function modalidadeDaMissao(m) {
+      const bruto = String(m.modalidade || m.modalidade_label || '').toLowerCase();
+      if (bruto.includes('diar') || bruto.includes('diár')) return 'diaria';
+      if (bruto.includes('sem custo') || bruto === 'sem_custo' || bruto === 'omis') return 'sem_custo';
+      if (bruto.includes('grat')) return 'gratificacao';
+      const enq = String(m.enquadramento_legal || '').toLowerCase();
+      if (enq.includes('diar') || enq.includes('diár')) return 'diaria';
+      if (Number(m.qtd_diarias) > 0) return 'diaria';
+      return 'gratificacao';
+    }
+
+    const ROTULO_MODALIDADE = {
+      diaria: 'Diária', gratificacao: 'GratiRep', sem_custo: 'Sem custo'
+    };
+    const CLASSE_MODALIDADE = {
+      diaria: 'tag-diaria', gratificacao: 'tag-grat', sem_custo: 'tag-semcusto'
+    };
+
+    function normalizarRegistro(item, origem) {
+      const id = item.id !== undefined && item.id !== null ? String(item.id) : '';
+      const numOs = item.num_os || item.os_gerada_num || item.num_omis || '';
+      const reg = Object.assign({}, item);
+      reg._origem = origem;
+      reg._id = id;
+      /* Sem id (cache antigo) caímos numa chave composta que ainda
+         distingue duas OS de mesmo número: número + período + objeto. */
+      reg._chave = id
+        ? origem + ':' + id
+        : origem + ':' + [numOs, item.protocolo || '', item.data_inicio || '', item.data_fim || '',
+                          (item.servico_local || '').slice(0, 40)].join('|');
+      reg.num_os = numOs;
+      reg.protocolo = item.protocolo || '';
+      reg._modalidade = modalidadeDaMissao(item);
+      reg._militares = Array.isArray(item.militares) && item.militares.length
+        ? item.militares
+        : [{ posto_grad: item.posto_grad, especialidade: item.especialidade, nome: item.nome,
+             nome_guerra: item.nome_guerra, cpf: item.cpf, saram: item.saram, om: item.om }];
+      return reg;
+    }
+
+    /* Já apresentada? As duas tabelas marcam de formas diferentes:
+       solicitacoes_missao tem retorno_apresentado (bool);
+       gratificacao_representacao só tem retorno_apresentado_em. */
+    function jaApresentada(m) {
+      if (m.retorno_apresentado === true) return true;
+      if (m.retorno_apresentado_em) return true;
+      if (m.pdf_retorno_assinado) return true;
+      return String(m.status || '').toLowerCase() === 'apresentado';
+    }
+
+    /* Consolida cache + banco por IDENTIDADE do registro.
+       A versão anterior deduplicava por num_os e, com numeração
+       duplicada, engolia a segunda missão de mesmo número. */
+    function consolidarMissoes(registros) {
+      const porChave = new Map();
+      registros.forEach(r => {
+        const anterior = porChave.get(r._chave);
+        porChave.set(r._chave, anterior ? Object.assign({}, anterior, r) : r);
+      });
+
+      const todas = [...porChave.values()];
+      const idsMissao = new Set(
+        todas.filter(m => m._origem === TAB_MISSAO && m._id).map(m => m._id));
+      const solicitacoesJaHomologadas = new Set();
+      todas.forEach(m => {
+        if (m._origem === TAB_MISSAO && m.solicitacao_id) {
+          solicitacoesJaHomologadas.add(String(m.solicitacao_id));
+        }
+      });
+
+      /* A solicitação que já virou OS não aparece duas vezes. */
+      return todas.filter(m => {
+        if (m._origem !== TAB_SOLIC) return true;
+        if (m._id && solicitacoesJaHomologadas.has(m._id)) return false;
+        if (m.missao_id && idsMissao.has(String(m.missao_id))) return false;
+        return true;
+      });
+    }
+
+    async function carregarCatalogoMissoes() {
+      const bruto = [];
+
+      try {
+        const rawGrat = localStorage.getItem('afa_gratificacao_cache_v1');
+        const rawSolic = localStorage.getItem('afa_solicitacoes_cache_v1');
+        if (rawGrat) JSON.parse(rawGrat).forEach(i => bruto.push(normalizarRegistro(i, TAB_MISSAO)));
+        if (rawSolic) JSON.parse(rawSolic).forEach(i => bruto.push(normalizarRegistro(i, TAB_SOLIC)));
+      } catch(e) { console.warn('Cache local ilegível:', e); }
+
+      if (configurado) {
+        try {
+          const [resG, resS] = await Promise.all([
+            sb.from(TAB_MISSAO).select('*'),
+            sb.from(TAB_SOLIC).select('*')
+          ]);
+          if (resG.error) console.warn('Falha ao ler ' + TAB_MISSAO + ':', resG.error.message);
+          if (resS.error) console.warn('Falha ao ler ' + TAB_SOLIC + ':', resS.error.message);
+          (resG.data || []).forEach(i => bruto.push(normalizarRegistro(i, TAB_MISSAO)));
+          (resS.data || []).forEach(i => bruto.push(normalizarRegistro(i, TAB_SOLIC)));
+        } catch(e) { console.warn('Supabase indisponível:', e); }
+      }
+
+      catalogoMissoes = consolidarMissoes(bruto).sort((a, b) =>
+        String(b.data_fim || '').localeCompare(String(a.data_fim || '')));
+
+      montarSeletorMissoes();
+      return catalogoMissoes;
+    }
+
+    /* Números de OS que aparecem mais de uma vez — usados para marcar
+       a duplicidade na tela em vez de escondê-la. */
+    function numerosDuplicados(lista) {
+      const cont = new Map();
+      lista.forEach(m => {
+        const n = (m.num_os || '').trim();
+        if (n) cont.set(n, (cont.get(n) || 0) + 1);
+      });
+      return new Set([...cont.entries()].filter(([, q]) => q > 1).map(([n]) => n));
+    }
+
+    function rotuloCoordenador(m) {
+      const prim = (m._militares && m._militares[0]) || {};
+      return [prim.posto_grad, prim.nome_guerra || prim.nome].filter(Boolean).join(' ') || '—';
+    }
+
+    function montarSeletorMissoes() {
+      const sel = document.getElementById('sel-missoes');
+      const hoje = hojeIso();
+
+      const pendentes = catalogoMissoes.filter(m =>
+        !jaApresentada(m) && String(m.data_inicio || '') <= hoje);
+
+      const dups = numerosDuplicados(pendentes);
+
+      if (!pendentes.length) {
+        sel.innerHTML = '<option value="">Nenhuma missão pendente localizada — use a busca abaixo</option>';
+        return;
+      }
+
+      const opcoes = pendentes.map(m => {
+        const num = m.num_os ? 'OS ' + m.num_os : (m.protocolo || 'Missão');
+        const periodo = fmtData(m.data_inicio) + ' a ' + fmtData(m.data_fim);
+        const marca = dups.has((m.num_os || '').trim()) ? ' ⚠ nº duplicado' : '';
+        const texto = `${num} · ${ROTULO_MODALIDADE[m._modalidade]} · ${periodo} · ${rotuloCoordenador(m)}${marca}`;
+        return `<option value="${esc(m._chave)}">${esc(texto)}</option>`;
+      }).join('');
+
+      sel.innerHTML = `<option value="">Selecione a missão… (${pendentes.length} pendente(s))</option>` + opcoes;
+    }
+
+    function selecionarDoSeletor(chave) {
+      if (!chave) return;
+      const m = catalogoMissoes.find(x => x._chave === chave);
+      if (!m) { toast('Missão não localizada no catálogo. Recarregue a página.', true); return; }
+      selecionarParaApresentacao(m);
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       BUSCA MANUAL
+       ══════════════════════════════════════════════════════════════ */
     async function buscarMissao() {
       const termo = document.getElementById('in-busca-missao').value.trim().toLowerCase();
       const resDiv = document.getElementById('busca-resultado');
-      if (!termo) {
-        toast('Digite um termo para busca', true);
-        return;
-      }
+      if (!termo) { toast('Digite um termo para busca', true); return; }
 
       resDiv.style.display = 'block';
       resDiv.innerHTML = '<div style="padding:1rem;color:var(--gray-500)">Pesquisando missões cadastradas...</div>';
 
-      let lista = [];
+      if (!catalogoMissoes.length) await carregarCatalogoMissoes();
 
-      // 1. Tenta buscar no cache do navegador
-      try {
-        const rawGrat = localStorage.getItem('afa_gratificacao_cache_v1');
-        const rawSolic = localStorage.getItem('afa_solicitacoes_cache_v1');
-        if (rawGrat) lista.push(...JSON.parse(rawGrat));
-        if (rawSolic) lista.push(...JSON.parse(rawSolic));
-      } catch(e) {}
-
-      // 2. Tenta buscar no Supabase
-      if (configurado) {
-        try {
-          const [resG, resS] = await Promise.all([
-            sb.from('gratificacao_representacao').select('*'),
-            sb.from('solicitacoes_missao').select('*')
-          ]);
-          if (resG.data) lista.push(...resG.data);
-          if (resS.data) lista.push(...resS.data);
-        } catch(e) {}
-      }
-
-      // Remove duplicados por num_os / protocolo
-      const unicos = [];
-      const mapa = new Set();
-      lista.forEach(item => {
-        const chave = item.num_os || item.protocolo;
-        if (chave && !mapa.has(chave)) {
-          mapa.add(chave);
-          unicos.push(item);
-        }
-      });
-
-      const termoLimpo = termo.replace(/\D/g, '');
-      const filtrados = unicos.filter(item => {
-        const mils = Array.isArray(item.militares) ? item.militares : [];
-        const matchCpfSaram = mils.some(m => {
-          const cLimpo = (m.cpf || '').replace(/\D/g, '');
-          const sLimpo = (m.saram || '').replace(/\D/g, '');
-          return (termoLimpo && (cLimpo.includes(termoLimpo) || sLimpo.includes(termoLimpo))) ||
-                 (m.nome && m.nome.toLowerCase().includes(termo)) ||
-                 (m.nome_guerra && m.nome_guerra.toLowerCase().includes(termo));
+      const termoLimpo = soDigitos(termo);
+      const filtrados = catalogoMissoes.filter(item => {
+        const bateMilitar = (item._militares || []).some(mil => {
+          const cpf = soDigitos(mil.cpf);
+          const saram = soDigitos(mil.saram);
+          return (termoLimpo && ((cpf && cpf.includes(termoLimpo)) || (saram && saram.includes(termoLimpo)))) ||
+                 (mil.nome && mil.nome.toLowerCase().includes(termo)) ||
+                 (mil.nome_guerra && mil.nome_guerra.toLowerCase().includes(termo));
         });
-
-        return matchCpfSaram ||
+        return bateMilitar ||
                (item.protocolo && item.protocolo.toLowerCase().includes(termo)) ||
                (item.num_os && item.num_os.toLowerCase().includes(termo)) ||
+               (item.num_omis && String(item.num_omis).toLowerCase().includes(termo)) ||
                (item.servico_local && item.servico_local.toLowerCase().includes(termo));
       });
+
+      resultadosBusca = filtrados;
 
       if (!filtrados.length) {
         resDiv.innerHTML = `<div class="alert-box warn">Nenhuma missão encontrada para "${esc(termo)}". Verifique o protocolo ou CPF/SARAM e tente novamente.</div>`;
         return;
       }
 
-      resDiv.innerHTML = filtrados.map((m, idx) => {
-        const mils = Array.isArray(m.militares) && m.militares.length ? m.militares : [{ posto_grad: m.posto_grad, nome: m.nome }];
-        const prim = mils[0] || {};
-        const jsonStr = JSON.stringify(m).replace(/'/g, "&apos;").replace(/"/g, "&quot;");
+      const dups = numerosDuplicados(filtrados);
+      const avisoDup = [...dups].length
+        ? `<div class="alert-box warn">
+             <span>⚠</span>
+             <span>Há mais de um processo com o mesmo número de OS (${esc([...dups].join(', '))}).
+             Isso é previsto no controle de numeração — confira o <b>período</b> e o <b>objeto</b> antes de selecionar.</span>
+           </div>`
+        : '';
 
+      resDiv.innerHTML = avisoDup + filtrados.map((m, idx) => {
+        const feito = jaApresentada(m);
+        const dup = dups.has((m.num_os || '').trim());
+        const num = m.num_os ? `OS Nº ${m.num_os}` : (m.protocolo || 'SOLICITAÇÃO');
         return `
-          <div class="card-militar-resumo" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.8rem;margin-top:.75rem">
+          <div class="card-militar-resumo" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.8rem;margin-top:.75rem${feito ? ';opacity:.7' : ''}">
             <div>
-              <div style="font-family:var(--f-mono);font-weight:700;color:var(--navy-900);font-size:.95rem">
-                ${esc(m.num_os ? `OS Nº ${m.num_os}` : (m.protocolo || 'SOLICITAÇÃO'))}
+              <div style="font-family:var(--f-mono);font-weight:700;color:var(--navy-900);font-size:.95rem;display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">
+                ${esc(num)}
+                <span class="tag ${CLASSE_MODALIDADE[m._modalidade]}">${esc(ROTULO_MODALIDADE[m._modalidade])}</span>
+                ${dup ? '<span class="tag tag-dup">nº duplicado</span>' : ''}
+                ${feito ? '<span class="tag tag-feito">já apresentada</span>' : ''}
               </div>
               <div style="font-weight:600;color:var(--navy-700);margin-top:2px">
-                Coord: ${esc(prim.posto_grad)} ${esc(prim.nome_guerra || prim.nome)} (${mils.length} militar(es))
+                Coord: ${esc(rotuloCoordenador(m))} (${m._militares.length} militar(es))
               </div>
               <div style="font-size:.78rem;color:var(--gray-500)">
-                Período: ${fmtData(prim.data_inicio || m.data_inicio)} → ${fmtData(prim.data_fim || m.data_fim)} · ${esc(m.servico_local)}
+                Período: ${fmtData(m.data_inicio)} → ${fmtData(m.data_fim)} · ${esc(m.servico_local)}
               </div>
             </div>
-            <button class="btn btn-primary btn-sm" onclick='selecionarParaApresentacao(${jsonStr})'>
-              Selecionar Missão
+            <button class="btn btn-primary" onclick="selecionarResultado(${idx})">
+              ${feito ? 'Refazer Apresentação' : 'Selecionar Missão'}
             </button>
           </div>
         `;
       }).join('');
     }
 
+    function selecionarResultado(idx) {
+      const m = resultadosBusca[idx];
+      if (m) selecionarParaApresentacao(m);
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       PASSO 2 — PREENCHIMENTO
+       ══════════════════════════════════════════════════════════════ */
+
+    /* Sugestão de destino a partir do objeto da missão. É só um
+       ponto de partida: o campo fica editável e o militar confere. */
+    const UFS = 'AC|AL|AP|AM|BA|CE|DF|ES|GO|MA|MT|MS|MG|PA|PB|PR|PE|PI|RJ|RN|RS|RO|RR|SC|SP|SE|TO';
+    /* Preposições e termos que ANUNCIAM um lugar. Cortamos no último
+       deles. "DE" solto fica de fora de propósito: ele pertence ao nome
+       da cidade em RIO DE JANEIRO e SÃO JOSÉ DOS CAMPOS. */
+    const ANUNCIA_LUGAR = '\\b(?:CIDADE D[EOA]|GUARNI[ÇC][ÃA]O D[EO]|MUNIC[ÍI]PIO D[EO]|SEDE D[EO]|' +
+                          'EM|NA|NO|NAS|NOS|AO|AOS|[ÀA]S?|PARA)\\s+';
+
+    function inferirDestino(txt) {
+      const t = String(txt || '').toUpperCase();
+      const m = t.match(new RegExp('([A-ZÀ-Ú][A-ZÀ-Ú\\s]{1,60}?)\\s*[\\/\\-–]\\s*(' + UFS + ')\\b'));
+      if (!m) return '';
+
+      let cidade = m[1];
+      const re = new RegExp(ANUNCIA_LUGAR, 'g');
+      let corte = -1, achado;
+      while ((achado = re.exec(cidade)) !== null) corte = achado.index + achado[0].length;
+      if (corte > -1) cidade = cidade.slice(corte);
+
+      cidade = cidade.trim().replace(/\s+/g, ' ');
+      return cidade ? cidade + ' - ' + m[2] : '';
+    }
+
     function selecionarParaApresentacao(missao) {
       missaoSelecionada = missao;
+      arquivoPdfParaUpload = null;
+
       document.getElementById('box-formulario-retorno').style.display = 'block';
       document.getElementById('box-busca').style.display = 'none';
+      document.getElementById('btn-concluir-apresentacao').disabled = true;
+      document.getElementById('dropzone-txt').textContent = 'Clique ou arraste aqui o PDF assinado no GOV.BR';
+      document.getElementById('dropzoneRetorno').style.borderColor = '';
+      document.getElementById('dropzoneRetorno').style.background = '';
 
-      const mils = Array.isArray(missao.militares) && missao.militares.length ? missao.militares : [{ posto_grad: missao.posto_grad, nome: missao.nome }];
-      const prim = mils[0] || {};
+      const prim = (missao._militares && missao._militares[0]) || {};
+      const num = missao.num_os ? `OS ${missao.num_os}` : (missao.protocolo || 'Missão Selecionada');
 
       document.getElementById('resumo-missao-selecionada').innerHTML = `
-        <div style="font-weight:700;font-size:.92rem;color:var(--navy-900)">
-          ${esc(missao.num_os ? `OS ${missao.num_os}` : (missao.protocolo || 'Missão Selecionada'))}
+        <div style="font-weight:700;font-size:.92rem;color:var(--navy-900);display:flex;align-items:center;gap:.4rem;flex-wrap:wrap">
+          ${esc(num)}
+          <span class="tag ${CLASSE_MODALIDADE[missao._modalidade]}">${esc(ROTULO_MODALIDADE[missao._modalidade])}</span>
         </div>
-        <div><b>Coordenador(a):</b> ${esc(prim.posto_grad)} ${esc(prim.nome_guerra || prim.nome)}</div>
+        <div><b>Coordenador(a):</b> ${esc(rotuloCoordenador(missao))}</div>
         <div><b>Objeto:</b> ${esc(missao.servico_local)}</div>
         <div><b>Período Autorizado:</b> ${fmtData(prim.data_inicio || missao.data_inicio)} (${prim.hora_inicio || missao.hora_inicio || '04:00'}) a ${fmtData(prim.data_fim || missao.data_fim)} (${prim.hora_fim || missao.hora_fim || '16:00'})</div>
       `;
 
+      document.getElementById('f-modalidade-doc').value = missao._modalidade;
       document.getElementById('f-alt-data-ida').value = prim.data_inicio || missao.data_inicio || '';
       document.getElementById('f-alt-hora-ida').value = prim.hora_inicio || missao.hora_inicio || '04:00';
       document.getElementById('f-alt-data-volta').value = prim.data_fim || missao.data_fim || '';
       document.getElementById('f-alt-hora-volta').value = prim.hora_fim || missao.hora_fim || '16:00';
 
+      const destino = inferirDestino(missao.servico_local);
+      document.getElementById('f-cidade-destino').value = destino;
+      document.getElementById('f-descricao-viagem').value = missao.servico_local || '';
+      document.getElementById('hint-destino').textContent = destino
+        ? 'Sugestão extraída do objeto da missão — confira e corrija se preciso.'
+        : 'Não foi possível deduzir a cidade pelo objeto da missão. Preencha manualmente.';
+
+      alternarCamposDiaria();
       document.getElementById('box-formulario-retorno').scrollIntoView({ behavior: 'smooth' });
     }
 
@@ -422,17 +720,37 @@
       document.getElementById('box-campos-alteracao').style.display = (val === 'SIM') ? 'block' : 'none';
     }
 
-    function baixarFichaApresentacaoPreenchida() {
-      if (!missaoSelecionada) return;
+    function alternarCamposDiaria() {
+      const ehDiaria = document.getElementById('f-modalidade-doc').value === 'diaria';
+      document.getElementById('box-campos-diaria').style.display = ehDiaria ? 'block' : 'none';
+      document.getElementById('rotulo-doc').textContent = ehDiaria
+        ? 'Relatório de Viagem (Anexo B)'
+        : 'Ficha de Apresentação';
+    }
 
+    /* ══════════════════════════════════════════════════════════════
+       PASSO 3 — GERAÇÃO DO DOCUMENTO
+       ══════════════════════════════════════════════════════════════ */
+    function montarDadosDocumento() {
+      const modalidade = document.getElementById('f-modalidade-doc').value;
       const teveAlteracao = document.getElementById('f-teve-alteracao').value === 'SIM';
-      const justTxt = teveAlteracao ? document.getElementById('f-alt-justificativa').value.trim() : 'Não se aplica.';
+      const justTxt = teveAlteracao
+        ? document.getElementById('f-alt-justificativa').value.trim()
+        : 'Não se aplica.';
 
-      const dadosComp = {
-        ...missaoSelecionada,
+      const dados = Object.assign({}, missaoSelecionada, {
+        militares: missaoSelecionada._militares,
+        modalidade_documento: modalidade,
         teve_alteracao_retorno: teveAlteracao,
         justificativa_alteracao_retorno: justTxt
-      };
+      });
+
+      if (modalidade === 'diaria') {
+        dados.viagem_cidade_origem = document.getElementById('f-cidade-origem').value.trim() || 'PIRASSUNUNGA - SP';
+        dados.viagem_cidade_destino = document.getElementById('f-cidade-destino').value.trim();
+        dados.viagem_descricao = document.getElementById('f-descricao-viagem').value.trim();
+        dados.viagem_internacional = document.getElementById('f-internacional').checked;
+      }
 
       if (teveAlteracao) {
         const dIda = document.getElementById('f-alt-data-ida').value;
@@ -440,29 +758,84 @@
         const dVolta = document.getElementById('f-alt-data-volta').value;
         const hVolta = document.getElementById('f-alt-hora-volta').value;
 
-        const diffHours = (new Date(`${dVolta}T${hVolta}`) - new Date(`${dIda}T${hIda}`)) / (1000 * 60 * 60);
-        const diasCalc = Math.max(1, Math.ceil(diffHours / 24));
+        const diffHoras = (new Date(`${dVolta}T${hVolta}`) - new Date(`${dIda}T${hIda}`)) / 36e5;
+        const diasCalc = Math.max(1, Math.ceil(diffHoras / 24));
 
-        dadosComp.retorno_dados_alteracao = (Array.isArray(missaoSelecionada.militares) ? missaoSelecionada.militares : [missaoSelecionada]).map(m => ({
-          ...m,
+        dados.data_retorno = dVolta;
+        dados.retorno_dados_alteracao = missaoSelecionada._militares.map(m => Object.assign({}, m, {
+          retorno_inicio: dIda,
           retorno_inicio_fmt: fmtData(dIda),
           retorno_hora_inicio: hIda,
+          retorno_fim: dVolta,
           retorno_fim_fmt: fmtData(dVolta),
           retorno_hora_fim: hVolta,
           dias_retorno: diasCalc
         }));
       }
 
-      window.CompiladorDoc.gerarFichaApresentacaoGratificacao(dadosComp, true);
-      toast('Ficha de Apresentação gerada! Assine no GOV.BR e faça o upload.');
+      return dados;
     }
 
+    function validarAntesDeGerar() {
+      const modalidade = document.getElementById('f-modalidade-doc').value;
+      const teveAlteracao = document.getElementById('f-teve-alteracao').value === 'SIM';
+
+      if (teveAlteracao) {
+        if (!document.getElementById('f-alt-justificativa').value.trim()) {
+          toast('Descreva a justificativa da alteração.', true); return false;
+        }
+        const dIda = document.getElementById('f-alt-data-ida').value;
+        const dVolta = document.getElementById('f-alt-data-volta').value;
+        if (!dIda || !dVolta) { toast('Informe as datas efetivas de ida e retorno.', true); return false; }
+        if (new Date(`${dVolta}T${document.getElementById('f-alt-hora-volta').value}`) <
+            new Date(`${dIda}T${document.getElementById('f-alt-hora-ida').value}`)) {
+          toast('O retorno não pode ser anterior à ida.', true); return false;
+        }
+      }
+      if (modalidade === 'diaria' && !document.getElementById('f-cidade-destino').value.trim()) {
+        toast('Informe a cidade de destino — o Anexo B exige o circuito.', true); return false;
+      }
+      return true;
+    }
+
+    async function gerarDocumentoRetorno() {
+      if (!missaoSelecionada) return;
+      if (!validarAntesDeGerar()) return;
+
+      const btn = document.getElementById('btn-gerar-doc');
+      const rotuloOriginal = btn.innerHTML;
+      btn.disabled = true;
+      btn.textContent = 'Gerando PDF…';
+
+      try {
+        const motor = window.CompiladorDoc;
+        if (!motor || typeof motor.gerarDocumentoApresentacaoRetorno !== 'function') {
+          throw new Error('Motor de documentos não carregado (compiladordoc.js).');
+        }
+        const r = await motor.gerarDocumentoApresentacaoRetorno(montarDadosDocumento(), true);
+        toast('PDF gerado: ' + r.fileName + '. Assine no GOV.BR e faça o upload.');
+      } catch (e) {
+        console.error(e);
+        toast('Não foi possível gerar o PDF: ' + (e.message || 'erro desconhecido'), true);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = rotuloOriginal;
+      }
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+       PASSO 4 — UPLOAD E GRAVAÇÃO
+       ══════════════════════════════════════════════════════════════ */
     function selecionarPdfAssinado(event) {
       const file = event.target.files[0];
       if (!file) return;
 
       if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
         alert('Por favor, selecione um arquivo no formato PDF.');
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        alert('O arquivo excede 10MB.');
         return;
       }
 
@@ -473,25 +846,49 @@
       document.getElementById('btn-concluir-apresentacao').disabled = false;
     }
 
+    /* Atualiza uma tabela e devolve o erro em vez de engolir.
+       Se a base ainda não tiver as colunas novas, repete com o
+       payload mínimo em vez de perder a gravação inteira. */
+    async function atualizarTabela(tabela, payload, coluna, valor) {
+      const { error } = await sb.from(tabela).update(payload).eq(coluna, valor);
+      if (!error) return { ok: true };
+
+      const minimo = {};
+      if (payload.pdf_retorno_assinado) minimo.pdf_retorno_assinado = payload.pdf_retorno_assinado;
+      if (payload.status) minimo.status = payload.status;
+      if (!Object.keys(minimo).length) return { ok: false, erro: error.message };
+
+      const r2 = await sb.from(tabela).update(minimo).eq(coluna, valor);
+      return r2.error
+        ? { ok: false, erro: error.message }
+        : { ok: true, parcial: true, erro: error.message };
+    }
+
     async function concluirApresentacao() {
       if (!missaoSelecionada || !arquivoPdfParaUpload) {
         alert('Selecione o arquivo PDF assinado via GOV.BR para concluir.');
         return;
       }
 
+      const alvo = missaoSelecionada;
       const teveAlteracao = document.getElementById('f-teve-alteracao').value === 'SIM';
-      const justTxt = teveAlteracao ? document.getElementById('f-alt-justificativa').value.trim() : 'Não se aplica.';
-      const numIdent = missaoSelecionada.num_os || missaoSelecionada.protocolo || 'RETORNO';
-      const nomeLimpo = numIdent.replace(/[^\w.-]/g, '_');
+      const justTxt = teveAlteracao
+        ? document.getElementById('f-alt-justificativa').value.trim()
+        : 'Não se aplica.';
+      const dados = montarDadosDocumento();
+
+      const numIdent = alvo.num_os || alvo.protocolo || 'RETORNO';
+      const nomeLimpo = String(numIdent).replace(/[^\w.-]/g, '_');
       const caminhoStorage = `retornos_os/${nomeLimpo}_assinado_${Date.now()}.pdf`;
 
       const btn = document.getElementById('btn-concluir-apresentacao');
       btn.disabled = true;
       btn.textContent = 'Enviando PDF...';
 
-      let pdfCaminhoGravado = caminhoStorage;
+      const avisos = [];
+      let uploadOk = false;
 
-      // 1. Tenta upload no Storage do Supabase
+      /* 1. Upload no Storage */
       if (configurado) {
         try {
           const res = await fetch(`${SUPABASE_URL}/storage/v1/object/auxilio-transporte/${caminhoStorage}`, {
@@ -504,51 +901,102 @@
             },
             body: arquivoPdfParaUpload
           });
-          if (!res.ok) throw new Error('Upload Storage ' + res.status);
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          uploadOk = true;
         } catch(e) {
-          console.warn('Storage fallback:', e.message);
+          console.warn('Falha no upload para o Storage:', e.message);
+          avisos.push('O PDF assinado não subiu para o repositório (' + e.message +
+                      '). Encaminhe o arquivo à Secretaria da DE por e-mail.');
         }
       }
 
-      // 2. Atualiza registros no banco / LocalStorage
+      /* Só grava o caminho quando o arquivo realmente está lá —
+         caminho apontando para o vazio é pior que caminho ausente. */
+      const pdfCaminho = uploadOk ? caminhoStorage : null;
       const agora = new Date().toISOString();
-      const payloadAtualizacao = {
-        retorno_apresentado: true,
-        retorno_apresentado_em: agora,
-        teve_alteracao_retorno: teveAlteracao,
-        justificativa_alteracao_retorno: justTxt,
-        pdf_retorno_assinado: pdfCaminhoGravado,
-        status: 'Apresentado'
-      };
 
-      try {
-        if (configurado) {
-          if (missaoSelecionada.num_os) {
-            await sb.from('gratificacao_representacao').update(payloadAtualizacao).eq('num_os', missaoSelecionada.num_os);
-            await sb.from('controle_os_processos').update({ status: 'Apresentado', pdf_retorno_assinado: pdfCaminhoGravado }).eq('num_os', missaoSelecionada.num_os);
+      /* 2. Gravação — pelo id do registro, nunca pelo num_os.
+         Com numeração duplicada, filtrar por num_os marcava as duas
+         OS de mesmo número como apresentadas de uma só vez. */
+      if (configurado && alvo._id && !/^(temp_|loc_)/.test(alvo._id)) {
+        if (alvo._origem === TAB_MISSAO) {
+          const payload = {
+            retorno_apresentado_em: agora,
+            teve_alteracao_retorno: teveAlteracao,
+            justificativa_alteracao_retorno: justTxt,
+            retorno_dados_alteracao: dados.retorno_dados_alteracao || null,
+            status: 'Apresentado'
+          };
+          if (pdfCaminho) payload.pdf_retorno_assinado = pdfCaminho;
+          const r = await atualizarTabela(TAB_MISSAO, payload, 'id', alvo._id);
+          if (!r.ok) avisos.push('A missão não pôde ser atualizada no banco (' + r.erro + ').');
+          else if (r.parcial) console.warn('Gravação parcial em ' + TAB_MISSAO + ':', r.erro);
+
+          /* Esteira de processos: por missao_id; se a coluna não
+             existir nessa base, cai para num_os + ano. */
+          const payloadEsteira = { status: 'Apresentado' };
+          if (pdfCaminho) payloadEsteira.pdf_retorno_assinado = pdfCaminho;
+          const e1 = await sb.from(TAB_ESTEIRA).update(payloadEsteira).eq('missao_id', alvo._id);
+          if (e1.error && alvo.num_os) {
+            await sb.from(TAB_ESTEIRA).update(payloadEsteira)
+              .eq('num_os', alvo.num_os).eq('ano', alvo.ano || new Date().getFullYear());
           }
-          if (missaoSelecionada.protocolo) {
-            await sb.from('solicitacoes_missao').update(payloadAtualizacao).eq('protocolo', missaoSelecionada.protocolo);
-          }
+        } else {
+          const payload = {
+            retorno_apresentado: true,
+            retorno_apresentado_em: agora,
+            retorno_teve_alteracao: teveAlteracao,
+            retorno_dados_alteracao: dados.retorno_dados_alteracao || null,
+            status: 'apresentado'
+          };
+          if (pdfCaminho) payload.pdf_retorno_assinado = pdfCaminho;
+          const r = await atualizarTabela(TAB_SOLIC, payload, 'id', alvo._id);
+          if (!r.ok) avisos.push('A solicitação não pôde ser atualizada no banco (' + r.erro + ').');
         }
-      } catch(e) {}
+      } else if (configurado) {
+        avisos.push('Registro sem identificador no banco — a apresentação não foi vinculada ao processo.');
+      }
+
+      /* 3. Reflete no catálogo em memória para o seletor não reoferecer */
+      alvo.retorno_apresentado = true;
+      alvo.retorno_apresentado_em = agora;
+      if (pdfCaminho) alvo.pdf_retorno_assinado = pdfCaminho;
+      alvo.status = 'Apresentado';
+      montarSeletorMissoes();
 
       document.getElementById('box-formulario-retorno').style.display = 'none';
       document.getElementById('box-sucesso-apresentacao').style.display = 'block';
+      document.getElementById('sucesso-alerta').innerHTML = avisos.length
+        ? `<div class="alert-box erro"><span>⚠</span><span>${avisos.map(esc).join('<br>')}</span></div>`
+        : '';
       document.getElementById('sucesso-detalhes').innerHTML = `
         <b>Protocolo/OS:</b> ${esc(numIdent)}<br>
+        <b>Documento:</b> ${esc(ROTULO_MODALIDADE[document.getElementById('f-modalidade-doc').value])}<br>
         <b>Data/Hora do Envio:</b> ${new Date().toLocaleString('pt-BR')}<br>
         <b>Status Atualizado:</b> <span style="color:#15803d;font-weight:bold">APRESENTADO</span>
       `;
-      toast('Apresentação de Retorno concluída com sucesso!');
+      toast(avisos.length
+        ? 'Apresentação registrada com pendências — confira o aviso na tela.'
+        : 'Apresentação de Retorno concluída com sucesso!', avisos.length > 0);
     }
 
     function cancelarApresentacao() {
       document.getElementById('box-formulario-retorno').style.display = 'none';
       document.getElementById('box-busca').style.display = 'block';
+      document.getElementById('sel-missoes').value = '';
       missaoSelecionada = null;
       arquivoPdfParaUpload = null;
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('%c retorno.html v2.0 · busca por identidade + PDF por modalidade ',
+                  'background:#0a192f;color:#d4a84b;font-weight:700');
+      carregarCatalogoMissoes().catch(e => {
+        console.error(e);
+        document.getElementById('sel-missoes').innerHTML =
+          '<option value="">Falha ao carregar — use a busca abaixo</option>';
+      });
+    });
   </script>
 </body>
 </html>
