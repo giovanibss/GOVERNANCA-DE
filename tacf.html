@@ -317,6 +317,17 @@ button.acao.mini { padding: 0.35rem 0.75rem; font-size: 0.8rem; }
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  transition: opacity 0.25s ease, filter 0.25s ease;
+}
+.colunaDia.cancelada {
+  opacity: 0.45;
+  filter: grayscale(0.7);
+  border: 1.5px dashed rgba(239, 68, 68, 0.45) !important;
+  background: rgba(15, 23, 42, 0.6) !important;
+}
+.colunaDia.extra {
+  border-color: rgba(245, 158, 11, 0.5);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.12);
 }
 .colunaDiaCab {
   background: linear-gradient(180deg, rgba(212, 168, 75, 0.15) 0%, rgba(10, 23, 48, 0.9) 100%);
@@ -613,6 +624,9 @@ footer {
           </div>
         </div>
 
+        <!-- Alerta de Data Cancelada (Para Militares em Reagendamento) -->
+        <div id="avisoDataCanceladaMilitar" class="faixaMsg alerta" style="display:none; margin-bottom:1.25rem; background:rgba(239, 68, 68, 0.15); border:1px solid #ef4444; color:#fca5a5;"></div>
+
         <div class="linhaCtl">
           <div class="campo">
             <label for="selPrio1">1ª Opção de Data (Prioridade 1)</label>
@@ -769,8 +783,74 @@ footer {
             <button class="acao rubi mini" onclick="limparTodasAsDatasAplicacao()">🗑️ Limpar Dias</button>
             <button class="acao fantasma mini" onclick="executarAutofillEscala()">⚡ Gerar Escala</button>
             <button class="acao rubi mini" onclick="excluirEscalaGerada()">🗑️ Excluir Escala</button>
+            <button type="button" class="acao mini" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color:#061021; font-weight:700;" onclick="alternarPainelDiasExtras()" id="btnDiasExtras" title="Gerenciar dias extras, cancelamento de datas e reagendamento">
+              📅 Dias Extras
+            </button>
           </div>
           <div id="listaBadgeDatas" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:0.75rem;"></div>
+
+          <!-- PAINEL DE DIAS EXTRAS & REAGENDAMENTO -->
+          <div id="painelDiasExtras" style="display:none; margin-top:1.25rem; background:rgba(6,16,33,0.95); border:1.5px solid #f59e0b; border-radius:10px; padding:1.25rem; box-shadow:0 8px 24px rgba(245,158,11,0.2);">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(207,228,255,0.15); padding-bottom:0.75rem; margin-bottom:1rem;">
+              <h4 style="font-family:var(--f-heading); font-size:1.15rem; color:#facc15; text-transform:uppercase; margin:0; display:flex; align-items:center; gap:0.5rem;">
+                📅 Gestão de Dias Extras, Cancelamento & Reagendamento
+              </h4>
+              <button type="button" onclick="fecharPainelDiasExtras()" style="background:transparent; border:none; color:var(--texto-2); font-size:1.4rem; cursor:pointer; line-height:1;" title="Fechar">&times;</button>
+            </div>
+
+            <!-- Checkbox 1: Cancelamento de Dias -->
+            <div style="margin-bottom:1rem;">
+              <label style="display:inline-flex; align-items:center; gap:0.6rem; cursor:pointer; font-weight:600; font-size:0.92rem; color:#fde68a;">
+                <input type="checkbox" id="chkCancelarDias" onchange="aoAlternarCancelarDias(this.checked)" style="width:17px; height:17px; cursor:pointer;" />
+                <span>Cancelamento de dias de aplicação</span>
+              </label>
+              <div style="font-size:0.8rem; color:var(--texto-2); margin-left:1.8rem; margin-top:0.2rem;">
+                Marque dias existentes para cancelar sem removê-los. Eles permanecerão no histórico e ficarão apagados no calendário.
+              </div>
+
+              <!-- Lista de seleção de dias existentes para cancelar -->
+              <div id="boxSelecaoDiasCancelar" style="display:none; margin-top:0.75rem; margin-left:1.8rem; background:rgba(10,23,48,0.8); border:1px solid rgba(207,228,255,0.15); border-radius:8px; padding:0.85rem; max-height:220px; overflow-y:auto;">
+                <div style="font-size:0.78rem; font-weight:bold; color:var(--texto-2); margin-bottom:0.5rem; text-transform:uppercase;">
+                  Selecione as datas a cancelar:
+                </div>
+                <div id="listaCheckboxesDiasExistentes" style="display:flex; flex-direction:column; gap:0.5rem;"></div>
+              </div>
+            </div>
+
+            <!-- Checkbox 2: Reagendamento dos Cancelados (Habilitado apenas se Checkbox 1 estiver ativo) -->
+            <div style="margin-bottom:1.25rem; padding-top:0.75rem; border-top:1px dashed rgba(207,228,255,0.1);">
+              <label id="lblReagendarCancelados" style="display:inline-flex; align-items:center; gap:0.6rem; cursor:not-allowed; opacity:0.5; font-weight:600; font-size:0.92rem; color:#6ee7b7;">
+                <input type="checkbox" id="chkReagendarCancelados" disabled onchange="aoAlternarReagendamento(this.checked)" style="width:17px; height:17px; cursor:pointer;" />
+                <span>Reagendamento dos cancelados</span>
+              </label>
+              <div style="font-size:0.8rem; color:var(--texto-2); margin-left:1.8rem; margin-top:0.2rem;">
+                Ao selecionar, os militares alocados nos dias cancelados entram novamente na lista de elegibilidade para reagendamento.
+              </div>
+              <div id="avisoContadorReagendar" style="display:none; margin-left:1.8rem; margin-top:0.5rem; background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.3); border-radius:6px; padding:0.5rem 0.75rem; font-size:0.82rem; color:#93c5fd;"></div>
+            </div>
+
+            <!-- Seção de Adição de Novos Dias Extras -->
+            <div id="secaoAdicionarDiasExtras" style="padding-top:0.75rem; border-top:1px dashed rgba(207,228,255,0.1); margin-bottom:1.25rem;">
+              <label style="font-size:0.8rem; font-weight:700; text-transform:uppercase; color:var(--gold); display:block; margin-bottom:0.4rem;">
+                ➕ Adicionar Novos Dias de Aplicação (Dias Extras)
+              </label>
+              <div class="linhaCtl" style="margin-bottom:0.5rem;">
+                <div class="campo" style="max-width:200px;">
+                  <input type="date" id="inputDataExtraModal" />
+                </div>
+                <button type="button" class="acao mini jade" onclick="adicionarDiaExtraNaListaModal()">+ Incluir Dia Extra</button>
+              </div>
+              <div id="listaChipsDiasExtrasModal" style="display:flex; flex-wrap:wrap; gap:0.4rem; margin-top:0.5rem;"></div>
+            </div>
+
+            <!-- Botão Finalizar -->
+            <div style="display:flex; justify-content:flex-end; align-items:center; gap:0.75rem; padding-top:0.75rem; border-top:1px solid rgba(207,228,255,0.15);">
+              <button type="button" class="acao fantasma mini" onclick="fecharPainelDiasExtras()">Cancelar</button>
+              <button type="button" class="acao jade" onclick="finalizarDiasExtrasModal()" id="btnFinalizarDiasExtras">
+                ✓ Finalizar e Abrir Nova Onda de Agendamento
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- Botões de Ação da Escala -->
@@ -789,10 +869,20 @@ footer {
 
       <!-- PAINEL HORIZONTAL DE COLUNAS DA ESCALA -->
       <div class="painel" style="margin-bottom:1.5rem;">
-        <h3>
-          Visualização Horizontal da Escala
-          <small style="font-size:0.75rem; color:var(--texto-2); font-weight:normal;">Empilhados por antiguidade (Do mais antigo ao mais moderno)</small>
-        </h3>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:0.5rem;">
+          <h3 style="margin-bottom:0;">
+            Visualização Horizontal da Escala
+            <small style="font-size:0.75rem; color:var(--texto-2); font-weight:normal;">Empilhados por antiguidade (Do mais antigo ao mais moderno)</small>
+          </h3>
+          <div style="display:flex; gap:0.5rem; align-items:center;">
+            <button type="button" class="acao mini" style="background:linear-gradient(135deg,#10b981 0%,#059669 100%); color:#fff; font-size:0.82rem; font-weight:700;" onclick="abrirModalAlocacaoManual(null)">
+              ➕ Confecção / Alocação Manual
+            </button>
+          </div>
+        </div>
+
+        <!-- Barra de Militares Não Alocados / Fora da Escala -->
+        <div id="barraMilitaresNaoAlocados" style="margin-bottom:1rem;"></div>
 
         <div id="escalaHorizontal" class="escalaHorizontalContainer">
           <div style="color:var(--texto-3); padding:2rem;">Nenhuma data cadastrada ou escala gerada ainda.</div>
@@ -800,7 +890,7 @@ footer {
       </div>
 
       <!-- LISTA DE STATUS DOS MILITARES (ESTILO AUX. TRANSPORTE + CONSULTA E JUSTIFICATIVAS) -->
-      <div class="painel">
+      <div class="painel" id="tabelaSecretariaPainel">
         <h3>Quadro Geral de Elegibilidade, Solicitações e Indisponibilidades</h3>
         <p style="font-size:0.82rem; color:var(--texto-2); margin-bottom:1rem;">
           Consulte as 3 escolhas de prioridades, indisponibilidades justificadas e faça o remanejamento manual quando necessário.
@@ -810,9 +900,10 @@ footer {
           <div class="campo">
             <input type="text" id="filtroNomeSaram" placeholder="Filtrar por nome, posto ou SARAM..." oninput="renderizarTabelaSecretaria()" />
           </div>
-          <div class="campo" style="max-width:220px;">
+          <div class="campo" style="max-width:240px;">
             <select id="filtroStatusEleg" onchange="renderizarTabelaSecretaria()">
               <option value="">— Todos os Status —</option>
+              <option value="reagendamento" style="font-weight:bold; color:#fde047;">🔄 Nova Onda (Reagendamento / Dias Extras)</option>
               <option value="elegivel">Elegíveis</option>
               <option value="missao">Missão fora da sede</option>
               <option value="r1_reserva">Reserva (R1)</option>
@@ -929,6 +1020,41 @@ function formatarSARAM(raw) {
 }
 
 async function carregarEfetivoPlanilha() {
+  // 1. Prioriza base central unificada do Supabase via AppConfig (Fase 3)
+  try {
+    if (window.AppConfig && typeof window.AppConfig.fetchEfetivo === 'function') {
+      const militaresDB = await window.AppConfig.fetchEfetivo({ activeOnly: true });
+      if (militaresDB && militaresDB.length > 0) {
+        listaEfetivo = militaresDB.map((m, index) => {
+          const saram = formatarSARAM(m.saram);
+          const posto = m.posto_grad || '';
+          const esp = m.especialidade || '';
+          const nomeGuerra = m.nome_guerra || '';
+          const nomeCompleto = m.nome_completo || '';
+
+          if (!nomeGuerra || !saram) return null;
+
+          const isR1 = /R\s*1|RESERVA|\bR1\b/i.test(esp) || /R\s*1|RESERVA|\bR1\b/i.test(posto);
+
+          return {
+            antiguidade: Number(m.ordem) || (index + 1),
+            posto: posto,
+            esp: esp,
+            nomeGuerra: nomeGuerra,
+            nomeCompleto: nomeCompleto,
+            saram: saram,
+            isR1: isR1
+          };
+        }).filter(Boolean);
+
+        return;
+      }
+    }
+  } catch(errDb) {
+    console.warn('AppConfig fetchEfetivo falhou em tacf.html, usando fallback...', errDb);
+  }
+
+  // Fallback Google Sheets GViz
   try {
     const res = await fetch(EFETIVO_URL);
     const txt = await res.text();
@@ -990,6 +1116,12 @@ async function carregarOuCriarTemporada() {
 
     if (data && data.length > 0) {
       listaTemporadas = data;
+      listaTemporadas.forEach(t => {
+        let obs = {};
+        try { obs = typeof t.observacoes === 'string' ? JSON.parse(t.observacoes) : (t.observacoes || {}); } catch(e) {}
+        t.datas_canceladas = Array.isArray(t.datas_canceladas) ? t.datas_canceladas : (Array.isArray(obs.datas_canceladas) ? obs.datas_canceladas : []);
+        t.datas_extras = Array.isArray(t.datas_extras) ? t.datas_extras : (Array.isArray(obs.datas_extras) ? obs.datas_extras : []);
+      });
       if (!temporadaAtual || !listaTemporadas.some(t => t.id === temporadaAtual.id)) {
         // Prefere temporada ativa (não encerrada), se houver
         const ativa = listaTemporadas.find(t => t.status !== 'encerrado');
@@ -1004,6 +1136,8 @@ async function carregarOuCriarTemporada() {
         titulo: '1º/2026',
         status: 'agendamento_fechado', // Default Preparação
         datas_aplicacao: [],
+        datas_canceladas: [],
+        datas_extras: [],
         vagas_por_dia: 4,
         vagas_livres_reserva: 3
       };
@@ -1013,8 +1147,16 @@ async function carregarOuCriarTemporada() {
         .select();
       if (!errCreate && created && created[0]) {
         temporadaAtual = created[0];
+        temporadaAtual.datas_canceladas = [];
+        temporadaAtual.datas_extras = [];
         listaTemporadas = [created[0]];
       }
+    }
+    if (temporadaAtual) {
+      let obs = {};
+      try { obs = typeof temporadaAtual.observacoes === 'string' ? JSON.parse(temporadaAtual.observacoes) : (temporadaAtual.observacoes || {}); } catch(e) {}
+      temporadaAtual.datas_canceladas = Array.isArray(temporadaAtual.datas_canceladas) ? temporadaAtual.datas_canceladas : (Array.isArray(obs.datas_canceladas) ? obs.datas_canceladas : []);
+      temporadaAtual.datas_extras = Array.isArray(temporadaAtual.datas_extras) ? temporadaAtual.datas_extras : (Array.isArray(obs.datas_extras) ? obs.datas_extras : []);
     }
     renderizarSeletorTemporadas();
     renderizarControlesFaseSecretaria();
@@ -1032,6 +1174,7 @@ function renderizarSeletorTemporadas() {
     opt.value = t.id;
     let rotulo = '🟡 Em Preparação';
     if (t.status === 'agendamento_aberto') rotulo = '🟢 Agendamento Aberto';
+    else if (t.status === 'agendamento_parcial') rotulo = '⚡ Solicitação Parcial (Dias Extras)';
     else if (t.status === 'escala_gerada') rotulo = '⚡ Escala Ativa';
     else if (t.status === 'encerrado') rotulo = '📁 🔒 Encerrado (Histórico)';
 
@@ -1060,6 +1203,18 @@ function renderizarControlesFaseSecretaria() {
     btnsHtml = `
       <button type="button" class="acao rubi mini" onclick="fecharAgendamentoEfetivo()" title="Bloqueia novas solicitações pelo público">
         🔴 Fechar Agendamento
+      </button>
+    `;
+    if (faixaEncerrado) faixaEncerrado.style.display = 'none';
+    if (btnEncerrar) btnEncerrar.style.display = 'inline-flex';
+  } else if (st === 'agendamento_parcial') {
+    badgeHtml = '<span class="badge" style="background:rgba(234,179,8,0.2); color:#fef08a; border:1px solid #eab308; font-size:0.82rem; padding:0.35rem 0.75rem;">⚡ FASE PARCIAL: AGENDAMENTO DIAS EXTRAS & REAGENDAMENTO</span>';
+    btnsHtml = `
+      <button type="button" class="acao rubi mini" onclick="fecharAgendamentoEfetivo()" title="Bloqueia novas solicitações pelo público">
+        🔴 Fechar Agendamento
+      </button>
+      <button type="button" class="acao jade mini" onclick="executarAutofillEscala()" title="Gera ou atualiza a escala oficial com os reagendamentos">
+        ⚡ Gerar Escala (Nova Onda)
       </button>
     `;
     if (faixaEncerrado) faixaEncerrado.style.display = 'none';
@@ -1532,17 +1687,22 @@ function renderizarFormularioMilitar() {
   const selMilitar = document.getElementById('selMilitar');
   selMilitar.innerHTML = '<option value="">— selecione seu nome —</option>';
 
-  // FILTRA E INIBE R1 TOTALMENTE
-  listaEfetivo.filter(m => !m.isR1).forEach(m => {
-    const opt = document.createElement('option');
-    opt.value = m.saram;
-    opt.textContent = `${m.posto} ${m.nomeGuerra} (SARAM ${m.saram})`;
-    selMilitar.appendChild(opt);
-  });
-
   const datas = temporadaAtual?.datas_aplicacao || [];
+  const datasCanceladas = temporadaAtual?.datas_canceladas || [];
+  const datasExtras = temporadaAtual?.datas_extras || [];
   const statusTemp = temporadaAtual?.status || 'agendamento_fechado';
   const tituloTemp = temporadaAtual?.titulo || obterTituloTemporadaPadrao();
+
+  // FILTRA E INIBE R1 TOTALMENTE
+  listaEfetivo.filter(m => !m.isR1).forEach(m => {
+    const sol = solicitacoesMap[m.saram];
+    const isAfetadoCancelamento = sol && (sol.dia_anterior_cancelado || (sol.dia_escalado && datasCanceladas.includes(sol.dia_escalado)));
+    const tagReagendar = isAfetadoCancelamento ? ' [⚠️ REAGENDAMENTO]' : '';
+    const opt = document.createElement('option');
+    opt.value = m.saram;
+    opt.textContent = `${m.posto} ${m.nomeGuerra} (SARAM ${m.saram})${tagReagendar}`;
+    selMilitar.appendChild(opt);
+  });
 
   const msgStatus = document.getElementById('msgStatusTemporada');
   const formSol = document.getElementById('formSolicitacao');
@@ -1584,6 +1744,24 @@ function renderizarFormularioMilitar() {
           <span style="display:inline-block; margin-top:4px; background:rgba(250,204,21,0.25); color:#fef08a; padding:2px 8px; border-radius:4px; font-weight:bold; border:1px solid rgba(250,204,21,0.5);">
             📢 Restam <b>${faltamCount} militares</b> realizarem a escolha!
           </span>
+        </div>
+      </div>
+    `;
+    formSol.style.display = 'block';
+    if (btnEnviar) btnEnviar.style.display = 'inline-flex';
+  } else if (statusTemp === 'agendamento_parcial') {
+    msgStatus.className = 'faixaMsg alerta';
+    msgStatus.style.background = 'rgba(245, 158, 11, 0.15)';
+    msgStatus.style.borderColor = 'rgba(245, 158, 11, 0.4)';
+    msgStatus.style.color = '#fde68a';
+    msgStatus.style.display = 'flex';
+    msgStatus.innerHTML = `
+      <div style="flex:1;">
+        <div style="font-weight:700; font-size:0.95rem; margin-bottom:0.25rem;">
+          ⚡ SOLICITAÇÃO PARCIAL ABERTA (DIAS EXTRAS & REAGENDAMENTO) — TACF ${tituloTemp}
+        </div>
+        <div style="font-size:0.88rem; line-height:1.4;">
+          O agendamento está <b>aberto para solicitação parcial</b>: militares afetados por datas canceladas ou pendentes podem registrar novas escolhas entre as <b>datas extras disponíveis</b>.
         </div>
       </div>
     `;
@@ -1645,15 +1823,19 @@ function renderizarFormularioMilitar() {
     formSol.style.display = 'none';
   }
 
+  // Filtrar apenas datas válidas (excluindo canceladas) para as opções
+  const datasValidas = datas.filter(d => !datasCanceladas.includes(d));
+
   ['selPrio1', 'selPrio2', 'selPrio3', 'selDataIndisp'].forEach(idSelect => {
     const sel = document.getElementById(idSelect);
     sel.innerHTML = '<option value="">— selecione a data —</option>';
-    datas.forEach(dStr => {
+    datasValidas.forEach(dStr => {
       const parts = dStr.split('-');
       const dFmt = `${parts[2]}/${parts[1]}/${parts[0]}`;
+      const isExtra = datasExtras.includes(dStr);
       const opt = document.createElement('option');
       opt.value = dStr;
-      opt.textContent = dFmt;
+      opt.textContent = `${dFmt}${isExtra ? ' ⭐ (Dia Extra)' : ''}`;
       sel.appendChild(opt);
     });
   });
@@ -1661,10 +1843,13 @@ function renderizarFormularioMilitar() {
 
 function aoSelecionarMilitar(saram) {
   const m = listaEfetivo.find(x => x.saram === saram);
+  const avisoCanceladoEl = document.getElementById('avisoDataCanceladaMilitar');
+
   if (!m) {
     document.getElementById('txtSaram').value = '';
     document.getElementById('txtPosto').value = '';
     document.getElementById('cardComprovante').style.display = 'none';
+    if (avisoCanceladoEl) avisoCanceladoEl.style.display = 'none';
     indisponibilidadesAdicionadasForm = [];
     renderizarListaIndisponibilidadesForm();
     return;
@@ -1672,15 +1857,33 @@ function aoSelecionarMilitar(saram) {
   document.getElementById('txtSaram').value = m.saram;
   document.getElementById('txtPosto').value = `${m.posto} ${m.esp ? '(' + m.esp + ')' : ''}`;
 
+  const datasCanceladas = temporadaAtual?.datas_canceladas || [];
   const sol = solicitacoesMap[saram];
+
   if (sol) {
-    document.getElementById('selPrio1').value = sol.prio1_data || '';
-    document.getElementById('selPrio2').value = sol.prio2_data || '';
-    document.getElementById('selPrio3').value = sol.prio3_data || '';
+    const diaCanc = sol.dia_anterior_cancelado || (sol.dia_escalado && datasCanceladas.includes(sol.dia_escalado) ? sol.dia_escalado : null);
+    if (diaCanc && avisoCanceladoEl) {
+      avisoCanceladoEl.style.display = 'flex';
+      avisoCanceladoEl.innerHTML = `
+        <div>
+          <b>⚠️ Data Cancelada:</b> Seu dia anterior agendado (<b>${formatarDataBR(diaCanc)}</b>) foi <b>cancelado pela organização</b>.<br/>
+          Selecione abaixo suas 3 opções de preferência entre os <b>dias extras</b> disponíveis para realizar sua nova solicitação.
+        </div>
+      `;
+    } else if (avisoCanceladoEl) {
+      avisoCanceladoEl.style.display = 'none';
+    }
+
+    // Pré-preenche se as prioridades anteriores forem datas válidas (não canceladas)
+    document.getElementById('selPrio1').value = (sol.prio1_data && !datasCanceladas.includes(sol.prio1_data)) ? sol.prio1_data : '';
+    document.getElementById('selPrio2').value = (sol.prio2_data && !datasCanceladas.includes(sol.prio2_data)) ? sol.prio2_data : '';
+    document.getElementById('selPrio3').value = (sol.prio3_data && !datasCanceladas.includes(sol.prio3_data)) ? sol.prio3_data : '';
+
     indisponibilidadesAdicionadasForm = Array.isArray(sol.indisponibilidades) ? [...sol.indisponibilidades] : [];
     renderizarListaIndisponibilidadesForm();
     exibirComprovanteMilitar(sol, m);
   } else {
+    if (avisoCanceladoEl) avisoCanceladoEl.style.display = 'none';
     document.getElementById('selPrio1').value = '';
     document.getElementById('selPrio2').value = '';
     document.getElementById('selPrio3').value = '';
@@ -1878,6 +2081,7 @@ function renderizarPainelSecretaria() {
   renderizarBadgesDatas();
   renderizarEscalaHorizontal();
   renderizarTabelaSecretaria();
+  renderizarBarraNaoAlocados();
   atualizarContadorIndisponibilidades();
 }
 
@@ -1885,6 +2089,8 @@ function renderizarBadgesDatas() {
   const container = document.getElementById('listaBadgeDatas');
   container.innerHTML = '';
   const datas = temporadaAtual?.datas_aplicacao || [];
+  const datasCanceladas = temporadaAtual?.datas_canceladas || [];
+  const datasExtras = temporadaAtual?.datas_extras || [];
 
   if (!datas.length) {
     container.innerHTML = '<span style="font-size:0.8rem; color:var(--texto-3);">Nenhuma data cadastrada.</span>';
@@ -1892,15 +2098,22 @@ function renderizarBadgesDatas() {
   }
 
   datas.forEach(dStr => {
+    const isCancelada = datasCanceladas.includes(dStr);
+    const isExtra = datasExtras.includes(dStr);
     const badge = document.createElement('div');
-    badge.className = 'badge elegivel';
+    badge.className = 'badge ' + (isCancelada ? 'rubi' : (isExtra ? 'ouro' : 'elegivel'));
     badge.style.display = 'inline-flex';
     badge.style.alignItems = 'center';
     badge.style.gap = '0.4rem';
     badge.style.padding = '0.35rem 0.65rem';
+    if (isCancelada) {
+      badge.style.opacity = '0.6';
+      badge.style.textDecoration = 'line-through';
+      badge.style.border = '1px dashed #ef4444';
+    }
     badge.innerHTML = `
-      📅 ${formatarDataBR(dStr)}
-      <span onclick="removerDataAplicacao('${dStr}')" style="cursor:pointer; font-weight:bold; margin-left:0.25rem;">&times;</span>
+      ${isExtra ? '⭐' : '📅'} ${formatarDataBR(dStr)} ${isCancelada ? '<small style="text-decoration:none; font-weight:bold; color:#ef4444;">(Cancelado)</small>' : (isExtra ? '<small style="font-weight:bold; color:#facc15;">(Extra)</small>' : '')}
+      <span onclick="removerDataAplicacao('${dStr}')" style="cursor:pointer; font-weight:bold; margin-left:0.25rem;" title="Remover data">&times;</span>
     `;
     container.appendChild(badge);
   });
@@ -1929,19 +2142,40 @@ async function adicionarDataAplicacao() {
 }
 
 async function removerDataAplicacao(dStr) {
-  if (temporadaAtual?.status === 'escala_gerada') {
-    return Swal.fire({
-      title: 'Ação Bloqueada',
-      html: 'A escala desta temporada já foi gerada.<br/><br/>Para excluir ou alterar datas de aplicação, você deve primeiro clicar no botão <b>"🗑️ Excluir Escala"</b>.',
-      icon: 'warning'
-    });
+  if (temporadaAtual?.status === 'escala_gerada' || temporadaAtual?.status === 'agendamento_parcial') {
+    const isCancelada = (temporadaAtual?.datas_canceladas || []).includes(dStr);
+    if (!isCancelada) {
+      return Swal.fire({
+        title: 'Deseja Cancelar esta Data?',
+        html: `A escala desta temporada já está em andamento.<br/><br/>Para cancelar o dia <b>${formatarDataBR(dStr)}</b> sem apagar do histórico e permitir o reagendamento dos militares nos novos dias, utilize a ferramenta <b>"📅 Dias Extras"</b>.`,
+        icon: 'info',
+        showCancelButton: true,
+        confirmButtonText: 'Abrir Dias Extras',
+        cancelButtonText: 'Fechar'
+      }).then(res => {
+        if (res.isConfirmed) abrirPainelDiasExtras();
+      });
+    }
   }
 
   temporadaAtual.datas_aplicacao = (temporadaAtual.datas_aplicacao || []).filter(x => x !== dStr);
+  temporadaAtual.datas_canceladas = (temporadaAtual.datas_canceladas || []).filter(x => x !== dStr);
+  temporadaAtual.datas_extras = (temporadaAtual.datas_extras || []).filter(x => x !== dStr);
   temporadaAtual.datas_aplicacao.sort();
 
   try {
-    await sb.from('tacf_temporadas').update({ datas_aplicacao: temporadaAtual.datas_aplicacao }).eq('id', temporadaAtual.id);
+    let obsObj = {};
+    try { obsObj = typeof temporadaAtual.observacoes === 'string' ? JSON.parse(temporadaAtual.observacoes) : (temporadaAtual.observacoes || {}); } catch(e) {}
+    obsObj.datas_canceladas = temporadaAtual.datas_canceladas;
+    obsObj.datas_extras = temporadaAtual.datas_extras;
+    temporadaAtual.observacoes = JSON.stringify(obsObj);
+
+    await sb.from('tacf_temporadas').update({
+      datas_aplicacao: temporadaAtual.datas_aplicacao,
+      datas_canceladas: temporadaAtual.datas_canceladas,
+      datas_extras: temporadaAtual.datas_extras,
+      observacoes: temporadaAtual.observacoes
+    }).eq('id', temporadaAtual.id);
   } catch (e) {
     console.error('Erro ao persistir remoção de data:', e);
   }
@@ -1949,6 +2183,373 @@ async function removerDataAplicacao(dStr) {
   renderizarBadgesDatas();
   renderizarFormularioMilitar();
   renderizarEscalaHorizontal();
+}
+
+/* ══════════════════════════════════════════════════════════════
+   GESTÃO DE DIAS EXTRAS, CANCELAMENTO & REAGENDAMENTO
+   ══════════════════════════════════════════════════════════════ */
+let novosDiasExtrasLista = [];
+
+function alternarPainelDiasExtras() {
+  const painel = document.getElementById('painelDiasExtras');
+  if (!painel) return;
+  if (painel.style.display === 'none' || !painel.style.display) {
+    abrirPainelDiasExtras();
+  } else {
+    fecharPainelDiasExtras();
+  }
+}
+
+function abrirPainelDiasExtras() {
+  const painel = document.getElementById('painelDiasExtras');
+  if (!painel) return;
+  painel.style.display = 'block';
+  novosDiasExtrasLista = [];
+  renderizarChipsDiasExtrasModal();
+
+  const chkCancelar = document.getElementById('chkCancelarDias');
+  if (chkCancelar) chkCancelar.checked = false;
+
+  const chkReagendar = document.getElementById('chkReagendarCancelados');
+  if (chkReagendar) {
+    chkReagendar.checked = false;
+    chkReagendar.disabled = true;
+  }
+  const lblReagendar = document.getElementById('lblReagendarCancelados');
+  if (lblReagendar) {
+    lblReagendar.style.opacity = '0.5';
+    lblReagendar.style.cursor = 'not-allowed';
+  }
+
+  const boxDiasCanc = document.getElementById('boxSelecaoDiasCancelar');
+  if (boxDiasCanc) boxDiasCanc.style.display = 'none';
+
+  const avisoCont = document.getElementById('avisoContadorReagendar');
+  if (avisoCont) avisoCont.style.display = 'none';
+
+  painel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function fecharPainelDiasExtras() {
+  const painel = document.getElementById('painelDiasExtras');
+  if (painel) painel.style.display = 'none';
+  novosDiasExtrasLista = [];
+}
+
+function aoAlternarCancelarDias(ativo) {
+  const boxDiasCanc = document.getElementById('boxSelecaoDiasCancelar');
+  const chkReagendar = document.getElementById('chkReagendarCancelados');
+  const lblReagendar = document.getElementById('lblReagendarCancelados');
+
+  if (ativo) {
+    if (boxDiasCanc) boxDiasCanc.style.display = 'block';
+    renderizarListaDiasParaCancelar();
+    if (chkReagendar) {
+      chkReagendar.disabled = false;
+      chkReagendar.checked = true; // Por padrão, se for cancelar dias, sugere reagendar os afetados
+    }
+    if (lblReagendar) {
+      lblReagendar.style.opacity = '1';
+      lblReagendar.style.cursor = 'pointer';
+    }
+    aoAlternarReagendamento(true);
+  } else {
+    if (boxDiasCanc) boxDiasCanc.style.display = 'none';
+    if (chkReagendar) {
+      chkReagendar.disabled = true;
+      chkReagendar.checked = false;
+    }
+    if (lblReagendar) {
+      lblReagendar.style.opacity = '0.5';
+      lblReagendar.style.cursor = 'not-allowed';
+    }
+    const avisoCont = document.getElementById('avisoContadorReagendar');
+    if (avisoCont) avisoCont.style.display = 'none';
+  }
+}
+
+function renderizarListaDiasParaCancelar() {
+  const container = document.getElementById('listaCheckboxesDiasExistentes');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const datas = temporadaAtual?.datas_aplicacao || [];
+  const datasCanceladasAtuais = temporadaAtual?.datas_canceladas || [];
+
+  if (!datas.length) {
+    container.innerHTML = '<div style="color:var(--texto-3); font-size:0.8rem;">Nenhuma data cadastrada na temporada.</div>';
+    return;
+  }
+
+  datas.forEach(dStr => {
+    const isJaCancelada = datasCanceladasAtuais.includes(dStr);
+    const escalados = Object.values(solicitacoesMap).filter(s => s.dia_escalado === dStr);
+    const count = escalados.length;
+    const nomesPreview = escalados.map(s => `${s.posto_grad} ${s.nome_guerra}`).slice(0, 3).join(', ') + (count > 3 ? '...' : '');
+
+    const itemDiv = document.createElement('div');
+    itemDiv.style.cssText = 'display:flex; align-items:center; justify-content:space-between; background:rgba(6,16,33,0.7); padding:0.45rem 0.65rem; border-radius:5px; border:1px solid rgba(207,228,255,0.1); font-size:0.82rem;';
+    
+    itemDiv.innerHTML = `
+      <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer; flex:1;">
+        <input type="checkbox" class="chkDiaCancelarItem" value="${dStr}" ${isJaCancelada ? 'checked' : ''} onchange="atualizarContadorCanceladosReagendar()" style="width:16px; height:16px; cursor:pointer;" />
+        <span style="${isJaCancelada ? 'text-decoration:line-through; color:#fca5a5;' : 'color:#fff;'} font-weight:600;">
+          📅 ${formatarDataBR(dStr)}
+        </span>
+        ${isJaCancelada ? '<span class="badge rubi" style="font-size:0.62rem;">Já Cancelada</span>' : ''}
+      </label>
+      <span style="font-size:0.75rem; color:var(--texto-2);">
+        👥 <b>${count}</b> escalado(s) ${nomesPreview ? `(${nomesPreview})` : ''}
+      </span>
+    `;
+    container.appendChild(itemDiv);
+  });
+
+  atualizarContadorCanceladosReagendar();
+}
+
+function atualizarContadorCanceladosReagendar() {
+  const chkReagendar = document.getElementById('chkReagendarCancelados');
+  const avisoCont = document.getElementById('avisoContadorReagendar');
+  if (!avisoCont) return;
+
+  const chks = document.querySelectorAll('.chkDiaCancelarItem:checked');
+  const datasSelecionadas = Array.from(chks).map(c => c.value);
+
+  let totalAfetados = 0;
+  datasSelecionadas.forEach(dStr => {
+    const escalados = Object.values(solicitacoesMap).filter(s => s.dia_escalado === dStr && s.status_solicitacao !== 'realizou');
+    totalAfetados += escalados.length;
+  });
+
+  if (chkReagendar && chkReagendar.checked && datasSelecionadas.length > 0) {
+    avisoCont.style.display = 'block';
+    avisoCont.innerHTML = `
+      👥 <b>${totalAfetados} militar(es)</b> alocado(s) nos dias selecionados para cancelamento serão <b>liberados para reagendamento</b> na nova onda de agendamentos.
+    `;
+  } else {
+    avisoCont.style.display = 'none';
+  }
+}
+
+function aoAlternarReagendamento(ativo) {
+  atualizarContadorCanceladosReagendar();
+}
+
+function adicionarDiaExtraNaListaModal() {
+  const inputEl = document.getElementById('inputDataExtraModal');
+  const dVal = inputEl ? inputEl.value : null;
+  if (!dVal) {
+    return Swal.fire('Atenção', 'Selecione uma data para adicionar como dia extra.', 'warning');
+  }
+
+  const datasExistentes = temporadaAtual?.datas_aplicacao || [];
+  if (datasExistentes.includes(dVal) || novosDiasExtrasLista.includes(dVal)) {
+    return Swal.fire('Aviso', 'Esta data já está cadastrada no calendário.', 'warning');
+  }
+
+  novosDiasExtrasLista.push(dVal);
+  novosDiasExtrasLista.sort();
+  inputEl.value = '';
+  renderizarChipsDiasExtrasModal();
+}
+
+function removerDiaExtraDaListaModal(dStr) {
+  novosDiasExtrasLista = novosDiasExtrasLista.filter(d => d !== dStr);
+  renderizarChipsDiasExtrasModal();
+}
+
+function renderizarChipsDiasExtrasModal() {
+  const container = document.getElementById('listaChipsDiasExtrasModal');
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (!novosDiasExtrasLista.length) {
+    container.innerHTML = '<span style="font-size:0.78rem; color:var(--texto-3);">Nenhum dia extra adicionado ainda nesta sessão.</span>';
+    return;
+  }
+
+  novosDiasExtrasLista.forEach(dStr => {
+    const chip = document.createElement('div');
+    chip.style.cssText = 'background:rgba(245,158,11,0.2); border:1px solid #f59e0b; color:#fde68a; font-size:0.8rem; font-weight:600; padding:0.25rem 0.6rem; border-radius:5px; display:inline-flex; align-items:center; gap:0.4rem;';
+    chip.innerHTML = `
+      ⭐ Dia Extra: ${formatarDataBR(dStr)}
+      <span onclick="removerDiaExtraDaListaModal('${dStr}')" style="cursor:pointer; font-weight:bold; margin-left:0.25rem; font-size:0.95rem;" title="Remover">&times;</span>
+    `;
+    container.appendChild(chip);
+  });
+}
+
+async function finalizarDiasExtrasModal() {
+  if (!temporadaAtual) return;
+
+  const chkCancelar = document.getElementById('chkCancelarDias');
+  const chkReagendar = document.getElementById('chkReagendarCancelados');
+
+  const cancelarAtivo = chkCancelar && chkCancelar.checked;
+  const reagendarAtivo = chkReagendar && chkReagendar.checked;
+
+  let datasParaCancelar = [];
+  if (cancelarAtivo) {
+    const chks = document.querySelectorAll('.chkDiaCancelarItem:checked');
+    datasParaCancelar = Array.from(chks).map(c => c.value);
+  }
+
+  if (datasParaCancelar.length === 0 && novosDiasExtrasLista.length === 0) {
+    return Swal.fire({
+      title: 'Nenhuma Alteração Definida',
+      text: 'Você precisa selecionar ao menos uma data para cancelar OU adicionar ao menos um novo dia extra antes de finalizar.',
+      icon: 'info'
+    });
+  }
+
+  // Identificar militares afetados caso o reagendamento esteja ativo
+  const militaresAfetados = [];
+  if (reagendarAtivo && datasParaCancelar.length > 0) {
+    Object.values(solicitacoesMap).forEach(s => {
+      if (s.dia_escalado && datasParaCancelar.includes(s.dia_escalado) && s.status_solicitacao !== 'realizou') {
+        militaresAfetados.push(s);
+      }
+    });
+  }
+
+  const confirm = await Swal.fire({
+    title: 'Finalizar Dias Extras & Abrir Nova Onda?',
+    html: `
+      <div style="text-align:left; font-size:0.88rem; line-height:1.5;">
+        Confira as alterações que serão aplicadas:<br/><br/>
+        • <b>Dias Cancelados (sem remoção):</b> ${datasParaCancelar.length ? datasParaCancelar.map(d => formatarDataBR(d)).join(', ') : 'Nenhum'}<br/>
+        • <b>Novos Dias Extras:</b> ${novosDiasExtrasLista.length ? novosDiasExtrasLista.map(d => formatarDataBR(d)).join(', ') : 'Nenhum'}<br/>
+        • <b>Reagendamento de Militares:</b> ${reagendarAtivo ? `<b>${militaresAfetados.length} militar(es)</b> retornarão à lista de elegibilidade da nova onda` : 'Não selecionado'}<br/>
+        • <b>Fase da Temporada:</b> Será aberta a <b>Solicitação Parcial</b> para preenchimento dos afetados.<br/><br/>
+        Deseja confirmar e finalizar?
+      </div>
+    `,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'Sim, Finalizar e Abrir Onda',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#10b981'
+  });
+
+  if (!confirm.isConfirmed) return;
+
+  // 1. Atualizar estrutura de datas da temporada
+  const datasCanceladasAtuais = new Set(temporadaAtual.datas_canceladas || []);
+  datasParaCancelar.forEach(d => datasCanceladasAtuais.add(d));
+  temporadaAtual.datas_canceladas = Array.from(datasCanceladasAtuais).sort();
+
+  const datasExtrasAtuais = new Set(temporadaAtual.datas_extras || []);
+  novosDiasExtrasLista.forEach(d => datasExtrasAtuais.add(d));
+  temporadaAtual.datas_extras = Array.from(datasExtrasAtuais).sort();
+
+  const todasDatas = new Set(temporadaAtual.datas_aplicacao || []);
+  novosDiasExtrasLista.forEach(d => todasDatas.add(d));
+  temporadaAtual.datas_aplicacao = Array.from(todasDatas).sort();
+
+  // Define status da temporada para agendamento_parcial
+  temporadaAtual.status = 'agendamento_parcial';
+
+  // 2. Atualizar militares afetados caso o reagendamento esteja ativo
+  if (reagendarAtivo && militaresAfetados.length > 0) {
+    militaresAfetados.forEach(s => {
+      s.dia_anterior_cancelado = s.dia_escalado;
+      s.dia_escalado = null;
+      s.metodo_alocacao = null;
+      s.status_solicitacao = 'pendente';
+      const nota = `Data anterior (${formatarDataBR(s.dia_anterior_cancelado)}) cancelada pela organização (Reagendamento necessário)`;
+      s.justificativa = s.justificativa ? `${s.justificativa} | ${nota}` : nota;
+    });
+
+    try {
+      const { error: errSols } = await sb
+        .from('tacf_solicitacoes')
+        .upsert(militaresAfetados, { onConflict: 'temporada_id,saram' });
+      if (errSols) {
+        console.warn('Tentando salvar sem coluna dia_anterior_cancelado se houver incompatibilidade:', errSols);
+        const solsSemColuna = militaresAfetados.map(s => {
+          const c = { ...s };
+          delete c.dia_anterior_cancelado;
+          return c;
+        });
+        await sb.from('tacf_solicitacoes').upsert(solsSemColuna, { onConflict: 'temporada_id,saram' });
+      }
+    } catch (errDb) {
+      console.error('Erro ao atualizar solicitações para reagendamento:', errDb);
+    }
+  }
+
+  // 3. Salvar temporada no Supabase com fallback seguro
+  try {
+    let obsObj = {};
+    try {
+      obsObj = typeof temporadaAtual.observacoes === 'string' ? JSON.parse(temporadaAtual.observacoes) : (temporadaAtual.observacoes || {});
+    } catch(e) { obsObj = {}; }
+    obsObj.datas_canceladas = temporadaAtual.datas_canceladas;
+    obsObj.datas_extras = temporadaAtual.datas_extras;
+    temporadaAtual.observacoes = JSON.stringify(obsObj);
+
+    const updatePayload = {
+      status: 'agendamento_parcial',
+      datas_aplicacao: temporadaAtual.datas_aplicacao,
+      datas_canceladas: temporadaAtual.datas_canceladas,
+      datas_extras: temporadaAtual.datas_extras,
+      observacoes: temporadaAtual.observacoes
+    };
+
+    const { error: errTemp } = await sb
+      .from('tacf_temporadas')
+      .update(updatePayload)
+      .eq('id', temporadaAtual.id);
+
+    if (errTemp) {
+      console.warn('Erro ao atualizar colunas diretas em tacf_temporadas, usando fallback de observações:', errTemp);
+      await sb
+        .from('tacf_temporadas')
+        .update({
+          status: 'agendamento_parcial',
+          datas_aplicacao: temporadaAtual.datas_aplicacao,
+          observacoes: temporadaAtual.observacoes
+        })
+        .eq('id', temporadaAtual.id);
+    }
+  } catch (errTempGeral) {
+    console.error('Erro ao persistir temporada:', errTempGeral);
+  }
+
+  // 4. Fechar painel e atualizar toda a UI
+  fecharPainelDiasExtras();
+  renderizarSeletorTemporadas();
+  renderizarControlesFaseSecretaria();
+  renderizarBadgesDatas();
+  renderizarEscalaHorizontal();
+  renderizarFormularioMilitar();
+  atualizarKpisEContadores();
+
+  // 5. Exibir a nova lista de elegibilidade para a nova onda
+  const filtroSel = document.getElementById('filtroStatusEleg');
+  if (filtroSel) {
+    filtroSel.value = 'reagendamento';
+  }
+  renderizarTabelaSecretaria();
+
+  // Rolar suavemente para a tabela de elegibilidade
+  const tabEl = document.getElementById('tabelaSecretariaPainel');
+  if (tabEl) tabEl.scrollIntoView({ behavior: 'smooth' });
+
+  Swal.fire({
+    title: '🎉 Nova Onda Iniciada!',
+    html: `
+      <div style="text-align:left; font-size:0.88rem; line-height:1.5;">
+        • Os dias cancelados estão <b>apagados no calendário</b>;<br/>
+        • Os novos dias extras foram adicionados com sucesso;<br/>
+        • <b>Abertura de Solicitação Parcial:</b> O formulário público no Hero está reaberto para os militares com datas canceladas preencherem suas novas opções;<br/>
+        • <b>Nova Lista de Elegibilidade:</b> A tabela abaixo foi filtrada exibindo todos os participantes elegíveis para a nova onda de agendamentos.
+      </div>
+    `,
+    icon: 'success',
+    confirmButtonText: 'Ótimo!'
+  });
 }
 
 async function limparTodasAsDatasAplicacao() {
@@ -2226,11 +2827,12 @@ async function executarAutofillEscala() {
     return Swal.fire('Erro', 'Não foi possível carregar o efetivo da planilha. Verifique a conexão.', 'error');
   }
 
-  const datas = temporadaAtual?.datas_aplicacao || [];
-  if (!datas.length) return Swal.fire('Aviso', 'Cadastre ao menos uma data de aplicação.', 'warning');
+  const datasCanceladas = temporadaAtual?.datas_canceladas || [];
+  const datas = (temporadaAtual?.datas_aplicacao || [])
+    .filter(d => !datasCanceladas.includes(d))
+    .sort();
 
-  // Garante datas ordenadas cronologicamente YYYY-MM-DD
-  datas.sort();
+  if (!datas.length) return Swal.fire('Aviso', 'Não há datas ativas cadastradas para realizar a escala.', 'warning');
 
   // 1. VERIFICAR INDISPONIBILIDADES PENDENTES DE ANÁLISE
   let indispPendentesCount = 0;
@@ -2240,7 +2842,36 @@ async function executarAutofillEscala() {
     }
   });
 
-  if (indispPendentesCount > 0) {
+  let manterJaEscalados = false;
+  if (temporadaAtual?.status === 'agendamento_parcial') {
+    const resOnda = await Swal.fire({
+      title: '⚡ Gerar Escala: Nova Onda',
+      html: `
+        <div style="text-align:left; font-size:0.88rem; line-height:1.5;">
+          Esta temporada está em <b>Solicitação Parcial (Dias Extras & Reagendamento)</b>.<br/><br/>
+          Como deseja processar a distribuição?<br/><br/>
+          • <b>Alocar Apenas Reagendados / Pendentes (Recomendado):</b> Preserva intactos os militares já escalados nas datas ativas e aloca apenas os militares em reagendamento nas vagas restantes e novos dias extras.<br/><br/>
+          • <b>Redistribuir Tudo:</b> Refaz a distribuição do zero para todo o efetivo elegível nas datas ativas.
+        </div>
+      `,
+      icon: 'question',
+      showCancelButton: true,
+      showDenyButton: true,
+      confirmButtonText: '🎯 Alocar Apenas Reagendados',
+      denyButtonText: '🔄 Redistribuir Tudo',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#10b981',
+      denyButtonColor: '#f59e0b'
+    });
+
+    if (resOnda.isConfirmed) {
+      manterJaEscalados = true;
+    } else if (resOnda.isDenied) {
+      manterJaEscalados = false;
+    } else {
+      return;
+    }
+  } else if (indispPendentesCount > 0) {
     const resIndisp = await Swal.fire({
       title: '⚠️ Indisponibilidades Pendentes',
       html: `
@@ -2326,6 +2957,15 @@ async function executarAutofillEscala() {
       const dReal = sol.data_realizacao || sol.dia_escalado;
       if (dReal && ocupacaoPorData[dReal]) {
         ocupacaoPorData[dReal].push(m.saram);
+      }
+      concluidosPreservadosCount++;
+      return;
+    }
+
+    // Se for onda parcial com preservação de alocações existentes em datas ativas:
+    if (manterJaEscalados && sol.status_solicitacao === 'escalado' && sol.dia_escalado && datas.includes(sol.dia_escalado)) {
+      if (ocupacaoPorData[sol.dia_escalado]) {
+        ocupacaoPorData[sol.dia_escalado].push(m.saram);
       }
       concluidosPreservadosCount++;
       return;
@@ -2596,6 +3236,323 @@ async function remanejarMilitarVisualParaDia(saram, novaData) {
   }
 }
 
+/* ══════════════════════════════════════════════════════════════
+   ALOCAÇÃO MANUAL, AJUSTE E CONFECÇÃO DA ESCALA
+   ══════════════════════════════════════════════════════════════ */
+function renderizarBarraNaoAlocados() {
+  const container = document.getElementById('barraMilitaresNaoAlocados');
+  if (!container) return;
+
+  if (!listaEfetivo || !listaEfetivo.length || !temporadaAtual) {
+    container.innerHTML = '';
+    return;
+  }
+
+  const datasCanceladas = temporadaAtual.datas_canceladas || [];
+
+  // Elegíveis que não estão escalados (ou cujo dia escalado foi cancelado)
+  const naoAlocados = listaEfetivo.filter(m => {
+    if (m.isR1) return false;
+    const sol = solicitacoesMap[m.saram];
+    if (sol && (
+      sol.status_elegibilidade === 'baixa' ||
+      sol.status_elegibilidade === 'dispensa' ||
+      sol.status_elegibilidade === 'missao' ||
+      sol.status_elegibilidade === 'r1_reserva' ||
+      sol.status_solicitacao === 'nao_realizou' ||
+      sol.status_solicitacao === 'realizou'
+    )) return false;
+
+    // Se não tem dia escalado ou se o dia escalado é cancelado
+    if (!sol || !sol.dia_escalado || datasCanceladas.includes(sol.dia_escalado)) return true;
+    return false;
+  }).sort((a, b) => a.antiguidade - b.antiguidade);
+
+  if (!naoAlocados.length) {
+    container.innerHTML = `
+      <div style="background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); border-radius:6px; padding:0.6rem 0.85rem; font-size:0.84rem; color:#a7f3d0; display:flex; justify-content:space-between; align-items:center;">
+        <span>✓ <b>Todos os militares elegíveis estão alocados na escala!</b> (0 não alocados)</span>
+        <button type="button" class="acao mini fantasma" onclick="abrirModalAlocacaoManual(null)">+ Alocação Avulsa</button>
+      </div>
+    `;
+    return;
+  }
+
+  let htmlChips = '';
+  naoAlocados.forEach(m => {
+    const sol = solicitacoesMap[m.saram];
+    const isSelected = (saramMilitarSelecionadoMover === m.saram);
+    const p1Str = sol?.prio1_data ? `P1: ${formatarDataBR(sol.prio1_data)}` : '';
+    const isCanc = sol?.dia_anterior_cancelado;
+
+    htmlChips += `
+      <div class="chipMilitarNaoAlocado ${isSelected ? 'selecionadoParaMover' : ''}"
+           onclick="selecionarOuMoverMilitarVisual('${m.saram}')"
+           title="${isSelected ? 'Militar selecionado. Clique em uma data no calendário para alocar.' : 'Clique para selecionar e depois clique no dia desejado'}"
+           style="cursor:pointer; background:${isSelected ? 'rgba(250,204,21,0.3)' : (isCanc ? 'rgba(239,68,68,0.18)' : 'rgba(245,158,11,0.15)')}; border:1px solid ${isSelected ? '#facc15' : (isCanc ? '#ef4444' : '#f59e0b')}; color:${isSelected ? '#fff' : (isCanc ? '#fca5a5' : '#fde68a')}; border-radius:6px; padding:0.35rem 0.6rem; font-size:0.78rem; display:inline-flex; align-items:center; gap:0.4rem;">
+        <span style="font-weight:600;">${m.antiguidade}º ${m.posto} ${m.nomeGuerra}</span>
+        <span style="font-size:0.68rem; color:var(--texto-2);">(SARAM ${m.saram})</span>
+        ${p1Str ? `<span style="font-size:0.65rem; background:rgba(207,228,255,0.15); padding:1px 4px; border-radius:3px;">${p1Str}</span>` : ''}
+        ${isCanc ? `<span style="font-size:0.65rem; background:#dc2626; color:#fff; padding:1px 4px; border-radius:3px;">Cancelado</span>` : ''}
+        <button type="button" class="acao mini jade" style="padding:0.15rem 0.4rem; font-size:0.65rem; line-height:1;" onclick="event.stopPropagation(); abrirModalAlocacaoManual('${m.saram}')">Alocar</button>
+      </div>
+    `;
+  });
+
+  container.innerHTML = `
+    <div style="background:rgba(245,158,11,0.08); border:1.5px solid rgba(245,158,11,0.35); border-radius:8px; padding:0.75rem 1rem;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem; flex-wrap:wrap; gap:0.4rem;">
+        <div>
+          <span style="font-size:0.86rem; font-weight:700; color:#fde68a;">
+            ⚠️ Militares Elegíveis Não Alocados / Fora do Gerador (${naoAlocados.length}):
+          </span>
+          <div style="font-size:0.75rem; color:var(--texto-2); margin-top:0.15rem;">
+            Selecione um militar abaixo e clique em qualquer data no calendário para inseri-lo, ou clique em "Alocar".
+          </div>
+        </div>
+        <button type="button" class="acao mini jade" onclick="abrirModalAlocacaoManual(null)">➕ Confecção Manual</button>
+      </div>
+      <div style="display:flex; flex-wrap:wrap; gap:0.45rem; max-height:140px; overflow-y:auto; padding:2px;">
+        ${htmlChips}
+      </div>
+    </div>
+  `;
+}
+
+async function abrirModalAlocacaoManual(saramPre, dataPre) {
+  if (!temporadaAtual) return Swal.fire('Aviso', 'Nenhuma temporada ativa encontrada.', 'warning');
+
+  const datas = temporadaAtual.datas_aplicacao || [];
+  const datasCanceladas = temporadaAtual.datas_canceladas || [];
+  const datasAtivas = datas.filter(d => !datasCanceladas.includes(d)).sort();
+  const vagasMax = temporadaAtual.vagas_por_dia || 4;
+
+  if (!datasAtivas.length) {
+    return Swal.fire('Aviso', 'Não há datas de aplicação ativas nesta temporada. Cadastre datas primeiro.', 'warning');
+  }
+
+  // Militares elegíveis (excluindo R1)
+  const elegiveis = listaEfetivo.filter(m => !m.isR1).sort((a, b) => a.antiguidade - b.antiguidade);
+
+  const naoAlocados = [];
+  const escalados = [];
+
+  elegiveis.forEach(m => {
+    const sol = solicitacoesMap[m.saram];
+    if (sol && (
+      sol.status_elegibilidade === 'baixa' ||
+      sol.status_elegibilidade === 'dispensa' ||
+      sol.status_elegibilidade === 'missao' ||
+      sol.status_elegibilidade === 'r1_reserva' ||
+      sol.status_solicitacao === 'nao_realizou'
+    )) return;
+
+    if (!sol || !sol.dia_escalado || datasCanceladas.includes(sol.dia_escalado)) {
+      naoAlocados.push(m);
+    } else {
+      escalados.push(m);
+    }
+  });
+
+  let optMilitares = '<option value="">— selecione o militar —</option>';
+  if (naoAlocados.length > 0) {
+    optMilitares += `<optgroup label="⚠️ NÃO ESCALADOS / PENDENTES (${naoAlocados.length})">`;
+    naoAlocados.forEach(m => {
+      const sol = solicitacoesMap[m.saram];
+      const sel = (saramPre && m.saram === saramPre) ? 'selected' : '';
+      const p1 = sol?.prio1_data ? ` [P1: ${formatarDataBR(sol.prio1_data)}]` : '';
+      const canc = sol?.dia_anterior_cancelado ? ` (Cancelado)` : '';
+      optMilitares += `<option value="${m.saram}" ${sel}>${m.antiguidade}º ${m.posto} ${m.nomeGuerra} (SARAM ${m.saram})${p1}${canc}</option>`;
+    });
+    optMilitares += '</optgroup>';
+  }
+
+  if (escalados.length > 0) {
+    optMilitares += `<optgroup label="JÁ ESCALADOS (${escalados.length})">`;
+    escalados.forEach(m => {
+      const sol = solicitacoesMap[m.saram];
+      const sel = (saramPre && m.saram === saramPre) ? 'selected' : '';
+      optMilitares += `<option value="${m.saram}" ${sel}>${m.antiguidade}º ${m.posto} ${m.nomeGuerra} — Atual: ${formatarDataBR(sol.dia_escalado)}</option>`;
+    });
+    optMilitares += '</optgroup>';
+  }
+
+  let optDatas = '<option value="">— selecione a data de aplicação —</option>';
+  datasAtivas.forEach(d => {
+    const isExtra = (temporadaAtual.datas_extras || []).includes(d);
+    const count = Object.values(solicitacoesMap).filter(s => s.dia_escalado === d && (s.status_solicitacao === 'escalado' || s.status_solicitacao === 'realizou')).length;
+    const vagasLivresReg = Math.max(0, vagasMax - count);
+    const sel = (dataPre && d === dataPre) ? 'selected' : '';
+    const statusVagas = count < vagasMax
+      ? `${vagasLivresReg} vaga(s) regular(es) livre(s)`
+      : (count < vagasMax + 3 ? `Lotado regular — usa Vaga Livre (#${count - vagasMax + 1})` : `Lotado — Excedente`);
+
+    optDatas += `<option value="${d}" ${sel}>📅 ${formatarDataBR(d)}${isExtra ? ' ⭐ (Extra)' : ''} [${count}/${vagasMax} vagas — ${statusVagas}]</option>`;
+  });
+
+  const htmlModal = `
+    <div style="text-align:left; font-size:0.88rem; line-height:1.5;">
+      <div style="margin-bottom:1rem;">
+        <label style="display:block; font-weight:700; font-size:0.8rem; color:var(--gold); text-transform:uppercase; margin-bottom:0.35rem;">
+          1. Selecione o Militar:
+        </label>
+        <select id="swalMilitarSelect" class="swal2-input" style="width:100%; margin:0; font-size:0.88rem;" onchange="window.aoMudarSelecaoModalAlocacao()">
+          ${optMilitares}
+        </select>
+      </div>
+
+      <div style="margin-bottom:1rem;">
+        <label style="display:block; font-weight:700; font-size:0.8rem; color:var(--gold); text-transform:uppercase; margin-bottom:0.35rem;">
+          2. Data de Aplicação Desejada:
+        </label>
+        <select id="swalDataSelect" class="swal2-input" style="width:100%; margin:0; font-size:0.88rem;" onchange="window.aoMudarSelecaoModalAlocacao()">
+          ${optDatas}
+        </select>
+      </div>
+
+      <div id="swalInfoConflito" style="display:none; margin-top:0.75rem; padding:0.6rem 0.85rem; border-radius:6px; font-size:0.82rem;"></div>
+    </div>
+  `;
+
+  window.aoMudarSelecaoModalAlocacao = function() {
+    const saramSel = document.getElementById('swalMilitarSelect')?.value;
+    const dataSel = document.getElementById('swalDataSelect')?.value;
+    const infoBox = document.getElementById('swalInfoConflito');
+    if (!infoBox) return;
+
+    if (!saramSel || !dataSel) {
+      infoBox.style.display = 'none';
+      return;
+    }
+
+    const sol = solicitacoesMap[saramSel];
+    const indisp = Array.isArray(sol?.indisponibilidades) ? sol.indisponibilidades.find(i => i.data === dataSel) : null;
+
+    if (indisp) {
+      infoBox.style.display = 'block';
+      infoBox.style.background = 'rgba(239,68,68,0.2)';
+      infoBox.style.border = '1px solid #ef4444';
+      infoBox.style.color = '#fca5a5';
+      infoBox.innerHTML = `⚠️ <b>Atenção:</b> Este militar informou <b>INDISPONIBILIDADE</b> para o dia ${formatarDataBR(dataSel)} (Justificativa: <i>${indisp.justificativa || 'Não informada'}</i>).`;
+      return;
+    }
+
+    if (sol?.prio1_data === dataSel) {
+      infoBox.style.display = 'block';
+      infoBox.style.background = 'rgba(16,185,129,0.18)';
+      infoBox.style.border = '1px solid #10b981';
+      infoBox.style.color = '#a7f3d0';
+      infoBox.innerHTML = `🎯 <b>Excelente:</b> Esta data corresponde à <b>1ª Opção</b> solicitada pelo militar!`;
+      return;
+    }
+
+    if (sol?.prio2_data === dataSel) {
+      infoBox.style.display = 'block';
+      infoBox.style.background = 'rgba(245,158,11,0.18)';
+      infoBox.style.border = '1px solid #f59e0b';
+      infoBox.style.color = '#fde68a';
+      infoBox.innerHTML = `🥈 Esta data corresponde à <b>2ª Opção</b> solicitada pelo militar.`;
+      return;
+    }
+
+    if (sol?.prio3_data === dataSel) {
+      infoBox.style.display = 'block';
+      infoBox.style.background = 'rgba(168,85,247,0.18)';
+      infoBox.style.border = '1px solid #a855f7';
+      infoBox.style.color = '#e9d5ff';
+      infoBox.innerHTML = `🥉 Esta data corresponde à <b>3ª Opção</b> solicitada pelo militar.`;
+      return;
+    }
+
+    infoBox.style.display = 'none';
+  };
+
+  const { isConfirmed } = await Swal.fire({
+    title: '➕ Confecção / Alocação Manual',
+    html: htmlModal,
+    width: '620px',
+    showCancelButton: true,
+    confirmButtonText: 'Confirmar Alocação',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#10b981',
+    didOpen: () => {
+      window.aoMudarSelecaoModalAlocacao();
+    }
+  });
+
+  if (!isConfirmed) return;
+
+  const saramFinal = document.getElementById('swalMilitarSelect').value;
+  const dataFinal = document.getElementById('swalDataSelect').value;
+
+  if (!saramFinal) return Swal.fire('Atenção', 'Selecione um militar.', 'warning');
+  if (!dataFinal) return Swal.fire('Atenção', 'Selecione a data de aplicação.', 'warning');
+
+  await remanejarMilitarVisualParaDia(saramFinal, dataFinal);
+
+  const mObj = listaEfetivo.find(x => x.saram === saramFinal);
+  Swal.fire({
+    icon: 'success',
+    title: 'Militar Alocado!',
+    text: `${mObj ? mObj.posto + ' ' + mObj.nomeGuerra : saramFinal} foi alocado com sucesso no dia ${formatarDataBR(dataFinal)}.`
+  });
+}
+
+function abrirModalAdicionarMilitarNoDia(dStr) {
+  abrirModalAlocacaoManual(null, dStr);
+}
+
+async function desalocarMilitarManual(saram) {
+  const m = listaEfetivo.find(x => x.saram === saram);
+  const sol = solicitacoesMap[saram];
+  if (!sol || !sol.dia_escalado) return;
+
+  const confirm = await Swal.fire({
+    title: 'Desalocar Militar?',
+    html: `Deseja remover <b>${m ? m.posto + ' ' + m.nomeGuerra : saram}</b> do dia <b>${formatarDataBR(sol.dia_escalado)}</b>?<br/><br/>O militar retornará para o quadro de <b>Não Alocados / Pendentes</b>.`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Sim, Desalocar',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#ef4444'
+  });
+
+  if (!confirm.isConfirmed) return;
+
+  sol.dia_escalado = null;
+  sol.metodo_alocacao = null;
+  if (sol.status_solicitacao === 'escalado') {
+    sol.status_solicitacao = 'pendente';
+  }
+
+  try {
+    const { error } = await sb
+      .from('tacf_solicitacoes')
+      .upsert([sol], { onConflict: 'temporada_id,saram' });
+
+    if (error) throw error;
+
+    renderizarEscalaHorizontal();
+    renderizarTabelaSecretaria();
+    renderizarBarraNaoAlocados();
+    atualizarKpisEContadores();
+
+    const toast = Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 1800,
+      timerProgressBar: true
+    });
+    toast.fire({
+      icon: 'success',
+      title: 'Militar desalocado da escala!'
+    });
+  } catch (e) {
+    Swal.fire('Erro', 'Falha ao desalocar militar: ' + e.message, 'error');
+  }
+}
+
 async function alternarPresencaMilitar(saram, dataStr) {
   const m = listaEfetivo.find(x => x.saram === saram);
   if (!m || !temporadaAtual) return;
@@ -2684,16 +3641,20 @@ function renderizarEscalaHorizontal() {
   }
 
   const hojeStr = new Date().toISOString().split('T')[0];
+  const datasCanceladas = temporadaAtual?.datas_canceladas || [];
+  const datasExtras = temporadaAtual?.datas_extras || [];
 
   datas.forEach(dStr => {
     const isDiaPassado = (dStr < hojeStr);
+    const isCancelada = datasCanceladas.includes(dStr);
+    const isExtra = datasExtras.includes(dStr);
 
     const escaladosNoDia = Object.values(solicitacoesMap)
       .filter(s => s.dia_escalado === dStr && (s.status_solicitacao === 'escalado' || s.status_solicitacao === 'realizou'))
       .sort((a, b) => a.antiguidade_index - b.antiguidade_index);
 
     const col = document.createElement('div');
-    col.className = 'colunaDia';
+    col.className = 'colunaDia' + (isCancelada ? ' cancelada' : '') + (isExtra ? ' extra' : '');
 
     const count = escaladosNoDia.length;
     const pct = Math.round((count / vagasMax) * 100);
@@ -2748,18 +3709,29 @@ function renderizarEscalaHorizontal() {
             <div style="display:flex; gap:0.3rem; align-items:center; margin-top:0.25rem;">
               <span class="badgeMetodo" style="${isSelected ? 'background:#facc15; color:#000; font-weight:bold;' : (isRealizou ? 'background:#10b981; color:#fff;' : badgeMetodoStyle)}">${isSelected ? '🎯 SELECIONADO' : (isRealizou ? '✓ REALIZOU' : rotuloMetodo)}</span>
               ${isAusenteVermelho ? '<span style="font-size:0.62rem; background:#dc2626; color:#fff; padding:1px 4px; border-radius:3px;">⚠️ Não compareceu</span>' : ''}
+              ${isCancelada ? '<span style="font-size:0.62rem; background:#dc2626; color:#fff; padding:1px 4px; border-radius:3px;">Dia Cancelado</span>' : ''}
             </div>
           </div>
-          <button class="btnPresenca ${isRealizou ? 'realizou' : ''}"
-                  onclick="event.stopPropagation(); alternarPresencaMilitar('${s.saram}', '${dStr}')"
-                  style="font-size:0.7rem; padding:0.25rem 0.5rem; border-radius:4px; border:1px solid ${isRealizou ? '#10b981' : 'rgba(207,228,255,0.3)'}; background:${isRealizou ? '#10b981' : 'rgba(6,16,33,0.9)'}; color:#fff; cursor:pointer; white-space:nowrap;">
-            ${isRealizou ? '✓ Realizou' : '⚪ Presença'}
-          </button>
+          <div style="display:flex; align-items:center; gap:0.25rem;">
+            <button class="btnPresenca ${isRealizou ? 'realizou' : ''}"
+                    onclick="event.stopPropagation(); alternarPresencaMilitar('${s.saram}', '${dStr}')"
+                    style="font-size:0.7rem; padding:0.25rem 0.5rem; border-radius:4px; border:1px solid ${isRealizou ? '#10b981' : 'rgba(207,228,255,0.3)'}; background:${isRealizou ? '#10b981' : 'rgba(6,16,33,0.9)'}; color:#fff; cursor:pointer; white-space:nowrap;">
+              ${isRealizou ? '✓ Realizou' : '⚪ Presença'}
+            </button>
+            <button type="button" title="Desalocar militar deste dia"
+                    onclick="event.stopPropagation(); desalocarMilitarManual('${s.saram}')"
+                    style="background:transparent; border:none; color:var(--texto-3); font-size:1.1rem; line-height:1; cursor:pointer; padding:0 3px;"
+                    onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--texto-3)'">&times;</button>
+          </div>
         </div>
       `;
     });
 
-    if (!regulares.length) {
+    if (isCancelada) {
+      if (!escaladosNoDia.length) {
+        htmlMilitares = '<div style="font-size:0.78rem; color:#fca5a5; text-align:center; padding:1.5rem 0.5rem; line-height:1.4;">🚫 Data cancelada sem aplicação.<br/><small style="color:var(--texto-3);">Militares liberados para reagendamento nos dias extras.</small></div>';
+      }
+    } else if (!regulares.length) {
       htmlMilitares = '<div style="font-size:0.8rem; color:var(--texto-3); text-align:center; padding:1.5rem 0;">Vagas disponíveis</div>';
     }
 
@@ -2786,11 +3758,17 @@ function renderizarEscalaHorizontal() {
               <span><b>🟡 Vaga Livre #${i+1}:</b> ${s.posto_grad} ${s.nome_guerra}</span>
               ${isAusenteVermelho ? '<span style="font-size:0.62rem; color:#fca5a5;">⚠️ Não compareceu</span>' : ''}
             </div>
-            <button class="btnPresenca ${isRealizou ? 'realizou' : ''}"
-                    onclick="event.stopPropagation(); alternarPresencaMilitar('${s.saram}', '${dStr}')"
-                    style="font-size:0.68rem; padding:0.2rem 0.45rem; border-radius:4px; border:1px solid ${isRealizou ? '#10b981' : '#facc15'}; background:${isRealizou ? '#10b981' : 'rgba(6,16,33,0.9)'}; color:#fff; cursor:pointer;">
-              ${isRealizou ? '✓ Realizou' : '⚪ Presença'}
-            </button>
+            <div style="display:flex; align-items:center; gap:0.25rem;">
+              <button class="btnPresenca ${isRealizou ? 'realizou' : ''}"
+                      onclick="event.stopPropagation(); alternarPresencaMilitar('${s.saram}', '${dStr}')"
+                      style="font-size:0.68rem; padding:0.2rem 0.45rem; border-radius:4px; border:1px solid ${isRealizou ? '#10b981' : '#facc15'}; background:${isRealizou ? '#10b981' : 'rgba(6,16,33,0.9)'}; color:#fff; cursor:pointer;">
+                ${isRealizou ? '✓ Realizou' : '⚪ Presença'}
+              </button>
+              <button type="button" title="Desalocar militar deste dia"
+                      onclick="event.stopPropagation(); desalocarMilitarManual('${s.saram}')"
+                      style="background:transparent; border:none; color:var(--texto-3); font-size:1.1rem; line-height:1; cursor:pointer; padding:0 3px;"
+                      onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--texto-3)'">&times;</button>
+            </div>
           </div>
         `;
       } else {
@@ -2818,11 +3796,17 @@ function renderizarEscalaHorizontal() {
                   <span><b>🔴 Excedente #${idx+1}:</b> ${s.posto_grad} ${s.nome_guerra}</span>
                   ${isAusenteVermelho ? '<span style="font-size:0.62rem; color:#fca5a5;">⚠️ Não compareceu</span>' : ''}
                 </div>
-                <button class="btnPresenca ${isRealizou ? 'realizou' : ''}"
-                        onclick="event.stopPropagation(); alternarPresencaMilitar('${s.saram}', '${dStr}')"
-                        style="font-size:0.68rem; padding:0.2rem 0.45rem; border-radius:4px; border:1px solid ${isRealizou ? '#10b981' : '#ef4444'}; background:${isRealizou ? '#10b981' : 'rgba(6,16,33,0.9)'}; color:#fff; cursor:pointer;">
-                  ${isRealizou ? '✓ Realizou' : '⚪ Presença'}
-                </button>
+                <div style="display:flex; align-items:center; gap:0.25rem;">
+                  <button class="btnPresenca ${isRealizou ? 'realizou' : ''}"
+                          onclick="event.stopPropagation(); alternarPresencaMilitar('${s.saram}', '${dStr}')"
+                          style="font-size:0.68rem; padding:0.2rem 0.45rem; border-radius:4px; border:1px solid ${isRealizou ? '#10b981' : '#ef4444'}; background:${isRealizou ? '#10b981' : 'rgba(6,16,33,0.9)'}; color:#fff; cursor:pointer;">
+                    ${isRealizou ? '✓ Realizou' : '⚪ Presença'}
+                  </button>
+                  <button type="button" title="Desalocar militar deste dia"
+                          onclick="event.stopPropagation(); desalocarMilitarManual('${s.saram}')"
+                          style="background:transparent; border:none; color:var(--texto-3); font-size:1.1rem; line-height:1; cursor:pointer; padding:0 3px;"
+                          onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='var(--texto-3)'">&times;</button>
+                </div>
               </div>
             `;
           }).join('')}
@@ -2832,16 +3816,30 @@ function renderizarEscalaHorizontal() {
 
     col.onclick = () => {
       if (saramMilitarSelecionadoMover) {
+        if (isCancelada) {
+          return Swal.fire('Data Cancelada', 'Esta data foi cancelada e não pode receber agendamentos ou remanejamentos.', 'warning');
+        }
         selecionarOuMoverMilitarVisual(null, dStr);
       }
     };
 
+    const tituloDataHtml = isCancelada
+      ? `<span style="text-decoration:line-through; opacity:0.8;">📅 ${formatarDataBR(dStr)}</span> <span class="badge rubi" style="font-size:0.62rem; text-decoration:none;">❌ CANCELADO</span>`
+      : `📅 ${formatarDataBR(dStr)} <span style="display:inline-flex; align-items:center; gap:0.25rem;">${isExtra ? '<span class="badge ouro" style="font-size:0.62rem;">⭐ EXTRA</span>' : ''}<span>${count}/${vagasMax}</span></span>`;
+
+    const subInfoHtml = isCancelada
+      ? `<span style="color:#fca5a5; font-weight:bold;">Cancelada sem aplicação</span><span>${count} militar(es)</span>`
+      : `<span>${isExtra ? '⭐ Dia Extra | ' : ''}Ocupação: ${pct}%</span><span>${count < vagasMax ? 'Disponível' : (count === vagasMax ? 'Lotado' : (count <= vagasMax + 3 ? '🟡 Vagas Livres' : '🔴 Excedente'))}</span>`;
+
+    const cabClick = isCancelada
+      ? `onclick="Swal.fire('Data Cancelada', 'Esta data foi cancelada pela organização e não aceita alocações.', 'info')"`
+      : `onclick="event.stopPropagation(); selecionarOuMoverMilitarVisual(null, '${dStr}')"`;
+
     col.innerHTML = `
-      <div class="colunaDiaCab" onclick="event.stopPropagation(); selecionarOuMoverMilitarVisual(null, '${dStr}')" style="cursor:pointer;">
-        <h4>📅 ${formatarDataBR(dStr)} <span>${count}/${vagasMax}</span></h4>
+      <div class="colunaDiaCab" ${cabClick} style="cursor:${isCancelada ? 'not-allowed' : 'pointer'};">
+        <h4>${tituloDataHtml}</h4>
         <div class="subInfo">
-          <span>Ocupação: ${pct}%</span>
-          <span>${count < vagasMax ? 'Disponível' : (count === vagasMax ? 'Lotado' : (count <= vagasMax + 3 ? '🟡 Vagas Livres' : '🔴 Excedente'))}</span>
+          ${subInfoHtml}
         </div>
       </div>
       <div class="colunaDiaCorpo">
@@ -2858,6 +3856,11 @@ function renderizarEscalaHorizontal() {
         ${htmlExcedentes}
       </div>
       <div class="colunaDiaRodape">
+        ${!isCancelada ? `
+        <button class="acao jade mini" style="width:100%; justify-content:center; margin-bottom:0.35rem;" onclick="event.stopPropagation(); abrirModalAdicionarMilitarNoDia('${dStr}')">
+          ➕ Alocar Militar neste Dia
+        </button>
+        ` : ''}
         <button class="acao fantasma mini" style="width:100%; justify-content:center;" onclick="event.stopPropagation(); copiarColunaDia('${dStr}')">
           📋 Copiar Coluna (Cole na Planilha)
         </button>
@@ -2869,6 +3872,7 @@ function renderizarEscalaHorizontal() {
 
     container.appendChild(col);
   });
+  renderizarBarraNaoAlocados();
 }
 
 function copiarColunaDia(dStr) {
@@ -3133,7 +4137,12 @@ function renderizarTabelaSecretaria() {
     const statusSol = sol?.status_solicitacao || 'pendente';
 
     if (filtroEleg) {
-      if (filtroEleg === 'elegivel') {
+      if (filtroEleg === 'reagendamento') {
+        const datasCanceladas = temporadaAtual?.datas_canceladas || [];
+        const isAfetadoCancelamento = sol?.dia_anterior_cancelado || (sol?.dia_escalado && datasCanceladas.includes(sol.dia_escalado));
+        const isPendenteElegivel = (statusSol === 'pendente' && statusEleg === 'elegivel' && !sol?.dia_escalado);
+        if (isMilitarR1 || (!isAfetadoCancelamento && !isPendenteElegivel)) return false;
+      } else if (filtroEleg === 'elegivel') {
         if (isMilitarR1 || statusEleg !== 'elegivel') return false;
       } else if (filtroEleg === 'r1_reserva') {
         if (!isMilitarR1 && statusEleg !== 'r1_reserva') return false;
@@ -3157,7 +4166,11 @@ function renderizarTabelaSecretaria() {
   });
 
   if (!filtrados.length) {
-    corpo.innerHTML = '<tr><td colspan="9" style="color:var(--texto-3);">Nenhum militar encontrado com os filtros aplicados.</td></tr>';
+    if (filtroEleg === 'reagendamento') {
+      corpo.innerHTML = '<tr><td colspan="9" style="color:#fde68a; padding:1.5rem; text-align:center;">Não há militares pendentes de reagendamento no momento. Todos os elegíveis já foram alocados ou não foram afetados por cancelamentos.</td></tr>';
+    } else {
+      corpo.innerHTML = '<tr><td colspan="9" style="color:var(--texto-3);">Nenhum militar encontrado com os filtros aplicados.</td></tr>';
+    }
     return;
   }
 
@@ -3188,6 +4201,7 @@ function renderizarTabelaSecretaria() {
     else if (valorSelect === 'missao') badgeEleg = '<span class="badge missao">Missão Fora da Sede</span>';
     else if (valorSelect === 'realizou') badgeEleg = '<span class="badge realizou">Concluído</span>';
     else if (valorSelect === 'nao_realizou') badgeEleg = '<span class="badge rubi">Não Realizou</span>';
+    else if (sol?.dia_anterior_cancelado && sol?.status_solicitacao === 'pendente') badgeEleg = '<span class="badge ouro" style="background:rgba(245,158,11,0.25); color:#fde047; border:1px solid #f59e0b;">🔄 Reagendamento</span>';
     else if (sol?.status_solicitacao === 'escalado') badgeEleg = '<span class="badge escalado">Escalado</span>';
     else if (sol?.prio1_data) badgeEleg = '<span class="badge solicitado">Solicitado</span>';
 
@@ -3204,6 +4218,9 @@ function renderizarTabelaSecretaria() {
     }
 
     let diaEscStr = '—';
+    const isDesalocavel = !isMilitarR1 && valorSelect !== 'baixa' && valorSelect !== 'dispensa' && valorSelect !== 'missao' && valorSelect !== 'realizou' && valorSelect !== 'nao_realizou';
+    const datasCanceladasTab = temporadaAtual?.datas_canceladas || [];
+
     if (sol && sol.dia_escalado) {
       const rotuloMetodoTab = {
         'prio1': '1ª Opção',
@@ -3216,10 +4233,27 @@ function renderizarTabelaSecretaria() {
       }[sol.metodo_alocacao] || '';
       
       const badgeMetodoTab = rotuloMetodoTab 
-        ? `<div style="font-size:0.68rem; color:var(--texto-2); margin-top:0.2rem;">(${rotuloMetodoTab})</div>` 
+        ? `<div style="font-size:0.68rem; color:var(--texto-2); margin-top:0.15rem;">(${rotuloMetodoTab})</div>` 
         : '';
 
-      diaEscStr = `<b>${formatarDataBR(sol.dia_escalado)}</b>${badgeMetodoTab}`;
+      const isCanc = datasCanceladasTab.includes(sol.dia_escalado);
+
+      diaEscStr = `
+        <div style="display:flex; flex-direction:column; gap:0.25rem;">
+          <div><b>${formatarDataBR(sol.dia_escalado)}</b>${isCanc ? ' <span class="badge rubi" style="font-size:0.62rem;">Cancelado</span>' : ''}${badgeMetodoTab}</div>
+          <div style="display:flex; gap:0.3rem; margin-top:0.2rem;">
+            <button type="button" class="acao mini fantasma" style="padding:0.15rem 0.4rem; font-size:0.68rem;" onclick="abrirModalAlocacaoManual('${m.saram}', '${sol.dia_escalado}')" title="Alterar data na escala">✏️ Alterar</button>
+            <button type="button" class="acao mini rubi" style="padding:0.15rem 0.4rem; font-size:0.68rem;" onclick="desalocarMilitarManual('${m.saram}')" title="Remover da escala e colocar como não alocado">✕ Desalocar</button>
+          </div>
+        </div>
+      `;
+    } else if (isDesalocavel) {
+      diaEscStr = `
+        <div style="display:flex; flex-direction:column; gap:0.3rem;">
+          ${sol?.dia_anterior_cancelado ? `<span class="badge rubi" style="font-size:0.62rem;">Cancelado: ${formatarDataBR(sol.dia_anterior_cancelado)}</span>` : '<span style="color:var(--texto-3); font-size:0.75rem;">Não alocado</span>'}
+          <button type="button" class="acao mini jade" style="padding:0.2rem 0.45rem; font-size:0.68rem; align-self:flex-start;" onclick="abrirModalAlocacaoManual('${m.saram}')">➕ Alocar Manual</button>
+        </div>
+      `;
     }
 
     const valJustif = sol?.justificativa || '';

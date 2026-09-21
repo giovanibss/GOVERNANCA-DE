@@ -1365,6 +1365,58 @@ async function carregarSecretaria(){
   }));
 }
 async function sincronizarMilitaresComPlanilhaCentral() {
+  // 1. Prioriza base central unificada do Supabase via AppConfig (Fase 3)
+  try {
+    if (window.AppConfig && typeof window.AppConfig.fetchEfetivo === 'function') {
+      const efetivoDB = await window.AppConfig.fetchEfetivo({ activeOnly: true });
+      const militaresComAuxilio = efetivoDB.filter(m => m.auxilio_transporte === true || String(m.auxilio_transporte).toLowerCase().includes('sim'));
+      if (militaresComAuxilio && militaresComAuxilio.length > 0) {
+        let importados = 0;
+        const soldosMap = JSON.parse(localStorage.getItem('at_soldos_map') || '{}');
+
+        for (const m of militaresComAuxilio) {
+          const nomeGuerra = m.nome_guerra || '';
+          if (!nomeGuerra) continue;
+          const posto = m.posto_grad || '';
+          const esp = m.especialidade || '';
+          const gradFormatada = [posto, esp].filter(Boolean).join(' ') || posto;
+          const saram = m.saram || '0000000';
+          let soldo = Number(m.soldo) || obterSoldoPorGrad(posto) || obterSoldoPorGrad(gradFormatada);
+          const cotaParte = calcularCotaParte(soldo);
+          if (saram) soldosMap[saram] = soldo;
+
+          const valorMensal = Number(m.valor_auxilio_transporte) || 0;
+          const valorDiario = valorMensal > 0 ? Number((valorMensal / 22).toFixed(2)) : 0;
+
+          const payload = {
+            nome: nomeGuerra.toUpperCase(),
+            grad: gradFormatada,
+            saram: saram,
+            soldo: soldo,
+            cota_parte: cotaParte,
+            valor_mensal: valorMensal,
+            valor_diario: valorDiario,
+            ativo: true
+          };
+
+          try {
+            await sbUpsert('at_militares', payload, 'saram');
+            importados++;
+          } catch(e) {}
+        }
+
+        try { localStorage.setItem('at_soldos_map', JSON.stringify(soldosMap)); } catch(e){}
+        await carregarMilitares();
+        if (typeof carregarSecretaria === 'function') await carregarSecretaria();
+        alert(`✓ ${importados} militares com Auxílio Transporte sincronizados diretamente da base central!`);
+        return;
+      }
+    }
+  } catch(errDb) {
+    console.warn('AppConfig fetchEfetivo falhou em transporte.html, tentando fallback...', errDb);
+  }
+
+  // Fallback Google Sheets GViz
   const sheetId = '1UOMh4y-wHL8kHcB9TUUcEmkeF7z6KYAs4vipsoOFgfA';
   const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=efetivo&range=A5:AC250`;
 

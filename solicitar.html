@@ -711,6 +711,39 @@
     }
 
     async function carregarEfetivo() {
+      // 1. Prioriza base central unificada do Supabase via AppConfig (Fase 3)
+      try {
+        if (window.AppConfig && typeof window.AppConfig.fetchEfetivo === 'function') {
+          const militaresDB = await window.AppConfig.fetchEfetivo({ activeOnly: true });
+          if (militaresDB && militaresDB.length > 0) {
+            listaEfetivo = militaresDB.map((m, i) => ({
+              efetivo_order: Number(m.ordem) || i,
+              posto: m.posto_grad || '',
+              esp: m.especialidade || '',
+              nome: m.nome_guerra || '',
+              funcao: m.cargo_funcao || '',
+              nome_completo: m.nome_completo || '',
+              cpf: formatarCPF(m.cpf),
+              email: m.email || '',
+              saram: formatarSARAM(m.saram),
+              rg: m.rg || '',
+              banco_nome: m.banco_nome || '',
+              banco_codigo: m.banco_codigo || '',
+              banco_agencia: m.banco_agencia || '',
+              banco_conta: m.banco_conta || '',
+              om: 'AFA'
+            })).filter(m => m.nome || m.nome_completo);
+
+            localStorage.setItem('afa_efetivo_cache_v1', JSON.stringify(listaEfetivo));
+            renderMilitares();
+            return;
+          }
+        }
+      } catch(errDb) {
+        console.warn('AppConfig fetchEfetivo falhou em solicitar.html, usando fallback...', errDb);
+      }
+
+      // Fallback cache local
       try {
         const raw = localStorage.getItem('afa_efetivo_cache_v1');
         if (raw) {
@@ -724,6 +757,7 @@
         if (rawExt) listaExternos = JSON.parse(rawExt);
       } catch(e){}
 
+      // Fallback Google Sheets GViz
       try {
         const res = await fetch(EFETIVO_URL);
         const txt = await res.text();

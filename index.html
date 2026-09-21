@@ -1059,7 +1059,911 @@ a.card-go{text-decoration:none}
   margin-top: 1rem;
   max-height: 140px;
   overflow-y: auto;
-  display: none;
+/* ══════════════════════════════════════════════════════════════
+   HERO: BOTÃO DE CONSULTA RÁPIDA DE EFETIVO
+   ══════════════════════════════════════════════════════════════ */
+.hero-actions {
+  position: absolute;
+  bottom: clamp(6.5rem, 12vh, 8.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  width: 90%;
+  max-width: 420px;
+}
+
+.hero-efetivo-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: .85rem;
+  padding: .75rem 1.25rem;
+  border-radius: 50px;
+  background: rgba(6, 16, 33, 0.78);
+  border: 1px solid rgba(212, 168, 75, 0.55);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 0 16px rgba(212, 168, 75, 0.2);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  color: #fff;
+  cursor: pointer;
+  transition: all .25s cubic-bezier(.2, .8, .2, 1);
+  text-align: left;
+}
+
+.hero-efetivo-btn:hover {
+  background: rgba(10, 26, 54, 0.92);
+  border-color: var(--gold-lt);
+  box-shadow: 0 10px 38px rgba(0, 0, 0, 0.6), 0 0 24px rgba(212, 168, 75, 0.38);
+  transform: translateY(-2px);
+}
+
+.hero-efetivo-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(212, 168, 75, 0.15);
+  border: 1px solid rgba(212, 168, 75, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold-lt);
+  flex-shrink: 0;
+}
+
+.hero-efetivo-txt {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-efetivo-txt strong {
+  font-family: var(--f-display);
+  font-size: .95rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  color: #fff;
+}
+
+.hero-efetivo-txt small {
+  font-family: var(--f-data);
+  font-size: .7rem;
+  color: var(--gold-lt);
+  opacity: .9;
+  letter-spacing: .02em;
+}
+
+.hero-efetivo-arrow {
+  color: rgba(207, 228, 255, 0.6);
+  transition: transform .2s ease;
+}
+
+.hero-efetivo-btn:hover .hero-efetivo-arrow {
+  transform: translateX(3px);
+  color: var(--gold-lt);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   DRAWER / JANELA VERTICAL DE EFETIVO (HERO)
+   ══════════════════════════════════════════════════════════════ */
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  justify-content: flex-end;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s ease;
+}
+
+.drawer-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.drawer-panel {
+  width: min(520px, 100vw);
+  height: 100vh;
+  height: 100dvh;
+  background: #061021;
+  border-left: 1px solid rgba(212, 168, 75, 0.35);
+  box-shadow: -12px 0 45px rgba(0, 0, 0, 0.75);
+  display: flex;
+  flex-direction: column;
+  transform: translateX(100%);
+  transition: transform .32s cubic-bezier(.16, 1, .3, 1);
+  overflow: hidden;
+}
+
+.drawer-backdrop.active .drawer-panel {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  padding: 1rem 1.25rem;
+  background: rgba(10, 26, 54, 0.95);
+  border-bottom: 1px solid rgba(212, 168, 75, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  flex-shrink: 0;
+}
+
+.drawer-title-box {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+}
+
+.drawer-crest {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(212, 168, 75, 0.5);
+}
+
+.drawer-title {
+  font-family: var(--f-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: .02em;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.drawer-sub {
+  font-family: var(--f-data);
+  font-size: .68rem;
+  color: var(--contrail);
+  opacity: .8;
+}
+
+.drawer-actions-top {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.btn-sec-toggle {
+  background: rgba(212, 168, 75, 0.12);
+  border: 1px solid rgba(212, 168, 75, 0.4);
+  color: var(--gold-lt);
+  border-radius: 6px;
+  padding: .35rem .65rem;
+  font-family: var(--f-data);
+  font-size: .72rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  transition: all .2s;
+}
+
+.btn-sec-toggle:hover {
+  background: rgba(212, 168, 75, 0.25);
+  border-color: var(--gold);
+}
+
+.btn-sec-toggle.active {
+  background: rgba(16, 185, 129, 0.18);
+  border-color: rgba(16, 185, 129, 0.5);
+  color: #6ee7b7;
+}
+
+.btn-drawer-close {
+  background: transparent;
+  border: none;
+  color: var(--contrail);
+  font-size: 1.4rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: .2rem .4rem;
+  border-radius: 4px;
+  transition: all .15s;
+}
+
+.btn-drawer-close:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Banner de Modo Secretaria */
+.hero-sec-banner {
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.15), rgba(6, 16, 33, 0.95));
+  border-bottom: 1px solid rgba(16, 185, 129, 0.3);
+  padding: .5rem 1.25rem;
+  font-family: var(--f-data);
+  font-size: .72rem;
+  color: #a7f3d0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  flex-shrink: 0;
+}
+
+.hero-sec-banner b {
+  color: #6ee7b7;
+}
+
+/* Barra de Filtros e Busca Cascata */
+.drawer-filter-bar {
+  padding: .85rem 1.25rem;
+  background: rgba(10, 26, 54, 0.6);
+  border-bottom: 1px solid rgba(207, 228, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: .65rem;
+  flex-shrink: 0;
+}
+
+.drawer-search-box {
+  position: relative;
+  width: 100%;
+}
+
+.drawer-search-box svg {
+  position: absolute;
+  left: .75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(207, 228, 255, 0.45);
+  pointer-events: none;
+}
+
+.drawer-search-box input {
+  width: 100%;
+  padding: .55rem .85rem .55rem 2.2rem;
+  border-radius: 8px;
+  background: rgba(3, 9, 20, 0.8);
+  border: 1px solid rgba(207, 228, 255, 0.18);
+  color: #fff;
+  font-family: var(--f-body);
+  font-size: .84rem;
+  outline: none;
+  transition: border-color .2s;
+}
+
+.drawer-search-box input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 10px rgba(212, 168, 75, 0.2);
+}
+
+.drawer-search-clear {
+  position: absolute;
+  right: .6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--contrail);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.drawer-selects-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: .5rem;
+}
+
+.drawer-select {
+  padding: .45rem .6rem;
+  border-radius: 6px;
+  background: rgba(3, 9, 20, 0.85);
+  border: 1px solid rgba(207, 228, 255, 0.18);
+  color: #f1f5f9;
+  font-family: var(--f-data);
+  font-size: .75rem;
+  outline: none;
+  cursor: pointer;
+}
+
+.drawer-select:focus {
+  border-color: var(--gold);
+}
+
+.drawer-status-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--f-data);
+  font-size: .7rem;
+  color: var(--contrail);
+  opacity: .85;
+}
+
+/* Lista Vertical de Militares */
+.drawer-list-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: .75rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: .55rem;
+}
+
+.drawer-list-container::-webkit-scrollbar {
+  width: 6px;
+}
+.drawer-list-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+.drawer-list-container::-webkit-scrollbar-thumb {
+  background: rgba(212, 168, 75, 0.3);
+  border-radius: 3px;
+}
+
+.militar-vcard {
+  background: rgba(10, 26, 54, 0.55);
+  border: 1px solid rgba(207, 228, 255, 0.1);
+  border-radius: 8px;
+  padding: .75rem .95rem;
+  display: flex;
+  flex-direction: column;
+  gap: .4rem;
+  transition: all .2s ease;
+}
+
+.militar-vcard:hover {
+  background: rgba(15, 36, 74, 0.75);
+  border-color: rgba(212, 168, 75, 0.35);
+  transform: translateY(-1px);
+}
+
+.militar-vcard-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+}
+
+.militar-vcard-ident {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  min-width: 0;
+}
+
+.militar-posto-badge {
+  padding: .15rem .45rem;
+  border-radius: 4px;
+  background: rgba(212, 168, 75, 0.18);
+  border: 1px solid rgba(212, 168, 75, 0.45);
+  color: var(--gold-lt);
+  font-family: var(--f-data);
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+  flex-shrink: 0;
+}
+
+.militar-nome-guerra {
+  font-family: var(--f-display);
+  font-size: .92rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: .02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.militar-ramal-box {
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  padding: .2rem .55rem;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #6ee7b7;
+  font-family: var(--f-data);
+  font-size: .74rem;
+  font-weight: 600;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.militar-ramal-box.vazio {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: var(--contrail);
+  opacity: .5;
+}
+
+.militar-vcard-sub {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  font-family: var(--f-data);
+  font-size: .72rem;
+  color: var(--contrail);
+  flex-wrap: wrap;
+}
+
+.militar-saram {
+  color: rgba(207, 228, 255, 0.85);
+}
+
+.militar-saram b {
+  font-weight: 600;
+  color: #fff;
+}
+
+.militar-dot {
+  opacity: .4;
+}
+
+.militar-secao-badge {
+  display: inline-block;
+  padding: .1rem .4rem;
+  border-radius: 3px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  color: #7dd3fc;
+  font-weight: 600;
+}
+
+.militar-vcard-secretaria {
+  margin-top: .35rem;
+  padding-top: .45rem;
+  border-top: 1px dashed rgba(212, 168, 75, 0.25);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-editar-ficha-hero {
+  background: rgba(212, 168, 75, 0.15);
+  border: 1px solid rgba(212, 168, 75, 0.4);
+  color: var(--gold-lt);
+  border-radius: 4px;
+  padding: .25rem .6rem;
+  font-family: var(--f-data);
+  font-size: .7rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  transition: all .15s;
+}
+
+.btn-editar-ficha-hero:hover {
+  background: var(--gold);
+  color: #061021;
+}
+
+.drawer-footer {
+  padding: .75rem 1.25rem;
+  background: rgba(6, 16, 33, 0.95);
+  border-top: 1px solid rgba(212, 168, 75, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--f-data);
+  font-size: .68rem;
+  color: var(--contrail);
+  flex-shrink: 0;
+}
+
+.drawer-footer a {
+  color: var(--gold-lt);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MODAL DE EDIÇÃO COMPLETA DA SECRETARIA (COM BLOQUEIO DE CARGOS)
+   ══════════════════════════════════════════════════════════════ */
+.edicao-hero-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 10050;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease;
+}
+
+.edicao-hero-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.edicao-hero-card {
+  width: min(820px, 98vw);
+  max-height: 92vh;
+  background: #081426;
+  border: 1px solid rgba(212, 168, 75, 0.4);
+  border-radius: 12px;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.85);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.edicao-hero-header {
+  padding: 1rem 1.25rem;
+  background: rgba(10, 26, 54, 0.95);
+  border-bottom: 1px solid rgba(212, 168, 75, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  flex-shrink: 0;
+}
+
+.edicao-hero-header h3 {
+  font-family: var(--f-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.edicao-hero-header p {
+  font-family: var(--f-data);
+  font-size: .72rem;
+  color: var(--gold-lt);
+  margin: .2rem 0 0;
+}
+
+.alerta-bloqueio-cargos {
+  background: rgba(239, 68, 68, 0.12);
+  border-left: 4px solid #ef4444;
+  border-radius: 4px;
+  padding: .65rem .85rem;
+  margin: .85rem 1.25rem 0;
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  font-family: var(--f-data);
+  font-size: .75rem;
+  color: #fca5a5;
+  line-height: 1.4;
+  flex-shrink: 0;
+}
+
+.alerta-bloqueio-cargos svg {
+  flex-shrink: 0;
+  color: #ef4444;
+}
+
+.edicao-tabs-bar {
+  display: flex;
+  gap: .35rem;
+  padding: .75rem 1.25rem 0;
+  border-bottom: 1px solid rgba(207, 228, 255, 0.1);
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+
+.edicao-tab-btn {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--contrail);
+  font-family: var(--f-data);
+  font-size: .75rem;
+  font-weight: 600;
+  padding: .45rem .75rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .15s;
+}
+
+.edicao-tab-btn:hover {
+  color: #fff;
+}
+
+.edicao-tab-btn.active {
+  color: var(--gold-lt);
+  border-bottom-color: var(--gold);
+}
+
+.edicao-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem;
+}
+
+.edicao-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: .85rem;
+}
+
+@media(max-width: 640px) {
+  .edicao-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.edicao-field {
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+}
+
+.edicao-field.full {
+  grid-column: 1 / -1;
+}
+
+.edicao-field label {
+  font-family: var(--f-data);
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--contrail);
+}
+
+.edicao-field input,
+.edicao-field select,
+.edicao-field textarea {
+  width: 100%;
+  padding: .5rem .75rem;
+  border-radius: 6px;
+  background: rgba(3, 9, 20, 0.85);
+  border: 1px solid rgba(207, 228, 255, 0.18);
+  color: #fff;
+  font-family: var(--f-body);
+  font-size: .82rem;
+  outline: none;
+  transition: border-color .2s;
+}
+
+.edicao-field input:focus,
+.edicao-field select:focus,
+.edicao-field textarea:focus {
+  border-color: var(--gold);
+}
+
+/* Campos Bloqueados de Cargo e Seção */
+.edicao-field.blocked input,
+.edicao-field.blocked select {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: rgba(255, 255, 255, 0.65);
+  cursor: not-allowed;
+}
+
+.edicao-field.blocked label {
+  color: #f87171;
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+}
+
+.edicao-hero-footer {
+  padding: .85rem 1.25rem;
+  background: rgba(10, 26, 54, 0.95);
+/* ══════════════════════════════════════════════════════════════
+   FASE 4: BADGES DE PENDÊNCIAS & BOTÕES DE ADMISSÃO
+   ══════════════════════════════════════════════════════════════ */
+.badge-pendencias-ef {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  padding: .15rem .5rem;
+  border-radius: 20px;
+  font-family: var(--f-data);
+  font-size: .68rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  animation: pulseAmber 2.2s infinite ease-in-out;
+}
+
+@keyframes pulseAmber {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
+  50% { box-shadow: 0 0 0 5px rgba(245, 158, 11, 0); }
+}
+
+.sub-btn-admissao {
+  background: rgba(56, 189, 248, 0.14);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  color: #7dd3fc;
+  border-radius: 6px;
+  padding: .4rem .75rem;
+  font-family: var(--f-data);
+  font-size: .74rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  transition: all .2s;
+}
+
+.sub-btn-admissao:hover {
+  background: rgba(56, 189, 248, 0.25);
+  border-color: #38bdf8;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.card-retomada-saram {
+  background: rgba(212, 168, 75, 0.08);
+  border: 1px solid rgba(212, 168, 75, 0.3);
+  border-radius: 8px;
+  padding: .85rem 1rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .85rem;
+  flex-wrap: wrap;
+}
+
+.card-retomada-saram .txt {
+  display: flex;
+  flex-direction: column;
+}
+
+.card-retomada-saram .txt strong {
+  font-family: var(--f-display);
+  font-size: .84rem;
+  color: #fff;
+}
+
+.card-retomada-saram .txt small {
+  font-family: var(--f-data);
+  font-size: .72rem;
+  color: var(--gold-lt);
+}
+
+.card-retomada-input-group {
+  display: flex;
+  gap: .4rem;
+  align-items: center;
+}
+
+.card-retomada-input-group input {
+  padding: .35rem .6rem;
+  border-radius: 6px;
+  background: rgba(3, 9, 20, 0.85);
+  border: 1px solid rgba(212, 168, 75, 0.4);
+  color: #fff;
+  font-family: var(--f-data);
+  font-size: .8rem;
+  width: 110px;
+  outline: none;
+}
+
+/* WIDGET SANDUÍCHE DE ANTIGUIDADE */
+.sanduiche-container {
+  display: flex;
+  flex-direction: column;
+  gap: .65rem;
+  margin: 1rem 0;
+}
+
+.sanduiche-card {
+  padding: .85rem 1rem;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  transition: all .2s;
+}
+
+.sanduiche-card.acima {
+  background: rgba(10, 26, 54, 0.6);
+  border: 1px solid rgba(207, 228, 255, 0.15);
+  opacity: .85;
+}
+
+.sanduiche-card.candidato {
+  background: rgba(212, 168, 75, 0.16);
+  border: 2px solid var(--gold);
+  box-shadow: 0 0 16px rgba(212, 168, 75, 0.25);
+}
+
+.sanduiche-card.abaixo {
+  background: rgba(10, 26, 54, 0.6);
+  border: 1px solid rgba(207, 228, 255, 0.15);
+  opacity: .85;
+}
+
+.sanduiche-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+  min-width: 0;
+}
+
+.sanduiche-card-pos {
+  font-family: var(--f-data);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.sanduiche-card.acima .sanduiche-card-pos { color: #94a3b8; }
+.sanduiche-card.candidato .sanduiche-card-pos { color: var(--gold-lt); }
+.sanduiche-card.abaixo .sanduiche-card-pos { color: #94a3b8; }
+
+.sanduiche-card-nome {
+  font-family: var(--f-display);
+  font-size: .95rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.sanduiche-card-detalhes {
+  font-family: var(--f-data);
+  font-size: .72rem;
+  color: var(--contrail);
+}
+
+.sanduiche-arrows {
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.btn-seta-posicao {
+  background: rgba(212, 168, 75, 0.15);
+  border: 1px solid rgba(212, 168, 75, 0.4);
+  color: var(--gold-lt);
+  border-radius: 4px;
+  padding: .3rem .6rem;
+  font-family: var(--f-data);
+  font-size: .74rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: .3rem;
+  transition: all .15s;
+}
+
+.btn-seta-posicao:hover:not(:disabled) {
+  background: var(--gold);
+  color: #061021;
+}
+
+.btn-seta-posicao:disabled {
+  opacity: .35;
+  cursor: not-allowed;
+}
+
+/* Fila de Solicitações */
+.solicitacao-card {
+  background: rgba(10, 26, 54, 0.55);
+  border: 1px solid rgba(207, 228, 255, 0.15);
+  border-radius: 8px;
+  padding: .85rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  margin-bottom: .6rem;
+}
+
+.solicitacao-card:hover {
+  background: rgba(15, 36, 74, 0.75);
+  border-color: rgba(212, 168, 75, 0.35);
 }
 </style>
 </head>
@@ -1102,6 +2006,31 @@ a.card-go{text-decoration:none}
 
   <!-- HERO: só a arte -->
   <section class="hero" id="hero">
+    <div class="hero-actions">
+      <button class="hero-efetivo-btn" onclick="abrirConsultaEfetivoHero()" title="Consultar Efetivo da Divisão de Ensino">
+        <span class="hero-efetivo-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </span>
+        <span class="hero-efetivo-txt">
+          <strong>Consultar Efetivo DE</strong>
+          <small id="hero-efetivo-subtxt">Lista Rápida · Seções · Ramais</small>
+        </span>
+        <span class="badge-pendencias-ef" id="hero-pendencias-badge" style="display:none;" title="Solicitações de novos militares aguardando aprovação">0 pendências</span>
+        <span class="hero-efetivo-arrow">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+        </span>
+      </button>
+      <button class="hero-efetivo-btn" onclick="abrirModalNovoMilitar()" title="Apresentação de novos militares na DE" style="background:rgba(10,26,54,0.78);border-color:rgba(56,189,248,0.45);">
+        <span class="hero-efetivo-icon" style="background:rgba(56,189,248,0.18);color:#38bdf8;">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        </span>
+        <span class="hero-efetivo-txt">
+          <strong>Novo Militar</strong>
+          <small>Formulário de Chegada</small>
+        </span>
+      </button>
+    </div>
+
     <div class="cue">
       <span class="cue-txt">Role para os módulos</span>
       <span class="cue-rail" aria-hidden="true"></span>
@@ -1230,6 +2159,7 @@ a.card-go{text-decoration:none}
           <h2>Efetivo</h2>
           <small>Chamada e controle de faltas</small>
         </div>
+        <span class="badge-pendencias-ef" id="ef-pendencias-badge" style="display:none;margin-right:.4rem;">0 pendências</span>
         <span class="card-tag">Ativo</span>
         <span class="card-chev" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
       </summary>
@@ -1257,12 +2187,37 @@ a.card-go{text-decoration:none}
             </svg>
             PDF
           </button>
+          <button class="sub-btn-mini" type="button" onclick="abrirConsultaEfetivoHero()" title="Ver lista rápida vertical de efetivo" style="margin-left:.35rem;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            Consultar
+          </button>
+        </div>
+
+        <!-- submódulo: novo militar / admissão pública -->
+        <div class="sub" id="sub-novo-militar">
+          <img class="sub-cocar" src="assets/cocar-fab.png" alt="" />
+          <div class="sub-txt">
+            <strong>Admissão de Militar</strong>
+            <span>Formulário de chegada · salvar rascunho</span>
+          </div>
+          <button class="sub-btn-admissao" type="button" onclick="abrirModalNovoMilitar()" title="Formulário público para novo militar se cadastrar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M12 5v14M5 12h14"/></svg>
+            + Cadastrar
+          </button>
         </div>
 
         <div class="card-acoes">
           <a class="card-go" href="efetivo.html">Abrir módulo
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M9 7h8v8"/></svg>
           </a>
+          <button class="sub-btn-mini" type="button" onclick="window.location.href='efetivo.html#pessoal'" style="border-color:rgba(212,168,75,.6);color:var(--gold-lt,#ffd37a)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Secretaria
+          </button>
+          <button class="sub-btn-mini" id="btn-fila-aprovacao-card" type="button" onclick="abrirFilaAprovacaoSecretaria()" style="border-color:rgba(245,158,11,.6);color:#fbbf24;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            Fila (<span id="cnt-pendencias-card">0</span>)
+          </button>
         </div>
       </div>
     </details>
@@ -1489,6 +2444,391 @@ a.card-go{text-decoration:none}
 
 </div>
 
+<!-- ══ DRAWER / JANELA VERTICAL DE CONSULTA DE EFETIVO ══ -->
+<div class="drawer-backdrop" id="drawerEfetivoHero" role="dialog" aria-modal="true" aria-labelledby="drawer-hero-title">
+  <div class="drawer-panel">
+    <!-- Cabeçalho do Drawer -->
+    <div class="drawer-header">
+      <div class="drawer-title-box">
+        <img src="assets/brasao-afa.jpg" class="drawer-crest" alt="AFA" />
+        <div>
+          <h2 class="drawer-title" id="drawer-hero-title">Efetivo da Divisão de Ensino</h2>
+          <div class="drawer-sub">Lista Telefônica e Funcional · AFA</div>
+        </div>
+      </div>
+      <div class="drawer-actions-top">
+        <button class="btn-sec-toggle" id="btn-toggle-secretaria-hero" onclick="toggleModoSecretariaHero()" title="Alternar Modo Secretaria">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span id="txt-sec-toggle">Modo Secretaria</span>
+        </button>
+        <button class="btn-drawer-close" onclick="fecharConsultaEfetivoHero()" title="Fechar">&times;</button>
+      </div>
+    </div>
+
+    <!-- Banner informativo do Modo Secretaria -->
+    <div class="hero-sec-banner" id="hero-sec-banner" style="display:none;">
+      <div>
+        <span>🔓 <b>Secretaria Ativa:</b> Edição completa habilitada.</span>
+        <span style="opacity:.8;display:block;font-size:.68rem;">* Cargos e Seções são gerenciados exclusivamente pelo módulo Cargos e Funções.</span>
+      </div>
+      <button class="btn-editar-ficha-hero" onclick="bloquearSecretariaHero()" style="padding:.2rem .4rem;font-size:.65rem;">Bloquear</button>
+    </div>
+
+    <!-- Barra de Filtros e Busca Cascata -->
+    <div class="drawer-filter-bar">
+      <div class="drawer-search-box">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input type="text" id="hero-pes-busca" placeholder="Buscar por militar, SARAM ou ramal…" oninput="filtrarEfetivoHero()" />
+        <button type="button" class="drawer-search-clear" id="btn-clear-hero-busca" onclick="limparBuscaHero()" style="display:none;">&times;</button>
+      </div>
+
+      <div class="drawer-selects-row">
+        <select id="hero-pes-secao" class="drawer-select" onchange="filtrarEfetivoHero()">
+          <option value="">🏢 Todas as Seções</option>
+        </select>
+        <select id="hero-pes-posto" class="drawer-select" onchange="filtrarEfetivoHero()">
+          <option value="">🪖 Todos os Postos</option>
+          <option value="CL">Coronel (CL)</option>
+          <option value="TC">Ten-Coronel (TC)</option>
+          <option value="MJ">Major (MJ/MAJ)</option>
+          <option value="CP">Capitão (CP/CAP)</option>
+          <option value="1T">1º Tenente (1T)</option>
+          <option value="2T">2º Tenente (2T)</option>
+          <option value="ASP">Aspirante (ASP)</option>
+          <option value="SO">Suboficial (SO)</option>
+          <option value="1S">1º Sargento (1S)</option>
+          <option value="2S">2º Sargento (2S)</option>
+          <option value="3S">3º Sargento (3S)</option>
+          <option value="CB">Cabo (CB)</option>
+          <option value="S1">Soldado (S1/S2)</option>
+          <option value="CV">Civil</option>
+        </select>
+        <select id="hero-pes-status" class="drawer-select" onchange="filtrarEfetivoHero()" style="display:none;">
+          <option value="ativos" selected>🟢 Efetivo Ativo</option>
+          <option value="pendencias">⚠️ Em Desligamento / Transf.</option>
+          <option value="ex">📁 Ex-Integrantes (Histórico)</option>
+          <option value="todos">Todos os Registros</option>
+        </select>
+      </div>
+
+      <div class="drawer-status-line">
+        <span id="hero-pes-filtro-info">Carregando militares…</span>
+        <button class="drawer-btn-refresh" onclick="recarregarEfetivoHero(true)" title="Recarregar dados do banco" style="background:transparent;border:none;color:var(--gold-lt);cursor:pointer;font-size:.8rem;">🔄 Recarregar</button>
+      </div>
+    </div>
+
+    <!-- Lista Vertical de Militares -->
+    <div class="drawer-list-container" id="hero-pes-lista">
+      <div style="text-align:center;padding:2.5rem;color:var(--contrail);opacity:.6;font-family:var(--f-data);font-size:.82rem;">
+        Carregando base de efetivo…
+      </div>
+    </div>
+
+    <!-- Rodapé do Drawer -->
+    <div class="drawer-footer">
+      <span>Divisão de Ensino · AFA</span>
+      <a href="efetivo.html#pessoal">Painel Efetivo Completo ↗</a>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL DE EDIÇÃO DA SECRETARIA (COM BLOQUEIO DE CARGOS E SEÇÕES) ══ -->
+<div class="edicao-hero-backdrop" id="modalEdicaoHero" role="dialog" aria-modal="true" aria-labelledby="edicao-hero-title">
+  <div class="edicao-hero-card">
+    <div class="edicao-hero-header">
+      <div>
+        <h3 id="edicao-hero-title">Ficha Cadastral do Militar</h3>
+        <p id="edicao-hero-sub">Secretaria da Divisão de Ensino · Edição de Dados</p>
+      </div>
+      <button class="btn-drawer-close" onclick="fecharEdicaoHero()">&times;</button>
+    </div>
+
+    <!-- Faixa de Situação Cadastral & Trâmites de Saída -->
+    <div id="hero-militar-status-banner" style="display:none; padding:.75rem 1.25rem; border-bottom:1px solid rgba(212,168,75,0.25); align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; font-size:.82rem; background:rgba(10,22,40,0.6);">
+      <div id="hero-status-text" style="display:flex; align-items:center; gap:.5rem;"></div>
+      <div id="hero-status-actions" style="display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;"></div>
+    </div>
+
+    <!-- Alerta de Segurança e Bloqueio de Cargos -->
+    <div class="alerta-bloqueio-cargos">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      <div>
+        <b>Cargos e Seções Protegidos:</b>
+        Os campos de Cargo, Função, Seção e Boletim são de preenchimento protegido e gerenciados exclusivamente pelo módulo <b>Cargos e Funções</b> para preservar portarias oficiais e cadeia de comando.
+      </div>
+    </div>
+
+    <!-- Barra de Abas Internas -->
+    <div class="edicao-tabs-bar">
+      <button class="edicao-tab-btn active" onclick="trocarTabEdicaoHero(1)" id="e-tab-btn-1">1. Identificação</button>
+      <button class="edicao-tab-btn" onclick="trocarTabEdicaoHero(2)" id="e-tab-btn-2">2. Cargos & Seção (Bloqueados 🔒)</button>
+      <button class="edicao-tab-btn" onclick="trocarTabEdicaoHero(3)" id="e-tab-btn-3">3. Contatos & Endereço</button>
+      <button class="edicao-tab-btn" onclick="trocarTabEdicaoHero(4)" id="e-tab-btn-4">4. Financeiro & Auxílio</button>
+      <button class="edicao-tab-btn" onclick="trocarTabEdicaoHero(5)" id="e-tab-btn-5">5. Carreira & Prazos</button>
+      <button class="edicao-tab-btn" onclick="trocarTabEdicaoHero(6)" id="e-tab-btn-6">6. Aeronavegantes</button>
+    </div>
+
+    <div class="edicao-body">
+      <form id="form-edicao-hero" onsubmit="event.preventDefault(); salvarMilitarHero();">
+        <!-- ABA 1: IDENTIFICAÇÃO -->
+        <div id="e-tab-sec-1" class="edicao-grid">
+          <div class="edicao-field">
+            <label for="eh-ordem">Nº de Antiguidade / Ordem</label>
+            <input type="number" id="eh-ordem" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-posto">Posto / Graduação *</label>
+            <input type="text" id="eh-posto" required />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-esp">Especialidade / Quadro</label>
+            <input type="text" id="eh-esp" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-nome-guerra">Nome de Guerra *</label>
+            <input type="text" id="eh-nome-guerra" required />
+          </div>
+          <div class="edicao-field full">
+            <label for="eh-nome-completo">Nome Completo Oficial *</label>
+            <input type="text" id="eh-nome-completo" required />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-saram">SARAM (7 dígitos) *</label>
+            <input type="text" id="eh-saram" readonly style="background:rgba(255,255,255,0.06);cursor:not-allowed;" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-cpf">CPF</label>
+            <input type="text" id="eh-cpf" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-rg">RG / Identidade</label>
+            <input type="text" id="eh-rg" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-ativo">Situação na DE</label>
+            <select id="eh-ativo">
+              <option value="true">Ativo na DE</option>
+              <option value="false">Inativo / Reserva (R1) / Desligado</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- ABA 2: CARGOS E SEÇÃO (BLOQUEADOS) -->
+        <div id="e-tab-sec-2" class="edicao-grid" style="display:none;">
+          <div class="edicao-field full blocked">
+            <label for="eh-cargo">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Cargo / Função Oficial (Bloqueado: Alterável apenas via Módulo Cargos e Funções)
+            </label>
+            <input type="text" id="eh-cargo" readonly />
+          </div>
+          <div class="edicao-field blocked">
+            <label for="eh-secao-calc">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Seção Vinculada (Bloqueado)
+            </label>
+            <input type="text" id="eh-secao-calc" readonly />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-ramal">Ramal Telefônico FAB</label>
+            <input type="text" id="eh-ramal" />
+          </div>
+          <div class="edicao-field blocked">
+            <label for="eh-funcao-pub">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Função Oficialmente Publicada? (Bloqueado)
+            </label>
+            <select id="eh-funcao-pub" disabled>
+              <option value="true">Sim (Publicada)</option>
+              <option value="false">Não</option>
+            </select>
+          </div>
+          <div class="edicao-field blocked">
+            <label for="eh-data-inicio">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Data de Início / Assunção (Bloqueado)
+            </label>
+            <input type="date" id="eh-data-inicio" readonly />
+          </div>
+          <div class="edicao-field full blocked">
+            <label for="eh-boletim">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Boletim de Publicação (Bloqueado)
+            </label>
+            <input type="text" id="eh-boletim" readonly />
+          </div>
+        </div>
+
+        <!-- ABA 3: CONTATOS & ENDEREÇO -->
+        <div id="e-tab-sec-3" class="edicao-grid" style="display:none;">
+          <div class="edicao-field">
+            <label for="eh-telefone">Telefone Pessoal / Celular</label>
+            <input type="text" id="eh-telefone" placeholder="(19) 99999-9999" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-email">E-mail Zimbra Funcional</label>
+            <input type="email" id="eh-email" placeholder="usuario@fab.mil.br" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-lista-zimbra">Cadastrado na Lista do Zimbra?</label>
+            <select id="eh-lista-zimbra">
+              <option value="true">Sim</option>
+              <option value="false">Não</option>
+            </select>
+          </div>
+          <div class="edicao-field full">
+            <label for="eh-endereco">Endereço Residencial Completo</label>
+            <textarea id="eh-endereco" rows="3" placeholder="Rua, número, bairro, CEP, Cidade-UF"></textarea>
+          </div>
+        </div>
+
+        <!-- ABA 4: FINANCEIRO & AUXÍLIO -->
+        <div id="e-tab-sec-4" class="edicao-grid" style="display:none;">
+          <div class="edicao-field">
+            <label for="eh-soldo">Soldo Mensal (R$)</label>
+            <input type="number" step="0.01" id="eh-soldo" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-banco-nome">Nome do Banco</label>
+            <input type="text" id="eh-banco-nome" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-banco-cod">Código do Banco</label>
+            <input type="text" id="eh-banco-cod" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-banco-ag">Agência</label>
+            <input type="text" id="eh-banco-ag" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-banco-conta">Conta Corrente</label>
+            <input type="text" id="eh-banco-conta" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-aux-transp">Utiliza Auxílio Transporte?</label>
+            <select id="eh-aux-transp">
+              <option value="false">Não</option>
+              <option value="true">Sim</option>
+            </select>
+          </div>
+          <div class="edicao-field">
+            <label for="eh-aux-valor">Valor Auxílio Transporte (R$)</label>
+            <input type="number" step="0.01" id="eh-aux-valor" />
+          </div>
+        </div>
+
+        <!-- ABA 5: CARREIRA & PRAZOS -->
+        <div id="e-tab-sec-5" class="edicao-grid" style="display:none;">
+          <div class="edicao-field">
+            <label for="eh-dt-nasc">Data de Nascimento</label>
+            <input type="date" id="eh-dt-nasc" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-dt-praca">Data de Praça</label>
+            <input type="date" id="eh-dt-praca" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-dt-form">Data de Formação</label>
+            <input type="date" id="eh-dt-form" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-dt-ult-prom">Última Promoção</label>
+            <input type="date" id="eh-dt-ult-prom" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-prox-prom">Próxima Promoção</label>
+            <input type="text" id="eh-prox-prom" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-apres-om">Apresentação na OM</label>
+            <input type="date" id="eh-apres-om" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-tempo-loc">Tempo de Localidade</label>
+            <input type="text" id="eh-tempo-loc" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-dt-final-reeng">Data Final Reengajamento</label>
+            <input type="date" id="eh-dt-final-reeng" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-tempo-aviso">Tempo p/ Início Processo (Aviso <5m)</label>
+            <input type="text" id="eh-tempo-aviso" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-fim-serv-temp">Fim Serviço Temp</label>
+            <input type="date" id="eh-fim-serv-temp" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-status-reeng">Status de Reengajamento</label>
+            <input type="text" id="eh-status-reeng" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-disciplina">Disciplina</label>
+            <input type="text" id="eh-disciplina" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-cod-disciplina">Código Disciplina</label>
+            <input type="text" id="eh-cod-disciplina" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-escala-risaer">Escala RISAER</label>
+            <input type="text" id="eh-escala-risaer" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-med-santos">Medalha Santos-Dumont</label>
+            <select id="eh-med-santos">
+              <option value="N APLIC">N APLIC</option>
+              <option value="SIM">SIM</option>
+              <option value="NÃO">NÃO</option>
+            </select>
+          </div>
+          <div class="edicao-field">
+            <label for="eh-med-bartolomeu">Medalha Bartolomeu de Gusmão</label>
+            <select id="eh-med-bartolomeu">
+              <option value="N APLIC">N APLIC</option>
+              <option value="SIM">SIM</option>
+              <option value="NÃO">NÃO</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- ABA 6: AERONAVEGANTES & OBSERVAÇÕES -->
+        <div id="e-tab-sec-6" class="edicao-grid" style="display:none;">
+          <div class="edicao-field">
+            <label for="eh-aero-5717-ult">Aero (5717) Última Publicação</label>
+            <input type="date" id="eh-aero-5717-ult" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-aero-5717-prox">Aero (5717) Próxima Publicação</label>
+            <input type="text" id="eh-aero-5717-prox" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-aero-5718-ult">Assento Ejetável (5718) Última Pub</label>
+            <input type="date" id="eh-aero-5718-ult" />
+          </div>
+          <div class="edicao-field">
+            <label for="eh-aero-5718-prox">Assento Ejetável (5718) Próxima Pub</label>
+            <input type="text" id="eh-aero-5718-prox" />
+          </div>
+          <div class="edicao-field full">
+            <label for="eh-obs">Observações Gerais da Secretaria</label>
+            <textarea id="eh-obs" rows="3"></textarea>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="edicao-hero-footer">
+      <button class="cfg-btn sec" type="button" onclick="fecharEdicaoHero()">Cancelar</button>
+      <button class="cfg-btn" type="button" onclick="salvarMilitarHero()" id="btn-save-militar-hero">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+        <span>Salvar Alterações</span>
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL DE CONFIGURAÇÕES DO SITE (PIN & GMAIL API) -->
 <div class="cfg-backdrop" id="modalConfigSite" role="dialog" aria-modal="true" aria-labelledby="cfg-title">
   <div class="cfg-modal">
@@ -1606,6 +2946,326 @@ a.card-go{text-decoration:none}
           </div>
         </form>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL DE CADASTRO PÚBLICO DE NOVO MILITAR (COM RASCUNHO) ══ -->
+<div class="edicao-hero-backdrop" id="modalCadastroNovoMilitar" role="dialog" aria-modal="true" aria-labelledby="cad-novo-title">
+  <div class="edicao-hero-panel" style="max-width: 900px;">
+    <!-- Topo -->
+    <div class="edicao-hero-header" style="background: linear-gradient(135deg, rgba(10,26,54,0.98), rgba(20,50,90,0.95));">
+      <div class="edicao-hero-title-wrap">
+        <h3 class="edicao-hero-title" id="cad-novo-title">Ficha de Admissão de Novo Integrante</h3>
+        <div class="edicao-hero-sub">Apresentação na Divisão de Ensino · Academia da Força Aérea (AFA)</div>
+      </div>
+      <button class="btn-drawer-close" onclick="fecharModalNovoMilitar()" title="Fechar">&times;</button>
+    </div>
+
+    <!-- Barra de Abas -->
+    <div class="edicao-tabs-bar">
+      <button type="button" class="e-tab-btn active" id="cad-tab-btn-1" onclick="trocarTabCadastro(1)">1. Identificação</button>
+      <button type="button" class="e-tab-btn" id="cad-tab-btn-2" onclick="trocarTabCadastro(2)">2. Contatos & Endereço</button>
+      <button type="button" class="e-tab-btn" id="cad-tab-btn-3" onclick="trocarTabCadastro(3)">3. Financeiro & Auxílio</button>
+      <button type="button" class="e-tab-btn" id="cad-tab-btn-4" onclick="trocarTabCadastro(4)">4. Carreira & Praça</button>
+      <button type="button" class="e-tab-btn" id="cad-tab-btn-5" onclick="trocarTabCadastro(5)">5. Aeronavegantes & Obs</button>
+    </div>
+
+    <!-- Corpo com Rolagem -->
+    <div class="edicao-hero-body">
+      <!-- Card de Retomada por SARAM -->
+      <div class="card-retomada-saram">
+        <div class="txt">
+          <strong>Já iniciou seu preenchimento anteriormente?</strong>
+          <small>Digite seu SARAM para recuperar o rascunho de onde parou:</small>
+        </div>
+        <div class="card-retomada-input-group">
+          <input type="text" id="cad-retomar-saram" placeholder="SARAM" maxlength="7" />
+          <button class="btn-seta-posicao" type="button" onclick="retomarRascunhoSaram()" style="padding:.35rem .75rem;">
+            🔍 Retomar Rascunho
+          </button>
+        </div>
+      </div>
+
+      <form id="form-cadastro-novo-militar" onsubmit="return false;">
+        <!-- Aba 1: Identificação -->
+        <div class="edicao-grid-tab" id="cad-tab-sec-1">
+          <div class="edicao-field">
+            <label for="cad-saram">SARAM (7 dígitos) *</label>
+            <input type="text" id="cad-saram" maxlength="7" placeholder="ex: 7123456" required />
+          </div>
+          <div class="edicao-field">
+            <label for="cad-posto">Posto / Graduação *</label>
+            <select id="cad-posto" required>
+              <option value="">Selecione...</option>
+              <option value="CL">CL - Coronel</option>
+              <option value="TC">TC - Tenente-Coronel</option>
+              <option value="MJ">MJ - Major</option>
+              <option value="CP">CP - Capitão</option>
+              <option value="1T">1T - 1º Tenente</option>
+              <option value="2T">2T - 2º Tenente</option>
+              <option value="ASP">ASP - Aspirante</option>
+              <option value="SO">SO - Suboficial</option>
+              <option value="1S">1S - 1º Sargento</option>
+              <option value="2S">2S - 2º Sargento</option>
+              <option value="3S">3S - 3º Sargento</option>
+              <option value="CB">CB - Cabo</option>
+              <option value="S1">S1 - Soldado de 1ª Classe</option>
+              <option value="S2">S2 - Soldado de 2ª Classe</option>
+              <option value="CV">CV - Servidor Civil</option>
+            </select>
+          </div>
+          <div class="edicao-field">
+            <label for="cad-esp">Quadro / Especialidade *</label>
+            <input type="text" id="cad-esp" placeholder="ex: AV, INT, INF, CTA, BMA, SGS, SEF..." />
+          </div>
+          <div class="edicao-field">
+            <label for="cad-nome-guerra">Nome de Guerra *</label>
+            <input type="text" id="cad-nome-guerra" placeholder="ex: SILVA COSTA" required />
+          </div>
+          <div class="edicao-field span-2">
+            <label for="cad-nome-completo">Nome Completo *</label>
+            <input type="text" id="cad-nome-completo" placeholder="Nome civil completo" required />
+          </div>
+          <div class="edicao-field">
+            <label for="cad-cpf">CPF</label>
+            <input type="text" id="cad-cpf" placeholder="000.000.000-00" />
+          </div>
+          <div class="edicao-field">
+            <label for="cad-rg">Identidade Militar / RG</label>
+            <input type="text" id="cad-rg" placeholder="Órgão expedidor e número" />
+          </div>
+        </div>
+
+        <!-- Aba 2: Contatos & Endereço -->
+        <div class="edicao-grid-tab" id="cad-tab-sec-2" style="display:none;">
+          <div class="edicao-field">
+            <label for="cad-telefone">Telefone / WhatsApp *</label>
+            <input type="text" id="cad-telefone" placeholder="(19) 99999-9999" />
+          </div>
+          <div class="edicao-field">
+            <label for="cad-email">E-mail Pessoal / Funcional</label>
+            <input type="email" id="cad-email" placeholder="usuario@fab.mil.br" />
+          </div>
+          <div class="edicao-field">
+            <label for="cad-ramal">Ramal na DE (se já atribuído)</label>
+            <input type="text" id="cad-ramal" placeholder="ex: 7992" />
+          </div>
+          <div class="edicao-field">
+            <label for="cad-lista-zimbra">Possui conta no Correio Zimbra?</label>
+            <select id="cad-lista-zimbra">
+              <option value="true">Sim</option>
+              <option value="false">Não</option>
+            </select>
+          </div>
+          <div class="edicao-field span-2">
+            <label for="cad-endereco">Endereço Residencial Completo</label>
+            <input type="text" id="cad-endereco" placeholder="Rua, número, bairro, cidade - UF, CEP" />
+          </div>
+        </div>
+
+        <!-- Aba 3: Financeiro & Auxílio -->
+        <div class="edicao-grid-tab" id="cad-tab-sec-3" style="display:none;">
+          <div class="edicao-field">
+            <label for="cad-soldo">Soldo Base (R$)</label>
+            <input type="number" id="cad-soldo" step="0.01" placeholder="0.00" />
+          </div>
+          <div class="edicao-field">
+            <label for="cad-banco-nome">Nome do Banco</label>
+            <input type="text" id="cad-banco-nome" placeholder="ex: Banco do Brasil" />
+          </div>
+          <div class="edicao-field">
+            <label for="cad-banco-cod">Código do Banco</label>
+            <input type="text" id="cad-banco-cod" placeholder="ex: 001" />
+          </div>
+          <div class="edicao-field">
+            <label for="cad-banco-ag">Agência</label>
+            <input type="text" id="cad-banco-ag" placeholder="ex: 1234-5" />
+          </div>
+          <div class="edicao-field">
+            <label for="cad-banco-conta">Conta Corrente</label>
+            <input type="text" id="cad-banco-conta" placeholder="ex: 12345-6" />
+          </div>
+          <div class="edicao-field">
+            <label for="cad-aux-transp">Solicita Auxílio Transporte?</label>
+            <select id="cad-aux-transp">
+              <option value="false">Não</option>
+              <option value="true">Sim</option>
+            </select>
+          </div>
+          <div class="edicao-field">
+            <label for="cad-aux-valor">Valor Estimado Aux. Transporte (R$)</label>
+            <input type="number" id="cad-aux-valor" step="0.01" placeholder="0.00" />
+          </div>
+        </div>
+
+        <!-- Aba 4: Carreira & Praça -->
+        <div class="edicao-grid-tab" id="cad-tab-sec-4" style="display:none;">
+          <div class="edicao-field">
+            <label for="cad-dt-nasc">Data de Nascimento</label>
+            <input type="date" id="cad-dt-nasc" />
+          </div>
+          <div class="edicao-field" style="border:1px solid rgba(212,168,75,0.4);border-radius:6px;padding:.3rem;background:rgba(212,168,75,0.06);">
+            <label for="cad-dt-praca" style="color:var(--gold-lt);font-weight:700;">Data de Praça (Critério de Antiguidade) *</label>
+            <input type="date" id="cad-dt-praca" required />
+          </div>
+          <div class="edicao-field">
+            <label for="cad-dt-form">Data de Formação</label>
+            <input type="date" id="cad-dt-form" />
+          </div>
+          <div class="edicao-field">
+            <label for="cad-dt-ult-prom">Última Promoção</label>
+            <input type="date" id="cad-dt-ult-prom" />
+          </div>
+          <div class="edicao-field">
+            <label for="cad-prox-prom">Previsão Próxima Promoção</label>
+            <input type="text" id="cad-prox-prom" placeholder="Mês/Ano ou data" />
+          </div>
+          <div class="edicao-field">
+            <label for="cad-apres-om">Data de Apresentação na AFA</label>
+            <input type="date" id="cad-apres-om" />
+          </div>
+          <div class="edicao-field">
+            <label for="cad-status-reeng">Tipo de Vínculo / Reengajamento</label>
+            <select id="cad-status-reeng">
+              <option value="CARREIRA">Militar de Carreira</option>
+              <option value="TEMPORARIO">Militar Temporário (QOCon / QESA / QSCon)</option>
+              <option value="CIVIL">Servidor Público Civil</option>
+            </select>
+          </div>
+          <div class="edicao-field">
+            <label for="cad-fim-serv-temp">Término do Serviço Temporário (se aplicável)</label>
+            <input type="date" id="cad-fim-serv-temp" />
+          </div>
+        </div>
+
+        <!-- Aba 5: Aeronavegantes & Observações -->
+        <div class="edicao-grid-tab" id="cad-tab-sec-5" style="display:none;">
+          <div class="edicao-field">
+            <label for="cad-aero-5717-ult">Aeronavegante 5717 (Última Publicação)</label>
+            <input type="date" id="cad-aero-5717-ult" />
+          </div>
+          <div class="edicao-field">
+            <label for="cad-aero-5717-prox">Aeronavegante 5717 (Próxima Publicação)</label>
+            <input type="text" id="cad-aero-5717-prox" />
+          </div>
+          <div class="edicao-field">
+            <label for="cad-aero-5718-ult">Aeronavegante 5718 (Última Publicação)</label>
+            <input type="date" id="cad-aero-5718-ult" />
+          </div>
+          <div class="edicao-field">
+            <label for="cad-aero-5718-prox">Aeronavegante 5718 (Próxima Publicação)</label>
+            <input type="text" id="cad-aero-5718-prox" />
+          </div>
+          <div class="edicao-field span-2">
+            <label for="cad-obs">Observações Relevantes da Apresentação</label>
+            <textarea id="cad-obs" rows="3" placeholder="Informações adicionais da chegada do militar na DE..."></textarea>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Rodapé de Ações -->
+    <div class="edicao-hero-footer" style="justify-content: space-between;">
+      <button class="cfg-btn sec" type="button" onclick="salvarRascunhoForm()" id="btn-salvar-rascunho" title="Salvar preenchimento parcial para continuar depois">
+        💾 Salvar Rascunho
+      </button>
+      <div style="display:flex; gap:.65rem;">
+        <button class="cfg-btn sec" type="button" onclick="fecharModalNovoMilitar()">Cancelar</button>
+        <button class="cfg-btn" type="button" onclick="enviarCadastroForm()" id="btn-enviar-cadastro">
+          🚀 Enviar para Secretaria
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL DA FILA DE APROVAÇÃO DA SECRETARIA ══ -->
+<div class="edicao-hero-backdrop" id="modalFilaAprovacaoSecretaria" role="dialog" aria-modal="true" aria-labelledby="fila-title">
+  <div class="edicao-hero-panel" style="max-width: 850px;">
+    <div class="edicao-hero-header">
+      <div class="edicao-hero-title-wrap">
+        <h3 class="edicao-hero-title" id="fila-title">Fila de Pendências da Secretaria</h3>
+        <div class="edicao-hero-sub">Validação de Chegadas & Trâmites de Desligamento / Transferência</div>
+      </div>
+      <button class="btn-drawer-close" onclick="fecharFilaAprovacaoSecretaria()" title="Fechar">&times;</button>
+    </div>
+
+    <!-- Abas da Fila: Novos Militares vs Saídas -->
+    <div style="display:flex; border-bottom:1px solid rgba(212,168,75,0.2); background:rgba(0,0,0,0.25); padding:0.5rem 1.25rem 0; gap:.5rem;">
+      <button class="edicao-tab-btn active" id="tab-fila-btn-novos" type="button" onclick="trocarAbaFilaSecretaria('novos')">
+        Chegadas / Novos (<span id="cnt-tab-fila-novos">0</span>)
+      </button>
+      <button class="edicao-tab-btn" id="tab-fila-btn-saidas" type="button" onclick="trocarAbaFilaSecretaria('saidas')">
+        Processos de Saída (<span id="cnt-tab-fila-saidas">0</span>)
+      </button>
+    </div>
+
+    <div class="edicao-hero-body" id="fila-solicitacoes-conteudo">
+      <!-- Lista de Solicitações Pendentes (Chegadas) -->
+      <div id="fila-solicitacoes-lista"></div>
+
+      <!-- Lista de Processos de Saída (Desligamento / Transferência) -->
+      <div id="fila-saidas-lista" style="display:none;"></div>
+
+      <!-- Widget de Avaliação e Antiguidade (oculto até clicar em Avaliar) -->
+      <div id="box-avaliacao-antiguidade" style="display:none; border-top:1px solid rgba(212,168,75,0.25); padding-top:1.25rem; margin-top:1rem;">
+        <h4 style="color:var(--gold-lt);font-family:var(--f-display);font-size:1rem;margin:0 0 .5rem 0;">
+          Posicionamento de Antiguidade & Validação Oficial
+        </h4>
+        <p style="color:var(--contrail);font-size:.78rem;margin:0 0 1rem 0;">
+          O sistema calculou a antiguidade sugerida comparando a <b>Data de Praça</b> com os militares da mesma patente. Ajuste com as setas se necessário antes de confirmar:
+        </p>
+
+        <!-- Widget Sanduíche -->
+        <div class="sanduiche-container">
+          <!-- Militar Acima -->
+          <div class="sanduiche-card acima" id="sanduiche-acima">
+            <div class="sanduiche-card-info">
+              <span class="sanduiche-card-pos" id="pos-acima-lbl">⬆ MAIS ANTIGO</span>
+              <span class="sanduiche-card-nome" id="pos-acima-nome">—</span>
+              <span class="sanduiche-card-detalhes" id="pos-acima-det">—</span>
+            </div>
+          </div>
+
+          <!-- Candidato no Meio com Setas -->
+          <div class="sanduiche-card candidato" id="sanduiche-candidato">
+            <div class="sanduiche-card-info">
+              <span class="sanduiche-card-pos" id="pos-candidato-lbl">⭐ CANDIDATO EM AVALIAÇÃO</span>
+              <span class="sanduiche-card-nome" id="pos-candidato-nome">—</span>
+              <span class="sanduiche-card-detalhes" id="pos-candidato-det">—</span>
+            </div>
+            <div class="sanduiche-arrows">
+              <button class="btn-seta-posicao" type="button" onclick="ajustarPosicaoAntiguidadeManual(-1)" title="Subir Posição (Tornar Mais Antigo)">
+                ▲ Subir
+              </button>
+              <button class="btn-seta-posicao" type="button" onclick="ajustarPosicaoAntiguidadeManual(1)" title="Descer Posição (Tornar Mais Moderno)">
+                ▼ Descer
+              </button>
+            </div>
+          </div>
+
+          <!-- Militar Abaixo -->
+          <div class="sanduiche-card abaixo" id="sanduiche-abaixo">
+            <div class="sanduiche-card-info">
+              <span class="sanduiche-card-pos" id="pos-abaixo-lbl">⬇ MAIS MODERNO</span>
+              <span class="sanduiche-card-nome" id="pos-abaixo-nome">—</span>
+              <span class="sanduiche-card-detalhes" id="pos-abaixo-det">—</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:1.25rem; display:flex; justify-content:flex-end; gap:.75rem;">
+          <button class="cfg-btn sec" type="button" onclick="fecharBoxAvaliacao()">Voltar à Lista</button>
+          <button class="cfg-btn" type="button" id="btn-confirmar-aprovacao" onclick="executarAprovacaoFinal()" style="background:var(--jade);border-color:#10b981;">
+            ✓ Confirmar e Inserir no Efetivo Oficial
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="edicao-hero-footer">
+      <button class="cfg-btn sec" type="button" onclick="fecharFilaAprovacaoSecretaria()">Fechar</button>
     </div>
   </div>
 </div>
@@ -2271,6 +3931,27 @@ function efJsonp(baseUrl){
 let efetivoCache = null;      // reaproveitado pelo gerador de PDF
 
 async function efLerPlanilha(){
+  // 1. Tenta carregar da base oficial Supabase via AppConfig (Apenas Ativos)
+  if (window.AppConfig && typeof window.AppConfig.fetchEfetivo === 'function') {
+    try {
+      const dbMilitares = await window.AppConfig.fetchEfetivo({ activeOnly: true });
+      if (dbMilitares && dbMilitares.length > 0) {
+        const lista = dbMilitares.map(m => ({
+          posto:    (m.posto_grad || m.graduacao || '').trim(),
+          esp:      (m.especialidade || m.quadro_esp || '').trim(),
+          guerra:   (m.nome_guerra || '').trim(),
+          completo: (m.nome_completo || '').trim(),
+          excluido: efExcluido(m.nome_guerra || '')
+        })).filter(x => x.guerra);
+        efetivoCache = lista;
+        return lista;
+      }
+    } catch(errDb) {
+      console.warn('Falha ao carregar efetivo via AppConfig em efLerPlanilha, tentando Google GViz:', errDb);
+    }
+  }
+
+  // 2. Fallback para Google GViz
   const url = `https://docs.google.com/spreadsheets/d/${EF_SHEET_ID}/gviz/tq`
             + `?tqx=out:json&sheet=${encodeURIComponent(EF_TAB)}`
             + `&range=C${EF_ROW_START}:N${EF_ROW_END}&headers=0`;
@@ -3548,7 +5229,1216 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('❌ Erro no envio de e-mail de teste: ' + err.message);
     }
   });
+
+  // Fecha drawer com ESC
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      fecharEdicaoHero();
+      fecharConsultaEfetivoHero();
+    }
+  });
 });
+
+/* ══════════════════════════════════════════════════════════════
+   CONSULTA DE EFETIVO NO HERO (DRAWER VERTICAL & MODO SECRETARIA)
+   ══════════════════════════════════════════════════════════════ */
+let listaEfetivoHero = [];
+let listaEfetivoHeroFiltrada = [];
+let modoSecretariaHeroAtivo = false;
+let militarEmEdicaoHero = null;
+
+async function abrirConsultaEfetivoHero() {
+  const drawer = document.getElementById('drawerEfetivoHero');
+  if (!drawer) return;
+  drawer.classList.add('active');
+  document.body.style.overflow = 'hidden';
+
+  // Verifica se a sessão já está autenticada na Secretaria
+  if (sessionStorage.getItem('secretaria_pin_ok') === '1') {
+    modoSecretariaHeroAtivo = true;
+  }
+  atualizarUiModoSecretariaHero();
+
+  if (!listaEfetivoHero.length) {
+    await recarregarEfetivoHero();
+  } else {
+    filtrarEfetivoHero();
+  }
+}
+
+function fecharConsultaEfetivoHero() {
+  const drawer = document.getElementById('drawerEfetivoHero');
+  if (drawer) drawer.classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+async function recarregarEfetivoHero(forceRefresh = false) {
+  const statusInfo = document.getElementById('hero-pes-filtro-info');
+  const listEl = document.getElementById('hero-pes-lista');
+  if (statusInfo) statusInfo.textContent = 'Carregando militares do banco…';
+  if (listEl) {
+    listEl.innerHTML = '<div style="text-align:center;padding:2.5rem;color:var(--contrail);opacity:.6;font-family:var(--f-data);font-size:.82rem;">⏳ Carregando dados oficiais do banco de dados…</div>';
+  }
+
+  try {
+    if (window.AppConfig && typeof window.AppConfig.fetchEfetivo === 'function') {
+      // Se modo secretaria ativo, busca todos os militares (incluindo ex-integrantes para histórico)
+      // Se modo público, activeOnly: true
+      listaEfetivoHero = await window.AppConfig.fetchEfetivo({ 
+        forceRefresh, 
+        activeOnly: !modoSecretariaHeroAtivo 
+      });
+    } else {
+      const cached = localStorage.getItem('afa_efetivo_db_cache_v2');
+      listaEfetivoHero = cached ? JSON.parse(cached) : [];
+      if (!modoSecretariaHeroAtivo) {
+        listaEfetivoHero = listaEfetivoHero.filter(m => m.ativo !== false && m.status_efetivo !== 'ex_integrante');
+      }
+    }
+
+    popularFiltroSecoesHero();
+    filtrarEfetivoHero();
+  } catch(err) {
+    console.error('Erro ao carregar efetivo no hero:', err);
+    if (listEl) {
+      listEl.innerHTML = `<div style="text-align:center;padding:2rem;color:#ef4444;font-family:var(--f-data);font-size:.82rem;">Erro ao carregar dados: ${err.message}</div>`;
+    }
+  }
+}
+
+function popularFiltroSecoesHero() {
+  const select = document.getElementById('hero-pes-secao');
+  if (!select) return;
+
+  const mapSecoes = new Map();
+  listaEfetivoHero.forEach(m => {
+    const secoes = m.secoes_lista && m.secoes_lista.length ? m.secoes_lista : (window.AppConfig?.extrairSecoes(m.cargo_funcao) || ['Geral']);
+    secoes.forEach(s => {
+      const sTrim = s.trim();
+      if (!sTrim) return;
+      mapSecoes.set(sTrim, (mapSecoes.get(sTrim) || 0) + 1);
+    });
+  });
+
+  const secoesOrdenadas = [...mapSecoes.keys()].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+  let html = `<option value="">🏢 Todas as Seções (${secoesOrdenadas.length})</option>`;
+  secoesOrdenadas.forEach(s => {
+    const count = mapSecoes.get(s);
+    html += `<option value="${s}">${s} (${count})</option>`;
+  });
+
+  select.innerHTML = html;
+}
+
+function filtrarEfetivoHero() {
+  const inputBusca = document.getElementById('hero-pes-busca');
+  const selectSecao = document.getElementById('hero-pes-secao');
+  const selectPosto = document.getElementById('hero-pes-posto');
+  const selectStatus = document.getElementById('hero-pes-status');
+  const btnClear = document.getElementById('btn-clear-hero-busca');
+
+  const termo = (inputBusca?.value || '').trim().toLowerCase();
+  const secaoFiltro = (selectSecao?.value || '').trim();
+  const postoFiltro = (selectPosto?.value || '').trim().toUpperCase();
+  const statusFiltro = (selectStatus?.value || 'ativos').toLowerCase().trim();
+
+  if (btnClear) btnClear.style.display = termo ? 'block' : 'none';
+
+  listaEfetivoHeroFiltrada = listaEfetivoHero.filter(m => {
+    // 0. Filtro por Situação (Modo Secretaria permite ver Ex-Integrantes ou Pendências)
+    if (modoSecretariaHeroAtivo && selectStatus && selectStatus.style.display !== 'none') {
+      if (statusFiltro === 'ativos') {
+        if (m.ativo === false || m.status_efetivo === 'ex_integrante') return false;
+      } else if (statusFiltro === 'pendencias') {
+        if (m.status_efetivo !== 'em_desligamento' && m.status_efetivo !== 'em_transferencia') return false;
+      } else if (statusFiltro === 'ex') {
+        if (m.status_efetivo !== 'ex_integrante' && m.ativo !== false) return false;
+      }
+    } else {
+      if (m.ativo === false || m.status_efetivo === 'ex_integrante') return false;
+    }
+
+    // 1. Filtro por Busca Geral (Nome Guerra, Completo, SARAM, Ramal)
+    if (termo) {
+      const match = 
+        (m.nome_guerra || '').toLowerCase().includes(termo) ||
+        (m.nome_completo || '').toLowerCase().includes(termo) ||
+        (m.saram || '').toLowerCase().includes(termo) ||
+        (m.ramal || '').toLowerCase().includes(termo) ||
+        (m.cargo_funcao || '').toLowerCase().includes(termo) ||
+        (m.secao_formatada || '').toLowerCase().includes(termo);
+      if (!match) return false;
+    }
+
+    // 2. Filtro Cascata por Seção
+    if (secaoFiltro) {
+      const secoes = m.secoes_lista && m.secoes_lista.length 
+        ? m.secoes_lista 
+        : (window.AppConfig?.extrairSecoes(m.cargo_funcao) || []);
+      const matchSec = secoes.some(s => s.toLowerCase() === secaoFiltro.toLowerCase()) ||
+        (m.cargo_funcao || '').toLowerCase().includes(secaoFiltro.toLowerCase());
+      if (!matchSec) return false;
+    }
+
+    // 3. Filtro por Posto/Graduação
+    if (postoFiltro) {
+      const p = (m.posto_grad || '').toUpperCase();
+      if (postoFiltro === 'OF-SUP') {
+        if (!['CL', 'TC', 'MJ', 'MAJ'].some(x => p.includes(x))) return false;
+      } else if (postoFiltro === 'OF-INT') {
+        if (!['CP', 'CAP'].some(x => p.includes(x))) return false;
+      } else if (postoFiltro === 'OF-SUB') {
+        if (!['1T', '2T', 'ASP'].some(x => p.includes(x))) return false;
+      } else if (postoFiltro === 'GRAD') {
+        if (!['SO', '1S', '2S', '3S', 'CB', 'S1', 'S2', 'SGT'].some(x => p.includes(x))) return false;
+      } else if (postoFiltro === 'CV') {
+        if (!['CV', 'CIVIL'].some(x => p.includes(x))) return false;
+      } else {
+        if (!p.includes(postoFiltro)) return false;
+      }
+    }
+
+    return true;
+  });
+
+  const statusInfo = document.getElementById('hero-pes-filtro-info');
+  if (statusInfo) {
+    statusInfo.textContent = `Mostrando ${listaEfetivoHeroFiltrada.length} de ${listaEfetivoHero.length} militares`;
+  }
+
+  renderizarListaEfetivoHero();
+}
+
+function limparBuscaHero() {
+  const inputBusca = document.getElementById('hero-pes-busca');
+  if (inputBusca) inputBusca.value = '';
+  filtrarEfetivoHero();
+  inputBusca?.focus();
+}
+
+function renderizarListaEfetivoHero() {
+  const listEl = document.getElementById('hero-pes-lista');
+  if (!listEl) return;
+
+  if (!listaEfetivoHeroFiltrada.length) {
+    listEl.innerHTML = `
+      <div style="text-align:center;padding:3rem 1rem;color:var(--contrail);opacity:.7;font-family:var(--f-data);font-size:.84rem;">
+        🔍 Nenhum militar encontrado com os filtros selecionados.<br>
+        <button onclick="limparBuscaHero(); document.getElementById('hero-pes-secao').value=''; document.getElementById('hero-pes-posto').value=''; filtrarEfetivoHero();" style="margin-top:.85rem;background:rgba(212,168,75,.15);border:1px solid rgba(212,168,75,.4);color:var(--gold-lt);padding:.35rem .75rem;border-radius:6px;cursor:pointer;font-family:var(--f-data);font-size:.72rem;">Limpar Filtros</button>
+      </div>`;
+    return;
+  }
+
+  let html = '';
+  listaEfetivoHeroFiltrada.forEach(m => {
+    const secaoExibida = m.secao_formatada || (window.AppConfig?.extrairSecoes(m.cargo_funcao) || ['—']).join(', ');
+    const ramalExibido = m.ramal ? `📞 ${m.ramal}` : '—';
+    const hasRamal = !!m.ramal;
+
+    let tagStatusHero = '';
+    if (m.status_efetivo === 'em_desligamento') {
+      tagStatusHero = '<span style="font-size:.62rem;background:#fef3c7;color:#b45309;padding:.15rem .35rem;border-radius:4px;font-weight:600;margin-left:.4rem;">⚠️ Em Desligamento</span>';
+    } else if (m.status_efetivo === 'em_transferencia') {
+      tagStatusHero = '<span style="font-size:.62rem;background:#e0f2fe;color:#0369a1;padding:.15rem .35rem;border-radius:4px;font-weight:600;margin-left:.4rem;">✈️ Em Transferência</span>';
+    } else if (m.status_efetivo === 'ex_integrante' || m.ativo === false) {
+      tagStatusHero = '<span style="font-size:.62rem;background:rgba(255,255,255,0.1);color:var(--contrail);padding:.15rem .35rem;border-radius:4px;font-weight:600;margin-left:.4rem;">📁 Ex-Integrante</span>';
+    }
+
+    html += `
+      <div class="militar-vcard">
+        <div class="militar-vcard-top">
+          <div class="militar-vcard-ident">
+            <span class="militar-posto-badge">${m.posto_grad || '—'}</span>
+            <span class="militar-nome-guerra" title="${m.nome_completo || m.nome_guerra}">${m.nome_guerra || '—'}</span>
+            ${tagStatusHero}
+          </div>
+          <a class="militar-ramal-box ${hasRamal ? '' : 'vazio'}" ${hasRamal ? `href="tel:${m.ramal}"` : ''} title="${hasRamal ? 'Ligar para o ramal' : 'Sem ramal cadastrado'}">
+            ${ramalExibido}
+          </a>
+        </div>
+        <div class="militar-vcard-sub">
+          <span class="militar-saram">SARAM: <b>${m.saram || '—'}</b></span>
+          <span class="militar-dot">·</span>
+          <span class="militar-secao">Seção: <span class="militar-secao-badge">${secaoExibida}</span></span>
+        </div>
+        ${modoSecretariaHeroAtivo ? `
+          <div class="militar-vcard-secretaria">
+            <button class="btn-editar-ficha-hero" onclick="abrirEdicaoMilitarHero('${m.saram}')" title="Editar dados cadastrais completos deste militar">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              <span>Editar Ficha Completa</span>
+            </button>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  });
+
+  listEl.innerHTML = html;
+}
+
+/* Modo Secretaria no Hero */
+async function toggleModoSecretariaHero() {
+  if (modoSecretariaHeroAtivo) {
+    if (confirm('Deseja sair do Modo Secretaria?')) {
+      bloquearSecretariaHero();
+    }
+    return;
+  }
+
+  // Verifica se já tem PIN válido na sessão
+  if (sessionStorage.getItem('secretaria_pin_ok') === '1') {
+    modoSecretariaHeroAtivo = true;
+    atualizarUiModoSecretariaHero();
+    await recarregarEfetivoHero(true);
+    return;
+  }
+
+  const pin = prompt('Digite o PIN de acesso da Secretaria:');
+  if (!pin) return;
+
+  const ok = window.AppConfig ? await window.AppConfig.verifyPin(pin.trim()) : (pin.trim() === '123456');
+  if (ok) {
+    sessionStorage.setItem('secretaria_pin_ok', '1');
+    modoSecretariaHeroAtivo = true;
+    atualizarUiModoSecretariaHero();
+    await recarregarEfetivoHero(true);
+  } else {
+    alert('PIN incorreto. Acesso restrito à Secretaria.');
+  }
+}
+
+function bloquearSecretariaHero() {
+  modoSecretariaHeroAtivo = false;
+  sessionStorage.removeItem('secretaria_pin_ok');
+  atualizarUiModoSecretariaHero();
+  recarregarEfetivoHero(true);
+}
+
+function atualizarUiModoSecretariaHero() {
+  const btn = document.getElementById('btn-toggle-secretaria-hero');
+  const banner = document.getElementById('hero-sec-banner');
+  const statusSelect = document.getElementById('hero-pes-status');
+
+  if (statusSelect) {
+    statusSelect.style.display = modoSecretariaHeroAtivo ? 'inline-block' : 'none';
+  }
+
+  if (modoSecretariaHeroAtivo) {
+    if (btn) {
+      btn.className = 'btn-sec-toggle active';
+      btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg> <span>🔓 Secretaria Ativa</span>`;
+    }
+    if (banner) banner.style.display = 'flex';
+  } else {
+    if (btn) {
+      btn.className = 'btn-sec-toggle';
+      btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> <span>Modo Secretaria</span>`;
+    }
+    if (banner) banner.style.display = 'none';
+  }
+}
+
+/* Modal de Edição da Secretaria (com bloqueio de Cargos e Seções) */
+function abrirEdicaoMilitarHero(saram) {
+  const militar = listaEfetivoHero.find(m => m.saram === saram);
+  if (!militar) return;
+  militarEmEdicaoHero = militar;
+
+  const setVal = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.value = (val !== undefined && val !== null) ? val : '';
+  };
+
+  document.getElementById('edicao-hero-title').textContent = `Ficha Cadastral — ${militar.posto_grad || ''} ${militar.nome_guerra || ''}`;
+  document.getElementById('edicao-hero-sub').textContent = `SARAM: ${militar.saram} · Divisão de Ensino`;
+
+  // Configura Faixa de Status & Ações de Ciclo de Vida
+  const banner = document.getElementById('hero-militar-status-banner');
+  const txtEl = document.getElementById('hero-status-text');
+  const actEl = document.getElementById('hero-status-actions');
+
+  if (banner && txtEl && actEl) {
+    banner.style.display = 'flex';
+    const statusEf = militar.status_efetivo || (militar.ativo === false ? 'ex_integrante' : 'ativo');
+    if (statusEf === 'ex_integrante' || militar.ativo === false) {
+      banner.style.background = 'rgba(255,255,255,0.05)';
+      txtEl.innerHTML = `<span style="background:rgba(255,255,255,0.15);color:var(--contrail);padding:.2rem .5rem;border-radius:4px;font-weight:600;font-size:.72rem;">📁 Ex-Integrante</span> <span style="color:var(--contrail);font-size:.75rem;">Histórico preservado, desativado dos motores operacionais.</span>`;
+      actEl.innerHTML = `<button type="button" class="cfg-btn" onclick="reativarMilitarHero('${militar.saram}')" style="background:rgba(212,168,75,0.2);border-color:var(--gold-lt);font-size:.72rem;padding:.3rem .6rem;">🔄 Reativar no Efetivo Ativo</button>`;
+    } else if (statusEf === 'em_desligamento') {
+      banner.style.background = 'rgba(245,158,11,0.15)';
+      txtEl.innerHTML = `<span style="background:#fef3c7;color:#b45309;padding:.2rem .5rem;border-radius:4px;font-weight:600;font-size:.72rem;">⚠️ Em Desligamento</span> <span style="color:#fde68a;font-size:.75rem;">Processo de saída em andamento (Pendência Oficial).</span>`;
+      actEl.innerHTML = `
+        <button type="button" class="cfg-btn" onclick="concluirDesligamentoHero('${militar.saram}')" style="background:var(--red-500);border-color:#f87171;font-size:.72rem;padding:.3rem .6rem;">🚪 Concluir Desligamento</button>
+        <button type="button" class="cfg-btn sec" onclick="cancelarSaidaHero('${militar.saram}')" style="font-size:.72rem;padding:.3rem .6rem;">↩️ Cancelar</button>
+      `;
+    } else if (statusEf === 'em_transferencia') {
+      banner.style.background = 'rgba(56,189,248,0.15)';
+      txtEl.innerHTML = `<span style="background:#e0f2fe;color:#0369a1;padding:.2rem .5rem;border-radius:4px;font-weight:600;font-size:.72rem;">✈️ Em Transferência</span> <span style="color:#bae6fd;font-size:.75rem;">Processo de transferência em andamento (Pendência Oficial).</span>`;
+      actEl.innerHTML = `
+        <button type="button" class="cfg-btn" onclick="concluirDesligamentoHero('${militar.saram}')" style="background:var(--red-500);border-color:#f87171;font-size:.72rem;padding:.3rem .6rem;">🚪 Concluir Transferência</button>
+        <button type="button" class="cfg-btn sec" onclick="cancelarSaidaHero('${militar.saram}')" style="font-size:.72rem;padding:.3rem .6rem;">↩️ Cancelar</button>
+      `;
+    } else {
+      banner.style.background = 'rgba(16,185,129,0.1)';
+      txtEl.innerHTML = `<span style="background:rgba(16,185,129,0.2);color:#34d399;padding:.2rem .5rem;border-radius:4px;font-weight:600;font-size:.72rem;">✓ Efetivo Ativo</span> <span style="color:var(--contrail);font-size:.75rem;">Situação regular na DE.</span>`;
+      actEl.innerHTML = `
+        <button type="button" class="cfg-btn sec" onclick="solicitarDesligamentoHero('${militar.saram}', 'em_desligamento')" style="font-size:.72rem;padding:.3rem .6rem;color:#f59e0b;border-color:#f59e0b;">⚠️ Marcar "Em Desligamento"</button>
+        <button type="button" class="cfg-btn sec" onclick="solicitarDesligamentoHero('${militar.saram}', 'em_transferencia')" style="font-size:.72rem;padding:.3rem .6rem;color:#38bdf8;border-color:#38bdf8;">✈️ Marcar "Em Transferência"</button>
+        <button type="button" class="cfg-btn sec" onclick="concluirDesligamentoHero('${militar.saram}')" style="font-size:.72rem;padding:.3rem .6rem;color:#f87171;border-color:#f87171;">🚪 Desligar Direto</button>
+      `;
+    }
+  }
+
+  // 1. Identificação
+  setVal('eh-ordem', militar.ordem || '');
+  setVal('eh-posto', militar.posto_grad || '');
+  setVal('eh-esp', militar.especialidade || '');
+  setVal('eh-nome-guerra', militar.nome_guerra || '');
+  setVal('eh-nome-completo', militar.nome_completo || '');
+  setVal('eh-saram', militar.saram || '');
+  setVal('eh-cpf', militar.cpf || '');
+  setVal('eh-rg', militar.rg || '');
+  setVal('eh-ativo', militar.ativo !== false ? 'true' : 'false');
+
+  // 2. Cargos e Seção (BLOQUEADOS PARA EDIÇÃO)
+  setVal('eh-cargo', militar.cargo_funcao || '');
+  setVal('eh-secao-calc', militar.secao_formatada || (window.AppConfig?.extrairSecoes(militar.cargo_funcao) || ['—']).join(', '));
+  setVal('eh-ramal', militar.ramal || '');
+  setVal('eh-funcao-pub', militar.funcao_publicada ? 'true' : 'false');
+  setVal('eh-data-inicio', militar.data_inicio || '');
+  setVal('eh-boletim', militar.boletim || '');
+
+  // 3. Contatos & Endereço
+  setVal('eh-telefone', militar.telefone || '');
+  setVal('eh-email', militar.email || '');
+  setVal('eh-lista-zimbra', militar.lista_zimbra ? 'true' : 'false');
+  setVal('eh-endereco', militar.endereco || '');
+
+  // 4. Financeiro & Auxílio
+  setVal('eh-soldo', militar.soldo || '');
+  setVal('eh-banco-nome', militar.banco_nome || '');
+  setVal('eh-banco-cod', militar.banco_codigo || '');
+  setVal('eh-banco-ag', militar.banco_agencia || '');
+  setVal('eh-banco-conta', militar.banco_conta || '');
+  setVal('eh-aux-transp', militar.auxilio_transporte ? 'true' : 'false');
+  setVal('eh-aux-valor', militar.valor_auxilio_transporte || '');
+
+  // 5. Carreira & Prazos
+  setVal('eh-dt-nasc', militar.data_nascimento || '');
+  setVal('eh-dt-praca', militar.data_praca || '');
+  setVal('eh-dt-form', militar.data_formacao || '');
+  setVal('eh-dt-ult-prom', militar.ultima_promocao || '');
+  setVal('eh-prox-prom', militar.proxima_promocao || '');
+  setVal('eh-apres-om', militar.apresentacao_om || '');
+  setVal('eh-tempo-loc', militar.tempo_localidade || '');
+  setVal('eh-dt-final-reeng', militar.data_final_reengajamento || '');
+  setVal('eh-tempo-aviso', militar.tempo_inicio_processo || '');
+  setVal('eh-fim-serv-temp', militar.fim_servico_temp || '');
+  setVal('eh-status-reeng', militar.status_reengajamento || '');
+  setVal('eh-disciplina', militar.disciplina || '');
+  setVal('eh-cod-disciplina', militar.codigo_disciplina || '');
+  setVal('eh-escala-risaer', militar.escala_risaer || '');
+  setVal('eh-med-santos', militar.medalha_santos_dumont || 'N APLIC');
+  setVal('eh-med-bartolomeu', militar.medalha_bartolomeu_gusmao || 'N APLIC');
+
+  // 6. Aeronavegantes
+  setVal('eh-aero-5717-ult', militar.aero_5717_ultima_pub || '');
+  setVal('eh-aero-5717-prox', militar.aero_5717_prox_pub || '');
+  setVal('eh-aero-5718-ult', militar.aero_5718_ultima_pub || '');
+  setVal('eh-aero-5718-prox', militar.aero_5718_prox_pub || '');
+  setVal('eh-obs', militar.observacoes || '');
+
+  trocarTabEdicaoHero(1);
+  const modal = document.getElementById('modalEdicaoHero');
+  if (modal) modal.classList.add('active');
+}
+
+function fecharEdicaoHero() {
+  const modal = document.getElementById('modalEdicaoHero');
+  if (modal) modal.classList.remove('active');
+  militarEmEdicaoHero = null;
+}
+
+function trocarTabEdicaoHero(tabNum) {
+  for (let i = 1; i <= 6; i++) {
+    const btn = document.getElementById(`e-tab-btn-${i}`);
+    const sec = document.getElementById(`e-tab-sec-${i}`);
+    if (btn) btn.classList.toggle('active', i === tabNum);
+    if (sec) sec.style.display = (i === tabNum) ? 'grid' : 'none';
+  }
+}
+
+async function salvarMilitarHero() {
+  if (!militarEmEdicaoHero) return;
+  const getVal = id => document.getElementById(id)?.value?.trim() || '';
+
+  const posto = getVal('eh-posto');
+  const nomeGuerra = getVal('eh-nome-guerra');
+  const nomeCompleto = getVal('eh-nome-completo');
+
+  if (!posto || !nomeGuerra || !nomeCompleto) {
+    alert('Por favor, preencha os campos obrigatórios: Posto/Graduação, Nome de Guerra e Nome Completo.');
+    return;
+  }
+
+  // ATENÇÃO: Campos de Cargo, Seção e Boletim são preservados intactos (bloqueio de integridade)
+  const militarAtualizado = {
+    ...militarEmEdicaoHero,
+    ordem: parseInt(getVal('eh-ordem'), 10) || militarEmEdicaoHero.ordem || 999,
+    posto_grad: posto.toUpperCase(),
+    especialidade: getVal('eh-esp').toUpperCase(),
+    nome_guerra: nomeGuerra.toUpperCase(),
+    nome_completo: nomeCompleto.toUpperCase(),
+    cpf: getVal('eh-cpf'),
+    rg: getVal('eh-rg'),
+    ativo: document.getElementById('eh-ativo')?.value === 'true',
+
+    ramal: getVal('eh-ramal'),
+    telefone: getVal('eh-telefone'),
+    email: getVal('eh-email'),
+    lista_zimbra: document.getElementById('eh-lista-zimbra')?.value === 'true',
+    endereco: getVal('eh-endereco'),
+
+    soldo: parseFloat(getVal('eh-soldo')) || 0,
+    banco_nome: getVal('eh-banco-nome'),
+    banco_codigo: getVal('eh-banco-cod'),
+    banco_agencia: getVal('eh-banco-ag'),
+    banco_conta: getVal('eh-banco-conta'),
+    auxilio_transporte: document.getElementById('eh-aux-transp')?.value === 'true',
+    valor_auxilio_transporte: parseFloat(getVal('eh-aux-valor')) || 0,
+
+    data_nascimento: getVal('eh-dt-nasc') || null,
+    data_praca: getVal('eh-dt-praca') || null,
+    data_formacao: getVal('eh-dt-form') || null,
+    ultima_promocao: getVal('eh-dt-ult-prom') || null,
+    proxima_promocao: getVal('eh-prox-prom'),
+    apresentacao_om: getVal('eh-apres-om') || null,
+    tempo_localidade: getVal('eh-tempo-loc'),
+    data_final_reengajamento: getVal('eh-dt-final-reeng') || null,
+    tempo_inicio_processo: getVal('eh-tempo-aviso'),
+    fim_servico_temp: getVal('eh-fim-serv-temp') || null,
+    status_reengajamento: getVal('eh-status-reeng'),
+    disciplina: getVal('eh-disciplina'),
+    codigo_disciplina: getVal('eh-cod-disciplina'),
+    escala_risaer: getVal('eh-escala-risaer'),
+    medalha_santos_dumont: getVal('eh-med-santos'),
+    medalha_bartolomeu_gusmao: getVal('eh-med-bartolomeu'),
+
+    aero_5717_ultima_pub: getVal('eh-aero-5717-ult') || null,
+    aero_5717_prox_pub: getVal('eh-aero-5717-prox'),
+    aero_5718_ultima_pub: getVal('eh-aero-5718-ult') || null,
+    aero_5718_prox_pub: getVal('eh-aero-5718-prox'),
+    observacoes: getVal('eh-obs')
+  };
+
+  const btnSalvar = document.getElementById('btn-save-militar-hero');
+  if (btnSalvar) {
+    btnSalvar.disabled = true;
+    btnSalvar.innerHTML = '<span>Salvando no banco…</span>';
+  }
+
+  try {
+    if (window.AppConfig && typeof window.AppConfig.saveMilitar === 'function') {
+      await window.AppConfig.saveMilitar(militarAtualizado);
+    } else {
+      let lista = JSON.parse(localStorage.getItem('afa_efetivo_db_cache_v2') || '[]');
+      const idx = lista.findIndex(m => m.saram === militarAtualizado.saram);
+      if (idx >= 0) lista[idx] = militarAtualizado;
+      else lista.push(militarAtualizado);
+      localStorage.setItem('afa_efetivo_db_cache_v2', JSON.stringify(lista));
+    }
+
+    // Atualiza na lista local
+    const idxHero = listaEfetivoHero.findIndex(m => m.saram === militarAtualizado.saram);
+    if (idxHero >= 0) {
+      listaEfetivoHero[idxHero] = window.AppConfig?.enriquecerMilitar ? window.AppConfig.enriquecerMilitar(militarAtualizado) : militarAtualizado;
+    }
+
+    fecharEdicaoHero();
+    filtrarEfetivoHero();
+    alert(`✓ Ficha cadastral de ${militarAtualizado.posto_grad} ${militarAtualizado.nome_guerra} salva com sucesso no banco de dados!`);
+  } catch(err) {
+    alert('Erro ao salvar dados do militar: ' + err.message);
+  } finally {
+    if (btnSalvar) {
+      btnSalvar.disabled = false;
+      btnSalvar.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg> <span>Salvar Alterações</span>`;
+    }
+  }
+}
+
+/* Funções de Ciclo de Vida do Militar (Hero) */
+async function solicitarDesligamentoHero(saram, tipo) {
+  const militar = listaEfetivoHero.find(m => m.saram === saram) || militarEmEdicaoHero;
+  if (!militar) return;
+  const s = militar.saram;
+  const nomeTipo = tipo === 'em_desligamento' ? 'Em Desligamento' : 'Em Transferência';
+  const motivo = prompt(`Informe o motivo / destino para registrar "${nomeTipo}":`, militar.motivo_desligamento || '');
+  if (motivo === null) return;
+
+  try {
+    if (window.AppConfig && typeof window.AppConfig.solicitarDesligamentoMilitar === 'function') {
+      await window.AppConfig.solicitarDesligamentoMilitar(s, tipo, motivo);
+    } else {
+      militar.status_efetivo = tipo;
+      militar.motivo_desligamento = motivo;
+      await window.AppConfig?.saveMilitar(militar);
+    }
+    fecharEdicaoHero();
+    await recarregarEfetivoHero(true);
+    await atualizarBadgesPendencias();
+    alert(`✓ Militar marcado como "${nomeTipo}"! Pendência oficial registrada.`);
+  } catch(err) {
+    alert('Erro ao alterar status: ' + (err.message || err));
+  }
+}
+
+async function concluirDesligamentoHero(saram) {
+  const militar = listaEfetivoHero.find(m => m.saram === saram) || militarEmEdicaoHero;
+  if (!militar) return;
+  const s = militar.saram;
+
+  // 1. Bloqueio por CARGO oficial (Regra impeditiva)
+  if (window.AppConfig && typeof window.AppConfig.verificarTitularidadeCargo === 'function') {
+    const titularCheck = await window.AppConfig.verificarTitularidadeCargo(s);
+    if (titularCheck.ehTitular) {
+      const msg = `🚫 REMOÇÃO BLOQUEADA!\n\n` +
+        `O militar ${militar.posto_grad} ${militar.nome_guerra} é titular do cargo oficial:\n` +
+        `"${titularCheck.cargoNome}" (${titularCheck.secao})\n\n` +
+        `Regra de Governança:\n` +
+        `Militares titulares de CARGO só podem ser desligados após a realização formal da PASSAGEM DE CARGO no módulo Cargos e Funções.\n\n` +
+        `Deseja abrir o módulo Cargos e Funções agora para realizar a passagem de cargo?`;
+      if (confirm(msg)) {
+        window.open('cargos.html', '_blank');
+      }
+      return;
+    }
+  }
+
+  if (!confirm(`Confirma o desligamento de ${militar.posto_grad} ${militar.nome_guerra}? Ele será transferido para Ex-Integrantes, preservando todos os 52 campos no histórico, mas desativado dos motores operacionais.`)) {
+    return;
+  }
+
+  try {
+    if (window.AppConfig && typeof window.AppConfig.concluirDesligamentoMilitar === 'function') {
+      await window.AppConfig.concluirDesligamentoMilitar(s, 'Secretaria DE (Hero)');
+    } else {
+      militar.ativo = false;
+      militar.status_efetivo = 'ex_integrante';
+      militar.data_desligamento = new Date().toISOString().split('T')[0];
+      await window.AppConfig?.saveMilitar(militar);
+    }
+    fecharEdicaoHero();
+    await recarregarEfetivoHero(true);
+    await atualizarBadgesPendencias();
+    if (document.getElementById('modalFilaAprovacaoSecretaria')?.classList.contains('active')) {
+      await carregarListaFilaSaidas();
+    }
+    alert(`✓ Desligamento concluído! Militar transferido para Ex-Integrantes com histórico preservado.`);
+  } catch(err) {
+    alert('Erro ao concluir desligamento: ' + (err.message || err));
+  }
+}
+
+async function cancelarSaidaHero(saram) {
+  const militar = listaEfetivoHero.find(m => m.saram === saram) || militarEmEdicaoHero;
+  if (!militar) return;
+  if (!confirm(`Deseja cancelar o processo de saída de ${militar.posto_grad} ${militar.nome_guerra} e restaurá-lo para Ativo?`)) return;
+
+  try {
+    militar.status_efetivo = 'ativo';
+    militar.motivo_desligamento = null;
+    if (window.AppConfig && typeof window.AppConfig.saveMilitar === 'function') {
+      await window.AppConfig.saveMilitar(militar);
+    }
+    fecharEdicaoHero();
+    await recarregarEfetivoHero(true);
+    await atualizarBadgesPendencias();
+    if (document.getElementById('modalFilaAprovacaoSecretaria')?.classList.contains('active')) {
+      await carregarListaFilaSaidas();
+    }
+    alert('✓ Processo cancelado. Militar restaurado como Ativo.');
+  } catch(err) {
+    alert('Erro: ' + (err.message || err));
+  }
+}
+
+async function reativarMilitarHero(saram) {
+  const militar = listaEfetivoHero.find(m => m.saram === saram) || militarEmEdicaoHero;
+  if (!militar) return;
+  if (!confirm(`Deseja reativar ${militar.posto_grad} ${militar.nome_guerra} no Efetivo Ativo da Divisão de Ensino?`)) return;
+
+  try {
+    if (window.AppConfig && typeof window.AppConfig.reativarMilitar === 'function') {
+      await window.AppConfig.reativarMilitar(militar.saram);
+    } else {
+      militar.ativo = true;
+      militar.status_efetivo = 'ativo';
+      militar.data_desligamento = null;
+      await window.AppConfig?.saveMilitar(militar);
+    }
+    fecharEdicaoHero();
+    await recarregarEfetivoHero(true);
+    await atualizarBadgesPendencias();
+    alert('✓ Militar reativado com sucesso no Efetivo Ativo!');
+  } catch(err) {
+    alert('Erro ao reativar: ' + (err.message || err));
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FASE 4: ADMISSÃO DE NOVOS MILITARES, RASCUNHOS & FILA DE APROVAÇÃO
+   ══════════════════════════════════════════════════════════════ */
+let solicitacoesPendentesCache = [];
+let solicitacaoEmAvaliacao = null;
+let ordemAtualAvaliacao = 1;
+let efetivoCompletoAvaliacao = [];
+
+/**
+ * Atualiza badges de pendências no Hero, no Acordeon e no Drawer
+ */
+async function atualizarBadgesPendencias() {
+  try {
+    let pendentes = [];
+    if (window.AppConfig && typeof window.AppConfig.fetchSolicitacoesPendentes === 'function') {
+      pendentes = await window.AppConfig.fetchSolicitacoesPendentes();
+    } else {
+      const raw = localStorage.getItem('afa_efetivo_solicitacoes_cache_v1');
+      const todas = raw ? JSON.parse(raw) : [];
+      pendentes = todas.filter(s => s.status === 'pendente');
+    }
+
+    solicitacoesPendentesCache = pendentes;
+    const qtd = pendentes.length;
+    const txtQtd = qtd === 1 ? '1 pendência' : `${qtd} pendências`;
+
+    // 1. Badge no Hero
+    const badgeHero = document.getElementById('hero-pendencias-badge');
+    if (badgeHero) {
+      badgeHero.textContent = txtQtd;
+      badgeHero.style.display = qtd > 0 ? 'inline-flex' : 'none';
+    }
+
+    // 2. Badge no Acordeon Efetivo
+    const badgeEf = document.getElementById('ef-pendencias-badge');
+    if (badgeEf) {
+      badgeEf.textContent = txtQtd;
+      badgeEf.style.display = qtd > 0 ? 'inline-flex' : 'none';
+    }
+
+    // 3. Contadores nos botões
+    const cntCard = document.getElementById('cnt-pendencias-card');
+    if (cntCard) cntCard.textContent = qtd;
+
+    const cntDrawer = document.getElementById('cnt-pendencias-drawer');
+    if (cntDrawer) cntDrawer.textContent = qtd;
+
+    const btnFilaDrawer = document.getElementById('btn-fila-drawer');
+    if (btnFilaDrawer) {
+      btnFilaDrawer.style.display = (qtd > 0 || modoSecretariaHeroAtivo) ? 'inline-flex' : 'none';
+    }
+  } catch(err) {
+    console.warn('Erro ao atualizar badges de pendências:', err);
+  }
+}
+
+/* Modal de Cadastro Público */
+function abrirModalNovoMilitar() {
+  trocarTabCadastro(1);
+  const modal = document.getElementById('modalCadastroNovoMilitar');
+  if (modal) {
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+function fecharModalNovoMilitar() {
+  const modal = document.getElementById('modalCadastroNovoMilitar');
+  if (modal) modal.classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+function trocarTabCadastro(tabNum) {
+  for (let i = 1; i <= 5; i++) {
+    const btn = document.getElementById(`cad-tab-btn-${i}`);
+    const sec = document.getElementById(`cad-tab-sec-${i}`);
+    if (btn) btn.classList.toggle('active', i === tabNum);
+    if (sec) sec.style.display = (i === tabNum) ? 'grid' : 'none';
+  }
+}
+
+function coletarDadosFormCadastro() {
+  const getVal = id => document.getElementById(id)?.value?.trim() || '';
+
+  return {
+    saram: getVal('cad-saram'),
+    posto_grad: getVal('cad-posto'),
+    especialidade: getVal('cad-esp'),
+    nome_guerra: getVal('cad-nome-guerra'),
+    nome_completo: getVal('cad-nome-completo'),
+    cpf: getVal('cad-cpf'),
+    rg: getVal('cad-rg'),
+
+    telefone: getVal('cad-telefone'),
+    email: getVal('cad-email'),
+    ramal: getVal('cad-ramal'),
+    lista_zimbra: document.getElementById('cad-lista-zimbra')?.value === 'true',
+    endereco: getVal('cad-endereco'),
+
+    soldo: parseFloat(getVal('cad-soldo')) || 0,
+    banco_nome: getVal('cad-banco-nome'),
+    banco_codigo: getVal('cad-banco-cod'),
+    banco_agencia: getVal('cad-banco-ag'),
+    banco_conta: getVal('cad-banco-conta'),
+    auxilio_transporte: document.getElementById('cad-aux-transp')?.value === 'true',
+    valor_auxilio_transporte: parseFloat(getVal('cad-aux-valor')) || 0,
+
+    data_nascimento: getVal('cad-dt-nasc') || null,
+    data_praca: getVal('cad-dt-praca') || null,
+    data_formacao: getVal('cad-dt-form') || null,
+    ultima_promocao: getVal('cad-dt-ult-prom') || null,
+    proxima_promocao: getVal('cad-prox-prom'),
+    apresentacao_om: getVal('cad-apres-om') || null,
+    status_reengajamento: getVal('cad-status-reeng'),
+    fim_servico_temp: getVal('cad-fim-serv-temp') || null,
+
+    aero_5717_ultima_pub: getVal('cad-aero-5717-ult') || null,
+    aero_5717_prox_pub: getVal('cad-aero-5717-prox'),
+    aero_5718_ultima_pub: getVal('cad-aero-5718-ult') || null,
+    aero_5718_prox_pub: getVal('cad-aero-5718-prox'),
+    observacoes: getVal('cad-obs')
+  };
+}
+
+function preencherCamposCadastro(dados) {
+  if (!dados) return;
+  const setVal = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.value = (val !== undefined && val !== null) ? val : '';
+  };
+
+  setVal('cad-saram', dados.saram || '');
+  setVal('cad-posto', dados.posto_grad || '');
+  setVal('cad-esp', dados.especialidade || '');
+  setVal('cad-nome-guerra', dados.nome_guerra || '');
+  setVal('cad-nome-completo', dados.nome_completo || '');
+  setVal('cad-cpf', dados.cpf || '');
+  setVal('cad-rg', dados.rg || '');
+
+  setVal('cad-telefone', dados.telefone || '');
+  setVal('cad-email', dados.email || '');
+  setVal('cad-ramal', dados.ramal || '');
+  setVal('cad-lista-zimbra', dados.lista_zimbra ? 'true' : 'false');
+  setVal('cad-endereco', dados.endereco || '');
+
+  setVal('cad-soldo', dados.soldo || '');
+  setVal('cad-banco-nome', dados.banco_nome || '');
+  setVal('cad-banco-cod', dados.banco_codigo || '');
+  setVal('cad-banco-ag', dados.banco_agencia || '');
+  setVal('cad-banco-conta', dados.banco_conta || '');
+  setVal('cad-aux-transp', dados.auxilio_transporte ? 'true' : 'false');
+  setVal('cad-aux-valor', dados.valor_auxilio_transporte || '');
+
+  setVal('cad-dt-nasc', dados.data_nascimento || '');
+  setVal('cad-dt-praca', dados.data_praca || '');
+  setVal('cad-dt-form', dados.data_formacao || '');
+  setVal('cad-dt-ult-prom', dados.ultima_promocao || '');
+  setVal('cad-prox-prom', dados.proxima_promocao || '');
+  setVal('cad-apres-om', dados.apresentacao_om || '');
+  setVal('cad-status-reeng', dados.status_reengajamento || 'CARREIRA');
+  setVal('cad-fim-serv-temp', dados.fim_servico_temp || '');
+
+  setVal('cad-aero-5717-ult', dados.aero_5717_ultima_pub || '');
+  setVal('cad-aero-5717-prox', dados.aero_5717_prox_pub || '');
+  setVal('cad-aero-5718-ult', dados.aero_5718_ultima_pub || '');
+  setVal('cad-aero-5718-prox', dados.aero_5718_prox_pub || '');
+  setVal('cad-obs', dados.observacoes || '');
+}
+
+async function salvarRascunhoForm() {
+  const dados = coletarDadosFormCadastro();
+  if (!dados.saram || dados.saram.length < 5) {
+    alert('Por favor, informe ao menos o SARAM para identificar e salvar seu rascunho.');
+    trocarTabCadastro(1);
+    document.getElementById('cad-saram')?.focus();
+    return;
+  }
+
+  const btn = document.getElementById('btn-salvar-rascunho');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span>Salvando rascunho…</span>';
+  }
+
+  try {
+    if (window.AppConfig && typeof window.AppConfig.salvarRascunhoSolicitacao === 'function') {
+      await window.AppConfig.salvarRascunhoSolicitacao(dados.saram, dados);
+    } else {
+      let lista = JSON.parse(localStorage.getItem('afa_efetivo_solicitacoes_cache_v1') || '[]');
+      const idx = lista.findIndex(s => s.saram === dados.saram);
+      const item = { saram: dados.saram, status: 'rascunho', dados, updated_at: new Date().toISOString() };
+      if (idx >= 0) lista[idx] = item;
+      else lista.push(item);
+      localStorage.setItem('afa_efetivo_solicitacoes_cache_v1', JSON.stringify(lista));
+    }
+
+    alert(`💾 Rascunho do SARAM ${dados.saram} salvo com sucesso!\nVocê pode retornar e continuar de onde parou digitando seu SARAM.`);
+  } catch(err) {
+    alert('Erro ao salvar rascunho: ' + err.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '💾 Salvar Rascunho';
+    }
+  }
+}
+
+async function retomarRascunhoSaram(saramInformado) {
+  const input = document.getElementById('cad-retomar-saram');
+  const saram = (saramInformado || input?.value || '').trim();
+
+  if (!saram) {
+    alert('Digite o número do seu SARAM para buscar o rascunho.');
+    input?.focus();
+    return;
+  }
+
+  try {
+    let solicitacao = null;
+    if (window.AppConfig && typeof window.AppConfig.buscarRascunhoSolicitacao === 'function') {
+      solicitacao = await window.AppConfig.buscarRascunhoSolicitacao(saram);
+    } else {
+      const lista = JSON.parse(localStorage.getItem('afa_efetivo_solicitacoes_cache_v1') || '[]');
+      solicitacao = lista.find(s => s.saram === saram);
+    }
+
+    if (solicitacao && solicitacao.dados) {
+      preencherCamposCadastro(solicitacao.dados);
+      alert(`✓ Rascunho do militar ${solicitacao.posto_grad || ''} ${solicitacao.nome_guerra || ''} recuperado com sucesso!\nContinue seu preenchimento.`);
+      trocarTabCadastro(1);
+    } else {
+      // Verifica se já está no efetivo oficial
+      const noOficial = listaEfetivoHero.find(m => m.saram === saram);
+      if (noOficial) {
+        alert(`Este militar (${noOficial.posto_grad} ${noOficial.nome_guerra}) já está cadastrado no efetivo oficial da DE!`);
+      } else {
+        alert(`Nenhum rascunho pendente encontrado para o SARAM ${saram}.\nInicie um novo preenchimento preenchendo os campos abaixo.`);
+        document.getElementById('cad-saram').value = saram;
+      }
+    }
+  } catch(err) {
+    alert('Erro ao buscar rascunho: ' + err.message);
+  }
+}
+
+async function enviarCadastroForm() {
+  const dados = coletarDadosFormCadastro();
+
+  if (!dados.saram || dados.saram.length < 5) {
+    alert('SARAM é obrigatório (mínimo 5 caracteres/dígitos).');
+    trocarTabCadastro(1);
+    document.getElementById('cad-saram')?.focus();
+    return;
+  }
+  if (!dados.posto_grad) {
+    alert('Selecione o Posto/Graduação.');
+    trocarTabCadastro(1);
+    document.getElementById('cad-posto')?.focus();
+    return;
+  }
+  if (!dados.nome_guerra) {
+    alert('Informe o Nome de Guerra.');
+    trocarTabCadastro(1);
+    document.getElementById('cad-nome-guerra')?.focus();
+    return;
+  }
+  if (!dados.nome_completo) {
+    alert('Informe o Nome Completo.');
+    trocarTabCadastro(1);
+    document.getElementById('cad-nome-completo')?.focus();
+    return;
+  }
+  if (!dados.data_praca) {
+    alert('A Data de Praça é obrigatória para o cálculo oficial da antiguidade militar.');
+    trocarTabCadastro(4);
+    document.getElementById('cad-dt-praca')?.focus();
+    return;
+  }
+
+  const btn = document.getElementById('btn-enviar-cadastro');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span>Enviando solicitação…</span>';
+  }
+
+  try {
+    if (window.AppConfig && typeof window.AppConfig.enviarSolicitacaoCadastro === 'function') {
+      await window.AppConfig.enviarSolicitacaoCadastro(dados);
+    } else {
+      let lista = JSON.parse(localStorage.getItem('afa_efetivo_solicitacoes_cache_v1') || '[]');
+      const idx = lista.findIndex(s => s.saram === dados.saram);
+      const item = { saram: dados.saram, status: 'pendente', dados, created_at: new Date().toISOString() };
+      if (idx >= 0) lista[idx] = item;
+      else lista.push(item);
+      localStorage.setItem('afa_efetivo_solicitacoes_cache_v1', JSON.stringify(lista));
+    }
+
+    fecharModalNovoMilitar();
+    await atualizarBadgesPendencias();
+    alert(`🚀 Solicitação de Admissão de ${dados.posto_grad} ${dados.nome_guerra} enviada com sucesso!\n\nA solicitação agora aguarda conferência e homologação da antiguidade pela Secretaria da Divisão de Ensino.`);
+  } catch(err) {
+    alert('Erro ao enviar cadastro: ' + err.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '🚀 Enviar para Secretaria';
+    }
+  }
+}
+
+/* Fila de Aprovação da Secretaria & Widget Sanduíche */
+async function abrirFilaAprovacaoSecretaria() {
+  // Verifica autenticação da Secretaria
+  if (!modoSecretariaHeroAtivo && sessionStorage.getItem('secretaria_pin_ok') !== '1') {
+    const pin = prompt('Acesso restrito à Secretaria. Digite seu PIN:');
+    if (!pin) return;
+    const ok = window.AppConfig ? await window.AppConfig.verifyPin(pin.trim()) : (pin.trim() === '123456');
+    if (ok) {
+      sessionStorage.setItem('secretaria_pin_ok', '1');
+      modoSecretariaHeroAtivo = true;
+      atualizarUiModoSecretariaHero();
+    } else {
+      alert('PIN incorreto. Acesso restrito à Secretaria.');
+      return;
+    }
+  }
+
+  const modal = document.getElementById('modalFilaAprovacaoSecretaria');
+  if (modal) {
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  fecharBoxAvaliacao();
+  trocarAbaFilaSecretaria('novos');
+  await carregarListaFilaAprovacao();
+  await carregarListaFilaSaidas();
+}
+
+function fecharFilaAprovacaoSecretaria() {
+  const modal = document.getElementById('modalFilaAprovacaoSecretaria');
+  if (modal) modal.classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+async function carregarListaFilaAprovacao() {
+  const container = document.getElementById('fila-solicitacoes-lista');
+  if (!container) return;
+
+  container.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--contrail);font-size:.82rem;">⏳ Carregando solicitações pendentes…</div>';
+
+  try {
+    let lista = [];
+    if (window.AppConfig && typeof window.AppConfig.fetchSolicitacoesPendentes === 'function') {
+      lista = await window.AppConfig.fetchSolicitacoesPendentes();
+    } else {
+      const raw = localStorage.getItem('afa_efetivo_solicitacoes_cache_v1');
+      const todas = raw ? JSON.parse(raw) : [];
+      lista = todas.filter(s => s.status === 'pendente');
+    }
+
+    solicitacoesPendentesCache = lista;
+    const badgeNovos = document.getElementById('cnt-tab-fila-novos');
+    if (badgeNovos) badgeNovos.textContent = lista.length;
+
+    if (!lista.length) {
+      container.innerHTML = `
+        <div style="text-align:center;padding:2.5rem 1rem;color:var(--contrail);font-size:.84rem;">
+          <div style="font-size:1.8rem;margin-bottom:.5rem;">✓</div>
+          <b>Nenhuma solicitação pendente no momento.</b><br>
+          <small style="opacity:.7;">Todas as chegadas de militares foram avaliadas e aprovadas.</small>
+        </div>`;
+      return;
+    }
+
+    let html = '';
+    lista.forEach(s => {
+      const d = s.dados || {};
+      const dtPraca = s.data_praca ? new Date(s.data_praca).toLocaleDateString('pt-BR') : 'Não informada';
+      const dtEnvio = s.created_at ? new Date(s.created_at).toLocaleDateString('pt-BR') : '—';
+
+      html += `
+        <div class="solicitacao-card">
+          <div style="display:flex;flex-direction:column;gap:.2rem;">
+            <div style="display:flex;align-items:center;gap:.45rem;">
+              <span class="militar-posto-badge">${s.posto_grad || '—'}</span>
+              <strong style="color:#fff;font-family:var(--f-display);font-size:.92rem;">${s.nome_guerra || '—'}</strong>
+              <small style="color:var(--contrail);font-size:.72rem;">(${s.especialidade || 'Geral'})</small>
+            </div>
+            <div style="color:var(--contrail);font-size:.74rem;font-family:var(--f-data);">
+              SARAM: <b>${s.saram}</b> · Data de Praça: <b>${dtPraca}</b> · Envio: ${dtEnvio}
+            </div>
+          </div>
+          <button class="btn-seta-posicao" type="button" onclick="avaliarSolicitacaoMilitar('${s.saram}')" style="background:rgba(212,168,75,0.2);padding:.45rem .85rem;">
+            Avaliar & Posicionar
+          </button>
+        </div>
+      `;
+    });
+
+    container.innerHTML = html;
+  } catch(err) {
+    container.innerHTML = `<div style="text-align:center;padding:2rem;color:#ef4444;font-size:.82rem;">Erro ao carregar fila: ${err.message}</div>`;
+  }
+}
+
+async function avaliarSolicitacaoMilitar(saram) {
+  const solic = solicitacoesPendentesCache.find(s => s.saram === saram);
+  if (!solic) return;
+  solicitacaoEmAvaliacao = solic;
+
+  const btnConfirmar = document.getElementById('btn-confirmar-aprovacao');
+  if (btnConfirmar) btnConfirmar.disabled = true;
+
+  try {
+    // 1. Calcula a posição de antiguidade sugerida
+    const resultado = window.AppConfig && typeof window.AppConfig.calcularPosicaoAntiguidadeSugerida === 'function'
+      ? await window.AppConfig.calcularPosicaoAntiguidadeSugerida(solic.posto_grad, solic.data_praca, solic.saram)
+      : { ordemSugerida: 1, militarAcima: null, militarAbaixo: null, efetivoCompleto: listaEfetivoHero };
+
+    ordemAtualAvaliacao = resultado.ordemSugerida;
+    efetivoCompletoAvaliacao = resultado.efetivoCompleto || listaEfetivoHero;
+
+    // 2. Renderiza o Sanduíche
+    renderizarWidgetSanduiche();
+
+    // 3. Exibe o box de avaliação
+    document.getElementById('fila-solicitacoes-lista').style.display = 'none';
+    document.getElementById('box-avaliacao-antiguidade').style.display = 'block';
+
+    if (btnConfirmar) btnConfirmar.disabled = false;
+  } catch(err) {
+    alert('Erro ao calcular antiguidade: ' + err.message);
+  }
+}
+
+function fecharBoxAvaliacao() {
+  document.getElementById('box-avaliacao-antiguidade').style.display = 'none';
+  document.getElementById('fila-solicitacoes-lista').style.display = 'block';
+  solicitacaoEmAvaliacao = null;
+}
+
+function ajustarPosicaoAntiguidadeManual(delta) {
+  if (!solicitacaoEmAvaliacao) return;
+  const maxOrdem = (efetivoCompletoAvaliacao.length || 64) + 1;
+  const nova = ordemAtualAvaliacao + delta;
+
+  if (nova < 1 || nova > maxOrdem) return;
+
+  ordemAtualAvaliacao = nova;
+  renderizarWidgetSanduiche();
+}
+
+function renderizarWidgetSanduiche() {
+  if (!solicitacaoEmAvaliacao) return;
+
+  const vizinhos = window.AppConfig && typeof window.AppConfig.obterVizinhosPorOrdem === 'function'
+    ? window.AppConfig.obterVizinhosPorOrdem(ordemAtualAvaliacao, efetivoCompletoAvaliacao, solicitacaoEmAvaliacao.saram)
+    : { militarAcima: null, militarAbaixo: null };
+
+  const { militarAcima, militarAbaixo } = vizinhos;
+
+  // 1. Acima (Mais Antigo)
+  if (militarAcima) {
+    document.getElementById('pos-acima-lbl').textContent = `⬆ MAIS ANTIGO (Posição ${militarAcima.ordem})`;
+    document.getElementById('pos-acima-nome').textContent = `${militarAcima.posto_grad} ${militarAcima.nome_guerra}`;
+    const praca = militarAcima.data_praca ? new Date(militarAcima.data_praca).toLocaleDateString('pt-BR') : 'Praça: n/d';
+    document.getElementById('pos-acima-det').textContent = `Data de Praça: ${praca} · SARAM: ${militarAcima.saram}`;
+    document.getElementById('sanduiche-acima').style.opacity = '1';
+  } else {
+    document.getElementById('pos-acima-lbl').textContent = `⬆ TOPO DA LISTA GERAL (Posição 1)`;
+    document.getElementById('pos-acima-nome').textContent = `(Nenhum militar acima — será o integrante nº 1)`;
+    document.getElementById('pos-acima-det').textContent = `Maior antiguidade do efetivo da DE`;
+    document.getElementById('sanduiche-acima').style.opacity = '.5';
+  }
+
+  // 2. Candidato (No Meio)
+  document.getElementById('pos-candidato-lbl').textContent = `⭐ POSIÇÃO DEFINIDA: ${ordemAtualAvaliacao}º LUGAR`;
+  document.getElementById('pos-candidato-nome').textContent = `${solicitacaoEmAvaliacao.posto_grad} ${solicitacaoEmAvaliacao.nome_guerra}`;
+  const pracaCand = solicitacaoEmAvaliacao.data_praca ? new Date(solicitacaoEmAvaliacao.data_praca).toLocaleDateString('pt-BR') : 'n/d';
+  document.getElementById('pos-candidato-det').textContent = `Data de Praça: ${pracaCand} · SARAM: ${solicitacaoEmAvaliacao.saram} (${solicitacaoEmAvaliacao.nome_completo || ''})`;
+
+  // 3. Abaixo (Mais Moderno)
+  if (militarAbaixo) {
+    document.getElementById('pos-abaixo-lbl').textContent = `⬇ MAIS MODERNO (Passará para Posição ${Number(militarAbaixo.ordem) + 1})`;
+    document.getElementById('pos-abaixo-nome').textContent = `${militarAbaixo.posto_grad} ${militarAbaixo.nome_guerra}`;
+    const pracaAb = militarAbaixo.data_praca ? new Date(militarAbaixo.data_praca).toLocaleDateString('pt-BR') : 'Praça: n/d';
+    document.getElementById('pos-abaixo-det').textContent = `Data de Praça: ${pracaAb} · SARAM: ${militarAbaixo.saram}`;
+    document.getElementById('sanduiche-abaixo').style.opacity = '1';
+  } else {
+    document.getElementById('pos-abaixo-lbl').textContent = `⬇ FINAL DA LISTA GERAL`;
+    document.getElementById('pos-abaixo-nome').textContent = `(Nenhum militar abaixo — será o integrante mais moderno da DE)`;
+    document.getElementById('pos-abaixo-det').textContent = `Última posição do efetivo`;
+    document.getElementById('sanduiche-abaixo').style.opacity = '.5';
+  }
+}
+
+async function executarAprovacaoFinal() {
+  if (!solicitacaoEmAvaliacao) return;
+  const s = solicitacaoEmAvaliacao;
+  const d = s.dados || {};
+
+  const btn = document.getElementById('btn-confirmar-aprovacao');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span>Homologando no banco oficial…</span>';
+  }
+
+  try {
+    if (window.AppConfig && typeof window.AppConfig.aprovarSolicitacaoCadastro === 'function') {
+      await window.AppConfig.aprovarSolicitacaoCadastro(
+        s.id,
+        s.saram,
+        ordemAtualAvaliacao,
+        { ...d, posto_grad: s.posto_grad, especialidade: s.especialidade, nome_guerra: s.nome_guerra, nome_completo: s.nome_completo, data_praca: s.data_praca }
+      );
+    } else {
+      let lista = JSON.parse(localStorage.getItem('afa_efetivo_solicitacoes_cache_v1') || '[]');
+      const idx = lista.findIndex(item => item.saram === s.saram);
+      if (idx >= 0) lista[idx].status = 'aprovada';
+      localStorage.setItem('afa_efetivo_solicitacoes_cache_v1', JSON.stringify(lista));
+    }
+
+    fecharBoxAvaliacao();
+    await carregarListaFilaAprovacao();
+    await atualizarBadgesPendencias();
+    await recarregarEfetivoHero(true);
+
+    alert(`✓ Sucesso! O militar ${s.posto_grad} ${s.nome_guerra} (SARAM ${s.saram}) foi homologado com sucesso na ${ordemAtualAvaliacao}ª posição de antiguidade do efetivo oficial da DE!`);
+  } catch(err) {
+    alert('Erro ao aprovar solicitação: ' + err.message);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '✓ Confirmar e Inserir no Efetivo Oficial';
+    }
+  }
+}
+
+// Ouvintes globais de sincronização
+window.addEventListener('afa_solicitacao_criada', () => atualizarBadgesPendencias());
+window.addEventListener('afa_solicitacao_aprovada', () => {
+  atualizarBadgesPendencias();
+  recarregarEfetivoHero(true);
+});
+
+// Inicialização de pendências
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => setTimeout(atualizarBadgesPendencias, 600));
+} else {
+  setTimeout(atualizarBadgesPendencias, 600);
+}
 </script>
 </body>
 </html>

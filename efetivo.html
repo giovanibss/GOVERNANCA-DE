@@ -501,6 +501,8 @@
     .badge-status.absent  { background: var(--red-50); color: var(--red-500); border: 1px solid #fecaca; }
     .badge-status.pool    { background: var(--navy-50); color: var(--navy-600); border: 1px solid var(--navy-100); }
     .badge-status.excluded { background: var(--gray-100); color: var(--gray-500); border: 1px solid var(--gray-300); }
+    .badge-status.warning { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+    .badge-status.info { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
     .btn-ctl {
       font-size: .72rem;
       padding: .35rem .7rem;
@@ -520,6 +522,173 @@
     .btn-ctl.danger:hover { background: var(--red-50); }
     .btn-ctl.gold { background: var(--gold-500); color: var(--navy-900); border-color: var(--gold-500); }
     .btn-ctl.gold:hover { background: var(--gold-400); }
+
+    /* ── ABA EFETIVO PESSOAL (SECRETARIA) ── */
+    .pessoal-kpi-bar {
+      display: flex; gap: .75rem; padding: 1rem 2rem;
+      background: white; border-bottom: 1px solid var(--navy-100);
+      overflow-x: auto; position: relative; z-index: 5;
+    }
+    .pessoal-kpi-card {
+      flex: 1 1 auto; min-width: 130px; display: flex; align-items: center; gap: .75rem;
+      background: var(--navy-50); border: 1px solid var(--navy-100); border-left: 3px solid var(--navy-400);
+      border-radius: 6px; padding: .55rem .9rem;
+    }
+    .pessoal-kpi-card.gold   { border-left-color: var(--gold-500); }
+    .pessoal-kpi-card.green  { border-left-color: var(--green-500); }
+    .pessoal-kpi-card.blue   { border-left-color: var(--navy-500); }
+    .pessoal-kpi-card.purple { border-left-color: #8b5cf6; }
+    .pessoal-kpi-card.amber  { border-left-color: #f59e0b; }
+    .pessoal-kpi-val { font-family: var(--font-display); font-size: 1.4rem; font-weight: 600; line-height: 1; color: var(--navy-900); }
+    .pessoal-kpi-lbl { font-size: .62rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; margin-top: 2px; }
+
+    .pessoal-toolbar {
+      display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem;
+    }
+    .pessoal-search {
+      flex: 2; min-width: 220px; position: relative;
+    }
+    .pessoal-search input {
+      width: 100%; font-family: var(--font-body); font-size: .82rem;
+      padding: .5rem .8rem .5rem 2.1rem; border: 1px solid var(--navy-200);
+      border-radius: 6px; background: white; color: var(--navy-900); outline: none;
+    }
+    .pessoal-search input:focus { border-color: var(--navy-500); box-shadow: 0 0 0 2px rgba(45,90,158,.15); }
+    .pessoal-search svg { position: absolute; left: .65rem; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--gray-400); }
+
+    .pessoal-select {
+      font-family: var(--font-body); font-size: .78rem;
+      padding: .48rem .7rem; border: 1px solid var(--navy-200);
+      border-radius: 6px; background: white; color: var(--navy-900); outline: none; cursor: pointer;
+    }
+
+    .pessoal-cat-nav {
+      display: flex; gap: .35rem; overflow-x: auto; padding-bottom: .4rem; margin-bottom: .8rem;
+    }
+    .pessoal-cat-btn {
+      font-size: .68rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em;
+      padding: .35rem .65rem; border-radius: 20px; border: 1px solid var(--navy-200);
+      background: white; color: var(--navy-700); cursor: pointer; white-space: nowrap; transition: all .15s;
+    }
+    .pessoal-cat-btn:hover { background: var(--navy-50); border-color: var(--navy-400); }
+    .pessoal-cat-btn.active { background: var(--navy-900); color: var(--gold-400); border-color: var(--navy-900); }
+
+    .pessoal-data-box {
+      background: white; border: 1px solid var(--navy-100); border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(10,22,40,.04); overflow: hidden;
+    }
+    .pessoal-data-header {
+      padding: .65rem 1rem; border-bottom: 1px solid var(--navy-100);
+      background: #fafbfd; display: flex; justify-content: space-between; align-items: center;
+      font-size: .76rem; color: var(--gray-500);
+    }
+    .pessoal-data-header b { color: var(--navy-900); }
+    .pessoal-scroll-wrap {
+      overflow-x: auto; max-height: 560px; overflow-y: auto; position: relative;
+    }
+    .pessoal-table {
+      width: 100%; border-collapse: collapse; font-size: .76rem; white-space: nowrap;
+    }
+    .pessoal-table th {
+      position: sticky; top: 0; z-index: 10;
+      background: #0f2341; color: white;
+      font-family: var(--font-display); text-transform: uppercase; letter-spacing: .06em;
+      font-size: .67rem; padding: .6rem .75rem; text-align: left;
+      border-right: 1px solid rgba(255,255,255,.08); border-bottom: 2px solid var(--gold-500);
+    }
+    .pessoal-table th.sticky-col {
+      position: sticky; left: 0; z-index: 12; background: #0a1628;
+    }
+    .pessoal-table td {
+      padding: .5rem .75rem; border-bottom: 1px solid var(--navy-100);
+      border-right: 1px solid var(--navy-50); color: var(--navy-900); vertical-align: middle;
+    }
+    .pessoal-table td.sticky-col {
+      position: sticky; left: 0; z-index: 8; background: white;
+      box-shadow: 2px 0 5px rgba(0,0,0,.04);
+    }
+    .pessoal-table tr:hover td { background: var(--navy-50); }
+    .pessoal-table tr:hover td.sticky-col { background: #edf3fa; }
+
+    .tag-post-grad {
+      display: inline-block; font-family: var(--font-mono); font-weight: 700;
+      font-size: .72rem; color: var(--navy-700); background: var(--navy-100);
+      padding: .15rem .45rem; border-radius: 3px;
+    }
+    .tag-cargo-pub {
+      display: inline-block; font-size: .66rem; font-weight: 600;
+      padding: .15rem .45rem; border-radius: 4px; background: #eff6ff;
+      color: #1d4ed8; border: 1px solid #bfdbfe;
+    }
+    .tag-sim {
+      display: inline-block; font-size: .64rem; font-weight: 700;
+      padding: .12rem .4rem; border-radius: 3px; background: var(--green-50);
+      color: var(--green-500); border: 1px solid #bbf7d0;
+    }
+    .tag-nao {
+      display: inline-block; font-size: .64rem; font-weight: 600;
+      padding: .12rem .4rem; border-radius: 3px; background: var(--gray-100);
+      color: var(--gray-500);
+    }
+
+    /* Modal / Ficha Cadastral */
+    .pessoal-modal-overlay {
+      position: fixed; inset: 0; z-index: 10000;
+      background: rgba(10,22,40,.65); backdrop-filter: blur(4px);
+      display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+    }
+    .pessoal-modal-card {
+      background: white; border-radius: 10px; width: 100%; max-width: 960px;
+      max-height: 90vh; display: flex; flex-direction: column; overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,.35); border: 1px solid var(--navy-200);
+    }
+    .pessoal-modal-header {
+      background: linear-gradient(135deg, var(--navy-900), var(--navy-800)); color: white;
+      padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 3px solid var(--gold-500);
+    }
+    .pessoal-modal-header h3 { font-family: var(--font-display); font-size: 1.2rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; margin: 0; }
+    .pessoal-modal-header p { font-size: .75rem; color: var(--navy-300); margin: 3px 0 0; }
+    .pessoal-modal-close {
+      background: transparent; border: none; color: white; cursor: pointer; font-size: 1.4rem; line-height: 1; padding: .2rem; opacity: .75;
+    }
+    .pessoal-modal-close:hover { opacity: 1; }
+
+    .pessoal-modal-tabs {
+      display: flex; gap: .25rem; background: var(--navy-50); padding: .5rem 1.5rem; border-bottom: 1px solid var(--navy-200); overflow-x: auto;
+    }
+    .pessoal-modal-tab-btn {
+      font-size: .72rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em;
+      padding: .4rem .8rem; border-radius: 5px; border: 1px solid transparent; background: transparent;
+      color: var(--gray-700); cursor: pointer; transition: all .15s; white-space: nowrap;
+    }
+    .pessoal-modal-tab-btn:hover { background: var(--navy-100); }
+    .pessoal-modal-tab-btn.active { background: white; color: var(--navy-900); border-color: var(--navy-200); box-shadow: 0 1px 3px rgba(0,0,0,.05); }
+
+    .pessoal-modal-body {
+      padding: 1.5rem; overflow-y: auto; flex: 1;
+    }
+    .pessoal-form-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem;
+    }
+    .pessoal-form-group {
+      display: flex; flex-direction: column; gap: .35rem;
+    }
+    .pessoal-form-group.full { grid-column: 1 / -1; }
+    .pessoal-form-group label {
+      font-size: .68rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--navy-700);
+    }
+    .pessoal-form-group input, .pessoal-form-group select, .pessoal-form-group textarea {
+      font-family: var(--font-body); font-size: .8rem; padding: .45rem .65rem;
+      border: 1px solid var(--navy-200); border-radius: 5px; background: white; color: var(--navy-900); outline: none;
+    }
+    .pessoal-form-group input:focus, .pessoal-form-group select:focus, .pessoal-form-group textarea:focus {
+      border-color: var(--navy-500); box-shadow: 0 0 0 2px rgba(45,90,158,.12);
+    }
+    .pessoal-modal-footer {
+      padding: .9rem 1.5rem; background: var(--navy-50); border-top: 1px solid var(--navy-200);
+      display: flex; justify-content: space-between; align-items: center;
+    }
   </style>
 </head>
 <body>
@@ -542,12 +711,16 @@
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         <span>Controle</span>
       </button>
+      <button class="header-nav-btn" id="tab-pessoal-btn" onclick="trocarAba('pessoal')" role="tab" aria-selected="false" style="border-color:rgba(212,168,75,.4);color:var(--gold-400)">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Efetivo (Pessoal)</span>
+      </button>
     </nav>
     <a class="nav-btn" href="index.html">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
       <span>Página Inicial</span>
     </a>
-    <button class="refresh-btn" id="refresh-btn" onclick="loadEfetivo()">
+    <button class="refresh-btn" id="refresh-btn" onclick="executarRecarregarGeral()">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
       <span>Recarregar</span>
     </button>
@@ -705,6 +878,480 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ABA 3: EFETIVO (PESSOAL) — BASE CENTRAL DA SECRETARIA DOS DADOS ══ -->
+  <div id="sec-pessoal" style="display:none;">
+    <!-- Faixa de KPIs do Efetivo Pessoal -->
+    <div class="pessoal-kpi-bar">
+      <div class="pessoal-kpi-card gold" style="cursor:pointer;" onclick="filtrarPorSituacaoKpi('todos')" title="Clique para ver todos os militares">
+        <div>
+          <div class="pessoal-kpi-val" id="cnt-pes-total">0</div>
+          <div class="pessoal-kpi-lbl">Total Cadastrado</div>
+        </div>
+      </div>
+      <div class="pessoal-kpi-card green" style="cursor:pointer;" onclick="filtrarPorSituacaoKpi('ativo')" title="Clique para ver apenas ativos na DE">
+        <div>
+          <div class="pessoal-kpi-val" id="cnt-pes-ativos">0</div>
+          <div class="pessoal-kpi-lbl">Efetivo Ativo DE</div>
+        </div>
+      </div>
+      <div class="pessoal-kpi-card amber" style="cursor:pointer;" onclick="filtrarPorSituacaoKpi('pendencias')" title="Clique para ver militares com pendência de saída">
+        <div>
+          <div class="pessoal-kpi-val" id="cnt-pes-pendencias-saida">0</div>
+          <div class="pessoal-kpi-lbl">⚠️ Pendências Saída</div>
+        </div>
+      </div>
+      <div class="pessoal-kpi-card purple" style="cursor:pointer;" onclick="filtrarPorSituacaoKpi('ex_integrante')" title="Clique para abrir a sessão de Ex-Integrantes">
+        <div>
+          <div class="pessoal-kpi-val" id="cnt-pes-ex">0</div>
+          <div class="pessoal-kpi-lbl">📁 Ex-Integrantes</div>
+        </div>
+      </div>
+      <div class="pessoal-kpi-card blue">
+        <div>
+          <div class="pessoal-kpi-val" id="cnt-pes-cargos">0</div>
+          <div class="pessoal-kpi-lbl">Cargos / Chefias</div>
+        </div>
+      </div>
+      <div class="pessoal-kpi-card amber">
+        <div>
+          <div class="pessoal-kpi-val" id="cnt-pes-transporte">0</div>
+          <div class="pessoal-kpi-lbl">Auxílio Transporte</div>
+        </div>
+      </div>
+      <div class="pessoal-kpi-card purple">
+        <div>
+          <div class="pessoal-kpi-val" id="cnt-pes-reengajamento">0</div>
+          <div class="pessoal-kpi-lbl">Avisos Reengajamento</div>
+        </div>
+      </div>
+      <div class="pessoal-kpi-card blue">
+        <div>
+          <div class="pessoal-kpi-val" id="cnt-pes-aero">0</div>
+          <div class="pessoal-kpi-lbl">Aeronavegantes</div>
+        </div>
+      </div>
+    </div>
+
+    <main>
+      <!-- Barra de Ferramentas e Filtros -->
+      <div class="pessoal-toolbar">
+        <div class="pessoal-search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input type="text" id="pes-search-input" placeholder="Buscar por nome de guerra, completo, SARAM, CPF, ramal ou cargo…" oninput="filtrarPessoal()" />
+        </div>
+
+        <select id="pes-filter-posto" class="pessoal-select" onchange="filtrarPessoal()">
+          <option value="">Posto/Grad (Todos)</option>
+          <option value="CL">Coronel (CL)</option>
+          <option value="TC">Ten-Coronel (TC)</option>
+          <option value="MAJ">Major (MAJ)</option>
+          <option value="CAP">Capitão (CAP)</option>
+          <option value="1T">1º Tenente (1T)</option>
+          <option value="2T">2º Tenente (2T)</option>
+          <option value="ASP">Aspirante (ASP)</option>
+          <option value="SO">Suboficial (SO)</option>
+          <option value="1S">1º Sargento (1S)</option>
+          <option value="2S">2º Sargento (2S)</option>
+          <option value="3S">3º Sargento (3S)</option>
+          <option value="CB">Cabo (CB)</option>
+          <option value="S1">Soldado (S1/S2)</option>
+          <option value="CV">Civil</option>
+        </select>
+
+        <select id="pes-filter-transporte" class="pessoal-select" onchange="filtrarPessoal()">
+          <option value="">Aux. Transporte (Todos)</option>
+          <option value="sim">Utiliza Auxílio ("Sim")</option>
+          <option value="nao">Não Utiliza ("Não")</option>
+        </select>
+
+        <select id="pes-filter-status" class="pessoal-select" onchange="filtrarPessoal()">
+          <option value="ativo" selected>🟢 Apenas Ativos na DE</option>
+          <option value="pendencias">⚠️ Pendências (Em Desligamento / Transf.)</option>
+          <option value="em_desligamento">⚠️ Em Desligamento</option>
+          <option value="em_transferencia">✈️ Em Transferência</option>
+          <option value="ex_integrante">📁 Ex-Integrantes (Histórico)</option>
+          <option value="inativo">Inativos / Reserva (R1)</option>
+          <option value="todos">Todos os Registros</option>
+        </select>
+
+        <button class="btn-ctl gold" onclick="abrirModalMilitarNovo()" title="Cadastrar novo militar diretamente no banco">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          <span>+ Novo Militar</span>
+        </button>
+
+        <button class="btn-ctl" id="btn-sync-sheet-pes" onclick="executarSincronizacaoSheetPessoal()" title="Importar/Atualizar dados da planilha do Google Drive">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+          <span>Sincronizar Planilha Google</span>
+        </button>
+
+        <button class="btn-ctl" onclick="exportarEfetivoCSV()" title="Exportar base completa em planilha CSV">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          <span>Exportar CSV</span>
+        </button>
+      </div>
+
+      <!-- Filtro de Grupo de Colunas Exibidas -->
+      <div class="pessoal-cat-nav">
+        <button class="pessoal-cat-btn active" id="p-grp-todas" onclick="trocarGrupoColunas('todas')">📁 Todas as Colunas (52)</button>
+        <button class="pessoal-cat-btn" id="p-grp-militar" onclick="trocarGrupoColunas('militar')">🪖 Militar & Identificação</button>
+        <button class="pessoal-cat-btn" id="p-grp-cargo" onclick="trocarGrupoColunas('cargo')">🏢 Cargo & Seção DE</button>
+        <button class="pessoal-cat-btn" id="p-grp-contato" onclick="trocarGrupoColunas('contato')">📞 Contatos & Endereço</button>
+        <button class="pessoal-cat-btn" id="p-grp-banco" onclick="trocarGrupoColunas('banco')">💳 Dados Bancários & Auxílio</button>
+        <button class="pessoal-cat-btn" id="p-grp-carreira" onclick="trocarGrupoColunas('carreira')">🎖️ Carreira & Prazos</button>
+        <button class="pessoal-cat-btn" id="p-grp-aero" onclick="trocarGrupoColunas('aero')">✈️ Aeronavegantes</button>
+        <button class="pessoal-cat-btn" id="p-grp-ex-integrantes" onclick="abrirSessaoExIntegrantes()" style="margin-left:auto; border-color:rgba(212,168,75,0.4); background:rgba(212,168,75,0.08); color:var(--gold-lt); font-weight:600;">
+          📁 Sessão Ex-Integrantes (<span id="cnt-pes-ex-nav">0</span>)
+        </button>
+      </div>
+
+      <!-- Caixa Principal com Data Grid Completo -->
+      <div class="pessoal-data-box">
+        <div class="pessoal-data-header">
+          <div>
+            <b>Base Oficial de Pessoal da Divisão de Ensino</b> · <span id="pes-contagem-label">Carregando militares…</span>
+          </div>
+          <div style="font-size:.72rem; color:var(--gray-400)">
+            Fonte: <span style="color:var(--navy-600); font-weight:600;" id="pes-fonte-status">Banco de Dados Supabase (efetivo_pessoal)</span>
+          </div>
+        </div>
+
+        <div class="pessoal-scroll-wrap">
+          <table class="pessoal-table" id="pessoal-table">
+            <thead>
+              <tr>
+                <th class="sticky-col">Militar (Posto / Guerra / SARAM)</th>
+                <th class="col-grp-militar">Ordem</th>
+                <th class="col-grp-militar">Especialidade</th>
+                <th class="col-grp-militar">Nome Completo</th>
+                <th class="col-grp-militar">CPF</th>
+                <th class="col-grp-militar">RG</th>
+                <th class="col-grp-militar">Situação</th>
+                
+                <th class="col-grp-cargo">Cargo / Função</th>
+                <th class="col-grp-cargo">Ramal</th>
+                <th class="col-grp-cargo">Publicada?</th>
+                <th class="col-grp-cargo">Início Função</th>
+                <th class="col-grp-cargo">Boletim</th>
+
+                <th class="col-grp-contato">Telefone Pessoal</th>
+                <th class="col-grp-contato">E-mail Zimbra</th>
+                <th class="col-grp-contato">Lista Zimbra</th>
+                <th class="col-grp-contato">Endereço Residencial</th>
+
+                <th class="col-grp-banco">Soldo</th>
+                <th class="col-grp-banco">Banco</th>
+                <th class="col-grp-banco">Nº Banco</th>
+                <th class="col-grp-banco">Agência</th>
+                <th class="col-grp-banco">Conta</th>
+                <th class="col-grp-banco">Aux. Transp.?</th>
+                <th class="col-grp-banco">Valor Auxílio</th>
+
+                <th class="col-grp-carreira">Data Nasc.</th>
+                <th class="col-grp-carreira">Data Praça</th>
+                <th class="col-grp-carreira">Data Formação</th>
+                <th class="col-grp-carreira">Última Promoção</th>
+                <th class="col-grp-carreira">Próxima Promoção</th>
+                <th class="col-grp-carreira">Apres. OM</th>
+                <th class="col-grp-carreira">Tempo Localidade</th>
+                <th class="col-grp-carreira">Final Reengajamento</th>
+                <th class="col-grp-carreira">Aviso <5m</th>
+                <th class="col-grp-carreira">Fim Serviço Temp</th>
+                <th class="col-grp-carreira">Status Reengaj.</th>
+                <th class="col-grp-carreira">Disciplina</th>
+                <th class="col-grp-carreira">Cód. Disc.</th>
+                <th class="col-grp-carreira">Escala RISAER</th>
+                <th class="col-grp-carreira">Santos-Dumont</th>
+                <th class="col-grp-carreira">Bartolomeu de Gusmão</th>
+
+                <th class="col-grp-aero">5717 Última Pub.</th>
+                <th class="col-grp-aero">5717 Próx. Pub.</th>
+                <th class="col-grp-aero">5718 Assento Última</th>
+                <th class="col-grp-aero">5718 Assento Próx.</th>
+
+                <th style="text-align:center;">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="pessoal-table-body">
+              <tr>
+                <td colspan="45" style="text-align:center; padding: 2.5rem; color: var(--gray-400);">
+                  Carregando registros do efetivo…
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ══ MODAL / DRAWER DE FICHA CADASTRAL & EDIÇÃO COMPLETA ══ -->
+  <div id="modalMilitarPessoal" class="pessoal-modal-overlay" style="display:none;">
+    <div class="pessoal-modal-card">
+      <div class="pessoal-modal-header">
+        <div>
+          <h3 id="modal-militar-title">Ficha Cadastral do Militar</h3>
+          <p id="modal-militar-sub">Visualização e edição direta na base de dados da Secretaria da DE</p>
+        </div>
+        <button class="pessoal-modal-close" onclick="fecharModalMilitar()">&times;</button>
+      </div>
+
+      <!-- Faixa de Situação Cadastral & Trâmites de Saída -->
+      <div id="modal-militar-status-banner" style="display:none; padding:.75rem 1.25rem; border-bottom:1px solid var(--border); align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; font-size:.82rem; background: var(--bg-card);">
+        <div id="modal-status-text" style="display:flex; align-items:center; gap:.5rem;"></div>
+        <div id="modal-status-actions" style="display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;"></div>
+      </div>
+
+      <div class="pessoal-modal-tabs">
+        <button class="pessoal-modal-tab-btn active" id="m-tab-btn-1" onclick="trocarTabModal(1)">1. Identificação Militar</button>
+        <button class="pessoal-modal-tab-btn" id="m-tab-btn-2" onclick="trocarTabModal(2)">2. Cargo & Função</button>
+        <button class="pessoal-modal-tab-btn" id="m-tab-btn-3" onclick="trocarTabModal(3)">3. Contatos & Endereço</button>
+        <button class="pessoal-modal-tab-btn" id="m-tab-btn-4" onclick="trocarTabModal(4)">4. Dados Bancários & Auxílio</button>
+        <button class="pessoal-modal-tab-btn" id="m-tab-btn-5" onclick="trocarTabModal(5)">5. Carreira & Prazos</button>
+        <button class="pessoal-modal-tab-btn" id="m-tab-btn-6" onclick="trocarTabModal(6)">6. Aeronavegantes</button>
+      </div>
+
+      <div class="pessoal-modal-body">
+        <form id="form-militar-pessoal" onsubmit="event.preventDefault(); salvarMilitarModal();">
+          <!-- ABA 1: IDENTIFICAÇÃO -->
+          <div id="m-tab-sec-1" class="pessoal-form-grid">
+            <div class="pessoal-form-group">
+              <label for="m-ordem">Nº de Antiguidade / Ordem</label>
+              <input type="number" id="m-ordem" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-posto">Posto / Graduação *</label>
+              <input type="text" id="m-posto" required placeholder="Ex: CL, TC, 1T, SO..." />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-esp">Especialidade / Quadro</label>
+              <input type="text" id="m-esp" placeholder="Ex: AV, INT, CTA, BMA..." />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-nome-guerra">Nome de Guerra *</label>
+              <input type="text" id="m-nome-guerra" required placeholder="Ex: MARCELO RESENDE" />
+            </div>
+            <div class="pessoal-form-group full">
+              <label for="m-nome-completo">Nome Completo Oficial *</label>
+              <input type="text" id="m-nome-completo" required placeholder="Nome completo sem abreviações" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-saram">SARAM (7 dígitos) *</label>
+              <input type="text" id="m-saram" required maxlength="7" placeholder="Ex: 3147550" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-cpf">CPF</label>
+              <input type="text" id="m-cpf" placeholder="000.000.000-00" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-rg">RG / Identidade Militar</label>
+              <input type="text" id="m-rg" placeholder="Identidade" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-ativo">Situação na Divisão de Ensino</label>
+              <select id="m-ativo">
+                <option value="true">Ativo na DE</option>
+                <option value="false">Inativo / Reserva (R1) / Desligado</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- ABA 2: CARGO & FUNÇÃO -->
+          <div id="m-tab-sec-2" class="pessoal-form-grid" style="display:none;">
+            <div class="pessoal-form-group full">
+              <label for="m-cargo">Cargo / Função Oficial na DE</label>
+              <input type="text" id="m-cargo" placeholder="Ex: Chefe (DE), Adjunto (SDINT), Encarregado (SDIR)..." />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-ramal">Ramal Telefônico FAB</label>
+              <input type="text" id="m-ramal" placeholder="Ex: 7992" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-funcao-pub">Função Oficialmente Publicada?</label>
+              <select id="m-funcao-pub">
+                <option value="true">Sim (Publicada)</option>
+                <option value="false">Não (Designação interna ou pendente)</option>
+              </select>
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-data-inicio">Data de Início / Assunção</label>
+              <input type="date" id="m-data-inicio" />
+            </div>
+            <div class="pessoal-form-group full">
+              <label for="m-boletim">Boletim de Publicação</label>
+              <input type="text" id="m-boletim" placeholder="Ex: DESIGNAÇÃO PARA CARGO - BO 188 15/10/2025" />
+            </div>
+          </div>
+
+          <!-- ABA 3: CONTATOS & ENDEREÇO -->
+          <div id="m-tab-sec-3" class="pessoal-form-grid" style="display:none;">
+            <div class="pessoal-form-group">
+              <label for="m-telefone">Telefone Pessoal / Celular</label>
+              <input type="text" id="m-telefone" placeholder="(19) 99999-9999" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-email">E-mail Zimbra Funcional</label>
+              <input type="email" id="m-email" placeholder="usuario@fab.mil.br" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-lista-zimbra">Cadastrado na Lista do Zimbra?</label>
+              <select id="m-lista-zimbra">
+                <option value="true">Sim</option>
+                <option value="false">Não</option>
+              </select>
+            </div>
+            <div class="pessoal-form-group full">
+              <label for="m-endereco">Endereço Residencial Completo</label>
+              <textarea id="m-endereco" rows="3" placeholder="Rua, número, bairro, CEP, Cidade-UF"></textarea>
+            </div>
+          </div>
+
+          <!-- ABA 4: DADOS BANCÁRIOS & BENEFÍCIOS -->
+          <div id="m-tab-sec-4" class="pessoal-form-grid" style="display:none;">
+            <div class="pessoal-form-group">
+              <label for="m-soldo">Soldo Mensal (R$)</label>
+              <input type="number" step="0.01" id="m-soldo" placeholder="0.00" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-banco-nome">Nome do Banco</label>
+              <input type="text" id="m-banco-nome" placeholder="Ex: Banco do Brasil, Santander, Caixa" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-banco-cod">Código do Banco (Nº Banco)</label>
+              <input type="text" id="m-banco-cod" placeholder="Ex: 001, 033, 104" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-banco-ag">Agência</label>
+              <input type="text" id="m-banco-ag" placeholder="Ex: 3606" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-banco-conta">Conta Corrente</label>
+              <input type="text" id="m-banco-conta" placeholder="Ex: 51554-X" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-aux-transp">Utiliza Auxílio Transporte?</label>
+              <select id="m-aux-transp">
+                <option value="false">Não</option>
+                <option value="true">Sim</option>
+              </select>
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-aux-valor">Valor Mensal do Auxílio Transporte (R$)</label>
+              <input type="number" step="0.01" id="m-aux-valor" placeholder="0.00" />
+            </div>
+          </div>
+
+          <!-- ABA 5: CARREIRA, DATAS E PRAZOS -->
+          <div id="m-tab-sec-5" class="pessoal-form-grid" style="display:none;">
+            <div class="pessoal-form-group">
+              <label for="m-dt-nasc">Data de Nascimento</label>
+              <input type="date" id="m-dt-nasc" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-dt-praca">Data de Praça (Ingresso FAB)</label>
+              <input type="date" id="m-dt-praca" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-dt-form">Data de Formação / Asp.</label>
+              <input type="date" id="m-dt-form" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-dt-ult-prom">Última Promoção</label>
+              <input type="date" id="m-dt-ult-prom" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-prox-prom">Próxima Promoção</label>
+              <input type="text" id="m-prox-prom" placeholder="Ex: 31/08/2026" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-apres-om">Apresentação na OM / Localidade</label>
+              <input type="date" id="m-apres-om" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-tempo-loc">Tempo de Localidade</label>
+              <input type="text" id="m-tempo-loc" placeholder="Ex: 2 anos e 6 meses" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-dt-final-reeng">Data Final Reengajamento</label>
+              <input type="date" id="m-dt-final-reeng" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-tempo-aviso">Tempo p/ Início Processo (Aviso <5m)</label>
+              <input type="text" id="m-tempo-aviso" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-fim-serv-temp">Fim do Serviço Militar (Temporário)</label>
+              <input type="date" id="m-fim-serv-temp" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-status-reeng">Status de Reengajamento</label>
+              <input type="text" id="m-status-reeng" placeholder="Ex: VAI ENCERRAR, VERIFICAR" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-disciplina">Disciplina Ministrada</label>
+              <input type="text" id="m-disciplina" placeholder="Ex: Navegação Aérea" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-cod-disciplina">Código da Disciplina</label>
+              <input type="text" id="m-cod-disciplina" placeholder="Ex: NAVA, GOVC" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-escala-risaer">Escala RISAER que Concorre</label>
+              <input type="text" id="m-escala-risaer" placeholder="Ex: ORA" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-med-santos">Medalha Santos-Dumont</label>
+              <select id="m-med-santos">
+                <option value="N APLIC">N APLIC</option>
+                <option value="SIM">SIM</option>
+                <option value="NÃO">NÃO</option>
+              </select>
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-med-bartolomeu">Medalha Bartolomeu de Gusmão</label>
+              <select id="m-med-bartolomeu">
+                <option value="N APLIC">N APLIC</option>
+                <option value="SIM">SIM</option>
+                <option value="NÃO">NÃO</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- ABA 6: AERONAVEGANTES & OBSERVAÇÕES -->
+          <div id="m-tab-sec-6" class="pessoal-form-grid" style="display:none;">
+            <div class="pessoal-form-group">
+              <label for="m-aero-5717-ult">Aeronavegante (5717) — Data da Última Publicação</label>
+              <input type="date" id="m-aero-5717-ult" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-aero-5717-prox">Aeronavegante (5717) — Próxima Publicação</label>
+              <input type="text" id="m-aero-5717-prox" placeholder="Ex: 10 mês(es) e 18 dia(s)" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-aero-5718-ult">Aero Assento Ejetável (5718) — Data Última Publicação</label>
+              <input type="date" id="m-aero-5718-ult" />
+            </div>
+            <div class="pessoal-form-group">
+              <label for="m-aero-5718-prox">Aero Assento Ejetável (5718) — Próxima Publicação</label>
+              <input type="text" id="m-aero-5718-prox" placeholder="Ex: 10 mês(es) e 18 dia(s)" />
+            </div>
+            <div class="pessoal-form-group full">
+              <label for="m-obs">Observações Gerais da Secretaria dos Dados</label>
+              <textarea id="m-obs" rows="3" placeholder="Anotações internas sobre transferências, cursos, licenças ou situações especiais"></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="pessoal-modal-footer">
+        <button class="btn-ctl" type="button" onclick="fecharModalMilitar()">Cancelar</button>
+        <button class="btn-ctl gold" type="button" onclick="salvarMilitarModal()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>
+          <span id="btn-save-militar-label">Salvar Alterações</span>
+        </button>
       </div>
     </div>
   </div>
@@ -878,36 +1525,59 @@ let efetivo = [];   // [{id, rank, spec, name, status}]  status: 'pool'|'present
 let dragId = null;
 
 /* ══════════════════════════════════════════════════════════════
-   LEITURA DA PLANILHA DE EFETIVO
+   LEITURA DA BASE OFICIAL DE EFETIVO (CENTRALIZADO)
    ══════════════════════════════════════════════════════════════ */
 async function loadEfetivo() {
-  setBanner('loading', 'Carregando efetivo da planilha…');
+  setBanner('loading', 'Carregando efetivo da base de dados…');
   setRefreshSpinning(true);
   try {
-    const res = await fetch(EFETIVO_URL());
-    const text = await res.text();
-    const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
-    if (!match) throw new Error('Resposta inesperada da planilha');
-    const json = JSON.parse(match[1]);
-    if (json?.status === 'error') throw new Error('Planilha não acessível (verifique o compartilhamento)');
+    let parsed = [];
 
-    const rows = json?.table?.rows || [];
-    const parsed = [];
-    rows.forEach((row, i) => {
-      const c = row.c || [];
-      const rank = (c[0]?.v ?? '').toString().trim();
-      const spec = (c[1]?.v ?? '').toString().trim();
-      const name = (c[2]?.v ?? '').toString().trim();
-      if (!name) return;            // pula linhas vazias
-      if (ehExcluido(name)) return; // pula militares da lista de exclusão
-      parsed.push({
-        id: 'm' + i,
-        rank, spec, name,
-        status: 'pool',
+    // 1. Tenta carregar da base oficial Supabase via AppConfig (Apenas Ativos na DE)
+    if (window.AppConfig && typeof window.AppConfig.fetchEfetivo === 'function') {
+      try {
+        const rows = await window.AppConfig.fetchEfetivo({ activeOnly: true });
+        if (rows && rows.length > 0) {
+          parsed = rows.map((m, i) => ({
+            id: 'm' + i,
+            rank: (m.posto_grad || m.graduacao || '').trim(),
+            spec: (m.especialidade || m.quadro_esp || '').trim(),
+            name: (m.nome_guerra || m.nome_completo || '').trim(),
+            saram: m.saram,
+            status: 'pool'
+          })).filter(m => m.name && !ehExcluido(m.name));
+        }
+      } catch(errDb) {
+        console.warn('Falha ao carregar efetivo via AppConfig, tentando Google GViz:', errDb);
+      }
+    }
+
+    // 2. Fallback para Google GViz se não carregou
+    if (!parsed.length) {
+      const res = await fetch(EFETIVO_URL());
+      const text = await res.text();
+      const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/);
+      if (!match) throw new Error('Resposta inesperada da planilha');
+      const json = JSON.parse(match[1]);
+      if (json?.status === 'error') throw new Error('Planilha não acessível (verifique o compartilhamento)');
+
+      const rows = json?.table?.rows || [];
+      rows.forEach((row, i) => {
+        const c = row.c || [];
+        const rank = (c[0]?.v ?? '').toString().trim();
+        const spec = (c[1]?.v ?? '').toString().trim();
+        const name = (c[2]?.v ?? '').toString().trim();
+        if (!name) return;            // pula linhas vazias
+        if (ehExcluido(name)) return; // pula militares da lista de exclusão
+        parsed.push({
+          id: 'm' + i,
+          rank, spec, name,
+          status: 'pool',
+        });
       });
-    });
+    }
 
-    if (!parsed.length) throw new Error('Nenhum militar encontrado em C5:E75');
+    if (!parsed.length) throw new Error('Nenhum militar encontrado');
 
     // Restaura as posições já alocadas para o dia corrente (presente/falta)
     const salvo = carregarEstado();
@@ -1490,24 +2160,34 @@ async function alterarPinModal() {
 function trocarAba(aba) {
   const secChamada = document.getElementById('sec-chamada');
   const secControle = document.getElementById('sec-controle');
+  const secPessoal = document.getElementById('sec-pessoal');
   const btnChamada = document.getElementById('tab-chamada-btn');
   const btnControle = document.getElementById('tab-controle-btn');
+  const btnPessoal = document.getElementById('tab-pessoal-btn');
+
+  if (secChamada) secChamada.style.display = (aba === 'chamada') ? 'block' : 'none';
+  if (secControle) secControle.style.display = (aba === 'controle') ? 'block' : 'none';
+  if (secPessoal) secPessoal.style.display = (aba === 'pessoal') ? 'block' : 'none';
+
+  if (btnChamada) {
+    btnChamada.classList.toggle('active', aba === 'chamada');
+    btnChamada.setAttribute('aria-selected', aba === 'chamada' ? 'true' : 'false');
+  }
+  if (btnControle) {
+    btnControle.classList.toggle('active', aba === 'controle');
+    btnControle.setAttribute('aria-selected', aba === 'controle' ? 'true' : 'false');
+  }
+  if (btnPessoal) {
+    btnPessoal.classList.toggle('active', aba === 'pessoal');
+    btnPessoal.setAttribute('aria-selected', aba === 'pessoal' ? 'true' : 'false');
+  }
 
   if (aba === 'chamada') {
-    if (secChamada) secChamada.style.display = 'block';
-    if (secControle) secControle.style.display = 'none';
-    btnChamada.classList.add('active');
-    btnChamada.setAttribute('aria-selected', 'true');
-    btnControle.classList.remove('active');
-    btnControle.setAttribute('aria-selected', 'false');
+    // Chamada diária
   } else if (aba === 'controle') {
-    if (secChamada) secChamada.style.display = 'none';
-    if (secControle) secControle.style.display = 'block';
-    btnChamada.classList.remove('active');
-    btnChamada.setAttribute('aria-selected', 'false');
-    btnControle.classList.add('active');
-    btnControle.setAttribute('aria-selected', 'true');
     renderControleTab();
+  } else if (aba === 'pessoal') {
+    carregarEfetivoPessoal();
   }
 }
 
@@ -1664,6 +2344,786 @@ function copiarResumoWhatsApp() {
 }
 
 /* ══════════════════════════════════════════════════════════════
+   MÓDULO CENTRAL: EFETIVO (PESSOAL) — BASE DA SECRETARIA
+   ══════════════════════════════════════════════════════════════ */
+let listaPessoalCompleta = [];
+let listaPessoalFiltrada = [];
+let grupoColunasAtivo = 'todas';
+let militarEmEdicao = null;
+
+function formatarDataBR(dataStr) {
+  if (!dataStr) return '—';
+  if (dataStr.includes('/')) return dataStr;
+  const parts = dataStr.split('-');
+  if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+  return dataStr;
+}
+
+function formatarMoedaBR(val) {
+  const num = typeof val === 'number' ? val : parseFloat(val) || 0;
+  return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+async function carregarEfetivoPessoal(forceRefresh = false) {
+  const labelStatus = document.getElementById('pes-contagem-label');
+  const tbody = document.getElementById('pessoal-table-body');
+  if (labelStatus) labelStatus.textContent = 'Carregando dados da base central…';
+
+  try {
+    if (window.AppConfig && typeof window.AppConfig.fetchEfetivo === 'function') {
+      listaPessoalCompleta = await window.AppConfig.fetchEfetivo({ forceRefresh });
+    } else {
+      const cached = localStorage.getItem('afa_efetivo_db_cache_v2');
+      listaPessoalCompleta = cached ? JSON.parse(cached) : [];
+    }
+
+    // Atualiza os KPIs
+    const elTot = document.getElementById('cnt-pes-total');
+    const elAtv = document.getElementById('cnt-pes-ativos');
+    const elPend = document.getElementById('cnt-pes-pendencias-saida');
+    const elEx = document.getElementById('cnt-pes-ex');
+    const elExNav = document.getElementById('cnt-pes-ex-nav');
+    const elCrg = document.getElementById('cnt-pes-cargos');
+    const elTrp = document.getElementById('cnt-pes-transporte');
+    const elRng = document.getElementById('cnt-pes-reengajamento');
+    const elAer = document.getElementById('cnt-pes-aero');
+
+    const totalCadastrado = listaPessoalCompleta.length;
+    const ativos = listaPessoalCompleta.filter(m => m.ativo !== false && m.status_efetivo !== 'ex_integrante').length;
+    const pendenciasSaida = listaPessoalCompleta.filter(m => m.status_efetivo === 'em_desligamento' || m.status_efetivo === 'em_transferencia').length;
+    const exIntegrantes = listaPessoalCompleta.filter(m => m.status_efetivo === 'ex_integrante' || m.ativo === false).length;
+
+    if (elTot) elTot.textContent = totalCadastrado;
+    if (elAtv) elAtv.textContent = ativos;
+    if (elPend) elPend.textContent = pendenciasSaida;
+    if (elEx) elEx.textContent = exIntegrantes;
+    if (elExNav) elExNav.textContent = exIntegrantes;
+    if (elCrg) elCrg.textContent = listaPessoalCompleta.filter(m => !!m.cargo_funcao && m.ativo !== false && m.status_efetivo !== 'ex_integrante').length;
+    if (elTrp) elTrp.textContent = listaPessoalCompleta.filter(m => !!m.auxilio_transporte && m.ativo !== false && m.status_efetivo !== 'ex_integrante').length;
+    if (elRng) elRng.textContent = listaPessoalCompleta.filter(m => m.status_reengajamento && m.status_reengajamento.trim().length > 0 && m.ativo !== false && m.status_efetivo !== 'ex_integrante').length;
+    if (elAer) elAer.textContent = listaPessoalCompleta.filter(m => (!!m.aero_5717_ultima_pub || !!m.aero_5718_ultima_pub) && m.ativo !== false && m.status_efetivo !== 'ex_integrante').length;
+
+    filtrarPessoal();
+  } catch(e) {
+    console.error('Erro ao carregar Efetivo Pessoal:', e);
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="45" style="text-align:center;color:var(--red-500);padding:2rem;">Erro ao carregar dados: ${e.message}</td></tr>`;
+    }
+  }
+}
+
+function filtrarPorSituacaoKpi(sit) {
+  const filterStatus = document.getElementById('pes-filter-status');
+  if (filterStatus) {
+    filterStatus.value = sit;
+  }
+  filtrarPessoal();
+}
+
+function abrirSessaoExIntegrantes() {
+  filtrarPorSituacaoKpi('ex_integrante');
+}
+
+function filtrarPessoal() {
+  const searchInput = document.getElementById('pes-search-input');
+  const filterPosto = document.getElementById('pes-filter-posto');
+  const filterTransp = document.getElementById('pes-filter-transporte');
+  const filterStatus = document.getElementById('pes-filter-status');
+
+  const termo = (searchInput?.value || '').toLowerCase().trim();
+  const posto = (filterPosto?.value || '').toUpperCase().trim();
+  const transp = (filterTransp?.value || '').toLowerCase().trim();
+  const status = (filterStatus?.value || '').toLowerCase().trim();
+
+  listaPessoalFiltrada = listaPessoalCompleta.filter(m => {
+    // Filtro por Texto Geral
+    if (termo) {
+      const matchTermo = 
+        (m.nome_guerra || '').toLowerCase().includes(termo) ||
+        (m.nome_completo || '').toLowerCase().includes(termo) ||
+        (m.saram || '').toLowerCase().includes(termo) ||
+        (m.cpf || '').toLowerCase().includes(termo) ||
+        (m.ramal || '').toLowerCase().includes(termo) ||
+        (m.cargo_funcao || '').toLowerCase().includes(termo) ||
+        (m.email || '').toLowerCase().includes(termo);
+      if (!matchTermo) return false;
+    }
+
+    // Filtro por Posto/Graduação
+    if (posto) {
+      const p = (m.posto_grad || '').toUpperCase();
+      if (posto === 'S1' && !(p.includes('S1') || p.includes('S2') || p.includes('SOLDADO'))) return false;
+      if (posto !== 'S1' && !p.startsWith(posto) && !p.includes(posto)) return false;
+    }
+
+    // Filtro por Auxílio Transporte
+    if (transp === 'sim' && !m.auxilio_transporte) return false;
+    if (transp === 'nao' && m.auxilio_transporte) return false;
+
+    // Filtro por Situação / Ciclo de Vida
+    if (status === 'ativo') {
+      if (m.ativo === false || m.status_efetivo === 'ex_integrante') return false;
+    } else if (status === 'pendencias') {
+      if (m.status_efetivo !== 'em_desligamento' && m.status_efetivo !== 'em_transferencia') return false;
+    } else if (status === 'em_desligamento') {
+      if (m.status_efetivo !== 'em_desligamento') return false;
+    } else if (status === 'em_transferencia') {
+      if (m.status_efetivo !== 'em_transferencia') return false;
+    } else if (status === 'ex_integrante') {
+      if (m.status_efetivo !== 'ex_integrante' && m.ativo !== false) return false;
+    } else if (status === 'inativo') {
+      if (m.ativo !== false) return false;
+    }
+
+    return true;
+  });
+
+  const labelStatus = document.getElementById('pes-contagem-label');
+  if (labelStatus) {
+    let extraLabel = '';
+    if (status === 'ex_integrante') extraLabel = ' [Sessão Ex-Integrantes]';
+    else if (status === 'pendencias') extraLabel = ' [Pendências de Saída]';
+    labelStatus.textContent = `${listaPessoalFiltrada.length} militar(es) exibido(s) de ${listaPessoalCompleta.length} cadastrados${extraLabel}`;
+  }
+
+  renderizarTabelaPessoal();
+}
+
+function renderizarTabelaPessoal() {
+  const tbody = document.getElementById('pessoal-table-body');
+  if (!tbody) return;
+
+  if (!listaPessoalFiltrada.length) {
+    tbody.innerHTML = `<tr><td colspan="45" style="text-align:center;padding:2.5rem;color:var(--gray-400);">Nenhum militar encontrado com os filtros selecionados.</td></tr>`;
+    return;
+  }
+
+  let html = '';
+  listaPessoalFiltrada.forEach(m => {
+    const isAtivo = m.ativo !== false && m.status_efetivo !== 'ex_integrante';
+    const auxTag = m.auxilio_transporte 
+      ? '<span class="tag-sim">Sim</span>' 
+      : '<span class="tag-nao">Não</span>';
+    
+    let statusTag = '';
+    if (m.status_efetivo === 'em_desligamento') {
+      statusTag = '<span class="badge-status warning" title="Militar com processo de desligamento em trâmite">⚠️ Em Desligamento</span>';
+    } else if (m.status_efetivo === 'em_transferencia') {
+      statusTag = '<span class="badge-status info" title="Militar em transferência para outra OM">✈️ Em Transferência</span>';
+    } else if (m.status_efetivo === 'ex_integrante') {
+      statusTag = '<span class="badge-status excluded" title="Ex-Integrante da DE · Histórico Preservado">📁 Ex-Integrante</span>';
+    } else if (isAtivo) {
+      statusTag = '<span class="badge-status present">Ativo</span>';
+    } else {
+      statusTag = '<span class="badge-status excluded">Inativo</span>';
+    }
+
+    const cargoTag = m.cargo_funcao 
+      ? `<span class="tag-cargo-pub">${m.cargo_funcao}</span>` 
+      : '<span style="color:var(--gray-400)">—</span>';
+    const soldoFormatado = m.soldo ? formatarMoedaBR(m.soldo) : '—';
+    const auxValorFormatado = m.valor_auxilio_transporte ? formatarMoedaBR(m.valor_auxilio_transporte) : '—';
+
+    html += `
+      <tr>
+        <td class="sticky-col">
+          <div style="display:flex;align-items:center;gap:.55rem">
+            <span class="tag-post-grad">${m.posto_grad || '—'}</span>
+            <div>
+              <div style="font-weight:600;color:var(--navy-900);">${m.nome_guerra || '—'}</div>
+              <small style="font-family:var(--font-mono);font-size:.65rem;color:var(--gray-500);">SARAM: ${m.saram || '—'}</small>
+            </div>
+          </div>
+        </td>
+
+        <td class="col-grp-militar" style="font-family:var(--font-mono);font-weight:600;color:var(--navy-700);">${m.ordem || '—'}</td>
+        <td class="col-grp-militar">${m.especialidade || '—'}</td>
+        <td class="col-grp-militar" style="font-weight:500;">${m.nome_completo || '—'}</td>
+        <td class="col-grp-militar" style="font-family:var(--font-mono);">${m.cpf || '—'}</td>
+        <td class="col-grp-militar" style="font-family:var(--font-mono);">${m.rg || '—'}</td>
+        <td class="col-grp-militar">${statusTag}</td>
+
+        <td class="col-grp-cargo">${cargoTag}</td>
+        <td class="col-grp-cargo" style="font-family:var(--font-mono);font-weight:600;color:var(--navy-700);">${m.ramal ? '📞 ' + m.ramal : '—'}</td>
+        <td class="col-grp-cargo">${m.funcao_publicada ? '<span class="tag-sim">Sim</span>' : '<span class="tag-nao">Não</span>'}</td>
+        <td class="col-grp-cargo">${formatarDataBR(m.data_inicio)}</td>
+        <td class="col-grp-cargo" style="max-width:260px;overflow:hidden;text-overflow:ellipsis;" title="${m.boletim || ''}">${m.boletim || '—'}</td>
+
+        <td class="col-grp-contato" style="font-family:var(--font-mono);">${m.telefone || '—'}</td>
+        <td class="col-grp-contato"><a href="mailto:${m.email || ''}" style="color:var(--navy-600);text-decoration:none;">${m.email || '—'}</a></td>
+        <td class="col-grp-contato">${m.lista_zimbra ? '<span class="tag-sim">Sim</span>' : '<span class="tag-nao">Não</span>'}</td>
+        <td class="col-grp-contato" style="max-width:280px;overflow:hidden;text-overflow:ellipsis;" title="${m.endereco || ''}">${m.endereco || '—'}</td>
+
+        <td class="col-grp-banco" style="font-family:var(--font-mono);font-weight:600;">${soldoFormatado}</td>
+        <td class="col-grp-banco">${m.banco_nome || '—'}</td>
+        <td class="col-grp-banco" style="font-family:var(--font-mono);">${m.banco_codigo || '—'}</td>
+        <td class="col-grp-banco" style="font-family:var(--font-mono);">${m.banco_agencia || '—'}</td>
+        <td class="col-grp-banco" style="font-family:var(--font-mono);">${m.banco_conta || '—'}</td>
+        <td class="col-grp-banco">${auxTag}</td>
+        <td class="col-grp-banco" style="font-family:var(--font-mono);">${auxValorFormatado}</td>
+
+        <td class="col-grp-carreira">${formatarDataBR(m.data_nascimento)}</td>
+        <td class="col-grp-carreira">${formatarDataBR(m.data_praca)}</td>
+        <td class="col-grp-carreira">${formatarDataBR(m.data_formacao)}</td>
+        <td class="col-grp-carreira">${formatarDataBR(m.ultima_promocao)}</td>
+        <td class="col-grp-carreira">${formatarDataBR(m.proxima_promocao)}</td>
+        <td class="col-grp-carreira">${formatarDataBR(m.apresentacao_om)}</td>
+        <td class="col-grp-carreira">${m.tempo_localidade || '—'}</td>
+        <td class="col-grp-carreira">${formatarDataBR(m.data_final_reengajamento)}</td>
+        <td class="col-grp-carreira">${m.tempo_inicio_processo || '—'}</td>
+        <td class="col-grp-carreira">${formatarDataBR(m.fim_servico_temp)}</td>
+        <td class="col-grp-carreira">${m.status_reengajamento ? `<b style="color:var(--red-500)">${m.status_reengajamento}</b>` : '—'}</td>
+        <td class="col-grp-carreira">${m.disciplina || '—'}</td>
+        <td class="col-grp-carreira" style="font-family:var(--font-mono);font-weight:600;">${m.codigo_disciplina || '—'}</td>
+        <td class="col-grp-carreira">${m.escala_risaer || '—'}</td>
+        <td class="col-grp-carreira">${m.medalha_santos_dumont || '—'}</td>
+        <td class="col-grp-carreira">${m.medalha_bartolomeu_gusmao || '—'}</td>
+
+        <td class="col-grp-aero">${formatarDataBR(m.aero_5717_ultima_pub)}</td>
+        <td class="col-grp-aero">${m.aero_5717_prox_pub || '—'}</td>
+        <td class="col-grp-aero">${formatarDataBR(m.aero_5718_ultima_pub)}</td>
+        <td class="col-grp-aero">${m.aero_5718_prox_pub || '—'}</td>
+
+        <td style="text-align:center;">
+          <div style="display:inline-flex;gap:.3rem;">
+            <button class="btn-ctl" onclick="abrirModalMilitar('${m.saram}')" title="Visualizar ou editar ficha completa">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              <span>Ficha</span>
+            </button>
+            ${m.status_efetivo === 'ex_integrante' || m.ativo === false ? `
+              <button class="btn-ctl gold" onclick="reativarMilitarModal('${m.saram}')" title="Reativar militar no Efetivo Ativo da DE">
+                🔄 Reativar
+              </button>
+            ` : (m.status_efetivo === 'em_desligamento' || m.status_efetivo === 'em_transferencia') ? `
+              <button class="btn-ctl danger" onclick="concluirDesligamentoModal('${m.saram}')" title="Concluir Desligamento (Validação de cargo)">
+                🚪 Concluir
+              </button>
+            ` : `
+              <button class="btn-ctl" onclick="solicitarDesligamentoModal('${m.saram}', 'em_desligamento')" title="Iniciar processo de saída / trâmites">
+                ⚠️ Saída
+              </button>
+            `}
+          </div>
+        </td>
+      </tr>
+    `;
+  });
+
+  tbody.innerHTML = html;
+  aplicarVisibilidadeColunas();
+}
+
+function trocarGrupoColunas(grupo) {
+  grupoColunasAtivo = grupo;
+  const botoes = [
+    { id: 'p-grp-todas', g: 'todas' },
+    { id: 'p-grp-militar', g: 'militar' },
+    { id: 'p-grp-cargo', g: 'cargo' },
+    { id: 'p-grp-contato', g: 'contato' },
+    { id: 'p-grp-banco', g: 'banco' },
+    { id: 'p-grp-carreira', g: 'carreira' },
+    { id: 'p-grp-aero', g: 'aero' },
+  ];
+
+  botoes.forEach(b => {
+    const el = document.getElementById(b.id);
+    if (el) el.classList.toggle('active', b.g === grupo);
+  });
+
+  aplicarVisibilidadeColunas();
+}
+
+function aplicarVisibilidadeColunas() {
+  const grupos = [
+    { name: 'militar', cls: '.col-grp-militar' },
+    { name: 'cargo', cls: '.col-grp-cargo' },
+    { name: 'contato', cls: '.col-grp-contato' },
+    { name: 'banco', cls: '.col-grp-banco' },
+    { name: 'carreira', cls: '.col-grp-carreira' },
+    { name: 'aero', cls: '.col-grp-aero' },
+  ];
+
+  grupos.forEach(g => {
+    const show = (grupoColunasAtivo === 'todas' || grupoColunasAtivo === g.name);
+    document.querySelectorAll(g.cls).forEach(cell => {
+      cell.style.display = show ? '' : 'none';
+    });
+  });
+}
+
+function trocarTabModal(num) {
+  for (let i = 1; i <= 6; i++) {
+    const btn = document.getElementById(`m-tab-btn-${i}`);
+    const sec = document.getElementById(`m-tab-sec-${i}`);
+    if (btn) btn.classList.toggle('active', i === num);
+    if (sec) sec.style.display = (i === num) ? 'grid' : 'none';
+  }
+}
+
+function abrirModalMilitar(saram) {
+  const militar = listaPessoalCompleta.find(m => m.saram === saram);
+  if (!militar) return;
+  militarEmEdicao = militar;
+
+  document.getElementById('modal-militar-title').textContent = `${militar.posto_grad || ''} ${militar.nome_guerra || ''} — SARAM ${militar.saram}`;
+  document.getElementById('btn-save-militar-label').textContent = 'Salvar Alterações';
+
+  // Configura a faixa de status do militar
+  const banner = document.getElementById('modal-militar-status-banner');
+  const txtEl = document.getElementById('modal-status-text');
+  const actEl = document.getElementById('modal-status-actions');
+
+  if (banner && txtEl && actEl) {
+    banner.style.display = 'flex';
+    const statusEf = militar.status_efetivo || (militar.ativo === false ? 'ex_integrante' : 'ativo');
+    if (statusEf === 'ex_integrante' || militar.ativo === false) {
+      banner.style.background = '#f1f5f9';
+      banner.style.borderColor = '#cbd5e1';
+      txtEl.innerHTML = `<span class="badge-status excluded">📁 Ex-Integrante</span> <span style="color:var(--gray-600);font-size:.78rem;">Desligado em ${formatarDataBR(militar.data_desligamento) || '—'}. Histórico preservado, inativo nos motores.</span>`;
+      actEl.innerHTML = `<button type="button" class="btn-ctl gold" onclick="reativarMilitarModal('${militar.saram}')">🔄 Reativar no Efetivo Ativo</button>`;
+    } else if (statusEf === 'em_desligamento') {
+      banner.style.background = '#fffbeb';
+      banner.style.borderColor = '#fde68a';
+      txtEl.innerHTML = `<span class="badge-status warning">⚠️ Em Desligamento</span> <span style="color:#b45309;font-size:.78rem;">Processo de saída em andamento${militar.motivo_desligamento ? ' (' + militar.motivo_desligamento + ')' : ''}.</span>`;
+      actEl.innerHTML = `
+        <button type="button" class="btn-ctl danger" onclick="concluirDesligamentoModal('${militar.saram}')">🚪 Concluir Desligamento (Mover p/ Ex-Integrantes)</button>
+        <button type="button" class="btn-ctl" onclick="cancelarProcessoSaidaModal('${militar.saram}')">↩️ Cancelar Saída</button>
+      `;
+    } else if (statusEf === 'em_transferencia') {
+      banner.style.background = '#e0f2fe';
+      banner.style.borderColor = '#bae6fd';
+      txtEl.innerHTML = `<span class="badge-status info">✈️ Em Transferência</span> <span style="color:#0369a1;font-size:.78rem;">Transferência para outra OM em andamento${militar.motivo_desligamento ? ' (' + militar.motivo_desligamento + ')' : ''}.</span>`;
+      actEl.innerHTML = `
+        <button type="button" class="btn-ctl danger" onclick="concluirDesligamentoModal('${militar.saram}')">🚪 Concluir Transferência (Mover p/ Ex-Integrantes)</button>
+        <button type="button" class="btn-ctl" onclick="cancelarProcessoSaidaModal('${militar.saram}')">↩️ Cancelar Saída</button>
+      `;
+    } else {
+      banner.style.background = '#f0fdf4';
+      banner.style.borderColor = '#bbf7d0';
+      txtEl.innerHTML = `<span class="badge-status present">✓ Efetivo Ativo</span> <span style="color:var(--green-700);font-size:.78rem;">Situação regular na Divisão de Ensino.</span>`;
+      actEl.innerHTML = `
+        <button type="button" class="btn-ctl" style="border-color:#f59e0b;color:#d97706;" onclick="solicitarDesligamentoModal('${militar.saram}', 'em_desligamento')">⚠️ Marcar "Em Desligamento"</button>
+        <button type="button" class="btn-ctl" style="border-color:#38bdf8;color:#0284c7;" onclick="solicitarDesligamentoModal('${militar.saram}', 'em_transferencia')">✈️ Marcar "Em Transferência"</button>
+        <button type="button" class="btn-ctl danger" onclick="concluirDesligamentoModal('${militar.saram}')" title="Desligar militar diretamente (com validação de passagem de cargo)">🚪 Concluir Desligamento</button>
+      `;
+    }
+  }
+
+  const setVal = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.value = (val !== undefined && val !== null) ? val : '';
+  };
+
+  setVal('m-ordem', militar.ordem || '');
+  setVal('m-posto', militar.posto_grad || '');
+  setVal('m-esp', militar.especialidade || '');
+  setVal('m-nome-guerra', militar.nome_guerra || '');
+  setVal('m-nome-completo', militar.nome_completo || '');
+  setVal('m-saram', militar.saram || '');
+  document.getElementById('m-saram').readOnly = true;
+  setVal('m-cpf', militar.cpf || '');
+  setVal('m-rg', militar.rg || '');
+  setVal('m-ativo', militar.ativo !== false ? 'true' : 'false');
+
+  setVal('m-cargo', militar.cargo_funcao || '');
+  setVal('m-ramal', militar.ramal || '');
+  setVal('m-funcao-pub', militar.funcao_publicada ? 'true' : 'false');
+  setVal('m-data-inicio', militar.data_inicio || '');
+  setVal('m-boletim', militar.boletim || '');
+
+  setVal('m-telefone', militar.telefone || '');
+  setVal('m-email', militar.email || '');
+  setVal('m-lista-zimbra', militar.lista_zimbra ? 'true' : 'false');
+  setVal('m-endereco', militar.endereco || '');
+
+  setVal('m-soldo', militar.soldo || '');
+  setVal('m-banco-nome', militar.banco_nome || '');
+  setVal('m-banco-cod', militar.banco_codigo || '');
+  setVal('m-banco-ag', militar.banco_agencia || '');
+  setVal('m-banco-conta', militar.banco_conta || '');
+  setVal('m-aux-transp', militar.auxilio_transporte ? 'true' : 'false');
+  setVal('m-aux-valor', militar.valor_auxilio_transporte || '');
+
+  setVal('m-dt-nasc', militar.data_nascimento || '');
+  setVal('m-dt-praca', militar.data_praca || '');
+  setVal('m-dt-form', militar.data_formacao || '');
+  setVal('m-dt-ult-prom', militar.ultima_promocao || '');
+  setVal('m-prox-prom', militar.proxima_promocao || '');
+  setVal('m-apres-om', militar.apresentacao_om || '');
+  setVal('m-tempo-loc', militar.tempo_localidade || '');
+  setVal('m-dt-final-reeng', militar.data_final_reengajamento || '');
+  setVal('m-tempo-aviso', militar.tempo_inicio_processo || '');
+  setVal('m-fim-serv-temp', militar.fim_servico_temp || '');
+  setVal('m-status-reeng', militar.status_reengajamento || '');
+  setVal('m-disciplina', militar.disciplina || '');
+  setVal('m-cod-disciplina', militar.codigo_disciplina || '');
+  setVal('m-escala-risaer', militar.escala_risaer || '');
+  setVal('m-med-santos', militar.medalha_santos_dumont || 'N APLIC');
+  setVal('m-med-bartolomeu', militar.medalha_bartolomeu_gusmao || 'N APLIC');
+
+  setVal('m-aero-5717-ult', militar.aero_5717_ultima_pub || '');
+  setVal('m-aero-5717-prox', militar.aero_5717_prox_pub || '');
+  setVal('m-aero-5718-ult', militar.aero_5718_ultima_pub || '');
+  setVal('m-aero-5718-prox', militar.aero_5718_prox_pub || '');
+  setVal('m-obs', militar.observacoes || '');
+
+  trocarTabModal(1);
+  document.getElementById('modalMilitarPessoal').style.display = 'flex';
+}
+
+function abrirModalMilitarNovo() {
+  militarEmEdicao = null;
+  document.getElementById('form-militar-pessoal').reset();
+  document.getElementById('m-saram').readOnly = false;
+  document.getElementById('m-ativo').value = 'true';
+  document.getElementById('m-med-santos').value = 'N APLIC';
+  document.getElementById('m-med-bartolomeu').value = 'N APLIC';
+
+  const banner = document.getElementById('modal-militar-status-banner');
+  if (banner) banner.style.display = 'none';
+
+  document.getElementById('modal-militar-title').textContent = 'Cadastrar Novo Militar';
+  document.getElementById('btn-save-militar-label').textContent = 'Cadastrar no Banco';
+
+  trocarTabModal(1);
+  document.getElementById('modalMilitarPessoal').style.display = 'flex';
+}
+
+function fecharModalMilitar() {
+  document.getElementById('modalMilitarPessoal').style.display = 'none';
+  militarEmEdicao = null;
+}
+
+async function salvarMilitarModal() {
+  const getVal = id => document.getElementById(id)?.value?.trim() || '';
+
+  const saram = getVal('m-saram');
+  const nomeGuerra = getVal('m-nome-guerra');
+  const posto = getVal('m-posto');
+  const nomeCompleto = getVal('m-nome-completo');
+
+  if (!saram || !nomeGuerra || !posto || !nomeCompleto) {
+    alert('Por favor, preencha os campos obrigatórios: SARAM, Posto/Graduação, Nome de Guerra e Nome Completo.');
+    return;
+  }
+
+  const militar = {
+    ...(militarEmEdicao || {}),
+    ordem: parseInt(getVal('m-ordem'), 10) || 999,
+    posto_grad: posto.toUpperCase(),
+    especialidade: getVal('m-esp').toUpperCase(),
+    nome_guerra: nomeGuerra.toUpperCase(),
+    nome_completo: nomeCompleto.toUpperCase(),
+    saram: saram,
+    cpf: getVal('m-cpf'),
+    rg: getVal('m-rg'),
+    ativo: document.getElementById('m-ativo').value === 'true',
+
+    cargo_funcao: getVal('m-cargo'),
+    ramal: getVal('m-ramal'),
+    funcao_publicada: document.getElementById('m-funcao-pub').value === 'true',
+    data_inicio: getVal('m-data-inicio') || null,
+    boletim: getVal('m-boletim'),
+
+    telefone: getVal('m-telefone'),
+    email: getVal('m-email'),
+    lista_zimbra: document.getElementById('m-lista-zimbra').value === 'true',
+    endereco: getVal('m-endereco'),
+
+    soldo: parseFloat(getVal('m-soldo')) || 0,
+    banco_nome: getVal('m-banco-nome'),
+    banco_codigo: getVal('m-banco-cod'),
+    banco_agencia: getVal('m-banco-ag'),
+    banco_conta: getVal('m-banco-conta'),
+    auxilio_transporte: document.getElementById('m-aux-transp').value === 'true',
+    valor_auxilio_transporte: parseFloat(getVal('m-aux-valor')) || 0,
+
+    data_nascimento: getVal('m-dt-nasc') || null,
+    data_praca: getVal('m-dt-praca') || null,
+    data_formacao: getVal('m-dt-form') || null,
+    ultima_promocao: getVal('m-dt-ult-prom') || null,
+    proxima_promocao: getVal('m-prox-prom'),
+    apresentacao_om: getVal('m-apres-om') || null,
+    tempo_localidade: getVal('m-tempo-loc'),
+    data_final_reengajamento: getVal('m-dt-final-reeng') || null,
+    tempo_inicio_processo: getVal('m-tempo-aviso'),
+    fim_servico_temp: getVal('m-fim-serv-temp') || null,
+    status_reengajamento: getVal('m-status-reeng'),
+    disciplina: getVal('m-disciplina'),
+    codigo_disciplina: getVal('m-cod-disciplina'),
+    escala_risaer: getVal('m-escala-risaer'),
+    medalha_santos_dumont: getVal('m-med-santos'),
+    medalha_bartolomeu_gusmao: getVal('m-med-bartolomeu'),
+
+    aero_5717_ultima_pub: getVal('m-aero-5717-ult') || null,
+    aero_5717_prox_pub: getVal('m-aero-5717-prox'),
+    aero_5718_ultima_pub: getVal('m-aero-5718-ult') || null,
+    aero_5718_prox_pub: getVal('m-aero-5718-prox'),
+    observacoes: getVal('m-obs')
+  };
+
+  setBanner('loading', `Salvando dados de ${militar.nome_guerra}…`);
+  try {
+    if (window.AppConfig && typeof window.AppConfig.saveMilitar === 'function') {
+      await window.AppConfig.saveMilitar(militar);
+    } else {
+      let lista = JSON.parse(localStorage.getItem('afa_efetivo_db_cache_v2') || '[]');
+      const idx = lista.findIndex(m => m.saram === militar.saram);
+      if (idx >= 0) lista[idx] = militar;
+      else lista.push(militar);
+      localStorage.setItem('afa_efetivo_db_cache_v2', JSON.stringify(lista));
+    }
+
+    fecharModalMilitar();
+    setBanner('success', `✓ Militar ${militar.posto_grad} ${militar.nome_guerra} salvo com sucesso!`);
+    setTimeout(() => setBanner(null), 4000);
+    await carregarEfetivoPessoal();
+  } catch(e) {
+    setBanner('error', 'Erro ao salvar militar: ' + (e.message || e));
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   AÇÕES DO CICLO DE VIDA: DESLIGAMENTO, TRANSFERÊNCIA & EX-INTEGRANTES
+   ══════════════════════════════════════════════════════════════ */
+async function solicitarDesligamentoModal(saram, tipo) {
+  const militar = listaPessoalCompleta.find(m => m.saram === saram) || militarEmEdicao;
+  if (!militar) return;
+  const s = militar.saram;
+  const nomeTipo = tipo === 'em_desligamento' ? 'Em Desligamento' : 'Em Transferência';
+  const motivo = prompt(`Informe o motivo ou destino para registrar o status "${nomeTipo}":`, militar.motivo_desligamento || '');
+  if (motivo === null) return; // cancelou
+
+  setBanner('loading', `Registrando status "${nomeTipo}" para ${militar.nome_guerra}…`);
+  try {
+    if (window.AppConfig && typeof window.AppConfig.solicitarDesligamentoMilitar === 'function') {
+      await window.AppConfig.solicitarDesligamentoMilitar(s, tipo, motivo);
+    } else {
+      militar.status_efetivo = tipo;
+      militar.motivo_desligamento = motivo;
+      await salvarMilitarModal();
+    }
+    setBanner('success', `✓ Militar marcado como "${nomeTipo}"! Pendência oficial registrada.`);
+    setTimeout(() => setBanner(null), 4000);
+    fecharModalMilitar();
+    await carregarEfetivoPessoal(true);
+  } catch(err) {
+    setBanner('error', 'Erro ao alterar status: ' + (err.message || err));
+  }
+}
+
+async function concluirDesligamentoModal(saram) {
+  const militar = listaPessoalCompleta.find(m => m.saram === saram) || militarEmEdicao;
+  if (!militar) return;
+  const s = militar.saram;
+
+  // 1. Verifica titularidade de CARGO oficial (Regra bloqueante)
+  setBanner('loading', 'Verificando titularidade de cargos no organograma…');
+  try {
+    if (window.AppConfig && typeof window.AppConfig.verificarTitularidadeCargo === 'function') {
+      const titularCheck = await window.AppConfig.verificarTitularidadeCargo(s);
+      if (titularCheck.ehTitular) {
+        setBanner(null);
+        const msg = `🚫 REMOÇÃO BLOQUEADA!\n\n` +
+          `O militar ${militar.posto_grad} ${militar.nome_guerra} é titular do cargo oficial:\n` +
+          `"${titularCheck.cargoNome}" (${titularCheck.secao})\n\n` +
+          `Regra de Governança:\n` +
+          `Militares titulares de CARGO só podem ser desligados após a realização formal da PASSAGEM DE CARGO no módulo Cargos e Funções.\n\n` +
+          `Deseja abrir o módulo Cargos e Funções agora para realizar a passagem de cargo?`;
+        if (confirm(msg)) {
+          window.open('cargos.html', '_blank');
+        }
+        return;
+      }
+    }
+
+    // 2. Não possui cargo oficial (funções simples não bloqueiam)
+    const conf = confirm(
+      `Confirma o desligamento definitivo do militar ${militar.posto_grad} ${militar.nome_guerra}?\n\n` +
+      `• Todos os 52 campos cadastrais serão PRESERVADOS integralmente no histórico.\n` +
+      `• O militar será movido para a Sessão de Ex-Integrantes.\n` +
+      `• Ele deixará de constar nos motores operacionais (chamada, diárias, passagens, TACF, transporte).`
+    );
+    if (!conf) {
+      setBanner(null);
+      return;
+    }
+
+    setBanner('loading', `Concluindo desligamento de ${militar.nome_guerra}…`);
+    if (window.AppConfig && typeof window.AppConfig.concluirDesligamentoMilitar === 'function') {
+      await window.AppConfig.concluirDesligamentoMilitar(s, 'Secretaria DE');
+    } else {
+      militar.ativo = false;
+      militar.status_efetivo = 'ex_integrante';
+      militar.data_desligamento = new Date().toISOString().split('T')[0];
+      await salvarMilitarModal();
+    }
+
+    fecharModalMilitar();
+    setBanner('success', `✓ Desligamento concluído! Militar transferido para a Sessão de Ex-Integrantes com histórico preservado.`);
+    setTimeout(() => setBanner(null), 4000);
+    await carregarEfetivoPessoal(true);
+  } catch(err) {
+    console.error('Erro no desligamento:', err);
+    setBanner('error', err.message || 'Erro ao processar desligamento.');
+  }
+}
+
+async function cancelarProcessoSaidaModal(saram) {
+  const militar = listaPessoalCompleta.find(m => m.saram === saram) || militarEmEdicao;
+  if (!militar) return;
+  if (!confirm(`Deseja cancelar o processo de saída e restaurar ${militar.posto_grad} ${militar.nome_guerra} para Ativo regular?`)) return;
+
+  try {
+    militar.status_efetivo = 'ativo';
+    militar.motivo_desligamento = null;
+    if (window.AppConfig && typeof window.AppConfig.saveMilitar === 'function') {
+      await window.AppConfig.saveMilitar(militar);
+    }
+    setBanner('success', `✓ Processo cancelado. Militar restaurado como Ativo.`);
+    setTimeout(() => setBanner(null), 3000);
+    fecharModalMilitar();
+    await carregarEfetivoPessoal(true);
+  } catch(err) {
+    setBanner('error', 'Erro: ' + (err.message || err));
+  }
+}
+
+async function reativarMilitarModal(saram) {
+  const militar = listaPessoalCompleta.find(m => m.saram === saram) || militarEmEdicao;
+  if (!militar) return;
+  if (!confirm(`Deseja reativar ${militar.posto_grad} ${militar.nome_guerra} no Efetivo Ativo da Divisão de Ensino? Ele voltará a interagir com todos os motores do sistema.`)) return;
+
+  setBanner('loading', `Reativando ${militar.nome_guerra}…`);
+  try {
+    if (window.AppConfig && typeof window.AppConfig.reativarMilitar === 'function') {
+      await window.AppConfig.reativarMilitar(militar.saram);
+    } else {
+      militar.ativo = true;
+      militar.status_efetivo = 'ativo';
+      militar.data_desligamento = null;
+      await salvarMilitarModal();
+    }
+    setBanner('success', `✓ Militar reativado com sucesso no Efetivo Ativo!`);
+    setTimeout(() => setBanner(null), 4000);
+    fecharModalMilitar();
+    await carregarEfetivoPessoal(true);
+  } catch(err) {
+    setBanner('error', 'Erro ao reativar: ' + (err.message || err));
+  }
+}
+
+async function executarSincronizacaoSheetPessoal() {
+  const btn = document.getElementById('btn-sync-sheet-pes');
+  if (btn) btn.disabled = true;
+
+  setBanner('loading', 'Sincronizando com a planilha oficial Efetivo do Google Drive (A1:AZ250)...');
+  try {
+    if (window.AppConfig && typeof window.AppConfig.syncEfetivoFromSheet === 'function') {
+      const res = await window.AppConfig.syncEfetivoFromSheet(msg => setBanner('loading', msg));
+      setBanner('success', `✓ Sincronização concluída! ${res.total} militares carregados da planilha oficial.`);
+    }
+    setTimeout(() => setBanner(null), 5000);
+    await carregarEfetivoPessoal(true);
+  } catch(e) {
+    setBanner('error', 'Falha ao sincronizar com o Google Sheets: ' + (e.message || e));
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function exportarEfetivoCSV() {
+  if (!listaPessoalFiltrada.length) {
+    alert('Não há registros para exportar com os filtros atuais.');
+    return;
+  }
+
+  const cabecalhos = [
+    'Antiguidade', 'Posto/Grad', 'Especialidade', 'Nome de Guerra', 'Nome Completo',
+    'SARAM', 'CPF', 'RG', 'Situação', 'Cargo/Função', 'Ramal', 'Função Publicada',
+    'Data Início', 'Boletim', 'Telefone', 'E-mail Zimbra', 'Lista Zimbra',
+    'Endereço', 'Soldo', 'Banco', 'N Banco', 'Agência', 'Conta',
+    'Aux Transporte', 'Valor Aux Transporte', 'Data Nascimento', 'Data Praça',
+    'Data Formação', 'Última Promoção', 'Próxima Promoção', 'Apresentação OM',
+    'Tempo Localidade', 'Final Reengajamento', 'Aviso <5m', 'Fim Serviço Temp',
+    'Status Reengajamento', 'Disciplina', 'Código Disciplina', 'Escala RISAER',
+    'Santos Dumont', 'Bartolomeu de Gusmão', '5717 Última Pub', '5717 Próxima Pub',
+    '5718 Assento Última Pub', '5718 Assento Próxima Pub', 'Observações'
+  ];
+
+  const escapeCSV = val => {
+    if (val === null || val === undefined) return '""';
+    const s = String(val).replace(/"/g, '""');
+    return `"${s}"`;
+  };
+
+  const linhas = [cabecalhos.join(';')];
+
+  listaPessoalFiltrada.forEach(m => {
+    const row = [
+      m.ordem || '',
+      m.posto_grad || '',
+      m.especialidade || '',
+      m.nome_guerra || '',
+      m.nome_completo || '',
+      m.saram || '',
+      m.cpf || '',
+      m.rg || '',
+      m.ativo !== false ? 'Ativo' : 'Inativo',
+      m.cargo_funcao || '',
+      m.ramal || '',
+      m.funcao_publicada ? 'Sim' : 'Não',
+      m.data_inicio || '',
+      m.boletim || '',
+      m.telefone || '',
+      m.email || '',
+      m.lista_zimbra ? 'Sim' : 'Não',
+      m.endereco || '',
+      m.soldo || 0,
+      m.banco_nome || '',
+      m.banco_codigo || '',
+      m.banco_agencia || '',
+      m.banco_conta || '',
+      m.auxilio_transporte ? 'Sim' : 'Não',
+      m.valor_auxilio_transporte || 0,
+      m.data_nascimento || '',
+      m.data_praca || '',
+      m.data_formacao || '',
+      m.ultima_promocao || '',
+      m.proxima_promocao || '',
+      m.apresentacao_om || '',
+      m.tempo_localidade || '',
+      m.data_final_reengajamento || '',
+      m.tempo_inicio_processo || '',
+      m.fim_servico_temp || '',
+      m.status_reengajamento || '',
+      m.disciplina || '',
+      m.codigo_disciplina || '',
+      m.escala_risaer || '',
+      m.medalha_santos_dumont || '',
+      m.medalha_bartolomeu_gusmao || '',
+      m.aero_5717_ultima_pub || '',
+      m.aero_5717_prox_pub || '',
+      m.aero_5718_ultima_pub || '',
+      m.aero_5718_prox_pub || '',
+      m.observacoes || ''
+    ];
+    linhas.push(row.map(escapeCSV).join(';'));
+  });
+
+  const csvContent = '\uFEFF' + linhas.join('\r\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Efetivo_Divisao_Ensino_AFA_${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* ══════════════════════════════════════════════════════════════
    HELPERS & INIT
    ══════════════════════════════════════════════════════════════ */
 function setBanner(type, msg='') {
@@ -1679,9 +3139,29 @@ function updateClock() {
   document.getElementById('date-pill').textContent = now.toLocaleDateString('pt-BR',{weekday:'long', day:'2-digit', month:'long', year:'numeric'}).toUpperCase();
 }
 
+function executarRecarregarGeral() {
+  const secPessoal = document.getElementById('sec-pessoal');
+  if (secPessoal && secPessoal.style.display !== 'none') {
+    carregarEfetivoPessoal(true);
+  } else {
+    loadEfetivo();
+  }
+}
+
+function checarHashInicial() {
+  const h = window.location.hash;
+  if (h === '#pessoal') {
+    trocarAba('pessoal');
+  } else if (h === '#controle') {
+    trocarAba('controle');
+  }
+}
+
 /* INIT */
 updateClock();
 checarAutenticacaoPIN();
+checarHashInicial();
+window.addEventListener('hashchange', checarHashInicial);
 loadEfetivo();
 setInterval(updateClock, 30000);
 

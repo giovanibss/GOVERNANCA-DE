@@ -522,6 +522,805 @@
         html,
         text: textoPadrao
       });
+    },
+
+    /* ═══════════════════════════════════════════════════════════
+       CENTRO DE DADOS: EFETIVO (PESSOAL)
+       ═══════════════════════════════════════════════════════════ */
+    STORAGE_KEY_EFETIVO_DB: 'afa_efetivo_db_cache_v2',
+    EFETIVO_SHEET_ID: '1UOMh4y-wHL8kHcB9TUUcEmkeF7z6KYAs4vipsoOFgfA',
+
+    formatarCPF(raw) {
+      if (!raw) return '';
+      const num = String(raw).replace(/\D/g, '').padStart(11, '0').slice(-11);
+      return num.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    },
+
+    formatarSARAM(raw) {
+      if (!raw) return '';
+      return String(raw).replace(/\D/g, '').padStart(7, '0').slice(-7);
+    },
+
+    parseSheetDate(cell) {
+      if (!cell) return null;
+      const f = cell.f;
+      const v = cell.v;
+      if (typeof f === 'string' && /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(f.trim())) {
+        const [d, m, y] = f.trim().split('/');
+        return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+      }
+      if (typeof v === 'string') {
+        const mDate = v.match(/Date\((\d+),(\d+),(\d+)\)/);
+        if (mDate) {
+          const y = mDate[1];
+          const m = String(parseInt(mDate[2], 10) + 1).padStart(2, '0');
+          const d = String(parseInt(mDate[3], 10)).padStart(2, '0');
+          return `${y}-${m}-${d}`;
+        }
+        if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(v.trim())) {
+          const [d, m, y] = v.trim().split('/');
+          return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+        }
+      }
+      return null;
+    },
+
+    parseCurrency(cell) {
+      if (!cell) return 0;
+      if (typeof cell.v === 'number') return cell.v;
+      const raw = (cell.f || cell.v || '').toString().replace(/[^\d.,]/g, '').replace(',', '.');
+      return parseFloat(raw) || 0;
+    },
+
+    parseBool(cell) {
+      if (!cell) return false;
+      if (typeof cell.v === 'boolean') return cell.v;
+      const s = String(cell.v || cell.f || '').trim().toLowerCase();
+      return s === 'true' || s === 'sim' || s === 's' || s === '1';
+    },
+
+    parseEfetivoRow(c, rowIndex) {
+      const v = idx => (c[idx]?.v !== undefined && c[idx]?.v !== null) ? String(c[idx].v).trim() : '';
+      const f = idx => (c[idx]?.f !== undefined && c[idx]?.f !== null) ? String(c[idx].f).trim() : '';
+      const vf = idx => f(idx) || v(idx);
+
+      const saram = this.formatarSARAM(v(19));
+      const nomeGuerra = v(4);
+      const posto = v(2);
+
+      if (!nomeGuerra && !saram) return null;
+
+      return {
+        ordem: parseInt(v(1), 10) || (rowIndex - 2),
+        posto_grad: posto,
+        especialidade: v(3),
+        nome_guerra: nomeGuerra,
+        cargo_funcao: v(7),
+        ramal: v(8),
+        funcao_publicada: this.parseBool(c[9]),
+        data_inicio: this.parseSheetDate(c[10]),
+        boletim: v(11),
+        nome_completo: v(13),
+        telefone: vf(14),
+        email: v(15),
+        lista_zimbra: this.parseBool(c[16]),
+        endereco: v(17),
+        saram: saram,
+        cpf: this.formatarCPF(v(20)),
+        rg: v(21) || '',
+        soldo: this.parseCurrency(c[22]),
+        banco_nome: v(23),
+        banco_codigo: v(24),
+        banco_agencia: v(25),
+        banco_conta: v(26),
+        auxilio_transporte: this.parseBool(c[27]),
+        valor_auxilio_transporte: this.parseCurrency(c[28]),
+        data_nascimento: this.parseSheetDate(c[30]),
+        data_praca: this.parseSheetDate(c[31]),
+        data_formacao: this.parseSheetDate(c[32]),
+        ultima_promocao: this.parseSheetDate(c[33]),
+        proxima_promocao: vf(34),
+        apresentacao_om: this.parseSheetDate(c[35]),
+        tempo_localidade: vf(36),
+        data_final_reengajamento: this.parseSheetDate(c[37]),
+        tempo_inicio_processo: vf(38),
+        fim_servico_temp: this.parseSheetDate(c[39]),
+        status_reengajamento: vf(40),
+        disciplina: vf(41),
+        codigo_disciplina: vf(42),
+        escala_risaer: vf(43),
+        medalha_santos_dumont: vf(44) || 'N APLIC',
+        medalha_bartolomeu_gusmao: vf(45) || 'N APLIC',
+        aero_5717_ultima_pub: this.parseSheetDate(c[47]),
+        aero_5717_prox_pub: vf(48),
+        aero_5718_ultima_pub: this.parseSheetDate(c[50]),
+        aero_5718_prox_pub: vf(51),
+        ativo: true,
+        observacoes: ''
+      };
+    },
+
+    /**
+     * Extrai a lista de seções contidas no texto do cargo/função.
+     * Ex: "Chefe (DE), Adjunto (SDINT)" -> ["DE", "SDINT"]
+     * Se não contiver parênteses, retorna o próprio cargo ou ["Geral"]
+     */
+    extrairSecoes(cargoFuncao) {
+      if (!cargoFuncao || typeof cargoFuncao !== 'string') return ['Geral'];
+      const regex = /\(([^)]+)\)/g;
+      const secoes = [];
+      let m;
+      while ((m = regex.exec(cargoFuncao)) !== null) {
+        const s = m[1].trim();
+        if (s && !secoes.includes(s)) secoes.push(s);
+      }
+      if (!secoes.length) {
+        const limpo = cargoFuncao.trim();
+        return limpo ? [limpo] : ['Geral'];
+      }
+      return secoes;
+    },
+
+    /**
+     * Normaliza e enriquece militar com seções formatadas e status de ciclo de vida
+     */
+    enriquecerMilitar(m) {
+      if (!m) return m;
+      const secoes = this.extrairSecoes(m.cargo_funcao);
+      let statusEfetivo = m.status_efetivo;
+      if (m.ativo === false && (!statusEfetivo || statusEfetivo === 'ativo')) {
+        statusEfetivo = 'ex_integrante';
+      } else if (!statusEfetivo) {
+        statusEfetivo = 'ativo';
+      }
+
+      return {
+        ...m,
+        ativo: statusEfetivo !== 'ex_integrante',
+        status_efetivo: statusEfetivo,
+        secoes_lista: secoes,
+        secao_formatada: secoes.join(', ')
+      };
+    },
+
+    /**
+     * Busca os militares da base central (Supabase -> Cache Local -> Google Sheets Fallback)
+     */
+    async fetchEfetivo({ forceRefresh = false, activeOnly = false } = {}) {
+      const sb = getSbClient();
+      let records = null;
+
+      // 1. Tenta buscar do Supabase se não for forçado ignorar
+      if (sb && !forceRefresh) {
+        try {
+          let query = sb.from('efetivo_pessoal').select('*').order('ordem', { ascending: true });
+          if (activeOnly) query = query.eq('ativo', true);
+          const { data, error } = await query;
+          if (!error && data && data.length > 0) {
+            records = data.map(m => this.enriquecerMilitar(m));
+            localStorage.setItem(this.STORAGE_KEY_EFETIVO_DB, JSON.stringify(records));
+            return activeOnly ? records.filter(m => m.ativo !== false && m.status_efetivo !== 'ex_integrante') : records;
+          }
+        } catch(e) {}
+      }
+
+      // 2. Tenta recuperar do LocalStorage
+      if (!forceRefresh) {
+        try {
+          const cached = localStorage.getItem(this.STORAGE_KEY_EFETIVO_DB);
+          if (cached) {
+            records = JSON.parse(cached).map(m => this.enriquecerMilitar(m));
+            if (activeOnly) records = records.filter(m => m.ativo !== false && m.status_efetivo !== 'ex_integrante');
+            if (records && records.length > 0) return records;
+          }
+        } catch(e) {}
+      }
+
+      // 3. Fallback para Google Sheets (A1:AZ250)
+      try {
+        const url = `https://docs.google.com/spreadsheets/d/${this.EFETIVO_SHEET_ID}/gviz/tq?tqx=out:json&sheet=efetivo&range=A1:AZ250&headers=0`;
+        const res = await fetch(url);
+        const txt = await res.text();
+        const jsonStr = txt.replace(/^\/\*O_o\*\/\s*google\.visualization\.Query\.setResponse\(/, '').replace(/\);?\s*$/, '');
+        const data = JSON.parse(jsonStr);
+        const rows = data.table.rows || [];
+
+        const lista = [];
+        for (let r = 3; r < rows.length; r++) {
+          const m = this.parseEfetivoRow(rows[r]?.c || [], r);
+          if (m) lista.push(this.enriquecerMilitar(m));
+        }
+
+        if (lista.length > 0) {
+          records = lista;
+          localStorage.setItem(this.STORAGE_KEY_EFETIVO_DB, JSON.stringify(records));
+          
+          // Tenta salvar em segundo plano no Supabase se disponível
+          if (sb) {
+            sb.from('efetivo_pessoal').upsert(records, { onConflict: 'saram' }).catch(() => {});
+          }
+        }
+      } catch(e) {
+        console.warn('Erro ao consultar planilha oficial de efetivo:', e);
+      }
+
+      const finalRecords = (records || []).map(m => this.enriquecerMilitar(m));
+      return activeOnly ? finalRecords.filter(m => m.ativo !== false && m.status_efetivo !== 'ex_integrante') : finalRecords;
+    },
+
+    /**
+     * Salva ou atualiza um militar diretamente no Supabase e no cache local
+     */
+    async saveMilitar(militar) {
+      if (!militar || !militar.saram) {
+        throw new Error('SARAM é obrigatório para cadastrar ou editar um militar.');
+      }
+      militar.saram = this.formatarSARAM(militar.saram);
+      militar.updated_at = new Date().toISOString();
+
+      // Atualiza cache local
+      let lista = [];
+      try {
+        lista = JSON.parse(localStorage.getItem(this.STORAGE_KEY_EFETIVO_DB) || '[]');
+      } catch(e){}
+      const idx = lista.findIndex(m => m.saram === militar.saram);
+      if (idx >= 0) {
+        lista[idx] = { ...lista[idx], ...militar };
+      } else {
+        lista.push(militar);
+      }
+      localStorage.setItem(this.STORAGE_KEY_EFETIVO_DB, JSON.stringify(lista));
+
+      // Atualiza no Supabase
+      const sb = getSbClient();
+      let dbOk = false;
+      if (sb) {
+        try {
+          const { error } = await sb.from('efetivo_pessoal').upsert(militar, { onConflict: 'saram' });
+          if (!error) dbOk = true;
+        } catch(e) {
+          console.warn('Falha ao persistir no Supabase (mantido no cache local):', e);
+        }
+      }
+
+      return { militar, dbOk };
+    },
+
+    /**
+     * Alterna o status ativo/inativo de um militar
+     */
+    async toggleMilitarAtivo(saram, novoStatus) {
+      const s = this.formatarSARAM(saram);
+      return this.saveMilitar({ saram: s, ativo: !!novoStatus });
+    },
+
+    /**
+     * Sincroniza em lote a base completa a partir da planilha oficial do Google Sheets
+     */
+    async syncEfetivoFromSheet(progressCb) {
+      if (typeof progressCb === 'function') progressCb('Baixando dados da planilha oficial (A1:AZ250)...');
+      
+      const url = `https://docs.google.com/spreadsheets/d/${this.EFETIVO_SHEET_ID}/gviz/tq?tqx=out:json&sheet=efetivo&range=A1:AZ250&headers=0`;
+      const res = await fetch(url);
+      const txt = await res.text();
+      const jsonStr = txt.replace(/^\/\*O_o\*\/\s*google\.visualization\.Query\.setResponse\(/, '').replace(/\);?\s*$/, '');
+      const data = JSON.parse(jsonStr);
+      const rows = data.table.rows || [];
+
+      const lista = [];
+      for (let r = 3; r < rows.length; r++) {
+        const m = this.parseEfetivoRow(rows[r]?.c || [], r);
+        if (m) lista.push(m);
+      }
+
+      if (typeof progressCb === 'function') progressCb(`${lista.length} militares processados. Gravando no armazenamento local...`);
+      localStorage.setItem(this.STORAGE_KEY_EFETIVO_DB, JSON.stringify(lista));
+
+      // Gravação remota no Supabase
+      const sb = getSbClient();
+      let dbSuccess = false;
+      let dbError = null;
+
+      if (sb) {
+        if (typeof progressCb === 'function') progressCb(`Sincronizando com o banco de dados remoto Supabase...`);
+        try {
+          const { error } = await sb.from('efetivo_pessoal').upsert(lista, { onConflict: 'saram' });
+          if (error) {
+            dbError = error.message;
+          } else {
+            dbSuccess = true;
+          }
+        } catch(e) {
+          dbError = e.message || String(e);
+        }
+      }
+
+      return {
+        total: lista.length,
+        militares: lista,
+        dbSuccess,
+        dbError
+      };
+    },
+
+    /* ══════════════════════════════════════════════════════════════
+       FASE 4: ADMISSÃO DE NOVOS MILITARES & FILA DE APROVAÇÃO
+       ══════════════════════════════════════════════════════════════ */
+    STORAGE_KEY_SOLICITACOES: 'afa_efetivo_solicitacoes_cache_v1',
+
+    getSolicitacoesCache() {
+      try {
+        const raw = localStorage.getItem(this.STORAGE_KEY_SOLICITACOES);
+        return raw ? JSON.parse(raw) : [];
+      } catch(e) { return []; }
+    },
+
+    saveSolicitacoesCache(lista) {
+      localStorage.setItem(this.STORAGE_KEY_SOLICITACOES, JSON.stringify(lista));
+    },
+
+    /**
+     * Salva rascunho de preenchimento parcial vinculado ao SARAM
+     */
+    async salvarRascunhoSolicitacao(saram, dados) {
+      const saramNorm = this.formatarSARAM(saram);
+      if (!saramNorm) throw new Error('SARAM é obrigatório para salvar o rascunho.');
+
+      const item = {
+        saram: saramNorm,
+        status: 'rascunho',
+        posto_grad: (dados.posto_grad || '').toUpperCase().trim(),
+        especialidade: (dados.especialidade || '').toUpperCase().trim(),
+        nome_guerra: (dados.nome_guerra || '').toUpperCase().trim(),
+        nome_completo: (dados.nome_completo || '').toUpperCase().trim(),
+        data_praca: dados.data_praca || null,
+        dados: dados,
+        updated_at: new Date().toISOString()
+      };
+
+      // 1. Atualiza cache local
+      let lista = this.getSolicitacoesCache();
+      const idx = lista.findIndex(s => s.saram === saramNorm);
+      if (idx >= 0) lista[idx] = { ...lista[idx], ...item };
+      else lista.push(item);
+      this.saveSolicitacoesCache(lista);
+
+      // 2. Grava no Supabase se disponível
+      const sb = getSbClient();
+      if (sb) {
+        try {
+          await sb.from('efetivo_solicitacoes').upsert([item], { onConflict: 'saram' });
+        } catch(e) {
+          console.warn('Rascunho salvo apenas localmente:', e.message);
+        }
+      }
+
+      return item;
+    },
+
+    /**
+     * Busca rascunho salvo pelo SARAM para retomada de preenchimento
+     */
+    async buscarRascunhoSolicitacao(saram) {
+      const saramNorm = this.formatarSARAM(saram);
+      if (!saramNorm) return null;
+
+      // 1. Tenta Supabase
+      const sb = getSbClient();
+      if (sb) {
+        try {
+          const { data, error } = await sb.from('efetivo_solicitacoes')
+            .select('*')
+            .eq('saram', saramNorm)
+            .maybeSingle();
+          if (!error && data) return data;
+        } catch(e) {}
+      }
+
+      // 2. Fallback LocalStorage
+      const lista = this.getSolicitacoesCache();
+      return lista.find(s => s.saram === saramNorm) || null;
+    },
+
+    /**
+     * Envia cadastro concluído para a Fila de Aprovação da Secretaria
+     */
+    async enviarSolicitacaoCadastro(dados) {
+      const saramNorm = this.formatarSARAM(dados.saram);
+      if (!saramNorm) throw new Error('SARAM obrigatório (7 dígitos).');
+      if (!dados.posto_grad || !dados.nome_guerra || !dados.nome_completo) {
+        throw new Error('Campos obrigatórios pendentes: Posto/Graduação, Nome de Guerra e Nome Completo.');
+      }
+      if (!dados.data_praca) {
+        throw new Error('A Data de Praça é obrigatória para determinar a posição de antiguidade.');
+      }
+
+      const item = {
+        saram: saramNorm,
+        status: 'pendente',
+        posto_grad: dados.posto_grad.toUpperCase().trim(),
+        especialidade: (dados.especialidade || '').toUpperCase().trim(),
+        nome_guerra: dados.nome_guerra.toUpperCase().trim(),
+        nome_completo: dados.nome_completo.toUpperCase().trim(),
+        data_praca: dados.data_praca,
+        dados: dados,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      // 1. Cache Local
+      let lista = this.getSolicitacoesCache();
+      const idx = lista.findIndex(s => s.saram === saramNorm);
+      if (idx >= 0) lista[idx] = { ...lista[idx], ...item };
+      else lista.push(item);
+      this.saveSolicitacoesCache(lista);
+
+      // 2. Supabase
+      const sb = getSbClient();
+      if (sb) {
+        try {
+          await sb.from('efetivo_solicitacoes').upsert([item], { onConflict: 'saram' });
+        } catch(e) {
+          console.warn('Solicitação gravada apenas localmente:', e.message);
+        }
+      }
+
+      window.dispatchEvent(new CustomEvent('afa_solicitacao_criada', { detail: item }));
+      return item;
+    },
+
+    /**
+     * Busca todas as solicitações com status 'pendente'
+     */
+    async fetchSolicitacoesPendentes() {
+      const sb = getSbClient();
+      if (sb) {
+        try {
+          const { data, error } = await sb.from('efetivo_solicitacoes')
+            .select('*')
+            .eq('status', 'pendente')
+            .order('created_at', { ascending: false });
+          if (!error && data) {
+            return data;
+          }
+        } catch(e) {}
+      }
+
+      // Fallback
+      const lista = this.getSolicitacoesCache();
+      return lista.filter(s => s.status === 'pendente');
+    },
+
+    /**
+     * Algoritmo de sugestão de posição de antiguidade baseado em Posto/Graduação + Data de Praça.
+     * Retorna a ordem numérica sugerida e o "sanduíche" com os militares acima e abaixo.
+     */
+    async calcularPosicaoAntiguidadeSugerida(postoGrad, dataPraca, saramIgnorar = '') {
+      const efetivo = await this.fetchEfetivo({ activeOnly: true });
+      efetivo.sort((a, b) => (Number(a.ordem) || 999) - (Number(b.ordem) || 999));
+
+      const postoAlvo = (postoGrad || '').toUpperCase().trim();
+      const pracaAlvo = dataPraca ? new Date(dataPraca) : new Date();
+
+      // Normaliza patentes para agrupamento
+      const normPosto = p => {
+        const s = (p || '').toUpperCase().trim();
+        if (s === 'MJ' || s === 'MAJ') return 'MAJ';
+        if (s === 'CP' || s === 'CAP') return 'CAP';
+        if (s === 'CEL' || s === 'CL') return 'CL';
+        if (s === 'TEN-CEL' || s === 'TC') return 'TC';
+        return s;
+      };
+
+      const grupoMesmoPosto = efetivo.filter(m => 
+        normPosto(m.posto_grad) === normPosto(postoAlvo) && m.saram !== saramIgnorar
+      );
+
+      let ordemSugerida = 1;
+
+      if (grupoMesmoPosto.length > 0) {
+        // Encontra o ponto de inserção por data_praca (menor data = mais antigo)
+        let inserido = false;
+        for (let i = 0; i < grupoMesmoPosto.length; i++) {
+          const m = grupoMesmoPosto[i];
+          const pracaColega = m.data_praca ? new Date(m.data_praca) : null;
+
+          if (pracaColega && pracaAlvo < pracaColega) {
+            // O novo militar tem data de praça mais antiga que este colega -> entra na posição dele!
+            ordemSugerida = Number(m.ordem) || 1;
+            inserido = true;
+            break;
+          }
+        }
+
+        if (!inserido) {
+          // Entra logo após o último colega do mesmo posto
+          const ultimoColega = grupoMesmoPosto[grupoMesmoPosto.length - 1];
+          ordemSugerida = (Number(ultimoColega.ordem) || 1) + 1;
+        }
+      } else {
+        // Não há ninguém com a mesma patente: insere ao final do efetivo
+        ordemSugerida = efetivo.length ? (Math.max(...efetivo.map(m => Number(m.ordem) || 0)) + 1) : 1;
+      }
+
+      const vizinhos = this.obterVizinhosPorOrdem(ordemSugerida, efetivo, saramIgnorar);
+
+      return {
+        ordemSugerida,
+        militarAcima: vizinhos.militarAcima,
+        militarAbaixo: vizinhos.militarAbaixo,
+        totalMilitares: efetivo.length,
+        efetivoCompleto: efetivo
+      };
+    },
+
+    /**
+     * Retorna os militares vizinhos imediatos (acima e abaixo) dada uma ordem de antiguidade
+     */
+    obterVizinhosPorOrdem(ordemAlvo, efetivoCompleto, saramIgnorar = '') {
+      const lista = efetivoCompleto
+        .filter(m => m.saram !== saramIgnorar)
+        .sort((a, b) => (Number(a.ordem) || 999) - (Number(b.ordem) || 999));
+
+      // Militar Acima: o de maior ordem que seja estritamente MENOR que ordemAlvo
+      const acimaCandidatos = lista.filter(m => Number(m.ordem) < ordemAlvo);
+      const militarAcima = acimaCandidatos.length ? acimaCandidatos[acimaCandidatos.length - 1] : null;
+
+      // Militar Abaixo: o de menor ordem que seja MAIOR OU IGUAL a ordemAlvo
+      const abaixoCandidatos = lista.filter(m => Number(m.ordem) >= ordemAlvo);
+      const militarAbaixo = abaixoCandidatos.length ? abaixoCandidatos[0] : null;
+
+      return { militarAcima, militarAbaixo };
+    },
+
+    /**
+     * Aprova a solicitação na Secretaria, reordena o efetivo e insere no banco oficial
+     */
+    async aprovarSolicitacaoCadastro(solicitacaoId, saram, ordemFinal, dadosCompletos, operador = 'Secretaria DE') {
+      const saramNorm = this.formatarSARAM(saram);
+      const ordemNum = parseInt(ordemFinal, 10) || 1;
+
+      // 1. Busca lista atual para reordenação
+      const efetivo = await this.fetchEfetivo({ activeOnly: false });
+      
+      // Abre espaço para a nova ordem: todos com ordem >= ordemNum sobem +1
+      const militaresAtualizados = efetivo.map(m => {
+        const o = Number(m.ordem) || 999;
+        if (o >= ordemNum && m.saram !== saramNorm) {
+          return { ...m, ordem: o + 1 };
+        }
+        return m;
+      });
+
+      // 2. Prepara registro oficial do novo militar
+      const novoMilitar = {
+        ...dadosCompletos,
+        saram: saramNorm,
+        ordem: ordemNum,
+        posto_grad: (dadosCompletos.posto_grad || '').toUpperCase().trim(),
+        especialidade: (dadosCompletos.especialidade || '').toUpperCase().trim(),
+        nome_guerra: (dadosCompletos.nome_guerra || '').toUpperCase().trim(),
+        nome_completo: (dadosCompletos.nome_completo || '').toUpperCase().trim(),
+        ativo: true,
+        updated_at: new Date().toISOString()
+      };
+
+      militaresAtualizados.push(novoMilitar);
+      militaresAtualizados.sort((a, b) => (Number(a.ordem) || 999) - (Number(b.ordem) || 999));
+
+      // 3. Salva novo efetivo
+      localStorage.setItem(this.STORAGE_KEY_EFETIVO_DB, JSON.stringify(militaresAtualizados));
+
+      const sb = getSbClient();
+      if (sb) {
+        try {
+          // Reordena e insere no Supabase
+          await sb.from('efetivo_pessoal').upsert(militaresAtualizados, { onConflict: 'saram' });
+
+          // Marca a solicitação como aprovada
+          await sb.from('efetivo_solicitacoes')
+            .update({
+              status: 'aprovada',
+              ordem_final: ordemNum,
+              aprovado_por: operador,
+              aprovado_em: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .eq('saram', saramNorm);
+        } catch(e) {
+          console.warn('Erro ao persistir aprovação no Supabase:', e);
+        }
+      }
+
+      // Atualiza cache de solicitações
+      let listaSolicitacoes = this.getSolicitacoesCache();
+      const idxSolic = listaSolicitacoes.findIndex(s => s.saram === saramNorm);
+      if (idxSolic >= 0) {
+        listaSolicitacoes[idxSolic].status = 'aprovada';
+        listaSolicitacoes[idxSolic].ordem_final = ordemNum;
+        listaSolicitacoes[idxSolic].aprovado_por = operador;
+        listaSolicitacoes[idxSolic].aprovado_em = new Date().toISOString();
+        this.saveSolicitacoesCache(listaSolicitacoes);
+      }
+
+      window.dispatchEvent(new CustomEvent('afa_solicitacao_aprovada', { detail: novoMilitar }));
+      return novoMilitar;
+    },
+
+    /* ══════════════════════════════════════════════════════════════
+       FASE 3: GESTÃO DE CARGOS, DESLIGAMENTO E EX-INTEGRANTES
+       ══════════════════════════════════════════════════════════════ */
+    SEED_ORGANOGRAMA_CARGOS: [
+      { chave_sigla: 'DE', secao_nome: 'Divisão de Ensino', titulo_exibicao: 'CHEFE', titular_saram: '3147550' },
+      { chave_sigla: 'VC-DE', secao_nome: 'Vice-Chefia da Divisão de Ensino', titulo_exibicao: 'VC-DE', titular_saram: '1047612' },
+      { chave_sigla: 'SEC-DE', secao_nome: 'Secretaria da Divisão de Ensino', titulo_exibicao: 'SEC-DE', titular_saram: '4311779' },
+      { chave_sigla: 'CLMP', secao_nome: 'Célula de Logística de Material e Patrimônio', titulo_exibicao: 'CLMP', titular_saram: '3324346' },
+      { chave_sigla: 'CADA', secao_nome: 'Subdivisão de Apoio Docente e Discente', titulo_exibicao: 'CADA', titular_saram: '3410773' },
+      { chave_sigla: 'CADE', secao_nome: 'Célula de Análise de Desempenho de Ensino', titulo_exibicao: 'CADE', titular_saram: '7335326' },
+      { chave_sigla: 'CAAP', secao_nome: 'Célula de Avaliação e Abordagem Psicopedagógica', titulo_exibicao: 'CAAP', titular_saram: '7272448' },
+      { chave_sigla: 'CDEns', secao_nome: 'Célula de Documentação do Ensino', titulo_exibicao: 'CDEns', titular_saram: '7430540' },
+      { chave_sigla: 'SED', secao_nome: 'Seção de Educação a Distância', titulo_exibicao: 'SED', titular_saram: '3962180' },
+      { chave_sigla: 'SDPL', secao_nome: 'Subdivisão de Planejamento', titulo_exibicao: 'SDPL', titular_saram: '3324346' },
+      { chave_sigla: 'SPE', secao_nome: 'Seção de Planejamento de Ensino', titulo_exibicao: 'SPE', titular_saram: '6482805' },
+      { chave_sigla: 'SAPRE', secao_nome: 'Seção de Análise de Programação de Ensino', titulo_exibicao: 'SAPRE', titular_saram: '7488718' },
+      { chave_sigla: 'SDEX', secao_nome: 'Subdivisão de Execução', titulo_exibicao: 'SDEX', titular_saram: '3256537' },
+      { chave_sigla: 'SAE', secao_nome: 'Seção de Admissão e Exclusão', titulo_exibicao: 'SAE', titular_saram: '7430442' },
+      { chave_sigla: 'SPI', secao_nome: 'Seção de Programas Internacionais', titulo_exibicao: 'SPI', titular_saram: '7488734' },
+      { chave_sigla: 'SSE', secao_nome: 'Seção de Serviços Escolares', titulo_exibicao: 'SSE', titular_saram: '7488645' },
+      { chave_sigla: 'SVA', secao_nome: 'Seção de Verificação de Aprendizagem', titulo_exibicao: 'SVA', titular_saram: '3822427' },
+      { chave_sigla: 'SPPC', secao_nome: 'Subdivisão de Pesquisa e Produção Científica', titulo_exibicao: 'SPPC', titular_saram: '4200101' },
+      { chave_sigla: 'CTCC', secao_nome: 'Coordenadoria de Trabalho de Conclusão de Curso', titulo_exibicao: 'CTCC', titular_saram: '7488793' },
+      { chave_sigla: 'CPC', secao_nome: 'Coordenadoria de Produção Científica', titulo_exibicao: 'CPC', titular_saram: '7708408' },
+      { chave_sigla: 'CPubl', secao_nome: 'Coordenadoria de Publicação', titulo_exibicao: 'CPubl', titular_saram: '7535082' },
+      { chave_sigla: 'BIBLI', secao_nome: 'Biblioteca da Divisão de Ensino', titulo_exibicao: 'BIBLI', titular_saram: '7430450' },
+      { chave_sigla: 'SDIA', secao_nome: 'Subdivisão de Instrução de Aviação', titulo_exibicao: 'SDIA', titular_saram: '3822141' },
+      { chave_sigla: 'SDINT', secao_nome: 'Subdivisão de Instrução de Intendência', titulo_exibicao: 'SDINT', titular_saram: '1047612' },
+      { chave_sigla: 'SDINF', secao_nome: 'Subdivisão de Instrução de Infantaria', titulo_exibicao: 'SDINF', titular_saram: '3834743' }
+    ],
+
+    /**
+     * Busca os nós de cargos do organograma
+     */
+    async fetchOrganogramaCargos() {
+      const sb = getSbClient();
+      if (sb) {
+        try {
+          const { data, error } = await sb.from('cargos_organograma_estrutura').select('*');
+          if (!error && data && data.length) return data;
+        } catch(e) {}
+      }
+      try {
+        const cached = localStorage.getItem('cargos_organograma_v3') || localStorage.getItem('cargos_organograma_cache');
+        if (cached) return JSON.parse(cached);
+      } catch(e) {}
+      return this.SEED_ORGANOGRAMA_CARGOS;
+    },
+
+    /**
+     * Localiza um militar por SARAM em qualquer status (ativa ou ex-integrante)
+     */
+    async buscarMilitar(saram) {
+      const saramNorm = this.formatarSARAM(saram);
+      if (!saramNorm) return null;
+      const todos = await this.fetchEfetivo({ activeOnly: false });
+      return todos.find(m => this.formatarSARAM(m.saram) === saramNorm) || null;
+    },
+
+    /**
+     * Verifica se o militar é titular de um CARGO oficial (bloqueante para remoção)
+     * Funções comuns (não-chefia) NÃO bloqueiam o desligamento.
+     */
+    async verificarTitularidadeCargo(saram) {
+      const saramNorm = this.formatarSARAM(saram);
+      if (!saramNorm) return { ehTitular: false };
+
+      // 1. Verifica nos nós do organograma oficial
+      const organo = await this.fetchOrganogramaCargos();
+      const noCargo = organo.find(n => this.formatarSARAM(n.titular_saram) === saramNorm);
+      if (noCargo) {
+        return {
+          ehTitular: true,
+          origem: 'organograma',
+          cargoNome: noCargo.titulo_exibicao || noCargo.secao_nome || 'Cargo Oficial no Organograma',
+          secao: noCargo.chave_sigla || ''
+        };
+      }
+
+      // 2. Verifica se a coluna cargo_funcao explícita cargo de comando/chefia
+      const militar = await this.buscarMilitar(saramNorm);
+      if (militar && militar.cargo_funcao) {
+        const isCargoChefia = /\b(chefe|vice-chefe|comandante|diretor|encarregado)\b/i.test(militar.cargo_funcao);
+        if (isCargoChefia) {
+          return {
+            ehTitular: true,
+            origem: 'cargo_funcao',
+            cargoNome: militar.cargo_funcao,
+            secao: militar.secao_formatada || ''
+          };
+        }
+      }
+
+      return { ehTitular: false };
+    },
+
+    /**
+     * Solicita / define status de "Em Desligamento" ou "Em Transferência" (Gera Pendência Oficial)
+     */
+    async solicitarDesligamentoMilitar(saram, tipoStatus, motivo = '') {
+      const saramNorm = this.formatarSARAM(saram);
+      const militar = await this.buscarMilitar(saramNorm);
+      if (!militar) throw new Error('Militar não encontrado no cadastro.');
+
+      if (tipoStatus !== 'em_desligamento' && tipoStatus !== 'em_transferencia') {
+        throw new Error('Status de saída inválido. Use "em_desligamento" ou "em_transferencia".');
+      }
+
+      militar.status_efetivo = tipoStatus;
+      militar.motivo_desligamento = motivo;
+      militar.data_solicitacao_desligamento = new Date().toISOString();
+
+      await this.saveMilitar(militar);
+      window.dispatchEvent(new CustomEvent('afa_pendencia_desligamento_criada', { detail: militar }));
+      return militar;
+    },
+
+    /**
+     * Conclui o desligamento definitivo e transfere para a sessão de Ex-Integrantes
+     * EXIGE que a passagem de cargo tenha sido realizada previamente (não pode ser titular de cargo).
+     */
+    async concluirDesligamentoMilitar(saram, operador = 'Secretaria DE') {
+      const saramNorm = this.formatarSARAM(saram);
+      const titularCheck = await this.verificarTitularidadeCargo(saramNorm);
+
+      if (titularCheck.ehTitular) {
+        throw new Error(`🚫 Remoção bloqueada: O militar ainda é titular do cargo "${titularCheck.cargoNome}" (${titularCheck.secao}). É obrigatório realizar previamente a Passagem de Cargo no módulo Cargos e Funções antes do desligamento definitivo.`);
+      }
+
+      const militar = await this.buscarMilitar(saramNorm);
+      if (!militar) throw new Error('Militar não encontrado no cadastro.');
+
+      militar.ativo = false;
+      militar.status_efetivo = 'ex_integrante';
+      militar.data_desligamento = new Date().toISOString().split('T')[0];
+      militar.desligado_por = operador;
+
+      await this.saveMilitar(militar);
+      window.dispatchEvent(new CustomEvent('afa_militar_desligado', { detail: militar }));
+      return militar;
+    },
+
+    /**
+     * Reativa um militar que estava na sessão de Ex-Integrantes
+     */
+    async reativarMilitar(saram) {
+      const saramNorm = this.formatarSARAM(saram);
+      const militar = await this.buscarMilitar(saramNorm);
+      if (!militar) throw new Error('Militar não encontrado no cadastro.');
+
+      militar.ativo = true;
+      militar.status_efetivo = 'ativo';
+      militar.data_desligamento = null;
+      militar.motivo_desligamento = null;
+
+      await this.saveMilitar(militar);
+      window.dispatchEvent(new CustomEvent('afa_militar_reativado', { detail: militar }));
+      return militar;
+    },
+
+    /**
+     * Retorna a lista de Ex-Integrantes (histórico preservado)
+     */
+    async fetchExIntegrantes() {
+      const todos = await this.fetchEfetivo({ activeOnly: false });
+      return todos.filter(m => m.ativo === false || m.status_efetivo === 'ex_integrante');
+    },
+
+    /**
+     * Retorna militares em processo de saída ("Em Desligamento" ou "Em Transferência")
+     */
+    async fetchPendenciasDesligamento() {
+      const todos = await this.fetchEfetivo({ activeOnly: false });
+      return todos.filter(m => m.status_efetivo === 'em_desligamento' || m.status_efetivo === 'em_transferencia');
     }
   };
 

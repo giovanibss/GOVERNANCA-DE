@@ -68,6 +68,29 @@ BEGIN
   ) THEN
     ALTER TABLE public.tacf_solicitacoes ADD COLUMN indisponibilidades JSONB NOT NULL DEFAULT '[]'::jsonb;
   END IF;
+
+  -- Coluna para rastrear se o militar teve seu dia cancelado na temporada (necessitando reagendamento)
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name='tacf_solicitacoes' AND column_name='dia_anterior_cancelado'
+  ) THEN
+    ALTER TABLE public.tacf_solicitacoes ADD COLUMN dia_anterior_cancelado DATE;
+  END IF;
+
+  -- Colunas na tabela tacf_temporadas para controle de dias cancelados e dias extras
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name='tacf_temporadas' AND column_name='datas_canceladas'
+  ) THEN
+    ALTER TABLE public.tacf_temporadas ADD COLUMN datas_canceladas JSONB NOT NULL DEFAULT '[]'::jsonb;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns 
+    WHERE table_name='tacf_temporadas' AND column_name='datas_extras'
+  ) THEN
+    ALTER TABLE public.tacf_temporadas ADD COLUMN datas_extras JSONB NOT NULL DEFAULT '[]'::jsonb;
+  END IF;
 END $$;
 
 -- Ativar Row Level Security (RLS)
