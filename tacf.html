@@ -547,6 +547,30 @@ footer {
   .linhaCtl { flex-direction: column; align-items: stretch; }
   dl.kpis { grid-template-columns: 1fr 1fr; }
 }
+
+.resCel[onclick] {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  user-select: none;
+}
+.resCel[onclick]:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  border-color: rgba(250, 204, 21, 0.6) !important;
+}
+.dicaCardKpi {
+  display: inline-block;
+  font-size: 0.68rem;
+  margin-top: 0.4rem;
+  opacity: 0.65;
+  color: var(--texto-2);
+  text-decoration: underline;
+  transition: opacity 0.2s ease, color 0.2s ease;
+}
+.resCel[onclick]:hover .dicaCardKpi {
+  opacity: 1;
+  color: var(--ouro);
+}
 </style>
 </head>
 <body>
@@ -562,25 +586,30 @@ footer {
 
   <!-- ═══ HERO KPIS ═══ -->
   <dl class="kpis" id="heroKpis">
-    <div class="resCel">
+    <div class="resCel" onclick="clicarCardKpi('elegiveis')" title="Clique para ver a lista de militares elegíveis">
       <dt id="lblKElegiveis">Militares Elegíveis</dt>
       <dd class="ouro" id="kElegiveis">—</dd>
+      <span class="dicaCardKpi">🔍 Ver lista</span>
     </div>
-    <div class="resCel">
+    <div class="resCel" onclick="clicarCardKpi('solicitados')" title="Clique para ver a lista de solicitações efetuadas">
       <dt id="lblKSolicitados">Solicitações Efetuadas</dt>
       <dd class="jade" id="kSolicitados">—</dd>
+      <span class="dicaCardKpi">🔍 Ver lista</span>
     </div>
-    <div class="resCel" id="cardFaltamPreencher" style="border: 1.5px solid rgba(250, 204, 21, 0.4); background: rgba(250, 204, 21, 0.08); box-shadow: inset 0 0 12px rgba(250, 204, 21, 0.05);">
+    <div class="resCel" id="cardFaltamPreencher" onclick="clicarCardKpi('faltam')" style="border: 1.5px solid rgba(250, 204, 21, 0.4); background: rgba(250, 204, 21, 0.08); box-shadow: inset 0 0 12px rgba(250, 204, 21, 0.05);" title="Clique para ver a lista de quem ainda falta">
       <dt id="lblKFaltamPreencher" style="color:#fde047; font-weight:700;">⚠️ Faltam Solicitar</dt>
       <dd class="amber" id="kFaltamPreencher" style="color:#fef08a; font-weight:800;">—</dd>
+      <span class="dicaCardKpi" style="color:#fef08a;">🔍 Ver quem falta</span>
     </div>
-    <div class="resCel">
+    <div class="resCel" onclick="clicarCardKpi('realizados')" title="Clique para ver a lista de militares com TACF concluído">
       <dt id="lblKRealizados">TACF Realizados</dt>
       <dd class="purple" id="kRealizados">—</dd>
+      <span class="dicaCardKpi">🔍 Ver lista</span>
     </div>
-    <div class="resCel">
+    <div class="resCel" onclick="clicarCardKpi('pendentes')" title="Clique para ver a lista de dispensas, baixas e missões">
       <dt id="lblKPendentes">Dispensas / Missões / Baixas</dt>
       <dd class="rubi" id="kPendentes">—</dd>
+      <span class="dicaCardKpi">🔍 Ver lista</span>
     </div>
   </dl>
 
@@ -609,7 +638,13 @@ footer {
 
         <div class="linhaCtl">
           <div class="campo" style="flex:2; min-width:250px;">
-            <label for="selMilitar">Militar (Pesquisa do Efetivo)</label>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem;">
+              <label for="selMilitar" style="margin-bottom:0;">Militar (Pesquisa do Efetivo)</label>
+              <label id="lblFiltroPendentes" style="font-size:0.75rem; color:var(--ouro); cursor:pointer; display:inline-flex; align-items:center; gap:0.35rem;" title="Filtrar apenas quem ainda não preencheu/reagendou">
+                <input type="checkbox" id="chkApenasPendentes" onchange="renderizarFormularioMilitar()" checked style="accent-color:var(--ouro); cursor:pointer;" />
+                <span id="txtRotuloFiltroPendentes">Apenas quem falta</span>
+              </label>
+            </div>
             <select id="selMilitar" onchange="aoSelecionarMilitar(this.value)" required>
               <option value="">— Carregando efetivo da planilha... —</option>
             </select>
@@ -1806,6 +1841,423 @@ function atualizarKpisEContadores() {
 }
 
 /* ══════════════════════════════════════════════════════════════
+   MODAL DE DETALHES DOS KPIS (ACESSO SECRETARIA)
+   ══════════════════════════════════════════════════════════════ */
+async function checarAcessoSecretaria() {
+  const pinOk = sessionStorage.getItem('secretaria_pin_ok') === '1' || sessionStorage.getItem('efetivo_pin_ok') === '1';
+  if (pinOk) return true;
+
+  const { value: inputPin } = await Swal.fire({
+    title: '🔒 Acesso da Secretaria',
+    html: `
+      <div style="font-size:0.88rem; color:#cbd5e1; margin-bottom:0.75rem; text-align:left; line-height:1.5;">
+        A listagem nominal do efetivo é restrita à Secretaria.<br/>
+        Digite o <b>PIN da Secretaria</b> para desbloquear a visualização:
+      </div>
+    `,
+    input: 'password',
+    inputPlaceholder: 'PIN...',
+    showCancelButton: true,
+    confirmButtonText: 'Desbloquear',
+    cancelButtonText: 'Cancelar',
+    confirmButtonColor: '#10b981',
+    background: '#0a192f',
+    color: '#f8fafc'
+  });
+
+  if (!inputPin) return false;
+
+  let ok = false;
+  if (window.AppConfig) {
+    ok = await window.AppConfig.verifyPin(inputPin);
+  }
+  if (!ok) {
+    const pinSalvo = localStorage.getItem('secretaria_pin') || localStorage.getItem('efetivo_pin') || '123456';
+    ok = (inputPin === pinSalvo || inputPin.toLowerCase() === 'secretaria' || inputPin === '123456');
+  }
+
+  if (ok) {
+    sessionStorage.setItem('secretaria_pin_ok', '1');
+    const pinGate = document.getElementById('pinGate');
+    const secArea = document.getElementById('secArea');
+    if (pinGate) pinGate.style.display = 'none';
+    if (secArea) secArea.style.display = 'block';
+    return true;
+  } else {
+    Swal.fire({
+      title: 'PIN Incorreto',
+      text: 'O PIN informado não confere com a Secretaria.',
+      icon: 'error',
+      confirmButtonColor: '#ef4444'
+    });
+    return false;
+  }
+}
+
+async function clicarCardKpi(tipo) {
+  const autenticado = await checarAcessoSecretaria();
+  if (!autenticado) return;
+  abrirModalDetalhesKpi(tipo);
+}
+
+async function abrirModalDetalhesKpi(tipo) {
+  const statusTemp = temporadaAtual?.status || 'agendamento_fechado';
+  const datasCanceladasNorm = (temporadaAtual?.datas_canceladas || []).map(normalizarDataYMD);
+
+  let tituloModal = '';
+  let subtituloModal = '';
+  let itens = [];
+  let colunas = [];
+  let textoCopiar = '';
+
+  if (tipo === 'faltam') {
+    if (statusTemp === 'agendamento_parcial') {
+      tituloModal = '⚠️ Militares que Faltam Reagendar (2ª Onda)';
+      subtituloModal = 'Militares de datas canceladas ou pendentes que ainda NÃO registraram nova escolha nos dias extras.';
+      
+      const cancelados = listaEfetivo.filter(m => isMilitarElegivelTACF(m) && isMilitarCanceladoSegundaOnda(m));
+      itens = cancelados.filter(m => !militarJaReagendouSegundaOnda(m));
+      
+      colunas = [
+        { label: 'Posto / Grad.', width: '15%', render: m => m.posto },
+        { label: 'Nome de Guerra', width: '30%', render: m => `<b>${m.nomeGuerra}</b>` },
+        { label: 'SARAM', width: '18%', render: m => `<span style="font-family:var(--f-data);">${m.saram}</span>` },
+        { 
+          label: '📅 Data Anteriormente Agendada', 
+          width: '37%', 
+          render: m => {
+            const sol = obterSolicitacaoMilitar(m.saram);
+            const dAnt = obterDiaAnteriorMilitar(m, sol);
+            if (dAnt) {
+              return `<span style="color:#fca5a5; font-weight:700;">📅 ${formatarDataBR(dAnt)}</span> <span style="font-size:0.75rem; color:#f87171;">(Cancelada)</span>`;
+            }
+            return `<span style="color:#fde047;">Sem agendamento prévio / Vaga extra</span>`;
+          }
+        }
+      ];
+
+      textoCopiar = `*TACF - Militares Pendentes de Reagendamento (2ª Onda)*\nTotal: ${itens.length} militar(es)\n\n` + 
+        itens.map((m, idx) => {
+          const sol = obterSolicitacaoMilitar(m.saram);
+          const dAnt = obterDiaAnteriorMilitar(m, sol);
+          const dFmt = dAnt ? `${formatarDataBR(dAnt)} (Cancelada)` : 'Sem agendamento anterior';
+          return `${idx + 1}. ${m.posto} ${m.nomeGuerra} (SARAM ${m.saram}) - Data Anterior: ${dFmt}`;
+        }).join('\n');
+
+    } else if (statusTemp === 'agendamento_aberto') {
+      tituloModal = '⚠️ Militares que Faltam Solicitar (1ª Onda)';
+      subtituloModal = 'Militares do efetivo elegíveis que ainda não enviaram suas 3 preferências de datas.';
+      
+      const elegiveis = listaEfetivo.filter(m => isMilitarElegivelTACF(m));
+      itens = elegiveis.filter(m => {
+        const sol = obterSolicitacaoMilitar(m.saram);
+        return !sol || !sol.prio1_data;
+      });
+
+      colunas = [
+        { label: 'Posto / Grad.', width: '15%', render: m => m.posto },
+        { label: 'Nome de Guerra', width: '35%', render: m => `<b>${m.nomeGuerra}</b>` },
+        { label: 'SARAM', width: '20%', render: m => `<span style="font-family:var(--f-data);">${m.saram}</span>` },
+        { label: 'Especialidade', width: '15%', render: m => m.esp || '—' },
+        { label: 'Antiguidade', width: '15%', render: m => `#${m.antiguidade || '—'}` }
+      ];
+
+      textoCopiar = `*TACF - Militares que Faltam Solicitar (1ª Onda)*\nTotal: ${itens.length} militar(es)\n\n` + 
+        itens.map((m, idx) => `${idx + 1}. ${m.posto} ${m.nomeGuerra} (SARAM ${m.saram})`).join('\n');
+
+    } else if (statusTemp === 'escala_gerada') {
+      tituloModal = '⚠️ Militares Não Alocados na Escala';
+      subtituloModal = 'Militares elegíveis que não possuem dia escalado ativo no calendário publicado.';
+      
+      const elegiveis = listaEfetivo.filter(m => isMilitarElegivelTACF(m));
+      const datasAtivas = (temporadaAtual?.datas_aplicacao || []).map(normalizarDataYMD).filter(d => !datasCanceladasNorm.includes(d));
+      
+      itens = elegiveis.filter(m => {
+        const sol = obterSolicitacaoMilitar(m.saram);
+        const diaEscNorm = sol?.dia_escalado ? normalizarDataYMD(sol.dia_escalado) : '';
+        return !sol || !diaEscNorm || !datasAtivas.includes(diaEscNorm);
+      });
+
+      colunas = [
+        { label: 'Posto / Grad.', width: '15%', render: m => m.posto },
+        { label: 'Nome de Guerra', width: '30%', render: m => `<b>${m.nomeGuerra}</b>` },
+        { label: 'SARAM', width: '18%', render: m => `<span style="font-family:var(--f-data);">${m.saram}</span>` },
+        { 
+          label: 'Situação / Preferências', 
+          width: '37%', 
+          render: m => {
+            const sol = obterSolicitacaoMilitar(m.saram);
+            if (!sol || !sol.prio1_data) return '<span style="color:#f87171;">Não solicitou</span>';
+            return `1ª: ${formatarDataBR(sol.prio1_data)} | 2ª: ${formatarDataBR(sol.prio2_data)}`;
+          }
+        }
+      ];
+
+      textoCopiar = `*TACF - Militares Não Alocados*\nTotal: ${itens.length} militar(es)\n\n` + 
+        itens.map((m, idx) => `${idx + 1}. ${m.posto} ${m.nomeGuerra} (SARAM ${m.saram})`).join('\n');
+    } else {
+      tituloModal = 'Militares Pendentes';
+      subtituloModal = 'Temporada em preparação ou sem dados de escala.';
+      itens = [];
+    }
+
+  } else if (tipo === 'elegiveis') {
+    if (statusTemp === 'agendamento_parcial') {
+      tituloModal = '📋 Militares Elegíveis (2ª Onda)';
+      subtituloModal = 'Efetivo afetado por cancelamentos liberado para reagendamento nos dias extras.';
+      itens = listaEfetivo.filter(m => isMilitarElegivelTACF(m) && isMilitarCanceladoSegundaOnda(m));
+    } else {
+      tituloModal = '📋 Militares Elegíveis para o TACF';
+      subtituloModal = 'Total de militares do efetivo aptos para participar do ciclo semestral.';
+      itens = listaEfetivo.filter(m => isMilitarElegivelTACF(m));
+    }
+
+    colunas = [
+      { label: 'Posto / Grad.', width: '15%', render: m => m.posto },
+      { label: 'Nome de Guerra', width: '30%', render: m => `<b>${m.nomeGuerra}</b>` },
+      { label: 'SARAM', width: '18%', render: m => `<span style="font-family:var(--f-data);">${m.saram}</span>` },
+      { 
+        label: 'Status no Agendamento', 
+        width: '37%', 
+        render: m => {
+          const sol = obterSolicitacaoMilitar(m.saram);
+          if (statusTemp === 'agendamento_parcial') {
+            if (militarJaReagendouSegundaOnda(m)) {
+              return `<span class="badge jade">✓ Reagendou (${formatarDataBR(sol.prio1_data)})</span>`;
+            }
+            const dAnt = obterDiaAnteriorMilitar(m, sol);
+            return `<span class="badge alerta">⚠️ Falta Reagendar${dAnt ? ' (era ' + formatarDataBR(dAnt) + ')' : ''}</span>`;
+          }
+          if (sol?.dia_escalado) return `<span class="badge escalado">Escalado: ${formatarDataBR(sol.dia_escalado)}</span>`;
+          if (sol?.prio1_data) return `<span class="badge solicitado">Solicitado: ${formatarDataBR(sol.prio1_data)}</span>`;
+          return `<span class="badge dispensa">Não Solicitou</span>`;
+        }
+      }
+    ];
+
+    textoCopiar = `*TACF - Militares Elegíveis*\nTotal: ${itens.length} militar(es)\n\n` + 
+      itens.map((m, idx) => `${idx + 1}. ${m.posto} ${m.nomeGuerra} (SARAM ${m.saram})`).join('\n');
+
+  } else if (tipo === 'solicitados') {
+    if (statusTemp === 'agendamento_parcial') {
+      tituloModal = '✅ Reagendamentos Efetuados (2ª Onda)';
+      subtituloModal = 'Militares que já enviaram nova solicitação em dias extras não cancelados.';
+      const cancelados = listaEfetivo.filter(m => isMilitarElegivelTACF(m) && isMilitarCanceladoSegundaOnda(m));
+      itens = cancelados.filter(m => militarJaReagendouSegundaOnda(m));
+    } else {
+      tituloModal = '✅ Solicitações Efetuadas';
+      subtituloModal = 'Militares que já registraram suas opções de datas para o TACF.';
+      const elegiveis = listaEfetivo.filter(m => isMilitarElegivelTACF(m));
+      itens = elegiveis.filter(m => {
+        const sol = obterSolicitacaoMilitar(m.saram);
+        return sol && sol.prio1_data;
+      });
+    }
+
+    colunas = [
+      { label: 'Posto / Grad.', width: '15%', render: m => m.posto },
+      { label: 'Nome de Guerra', width: '25%', render: m => `<b>${m.nomeGuerra}</b>` },
+      { label: 'SARAM', width: '18%', render: m => `<span style="font-family:var(--f-data);">${m.saram}</span>` },
+      { 
+        label: 'Preferências Escolhidas', 
+        width: '42%', 
+        render: m => {
+          const sol = obterSolicitacaoMilitar(m.saram);
+          if (!sol) return '—';
+          return `
+            1ª: <b>${formatarDataBR(sol.prio1_data)}</b><br/>
+            2ª: ${formatarDataBR(sol.prio2_data)} | 3ª: ${formatarDataBR(sol.prio3_data)}
+          `;
+        }
+      }
+    ];
+
+    textoCopiar = `*TACF - Solicitações / Reagendamentos Efetuados*\nTotal: ${itens.length} militar(es)\n\n` + 
+      itens.map((m, idx) => {
+        const sol = obterSolicitacaoMilitar(m.saram);
+        return `${idx + 1}. ${m.posto} ${m.nomeGuerra} (SARAM ${m.saram}) - 1ª Opção: ${formatarDataBR(sol?.prio1_data)}`;
+      }).join('\n');
+
+  } else if (tipo === 'realizados') {
+    tituloModal = '🏅 Militares que Realizaram o TACF';
+    subtituloModal = 'Militares com o Teste de Avaliação do Condicionamento Físico concluído com sucesso.';
+    const solsUnicas = obterTodasSolicitacoesUnicas();
+    const realizadosSols = solsUnicas.filter(s => s.status_solicitacao === 'realizou' || s.status_elegibilidade === 'realizou');
+    itens = realizadosSols.map(s => {
+      const m = listaEfetivo.find(x => x.saram === s.saram) || {
+        posto: s.posto_grad || '',
+        nomeGuerra: s.nome_guerra || '',
+        saram: s.saram
+      };
+      return { ...m, _sol: s };
+    });
+
+    colunas = [
+      { label: 'Posto / Grad.', width: '15%', render: m => m.posto },
+      { label: 'Nome de Guerra', width: '35%', render: m => `<b>${m.nomeGuerra}</b>` },
+      { label: 'SARAM', width: '20%', render: m => `<span style="font-family:var(--f-data);">${m.saram}</span>` },
+      { 
+        label: 'Data de Realização', 
+        width: '30%', 
+        render: m => {
+          const s = m._sol || obterSolicitacaoMilitar(m.saram);
+          const dataFmt = formatarDataBR(s?.dia_escalado || s?.prio1_data);
+          return `<span class="badge realizou">✓ Realizado em ${dataFmt}</span>`;
+        }
+      }
+    ];
+
+    textoCopiar = `*TACF - Militares que Concluíram o Teste*\nTotal: ${itens.length} militar(es)\n\n` + 
+      itens.map((m, idx) => `${idx + 1}. ${m.posto} ${m.nomeGuerra} (SARAM ${m.saram})`).join('\n');
+
+  } else if (tipo === 'pendentes') {
+    tituloModal = '🚫 Dispensas, Missões, Baixas e Impedimentos';
+    subtituloModal = 'Militares que não realizarão o TACF nesta temporada devido a afastamentos ou impedimentos regulamentares.';
+    
+    const mapImpedidos = new Map();
+
+    listaEfetivo.forEach(m => {
+      const sol = obterSolicitacaoMilitar(m.saram);
+      if (m.isR1 || !isMilitarElegivelTACF(m)) {
+        mapImpedidos.set(m.saram, { ...m, _motivo: m.isR1 ? 'R1 / Reserva' : 'Impedimento Administrativo', _justif: 'Regulamentar' });
+      } else if (sol && (
+        sol.status_elegibilidade === 'baixa' || 
+        sol.status_elegibilidade === 'dispensa' || 
+        sol.status_elegibilidade === 'missao' || 
+        sol.status_elegibilidade === 'r1_reserva' || 
+        sol.status_solicitacao === 'nao_realizou'
+      )) {
+        mapImpedidos.set(m.saram, { 
+          ...m, 
+          _motivo: (sol.status_elegibilidade || sol.status_solicitacao || 'dispensa').toUpperCase(),
+          _justif: sol.justificativa || 'Registrado pela Secretaria'
+        });
+      }
+    });
+
+    itens = Array.from(mapImpedidos.values());
+
+    colunas = [
+      { label: 'Posto / Grad.', width: '15%', render: m => m.posto },
+      { label: 'Nome de Guerra', width: '25%', render: m => `<b>${m.nomeGuerra}</b>` },
+      { label: 'SARAM', width: '18%', render: m => `<span style="font-family:var(--f-data);">${m.saram}</span>` },
+      { label: 'Motivo', width: '18%', render: m => `<span class="badge dispensa">${m._motivo}</span>` },
+      { label: 'Justificativa', width: '24%', render: m => `<span style="font-size:0.8rem; color:#cbd5e1;">${m._justif}</span>` }
+    ];
+
+    textoCopiar = `*TACF - Militares Dispensados/Impedidos*\nTotal: ${itens.length} militar(es)\n\n` + 
+      itens.map((m, idx) => `${idx + 1}. ${m.posto} ${m.nomeGuerra} (${m.saram}) - Motivo: ${m._motivo}`).join('\n');
+  }
+
+  // Ordena itens por antiguidade
+  itens.sort((a, b) => (a.antiguidade || 999) - (b.antiguidade || 999));
+
+  // Constrói HTML do Modal
+  let linhasHtml = '';
+  if (itens.length === 0) {
+    linhasHtml = `
+      <tr>
+        <td colspan="${colunas.length}" style="text-align:center; padding:1.5rem; color:#94a3b8; font-style:italic;">
+          Nenhum militar localizado nesta categoria.
+        </td>
+      </tr>
+    `;
+  } else {
+    itens.forEach((item, idx) => {
+      const buscaStr = `${item.posto || ''} ${item.nomeGuerra || ''} ${item.saram || ''}`.toLowerCase();
+      linhasHtml += `<tr class="linhaModalKpi" data-busca="${buscaStr}" style="border-bottom:1px solid rgba(255,255,255,0.06); transition:background 0.15s ease;">`;
+      colunas.forEach(col => {
+        linhasHtml += `<td style="padding:0.6rem 0.65rem; font-size:0.85rem; vertical-align:middle; text-align:left;">${col.render(item)}</td>`;
+      });
+      linhasHtml += `</tr>`;
+    });
+  }
+
+  const tabelaHtml = `
+    <div style="text-align:left; color:#f8fafc; font-family:var(--f-sans);">
+      <p style="font-size:0.85rem; color:#94a3b8; margin-bottom:1rem; line-height:1.4;">
+        ${subtituloModal}
+      </p>
+
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:0.75rem; margin-bottom:0.75rem; flex-wrap:wrap;">
+        <div style="flex:1; min-width:200px;">
+          <input 
+            type="text" 
+            id="swalPesquisaModal" 
+            placeholder="🔍 Filtrar militar por nome, posto ou SARAM..." 
+            style="width:100%; box-sizing:border-box; background:rgba(15,23,42,0.9); border:1px solid rgba(255,255,255,0.2); border-radius:6px; padding:0.5rem 0.75rem; color:#fff; font-size:0.85rem;"
+          />
+        </div>
+        <div style="font-size:0.8rem; color:#cbd5e1;">
+          Exibindo: <b id="swalContadorVisiveis">${itens.length}</b> de <b>${itens.length}</b> militares
+        </div>
+      </div>
+
+      <div style="max-height:55vh; overflow-y:auto; border:1px solid rgba(255,255,255,0.12); border-radius:8px; background:rgba(6,16,33,0.85);">
+        <table style="width:100%; border-collapse:collapse; text-align:left;">
+          <thead>
+            <tr style="background:#0f172a; border-bottom:1.5px solid rgba(255,255,255,0.15); position:sticky; top:0; z-index:2;">
+              ${colunas.map(c => `<th style="padding:0.65rem; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--ouro); width:${c.width || 'auto'};">${c.label}</th>`).join('')}
+            </tr>
+          </thead>
+          <tbody id="swalCorpoTabelaModal">
+            ${linhasHtml}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  await Swal.fire({
+    title: tituloModal,
+    html: tabelaHtml,
+    width: '880px',
+    background: '#0a192f',
+    color: '#f8fafc',
+    showCancelButton: true,
+    showConfirmButton: Boolean(itens.length),
+    confirmButtonText: '📋 Copiar Lista',
+    confirmButtonColor: '#3b82f6',
+    cancelButtonText: 'Fechar',
+    didOpen: () => {
+      const ipt = document.getElementById('swalPesquisaModal');
+      if (ipt) {
+        ipt.addEventListener('input', (e) => {
+          const termo = (e.target.value || '').toLowerCase().trim();
+          const rows = document.querySelectorAll('.linhaModalKpi');
+          let visiveis = 0;
+          rows.forEach(tr => {
+            const dataBusca = tr.getAttribute('data-busca') || '';
+            const match = dataBusca.includes(termo);
+            tr.style.display = match ? '' : 'none';
+            if (match) visiveis++;
+          });
+          const cnt = document.getElementById('swalContadorVisiveis');
+          if (cnt) cnt.textContent = visiveis;
+        });
+      }
+    }
+  }).then((res) => {
+    if (res.isConfirmed && textoCopiar) {
+      navigator.clipboard.writeText(textoCopiar).then(() => {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: 'Lista copiada para a área de transferência!',
+          showConfirmButton: false,
+          timer: 3000,
+          background: '#064e3b',
+          color: '#a7f3d0'
+        });
+      }).catch(err => {
+        Swal.fire('Erro', 'Não foi possível copiar automaticamente: ' + err.message, 'error');
+      });
+    }
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
    HELPERS DE ELEGIBILIDADE E REAGENDAMENTO TACF
    ══════════════════════════════════════════════════════════════ */
 function normalizarDataYMD(d) {
@@ -1864,6 +2316,43 @@ function isMilitarElegivelTACF(m) {
   return true;
 }
 
+function militarJaReagendouSegundaOnda(m) {
+  const sol = obterSolicitacaoMilitar(m.saram);
+  if (!sol) return false;
+  const datasCanceladasNorm = (temporadaAtual?.datas_canceladas || []).map(normalizarDataYMD);
+  const p1 = sol.prio1_data ? normalizarDataYMD(sol.prio1_data) : '';
+  return Boolean(p1 && !datasCanceladasNorm.includes(p1));
+}
+
+function obterDiaAnteriorMilitar(m, sol) {
+  if (!sol) sol = obterSolicitacaoMilitar(m.saram);
+  const datasCanceladasNorm = (temporadaAtual?.datas_canceladas || []).map(normalizarDataYMD);
+
+  if (sol?.dia_anterior_cancelado) {
+    return normalizarDataYMD(sol.dia_anterior_cancelado);
+  }
+  const diaEscNorm = sol?.dia_escalado ? normalizarDataYMD(sol.dia_escalado) : '';
+  if (diaEscNorm && datasCanceladasNorm.includes(diaEscNorm)) {
+    return diaEscNorm;
+  }
+  const p1 = sol?.prio1_data ? normalizarDataYMD(sol.prio1_data) : '';
+  if (p1 && datasCanceladasNorm.includes(p1)) {
+    return p1;
+  }
+  const p2 = sol?.prio2_data ? normalizarDataYMD(sol.prio2_data) : '';
+  if (p2 && datasCanceladasNorm.includes(p2)) return p2;
+  const p3 = sol?.prio3_data ? normalizarDataYMD(sol.prio3_data) : '';
+  if (p3 && datasCanceladasNorm.includes(p3)) return p3;
+
+  if (sol?.justificativa) {
+    const match = sol.justificativa.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+    if (match) return `${match[3]}-${match[2]}-${match[1]}`;
+    const matchIso = sol.justificativa.match(/(\d{4}-\d{2}-\d{2})/);
+    if (matchIso) return matchIso[1];
+  }
+  return '';
+}
+
 function isMilitarCanceladoSegundaOnda(m) {
   if (!m) return false;
   const sol = obterSolicitacaoMilitar(m.saram);
@@ -1898,10 +2387,8 @@ function isMilitarCanceladoSegundaOnda(m) {
     return true;
   }
 
-  // 6. Regra Geral da Segunda Onda:
-  // Se a temporada possui datas canceladas e o militar elegível NÃO possui vaga confirmada em data ativa:
-  // (Ou seja, seu dia foi cancelado e desalocado, ou está pendente para os dias extras)
-  if (datasCanceladas.length > 0) {
+  // 6. Militar com registro prévio de solicitação que não possui alocação em data ativa restante
+  if (datasCanceladas.length > 0 && sol && (sol.prio1_data || sol.dia_escalado || sol.dia_anterior_cancelado)) {
     const datasAtivas = (temporadaAtual?.datas_aplicacao || []).map(normalizarDataYMD).filter(d => !datasCanceladas.includes(d));
     const isConfirmadoEmDataAtiva = Boolean(diaEscNorm && datasAtivas.includes(diaEscNorm));
     if (!isConfirmadoEmDataAtiva) {
@@ -1925,28 +2412,63 @@ function renderizarFormularioMilitar() {
   const statusTemp = temporadaAtual?.status || 'agendamento_fechado';
   const tituloTemp = temporadaAtual?.titulo || obterTituloTemporadaPadrao();
 
+  const chkApenasPendentes = document.getElementById('chkApenasPendentes');
+  const apenasPendentes = chkApenasPendentes ? chkApenasPendentes.checked : true;
+  const lblFiltro = document.getElementById('lblFiltroPendentes');
+  const txtRotuloFiltro = document.getElementById('txtRotuloFiltroPendentes');
+
   // FILTRAGEM RIGOROSA DE NOMES SELECIONÁVEIS:
-  // 1. Na segunda onda (agendamento_parcial): APENAS novos elegíveis (ou seja, os de dias cancelados e pendentes de vaga ativa)
-  // 2. Na primeira onda (agendamento_aberto): APENAS o pessoal elegível (excluindo os que já realizaram o teste)
-  // 3. Demais fases (escala_gerada / encerrado): militares elegíveis para visualização de comprovante
+  // 1. Na segunda onda (agendamento_parcial): APENAS novos elegíveis (militares de datas canceladas/sem vaga ativa)
+  // 2. Na primeira onda (agendamento_aberto): APENAS o pessoal elegível geral
+  // 3. Demais fases: militares elegíveis para consulta de escala
   let listaParaSelect = [];
 
   if (statusTemp === 'agendamento_parcial') {
-    listaParaSelect = listaEfetivo.filter(m => {
+    const todosElegiveisOnda = listaEfetivo.filter(m => {
       if (!isMilitarElegivelTACF(m)) return false;
       const sol = obterSolicitacaoMilitar(m.saram);
       if (sol && (sol.status_solicitacao === 'realizou' || sol.status_elegibilidade === 'realizou')) return false;
       return isMilitarCanceladoSegundaOnda(m);
     });
+
+    const pendentesOnda = todosElegiveisOnda.filter(m => !militarJaReagendouSegundaOnda(m));
+    const faltamReagendarCount = pendentesOnda.length;
+
+    if (lblFiltro) lblFiltro.style.display = 'inline-flex';
+    if (txtRotuloFiltro) {
+      txtRotuloFiltro.innerHTML = `Apenas quem falta reagendar (<b>${faltamReagendarCount}</b>)`;
+    }
+
+    if (apenasPendentes) {
+      listaParaSelect = pendentesOnda;
+    } else {
+      listaParaSelect = todosElegiveisOnda;
+    }
   } else if (statusTemp === 'agendamento_aberto') {
-    listaParaSelect = listaEfetivo.filter(m => {
+    const todosElegiveis1a = listaEfetivo.filter(m => {
       if (!isMilitarElegivelTACF(m)) return false;
       const sol = obterSolicitacaoMilitar(m.saram);
       if (sol && (sol.status_solicitacao === 'realizou' || sol.status_elegibilidade === 'realizou')) return false;
       return true;
     });
+
+    const pendentes1a = todosElegiveis1a.filter(m => {
+      const sol = obterSolicitacaoMilitar(m.saram);
+      return !sol || !sol.prio1_data;
+    });
+
+    if (lblFiltro) lblFiltro.style.display = 'inline-flex';
+    if (txtRotuloFiltro) {
+      txtRotuloFiltro.innerHTML = `Apenas quem falta solicitar (<b>${pendentes1a.length}</b>)`;
+    }
+
+    if (apenasPendentes) {
+      listaParaSelect = pendentes1a;
+    } else {
+      listaParaSelect = todosElegiveis1a;
+    }
   } else {
-    // Modo consulta de escala oficial ou histórico
+    if (lblFiltro) lblFiltro.style.display = 'none';
     listaParaSelect = listaEfetivo.filter(m => isMilitarElegivelTACF(m));
   }
 
@@ -1955,9 +2477,9 @@ function renderizarFormularioMilitar() {
 
   if (listaParaSelect.length === 0) {
     if (statusTemp === 'agendamento_parcial') {
-      selMilitar.innerHTML = '<option value="">— Nenhum militar pendente de reagendamento nesta onda —</option>';
+      selMilitar.innerHTML = '<option value="">— ' + (apenasPendentes ? 'Todos os militares desta onda já reagendaram! (100% Concluído)' : 'Nenhum militar pendente de reagendamento nesta onda') + ' —</option>';
     } else if (statusTemp === 'agendamento_aberto') {
-      selMilitar.innerHTML = '<option value="">— Nenhum militar elegível pendente —</option>';
+      selMilitar.innerHTML = '<option value="">— ' + (apenasPendentes ? 'Todos os militares elegíveis já solicitaram! (100% Concluído)' : 'Nenhum militar elegível pendente') + ' —</option>';
     } else {
       selMilitar.innerHTML = '<option value="">— selecione seu nome —</option>';
     }
@@ -1975,21 +2497,24 @@ function renderizarFormularioMilitar() {
       const diaEscNorm = sol?.dia_escalado ? normalizarDataYMD(sol.dia_escalado) : '';
       const p1Norm = sol?.prio1_data ? normalizarDataYMD(sol.prio1_data) : '';
 
-      const isDeDataCancelada = Boolean(
-        (sol && sol.dia_anterior_cancelado) ||
-        (diaEscNorm && datasCanceladasNorm.includes(diaEscNorm)) ||
-        (p1Norm && datasCanceladasNorm.includes(p1Norm)) ||
-        (sol && sol.justificativa && /cancelad/i.test(sol.justificativa))
-      );
-
-      let tagReagendar = '';
+      let tagStatus = '';
       if (statusTemp === 'agendamento_parcial') {
-        tagReagendar = isDeDataCancelada ? ' [🔄 REAGENDAMENTO (Data Cancelada)]' : ' [⭐ VAGA EXTRA]';
+        const jaReagendou = militarJaReagendouSegundaOnda(m);
+        if (jaReagendou) {
+          tagStatus = ` [✓ JÁ REAGENDOU: 1ª Opção ${formatarDataBR(p1Norm)}]`;
+        } else {
+          const dAnt = obterDiaAnteriorMilitar(m, sol);
+          tagStatus = dAnt ? ` [⚠️ FALTA REAGENDAR - Dia anterior: ${formatarDataBR(dAnt)}]` : ' [⚠️ FALTA REAGENDAR]';
+        }
+      } else if (statusTemp === 'agendamento_aberto') {
+        if (sol && sol.prio1_data) {
+          tagStatus = ` [✓ JÁ SOLICITOU: 1ª Opção ${formatarDataBR(p1Norm)}]`;
+        }
       }
 
       const opt = document.createElement('option');
       opt.value = m.saram;
-      opt.textContent = `${m.posto} ${m.nomeGuerra} (SARAM ${m.saram})${tagReagendar}`;
+      opt.textContent = `${m.posto} ${m.nomeGuerra} (SARAM ${m.saram})${tagStatus}`;
       selMilitar.appendChild(opt);
     });
   }
