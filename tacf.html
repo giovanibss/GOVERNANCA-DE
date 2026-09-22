@@ -1121,6 +1121,7 @@ async function carregarOuCriarTemporada() {
         try { obs = typeof t.observacoes === 'string' ? JSON.parse(t.observacoes) : (t.observacoes || {}); } catch(e) {}
         t.datas_canceladas = Array.isArray(t.datas_canceladas) ? t.datas_canceladas : (Array.isArray(obs.datas_canceladas) ? obs.datas_canceladas : []);
         t.datas_extras = Array.isArray(t.datas_extras) ? t.datas_extras : (Array.isArray(obs.datas_extras) ? obs.datas_extras : []);
+        t.sarams_cancelados = Array.isArray(obs.sarams_cancelados) ? obs.sarams_cancelados : [];
       });
       if (!temporadaAtual || !listaTemporadas.some(t => t.id === temporadaAtual.id)) {
         // Prefere temporada ativa (não encerrada), se houver
@@ -1149,6 +1150,7 @@ async function carregarOuCriarTemporada() {
         temporadaAtual = created[0];
         temporadaAtual.datas_canceladas = [];
         temporadaAtual.datas_extras = [];
+        temporadaAtual.sarams_cancelados = [];
         listaTemporadas = [created[0]];
       }
     }
@@ -1157,6 +1159,7 @@ async function carregarOuCriarTemporada() {
       try { obs = typeof temporadaAtual.observacoes === 'string' ? JSON.parse(temporadaAtual.observacoes) : (temporadaAtual.observacoes || {}); } catch(e) {}
       temporadaAtual.datas_canceladas = Array.isArray(temporadaAtual.datas_canceladas) ? temporadaAtual.datas_canceladas : (Array.isArray(obs.datas_canceladas) ? obs.datas_canceladas : []);
       temporadaAtual.datas_extras = Array.isArray(temporadaAtual.datas_extras) ? temporadaAtual.datas_extras : (Array.isArray(obs.datas_extras) ? obs.datas_extras : []);
+      temporadaAtual.sarams_cancelados = Array.isArray(obs.sarams_cancelados) ? obs.sarams_cancelados : [];
     }
     renderizarSeletorTemporadas();
     renderizarControlesFaseSecretaria();
@@ -1631,6 +1634,14 @@ async function carregarSolicitacoes() {
         solicitacoesMap[s.saram] = s;
       });
     }
+
+    if (temporadaAtual && Array.isArray(temporadaAtual.sarams_cancelados)) {
+      temporadaAtual.sarams_cancelados.forEach(saram => {
+        if (solicitacoesMap[saram] && !solicitacoesMap[saram].dia_anterior_cancelado) {
+          solicitacoesMap[saram].dia_anterior_cancelado = 'cancelado';
+        }
+      });
+    }
   } catch (e) {
     console.error('Erro ao carregar solicitações do Supabase:', e);
   }
@@ -1681,11 +1692,44 @@ function atualizarKpisEContadores() {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   ABA 1: SOLICITAR AGENDAMENTO (INIBINDO R1 & BANNER DINÂMICO)
+   HELPERS DE ELEGIBILIDADE E REAGENDAMENTO TACF
+   ══════════════════════════════════════════════════════════════ */
+function isMilitarElegivelTACF(m) {
+  if (!m || m.isR1) return false;
+  const sol = solicitacoesMap[m.saram];
+  if (sol) {
+    if (
+      sol.status_elegibilidade === 'baixa' || 
+      sol.status_elegibilidade === 'dispensa' || 
+      sol.status_elegibilidade === 'missao' || 
+      sol.status_elegibilidade === 'r1_reserva' || 
+      sol.status_elegibilidade === 'nao_realizou' ||
+      sol.status_solicitacao === 'nao_realizou'
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function isMilitarCanceladoSegundaOnda(m) {
+  if (!m) return false;
+  const sol = solicitacoesMap[m.saram];
+  const datasCanceladas = temporadaAtual?.datas_canceladas || [];
+  const saramsCancelados = temporadaAtual?.sarams_cancelados || [];
+
+  if (sol && sol.dia_anterior_cancelado) return true;
+  if (sol && sol.dia_escalado && datasCanceladas.includes(sol.dia_escalado)) return true;
+  if (saramsCancelados.includes(m.saram)) return true;
+  return false;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ABA 1: SOLICITAR AGENDAMENTO (FILTRO RIGOROSO DE ELEGIBILIDADE)
    ══════════════════════════════════════════════════════════════ */
 function renderizarFormularioMilitar() {
   const selMilitar = document.getElementById('selMilitar');
-  selMilitar.innerHTML = '<option value="">— selecione seu nome —</option>';
+  selMilitar.innerHTML = '';
 
   const datas = temporadaAtual?.datas_aplicacao || [];
   const datasCanceladas = temporadaAtual?.datas_canceladas || [];
@@ -1693,34 +1737,65 @@ function renderizarFormularioMilitar() {
   const statusTemp = temporadaAtual?.status || 'agendamento_fechado';
   const tituloTemp = temporadaAtual?.titulo || obterTituloTemporadaPadrao();
 
-  // FILTRA E INIBE R1 TOTALMENTE
-  listaEfetivo.filter(m => !m.isR1).forEach(m => {
-    const sol = solicitacoesMap[m.saram];
-    const isAfetadoCancelamento = sol && (sol.dia_anterior_cancelado || (sol.dia_escalado && datasCanceladas.includes(sol.dia_escalado)));
-    const tagReagendar = isAfetadoCancelamento ? ' [⚠️ REAGENDAMENTO]' : '';
-    const opt = document.createElement('option');
-    opt.value = m.saram;
-    opt.textContent = `${m.posto} ${m.nomeGuerra} (SARAM ${m.saram})${tagReagendar}`;
-    selMilitar.appendChild(opt);
-  });
+  // FILTRAGEM RIGOROSA DE NOMES SELECIONÁVEIS:
+  // 1. Na segunda onda (agendamento_parcial): APENAS novos elegíveis (ou seja, os que estavam em dias cancelados)
+  // 2. Na primeira onda (agendamento_aberto): APENAS o pessoal elegível (excluindo os que já realizaram o teste)
+  // 3. Demais fases (escala_gerada / encerrado): militares elegíveis para visualização de comprovante
+  let listaParaSelect = [];
+
+  if (statusTemp === 'agendamento_parcial') {
+    listaParaSelect = listaEfetivo.filter(m => {
+      if (!isMilitarElegivelTACF(m)) return false;
+      const sol = solicitacoesMap[m.saram];
+      if (sol && sol.status_solicitacao === 'realizou') return false;
+      return isMilitarCanceladoSegundaOnda(m);
+    });
+  } else if (statusTemp === 'agendamento_aberto') {
+    listaParaSelect = listaEfetivo.filter(m => {
+      if (!isMilitarElegivelTACF(m)) return false;
+      const sol = solicitacoesMap[m.saram];
+      if (sol && sol.status_solicitacao === 'realizou') return false;
+      return true;
+    });
+  } else {
+    // Modo consulta de escala oficial ou histórico
+    listaParaSelect = listaEfetivo.filter(m => isMilitarElegivelTACF(m));
+  }
+
+  // Ordena por antiguidade
+  listaParaSelect.sort((a, b) => (a.antiguidade || 999) - (b.antiguidade || 999));
+
+  if (listaParaSelect.length === 0) {
+    if (statusTemp === 'agendamento_parcial') {
+      selMilitar.innerHTML = '<option value="">— Nenhum militar com data cancelada para reagendamento —</option>';
+    } else if (statusTemp === 'agendamento_aberto') {
+      selMilitar.innerHTML = '<option value="">— Nenhum militar elegível pendente —</option>';
+    } else {
+      selMilitar.innerHTML = '<option value="">— selecione seu nome —</option>';
+    }
+  } else {
+    if (statusTemp === 'agendamento_parcial') {
+      selMilitar.innerHTML = '<option value="">— selecione seu nome para reagendamento (Dias Extras) —</option>';
+    } else {
+      selMilitar.innerHTML = '<option value="">— selecione seu nome —</option>';
+    }
+
+    listaParaSelect.forEach(m => {
+      const isAfetadoCancelamento = isMilitarCanceladoSegundaOnda(m);
+      const tagReagendar = (statusTemp === 'agendamento_parcial' || isAfetadoCancelamento) ? ' [🔄 REAGENDAMENTO]' : '';
+      const opt = document.createElement('option');
+      opt.value = m.saram;
+      opt.textContent = `${m.posto} ${m.nomeGuerra} (SARAM ${m.saram})${tagReagendar}`;
+      selMilitar.appendChild(opt);
+    });
+  }
 
   const msgStatus = document.getElementById('msgStatusTemporada');
   const formSol = document.getElementById('formSolicitacao');
   const btnEnviar = document.getElementById('btnEnviarSolicitacao');
 
   // Calcular quantos faltam para exibição no banner público
-  const elegiveis = listaEfetivo.filter(m => {
-    const sol = solicitacoesMap[m.saram];
-    if (m.isR1) return false;
-    if (sol && (
-      sol.status_elegibilidade === 'baixa' || 
-      sol.status_elegibilidade === 'dispensa' || 
-      sol.status_elegibilidade === 'missao' || 
-      sol.status_elegibilidade === 'r1_reserva' || 
-      sol.status_solicitacao === 'nao_realizou'
-    )) return false;
-    return true;
-  });
+  const elegiveis = listaEfetivo.filter(m => isMilitarElegivelTACF(m));
   const elegiveisCount = elegiveis.length;
   const solicitadosCount = elegiveis.filter(m => {
     const sol = solicitacoesMap[m.saram];
@@ -1750,6 +1825,14 @@ function renderizarFormularioMilitar() {
     formSol.style.display = 'block';
     if (btnEnviar) btnEnviar.style.display = 'inline-flex';
   } else if (statusTemp === 'agendamento_parcial') {
+    const canceladosSegundaOnda = listaEfetivo.filter(m => isMilitarElegivelTACF(m) && isMilitarCanceladoSegundaOnda(m));
+    const totalCanceladosOnda = canceladosSegundaOnda.length;
+    const reagendadosPreenchidos = canceladosSegundaOnda.filter(m => {
+      const sol = solicitacoesMap[m.saram];
+      return sol && sol.prio1_data && !datasCanceladas.includes(sol.prio1_data);
+    }).length;
+    const faltamReagendar = Math.max(0, totalCanceladosOnda - reagendadosPreenchidos);
+
     msgStatus.className = 'faixaMsg alerta';
     msgStatus.style.background = 'rgba(245, 158, 11, 0.15)';
     msgStatus.style.borderColor = 'rgba(245, 158, 11, 0.4)';
@@ -1758,10 +1841,13 @@ function renderizarFormularioMilitar() {
     msgStatus.innerHTML = `
       <div style="flex:1;">
         <div style="font-weight:700; font-size:0.95rem; margin-bottom:0.25rem;">
-          ⚡ SOLICITAÇÃO PARCIAL ABERTA (DIAS EXTRAS & REAGENDAMENTO) — TACF ${tituloTemp}
+          ⚡ SEGUNDA ONDA: SOLICITAÇÃO PARCIAL (DIAS EXTRAS & REAGENDAMENTO) — TACF ${tituloTemp}
         </div>
         <div style="font-size:0.88rem; line-height:1.4;">
-          O agendamento está <b>aberto para solicitação parcial</b>: militares afetados por datas canceladas ou pendentes podem registrar novas escolhas entre as <b>datas extras disponíveis</b>.
+          O agendamento está <b>aberto exclusivamente para militares de datas canceladas</b> escolherem entre as <b>novas datas extras disponíveis</b>.
+          <span style="display:inline-block; margin-top:4px; background:rgba(239,68,68,0.25); color:#fca5a5; padding:2px 8px; border-radius:4px; font-weight:bold; border:1px solid rgba(239,68,68,0.45);">
+            🔄 <b>${totalCanceladosOnda} militar(es)</b> elegíveis para reagendamento | <b>${faltamReagendar}</b> ainda não enviaram nova escolha
+          </span>
         </div>
       </div>
     `;
@@ -1854,6 +1940,22 @@ function aoSelecionarMilitar(saram) {
     renderizarListaIndisponibilidadesForm();
     return;
   }
+
+  // Validação de elegibilidade no ato da seleção
+  if (!isMilitarElegivelTACF(m)) {
+    Swal.fire('Militar Não Elegível', `O militar ${m.posto} ${m.nomeGuerra} possui impedimento/dispensa para realização do TACF nesta temporada.`, 'warning');
+    document.getElementById('selMilitar').value = '';
+    aoSelecionarMilitar('');
+    return;
+  }
+
+  if (temporadaAtual?.status === 'agendamento_parcial' && !isMilitarCanceladoSegundaOnda(m)) {
+    Swal.fire('Não Elegível para a 2ª Onda', `Nesta fase de solicitação parcial, apenas militares afetados por datas canceladas estão liberados para realizar nova solicitação.`, 'info');
+    document.getElementById('selMilitar').value = '';
+    aoSelecionarMilitar('');
+    return;
+  }
+
   document.getElementById('txtSaram').value = m.saram;
   document.getElementById('txtPosto').value = `${m.posto} ${m.esp ? '(' + m.esp + ')' : ''}`;
 
@@ -1861,12 +1963,13 @@ function aoSelecionarMilitar(saram) {
   const sol = solicitacoesMap[saram];
 
   if (sol) {
-    const diaCanc = sol.dia_anterior_cancelado || (sol.dia_escalado && datasCanceladas.includes(sol.dia_escalado) ? sol.dia_escalado : null);
+    const diaCanc = sol.dia_anterior_cancelado || (sol.dia_escalado && datasCanceladas.includes(sol.dia_escalado) ? sol.dia_escalado : null) || (temporadaAtual?.sarams_cancelados?.includes(saram) ? 'anterior' : null);
     if (diaCanc && avisoCanceladoEl) {
+      const rotuloDia = (diaCanc && diaCanc !== 'anterior' && diaCanc !== 'cancelado') ? `(<b>${formatarDataBR(diaCanc)}</b>)` : '';
       avisoCanceladoEl.style.display = 'flex';
       avisoCanceladoEl.innerHTML = `
         <div>
-          <b>⚠️ Data Cancelada:</b> Seu dia anterior agendado (<b>${formatarDataBR(diaCanc)}</b>) foi <b>cancelado pela organização</b>.<br/>
+          <b>⚠️ Data Cancelada:</b> Seu agendamento anterior ${rotuloDia} foi <b>cancelado pela organização</b>.<br/>
           Selecione abaixo suas 3 opções de preferência entre os <b>dias extras</b> disponíveis para realizar sua nova solicitação.
         </div>
       `;
@@ -1997,6 +2100,14 @@ async function salvarSolicitacaoMilitar() {
   const m = listaEfetivo.find(x => x.saram === saram);
   if (!m || !temporadaAtual) return;
 
+  if (!isMilitarElegivelTACF(m)) {
+    return Swal.fire('Não Elegível', 'Este militar não possui status elegível para agendamento no TACF.', 'warning');
+  }
+
+  if (temporadaAtual.status === 'agendamento_parcial' && !isMilitarCanceladoSegundaOnda(m)) {
+    return Swal.fire('Atenção', 'Na segunda onda (solicitação parcial), apenas militares de datas canceladas estão liberados para realizar nova solicitação.', 'warning');
+  }
+
   const existente = solicitacoesMap[saram] || {};
 
   const payload = {
@@ -2028,6 +2139,8 @@ async function salvarSolicitacaoMilitar() {
       solicitacoesMap[saram] = data[0];
       exibirComprovanteMilitar(data[0], m);
       atualizarKpisEContadores();
+      renderizarFormularioMilitar();
+      document.getElementById('selMilitar').value = saram;
       Swal.fire('Sucesso', 'Sua solicitação de agendamento foi salva!', 'success');
     }
   } catch (e) {
@@ -2487,6 +2600,11 @@ async function finalizarDiasExtrasModal() {
     } catch(e) { obsObj = {}; }
     obsObj.datas_canceladas = temporadaAtual.datas_canceladas;
     obsObj.datas_extras = temporadaAtual.datas_extras;
+    if (reagendarAtivo && militaresAfetados.length > 0) {
+      const novosSarams = militaresAfetados.map(s => s.saram);
+      obsObj.sarams_cancelados = Array.from(new Set([...(obsObj.sarams_cancelados || []), ...novosSarams]));
+      temporadaAtual.sarams_cancelados = obsObj.sarams_cancelados;
+    }
     temporadaAtual.observacoes = JSON.stringify(obsObj);
 
     const updatePayload = {
@@ -4394,6 +4512,7 @@ async function alterarElegibilidadeMilitar(saram, novoStatus) {
       atualizarKpisEContadores();
       renderizarTabelaSecretaria();
       renderizarEscalaHorizontal();
+      renderizarFormularioMilitar();
 
       const toast = Swal.mixin({
         toast: true,
