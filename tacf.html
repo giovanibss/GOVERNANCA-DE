@@ -1631,14 +1631,15 @@ async function carregarSolicitacoes() {
     solicitacoesMap = {};
     if (data) {
       data.forEach(s => {
-        solicitacoesMap[s.saram] = s;
+        registrarSolicitacaoNoMap(s);
       });
     }
 
     if (temporadaAtual && Array.isArray(temporadaAtual.sarams_cancelados)) {
       temporadaAtual.sarams_cancelados.forEach(saram => {
-        if (solicitacoesMap[saram] && !solicitacoesMap[saram].dia_anterior_cancelado) {
-          solicitacoesMap[saram].dia_anterior_cancelado = 'cancelado';
+        const sol = obterSolicitacaoMilitar(saram);
+        if (sol && !sol.dia_anterior_cancelado) {
+          sol.dia_anterior_cancelado = 'cancelado';
         }
       });
     }
@@ -1652,7 +1653,7 @@ async function carregarSolicitacoes() {
    ══════════════════════════════════════════════════════════════ */
 function atualizarKpisEContadores() {
   const elegiveis = listaEfetivo.filter(m => {
-    const sol = solicitacoesMap[m.saram];
+    const sol = obterSolicitacaoMilitar(m.saram);
     if (m.isR1) return false;
     if (sol && (
       sol.status_elegibilidade === 'baixa' || 
@@ -1665,12 +1666,13 @@ function atualizarKpisEContadores() {
   });
 
   const solicitadosCount = elegiveis.filter(m => {
-    const sol = solicitacoesMap[m.saram];
+    const sol = obterSolicitacaoMilitar(m.saram);
     return sol && sol.prio1_data;
   }).length;
   const faltamCount = Math.max(0, elegiveis.length - solicitadosCount);
-  const realizadosCount = Object.values(solicitacoesMap).filter(s => s.status_solicitacao === 'realizou').length;
-  const naoEfetuaramCount = Object.values(solicitacoesMap).filter(s =>
+  const solsUnicas = obterTodasSolicitacoesUnicas();
+  const realizadosCount = solsUnicas.filter(s => s.status_solicitacao === 'realizou').length;
+  const naoEfetuaramCount = solsUnicas.filter(s =>
     s.status_elegibilidade === 'baixa' || 
     s.status_elegibilidade === 'dispensa' || 
     s.status_elegibilidade === 'missao' || 
@@ -1694,9 +1696,47 @@ function atualizarKpisEContadores() {
 /* ══════════════════════════════════════════════════════════════
    HELPERS DE ELEGIBILIDADE E REAGENDAMENTO TACF
    ══════════════════════════════════════════════════════════════ */
+function normalizarDataYMD(d) {
+  if (!d) return '';
+  return String(d).split('T')[0].trim();
+}
+
+function registrarSolicitacaoNoMap(s) {
+  if (!s || !s.saram) return;
+  solicitacoesMap[s.saram] = s;
+  const limpo = String(s.saram).replace(/\D/g, '');
+  if (limpo) {
+    solicitacoesMap[limpo.padStart(7, '0')] = s;
+    solicitacoesMap[limpo.replace(/^0+/, '')] = s;
+  }
+}
+
+function obterTodasSolicitacoesUnicas() {
+  const seen = new Set();
+  const unicas = [];
+  for (const sol of Object.values(solicitacoesMap)) {
+    if (sol && sol.saram) {
+      const saramPuro = String(sol.saram).replace(/\D/g, '');
+      if (!seen.has(saramPuro)) {
+        seen.add(saramPuro);
+        unicas.push(sol);
+      }
+    }
+  }
+  return unicas;
+}
+
+function obterSolicitacaoMilitar(saram) {
+  if (!saram) return null;
+  if (solicitacoesMap[saram]) return solicitacoesMap[saram];
+  const limpo = String(saram).replace(/\D/g, '');
+  if (!limpo) return null;
+  return solicitacoesMap[limpo.padStart(7, '0')] || solicitacoesMap[limpo.replace(/^0+/, '')] || null;
+}
+
 function isMilitarElegivelTACF(m) {
   if (!m || m.isR1) return false;
-  const sol = solicitacoesMap[m.saram];
+  const sol = obterSolicitacaoMilitar(m.saram);
   if (sol) {
     if (
       sol.status_elegibilidade === 'baixa' || 
@@ -1714,13 +1754,49 @@ function isMilitarElegivelTACF(m) {
 
 function isMilitarCanceladoSegundaOnda(m) {
   if (!m) return false;
-  const sol = solicitacoesMap[m.saram];
-  const datasCanceladas = temporadaAtual?.datas_canceladas || [];
-  const saramsCancelados = temporadaAtual?.sarams_cancelados || [];
+  const sol = obterSolicitacaoMilitar(m.saram);
+  if (sol && (sol.status_solicitacao === 'realizou' || sol.status_elegibilidade === 'realizou')) return false;
 
+  const datasCanceladas = (temporadaAtual?.datas_canceladas || []).map(normalizarDataYMD);
+  const saramsCancelados = (temporadaAtual?.sarams_cancelados || []).map(s => String(s).replace(/\D/g, ''));
+  const saramMilitarLimpo = String(m.saram || '').replace(/\D/g, '');
+
+  // 1. Está registrado explicitamente com dia anterior cancelado
   if (sol && sol.dia_anterior_cancelado) return true;
-  if (sol && sol.dia_escalado && datasCanceladas.includes(sol.dia_escalado)) return true;
-  if (saramsCancelados.includes(m.saram)) return true;
+
+  // 2. Dia escalado atual é uma das datas canceladas
+  const diaEscNorm = sol?.dia_escalado ? normalizarDataYMD(sol.dia_escalado) : '';
+  if (diaEscNorm && datasCanceladas.includes(diaEscNorm)) return true;
+
+  // 3. SARAM consta na lista de cancelados da temporada
+  if (saramsCancelados.includes(saramMilitarLimpo)) return true;
+
+  // 4. Justificativa menciona cancelamento ou reagendamento
+  if (sol && sol.justificativa && /cancelad|reagend/i.test(sol.justificativa)) return true;
+
+  // 5. Alguma das opções solicitadas (prio1, prio2, prio3) era em data cancelada
+  const p1 = sol?.prio1_data ? normalizarDataYMD(sol.prio1_data) : '';
+  const p2 = sol?.prio2_data ? normalizarDataYMD(sol.prio2_data) : '';
+  const p3 = sol?.prio3_data ? normalizarDataYMD(sol.prio3_data) : '';
+  if (
+    (p1 && datasCanceladas.includes(p1)) ||
+    (p2 && datasCanceladas.includes(p2)) ||
+    (p3 && datasCanceladas.includes(p3))
+  ) {
+    return true;
+  }
+
+  // 6. Regra Geral da Segunda Onda:
+  // Se a temporada possui datas canceladas e o militar elegível NÃO possui vaga confirmada em data ativa:
+  // (Ou seja, seu dia foi cancelado e desalocado, ou está pendente para os dias extras)
+  if (datasCanceladas.length > 0) {
+    const datasAtivas = (temporadaAtual?.datas_aplicacao || []).map(normalizarDataYMD).filter(d => !datasCanceladas.includes(d));
+    const isConfirmadoEmDataAtiva = Boolean(diaEscNorm && datasAtivas.includes(diaEscNorm));
+    if (!isConfirmadoEmDataAtiva) {
+      return true;
+    }
+  }
+
   return false;
 }
 
@@ -1731,14 +1807,14 @@ function renderizarFormularioMilitar() {
   const selMilitar = document.getElementById('selMilitar');
   selMilitar.innerHTML = '';
 
-  const datas = temporadaAtual?.datas_aplicacao || [];
-  const datasCanceladas = temporadaAtual?.datas_canceladas || [];
-  const datasExtras = temporadaAtual?.datas_extras || [];
+  const datas = (temporadaAtual?.datas_aplicacao || []).map(normalizarDataYMD);
+  const datasCanceladas = (temporadaAtual?.datas_canceladas || []).map(normalizarDataYMD);
+  const datasExtras = (temporadaAtual?.datas_extras || []).map(normalizarDataYMD);
   const statusTemp = temporadaAtual?.status || 'agendamento_fechado';
   const tituloTemp = temporadaAtual?.titulo || obterTituloTemporadaPadrao();
 
   // FILTRAGEM RIGOROSA DE NOMES SELECIONÁVEIS:
-  // 1. Na segunda onda (agendamento_parcial): APENAS novos elegíveis (ou seja, os que estavam em dias cancelados)
+  // 1. Na segunda onda (agendamento_parcial): APENAS novos elegíveis (ou seja, os de dias cancelados e pendentes de vaga ativa)
   // 2. Na primeira onda (agendamento_aberto): APENAS o pessoal elegível (excluindo os que já realizaram o teste)
   // 3. Demais fases (escala_gerada / encerrado): militares elegíveis para visualização de comprovante
   let listaParaSelect = [];
@@ -1746,15 +1822,15 @@ function renderizarFormularioMilitar() {
   if (statusTemp === 'agendamento_parcial') {
     listaParaSelect = listaEfetivo.filter(m => {
       if (!isMilitarElegivelTACF(m)) return false;
-      const sol = solicitacoesMap[m.saram];
-      if (sol && sol.status_solicitacao === 'realizou') return false;
+      const sol = obterSolicitacaoMilitar(m.saram);
+      if (sol && (sol.status_solicitacao === 'realizou' || sol.status_elegibilidade === 'realizou')) return false;
       return isMilitarCanceladoSegundaOnda(m);
     });
   } else if (statusTemp === 'agendamento_aberto') {
     listaParaSelect = listaEfetivo.filter(m => {
       if (!isMilitarElegivelTACF(m)) return false;
-      const sol = solicitacoesMap[m.saram];
-      if (sol && sol.status_solicitacao === 'realizou') return false;
+      const sol = obterSolicitacaoMilitar(m.saram);
+      if (sol && (sol.status_solicitacao === 'realizou' || sol.status_elegibilidade === 'realizou')) return false;
       return true;
     });
   } else {
@@ -1767,7 +1843,7 @@ function renderizarFormularioMilitar() {
 
   if (listaParaSelect.length === 0) {
     if (statusTemp === 'agendamento_parcial') {
-      selMilitar.innerHTML = '<option value="">— Nenhum militar com data cancelada para reagendamento —</option>';
+      selMilitar.innerHTML = '<option value="">— Nenhum militar pendente de reagendamento nesta onda —</option>';
     } else if (statusTemp === 'agendamento_aberto') {
       selMilitar.innerHTML = '<option value="">— Nenhum militar elegível pendente —</option>';
     } else {
@@ -1780,9 +1856,25 @@ function renderizarFormularioMilitar() {
       selMilitar.innerHTML = '<option value="">— selecione seu nome —</option>';
     }
 
+    const datasCanceladasNorm = (temporadaAtual?.datas_canceladas || []).map(normalizarDataYMD);
+
     listaParaSelect.forEach(m => {
-      const isAfetadoCancelamento = isMilitarCanceladoSegundaOnda(m);
-      const tagReagendar = (statusTemp === 'agendamento_parcial' || isAfetadoCancelamento) ? ' [🔄 REAGENDAMENTO]' : '';
+      const sol = obterSolicitacaoMilitar(m.saram);
+      const diaEscNorm = sol?.dia_escalado ? normalizarDataYMD(sol.dia_escalado) : '';
+      const p1Norm = sol?.prio1_data ? normalizarDataYMD(sol.prio1_data) : '';
+
+      const isDeDataCancelada = Boolean(
+        (sol && sol.dia_anterior_cancelado) ||
+        (diaEscNorm && datasCanceladasNorm.includes(diaEscNorm)) ||
+        (p1Norm && datasCanceladasNorm.includes(p1Norm)) ||
+        (sol && sol.justificativa && /cancelad/i.test(sol.justificativa))
+      );
+
+      let tagReagendar = '';
+      if (statusTemp === 'agendamento_parcial') {
+        tagReagendar = isDeDataCancelada ? ' [🔄 REAGENDAMENTO (Data Cancelada)]' : ' [⭐ VAGA EXTRA]';
+      }
+
       const opt = document.createElement('option');
       opt.value = m.saram;
       opt.textContent = `${m.posto} ${m.nomeGuerra} (SARAM ${m.saram})${tagReagendar}`;
@@ -1798,7 +1890,7 @@ function renderizarFormularioMilitar() {
   const elegiveis = listaEfetivo.filter(m => isMilitarElegivelTACF(m));
   const elegiveisCount = elegiveis.length;
   const solicitadosCount = elegiveis.filter(m => {
-    const sol = solicitacoesMap[m.saram];
+    const sol = obterSolicitacaoMilitar(m.saram);
     return sol && sol.prio1_data;
   }).length;
   const faltamCount = Math.max(0, elegiveisCount - solicitadosCount);
@@ -1827,9 +1919,11 @@ function renderizarFormularioMilitar() {
   } else if (statusTemp === 'agendamento_parcial') {
     const canceladosSegundaOnda = listaEfetivo.filter(m => isMilitarElegivelTACF(m) && isMilitarCanceladoSegundaOnda(m));
     const totalCanceladosOnda = canceladosSegundaOnda.length;
+    const datasCanceladasNorm = (temporadaAtual?.datas_canceladas || []).map(normalizarDataYMD);
     const reagendadosPreenchidos = canceladosSegundaOnda.filter(m => {
-      const sol = solicitacoesMap[m.saram];
-      return sol && sol.prio1_data && !datasCanceladas.includes(sol.prio1_data);
+      const sol = obterSolicitacaoMilitar(m.saram);
+      const p1 = sol?.prio1_data ? normalizarDataYMD(sol.prio1_data) : '';
+      return p1 && !datasCanceladasNorm.includes(p1);
     }).length;
     const faltamReagendar = Math.max(0, totalCanceladosOnda - reagendadosPreenchidos);
 
@@ -1844,9 +1938,9 @@ function renderizarFormularioMilitar() {
           ⚡ SEGUNDA ONDA: SOLICITAÇÃO PARCIAL (DIAS EXTRAS & REAGENDAMENTO) — TACF ${tituloTemp}
         </div>
         <div style="font-size:0.88rem; line-height:1.4;">
-          O agendamento está <b>aberto exclusivamente para militares de datas canceladas</b> escolherem entre as <b>novas datas extras disponíveis</b>.
+          O agendamento está <b>aberto para os militares de datas canceladas e elegíveis sem vaga confirmada</b> escolherem entre as <b>novas datas extras disponíveis</b>.
           <span style="display:inline-block; margin-top:4px; background:rgba(239,68,68,0.25); color:#fca5a5; padding:2px 8px; border-radius:4px; font-weight:bold; border:1px solid rgba(239,68,68,0.45);">
-            🔄 <b>${totalCanceladosOnda} militar(es)</b> elegíveis para reagendamento | <b>${faltamReagendar}</b> ainda não enviaram nova escolha
+            🔄 <b>${totalCanceladosOnda} militar(es)</b> elegíveis nesta onda | <b>${faltamReagendar}</b> ainda não enviaram nova escolha
           </span>
         </div>
       </div>
@@ -1959,11 +2053,17 @@ function aoSelecionarMilitar(saram) {
   document.getElementById('txtSaram').value = m.saram;
   document.getElementById('txtPosto').value = `${m.posto} ${m.esp ? '(' + m.esp + ')' : ''}`;
 
-  const datasCanceladas = temporadaAtual?.datas_canceladas || [];
-  const sol = solicitacoesMap[saram];
+  const datasCanceladas = (temporadaAtual?.datas_canceladas || []).map(normalizarDataYMD);
+  const sol = obterSolicitacaoMilitar(saram);
 
   if (sol) {
-    const diaCanc = sol.dia_anterior_cancelado || (sol.dia_escalado && datasCanceladas.includes(sol.dia_escalado) ? sol.dia_escalado : null) || (temporadaAtual?.sarams_cancelados?.includes(saram) ? 'anterior' : null);
+    const diaAntCanceladoNorm = normalizarDataYMD(sol.dia_anterior_cancelado);
+    const diaEscNorm = normalizarDataYMD(sol.dia_escalado);
+    const saramPuro = String(saram).replace(/\D/g, '');
+    const saramsCanc = (temporadaAtual?.sarams_cancelados || []).map(s => String(s).replace(/\D/g, ''));
+    const isSaramNaListaCanc = saramsCanc.includes(saramPuro);
+
+    const diaCanc = diaAntCanceladoNorm || (diaEscNorm && datasCanceladas.includes(diaEscNorm) ? diaEscNorm : null) || (isSaramNaListaCanc ? 'anterior' : null);
     if (diaCanc && avisoCanceladoEl) {
       const rotuloDia = (diaCanc && diaCanc !== 'anterior' && diaCanc !== 'cancelado') ? `(<b>${formatarDataBR(diaCanc)}</b>)` : '';
       avisoCanceladoEl.style.display = 'flex';
@@ -1978,9 +2078,12 @@ function aoSelecionarMilitar(saram) {
     }
 
     // Pré-preenche se as prioridades anteriores forem datas válidas (não canceladas)
-    document.getElementById('selPrio1').value = (sol.prio1_data && !datasCanceladas.includes(sol.prio1_data)) ? sol.prio1_data : '';
-    document.getElementById('selPrio2').value = (sol.prio2_data && !datasCanceladas.includes(sol.prio2_data)) ? sol.prio2_data : '';
-    document.getElementById('selPrio3').value = (sol.prio3_data && !datasCanceladas.includes(sol.prio3_data)) ? sol.prio3_data : '';
+    const p1Norm = normalizarDataYMD(sol.prio1_data);
+    const p2Norm = normalizarDataYMD(sol.prio2_data);
+    const p3Norm = normalizarDataYMD(sol.prio3_data);
+    document.getElementById('selPrio1').value = (p1Norm && !datasCanceladas.includes(p1Norm)) ? p1Norm : '';
+    document.getElementById('selPrio2').value = (p2Norm && !datasCanceladas.includes(p2Norm)) ? p2Norm : '';
+    document.getElementById('selPrio3').value = (p3Norm && !datasCanceladas.includes(p3Norm)) ? p3Norm : '';
 
     indisponibilidadesAdicionadasForm = Array.isArray(sol.indisponibilidades) ? [...sol.indisponibilidades] : [];
     renderizarListaIndisponibilidadesForm();
@@ -2108,7 +2211,7 @@ async function salvarSolicitacaoMilitar() {
     return Swal.fire('Atenção', 'Na segunda onda (solicitação parcial), apenas militares de datas canceladas estão liberados para realizar nova solicitação.', 'warning');
   }
 
-  const existente = solicitacoesMap[saram] || {};
+  const existente = obterSolicitacaoMilitar(saram) || {};
 
   const payload = {
     ...existente,
@@ -2136,7 +2239,7 @@ async function salvarSolicitacaoMilitar() {
     if (error) throw error;
 
     if (data && data[0]) {
-      solicitacoesMap[saram] = data[0];
+      registrarSolicitacaoNoMap(data[0]);
       exibirComprovanteMilitar(data[0], m);
       atualizarKpisEContadores();
       renderizarFormularioMilitar();
@@ -2201,9 +2304,9 @@ function renderizarPainelSecretaria() {
 function renderizarBadgesDatas() {
   const container = document.getElementById('listaBadgeDatas');
   container.innerHTML = '';
-  const datas = temporadaAtual?.datas_aplicacao || [];
-  const datasCanceladas = temporadaAtual?.datas_canceladas || [];
-  const datasExtras = temporadaAtual?.datas_extras || [];
+  const datas = (temporadaAtual?.datas_aplicacao || []).map(normalizarDataYMD);
+  const datasCanceladas = (temporadaAtual?.datas_canceladas || []).map(normalizarDataYMD);
+  const datasExtras = (temporadaAtual?.datas_extras || []).map(normalizarDataYMD);
 
   if (!datas.length) {
     container.innerHTML = '<span style="font-size:0.8rem; color:var(--texto-3);">Nenhuma data cadastrada.</span>';
@@ -2386,17 +2489,19 @@ function renderizarListaDiasParaCancelar() {
   if (!container) return;
   container.innerHTML = '';
 
-  const datas = temporadaAtual?.datas_aplicacao || [];
-  const datasCanceladasAtuais = temporadaAtual?.datas_canceladas || [];
+  const datas = (temporadaAtual?.datas_aplicacao || []).map(normalizarDataYMD);
+  const datasCanceladasAtuais = (temporadaAtual?.datas_canceladas || []).map(normalizarDataYMD);
 
   if (!datas.length) {
     container.innerHTML = '<div style="color:var(--texto-3); font-size:0.8rem;">Nenhuma data cadastrada na temporada.</div>';
     return;
   }
 
+  const solsUnicas = obterTodasSolicitacoesUnicas();
+
   datas.forEach(dStr => {
     const isJaCancelada = datasCanceladasAtuais.includes(dStr);
-    const escalados = Object.values(solicitacoesMap).filter(s => s.dia_escalado === dStr);
+    const escalados = solsUnicas.filter(s => normalizarDataYMD(s.dia_escalado) === dStr);
     const count = escalados.length;
     const nomesPreview = escalados.map(s => `${s.posto_grad} ${s.nome_guerra}`).slice(0, 3).join(', ') + (count > 3 ? '...' : '');
 
@@ -2427,11 +2532,12 @@ function atualizarContadorCanceladosReagendar() {
   if (!avisoCont) return;
 
   const chks = document.querySelectorAll('.chkDiaCancelarItem:checked');
-  const datasSelecionadas = Array.from(chks).map(c => c.value);
+  const datasSelecionadas = Array.from(chks).map(c => normalizarDataYMD(c.value));
 
   let totalAfetados = 0;
+  const solsUnicas = obterTodasSolicitacoesUnicas();
   datasSelecionadas.forEach(dStr => {
-    const escalados = Object.values(solicitacoesMap).filter(s => s.dia_escalado === dStr && s.status_solicitacao !== 'realizou');
+    const escalados = solsUnicas.filter(s => normalizarDataYMD(s.dia_escalado) === dStr && s.status_solicitacao !== 'realizou');
     totalAfetados += escalados.length;
   });
 
@@ -2456,19 +2562,20 @@ function adicionarDiaExtraNaListaModal() {
     return Swal.fire('Atenção', 'Selecione uma data para adicionar como dia extra.', 'warning');
   }
 
-  const datasExistentes = temporadaAtual?.datas_aplicacao || [];
-  if (datasExistentes.includes(dVal) || novosDiasExtrasLista.includes(dVal)) {
+  const datasExistentes = (temporadaAtual?.datas_aplicacao || []).map(normalizarDataYMD);
+  const dNorm = normalizarDataYMD(dVal);
+  if (datasExistentes.includes(dNorm) || novosDiasExtrasLista.map(normalizarDataYMD).includes(dNorm)) {
     return Swal.fire('Aviso', 'Esta data já está cadastrada no calendário.', 'warning');
   }
 
-  novosDiasExtrasLista.push(dVal);
+  novosDiasExtrasLista.push(dNorm);
   novosDiasExtrasLista.sort();
   inputEl.value = '';
   renderizarChipsDiasExtrasModal();
 }
 
 function removerDiaExtraDaListaModal(dStr) {
-  novosDiasExtrasLista = novosDiasExtrasLista.filter(d => d !== dStr);
+  novosDiasExtrasLista = novosDiasExtrasLista.filter(d => normalizarDataYMD(d) !== normalizarDataYMD(dStr));
   renderizarChipsDiasExtrasModal();
 }
 
@@ -2505,7 +2612,7 @@ async function finalizarDiasExtrasModal() {
   let datasParaCancelar = [];
   if (cancelarAtivo) {
     const chks = document.querySelectorAll('.chkDiaCancelarItem:checked');
-    datasParaCancelar = Array.from(chks).map(c => c.value);
+    datasParaCancelar = Array.from(chks).map(c => normalizarDataYMD(c.value));
   }
 
   if (datasParaCancelar.length === 0 && novosDiasExtrasLista.length === 0) {
@@ -2519,8 +2626,10 @@ async function finalizarDiasExtrasModal() {
   // Identificar militares afetados caso o reagendamento esteja ativo
   const militaresAfetados = [];
   if (reagendarAtivo && datasParaCancelar.length > 0) {
-    Object.values(solicitacoesMap).forEach(s => {
-      if (s.dia_escalado && datasParaCancelar.includes(s.dia_escalado) && s.status_solicitacao !== 'realizou') {
+    const solsUnicas = obterTodasSolicitacoesUnicas();
+    solsUnicas.forEach(s => {
+      const diaEscNorm = s.dia_escalado ? normalizarDataYMD(s.dia_escalado) : '';
+      if (diaEscNorm && datasParaCancelar.includes(diaEscNorm) && s.status_solicitacao !== 'realizou') {
         militaresAfetados.push(s);
       }
     });
@@ -2548,16 +2657,16 @@ async function finalizarDiasExtrasModal() {
   if (!confirm.isConfirmed) return;
 
   // 1. Atualizar estrutura de datas da temporada
-  const datasCanceladasAtuais = new Set(temporadaAtual.datas_canceladas || []);
-  datasParaCancelar.forEach(d => datasCanceladasAtuais.add(d));
+  const datasCanceladasAtuais = new Set((temporadaAtual.datas_canceladas || []).map(normalizarDataYMD));
+  datasParaCancelar.forEach(d => datasCanceladasAtuais.add(normalizarDataYMD(d)));
   temporadaAtual.datas_canceladas = Array.from(datasCanceladasAtuais).sort();
 
-  const datasExtrasAtuais = new Set(temporadaAtual.datas_extras || []);
-  novosDiasExtrasLista.forEach(d => datasExtrasAtuais.add(d));
+  const datasExtrasAtuais = new Set((temporadaAtual.datas_extras || []).map(normalizarDataYMD));
+  novosDiasExtrasLista.forEach(d => datasExtrasAtuais.add(normalizarDataYMD(d)));
   temporadaAtual.datas_extras = Array.from(datasExtrasAtuais).sort();
 
-  const todasDatas = new Set(temporadaAtual.datas_aplicacao || []);
-  novosDiasExtrasLista.forEach(d => todasDatas.add(d));
+  const todasDatas = new Set((temporadaAtual.datas_aplicacao || []).map(normalizarDataYMD));
+  novosDiasExtrasLista.forEach(d => todasDatas.add(normalizarDataYMD(d)));
   temporadaAtual.datas_aplicacao = Array.from(todasDatas).sort();
 
   // Define status da temporada para agendamento_parcial
@@ -2572,6 +2681,7 @@ async function finalizarDiasExtrasModal() {
       s.status_solicitacao = 'pendente';
       const nota = `Data anterior (${formatarDataBR(s.dia_anterior_cancelado)}) cancelada pela organização (Reagendamento necessário)`;
       s.justificativa = s.justificativa ? `${s.justificativa} | ${nota}` : nota;
+      registrarSolicitacaoNoMap(s);
     });
 
     try {
@@ -2945,8 +3055,9 @@ async function executarAutofillEscala() {
     return Swal.fire('Erro', 'Não foi possível carregar o efetivo da planilha. Verifique a conexão.', 'error');
   }
 
-  const datasCanceladas = temporadaAtual?.datas_canceladas || [];
+  const datasCanceladas = (temporadaAtual?.datas_canceladas || []).map(normalizarDataYMD);
   const datas = (temporadaAtual?.datas_aplicacao || [])
+    .map(normalizarDataYMD)
     .filter(d => !datasCanceladas.includes(d))
     .sort();
 
@@ -2954,7 +3065,7 @@ async function executarAutofillEscala() {
 
   // 1. VERIFICAR INDISPONIBILIDADES PENDENTES DE ANÁLISE
   let indispPendentesCount = 0;
-  Object.values(solicitacoesMap).forEach(s => {
+  obterTodasSolicitacoesUnicas().forEach(s => {
     if (Array.isArray(s.indisponibilidades)) {
       indispPendentesCount += s.indisponibilidades.filter(i => i.status_deferimento === 'pendente' || !i.status_deferimento).length;
     }
@@ -3366,12 +3477,12 @@ function renderizarBarraNaoAlocados() {
     return;
   }
 
-  const datasCanceladas = temporadaAtual.datas_canceladas || [];
+  const datasCanceladas = (temporadaAtual.datas_canceladas || []).map(normalizarDataYMD);
 
   // Elegíveis que não estão escalados (ou cujo dia escalado foi cancelado)
   const naoAlocados = listaEfetivo.filter(m => {
     if (m.isR1) return false;
-    const sol = solicitacoesMap[m.saram];
+    const sol = obterSolicitacaoMilitar(m.saram);
     if (sol && (
       sol.status_elegibilidade === 'baixa' ||
       sol.status_elegibilidade === 'dispensa' ||
@@ -3382,7 +3493,8 @@ function renderizarBarraNaoAlocados() {
     )) return false;
 
     // Se não tem dia escalado ou se o dia escalado é cancelado
-    if (!sol || !sol.dia_escalado || datasCanceladas.includes(sol.dia_escalado)) return true;
+    const diaEscNorm = sol?.dia_escalado ? normalizarDataYMD(sol.dia_escalado) : '';
+    if (!sol || !diaEscNorm || datasCanceladas.includes(diaEscNorm)) return true;
     return false;
   }).sort((a, b) => a.antiguidade - b.antiguidade);
 
@@ -3398,10 +3510,12 @@ function renderizarBarraNaoAlocados() {
 
   let htmlChips = '';
   naoAlocados.forEach(m => {
-    const sol = solicitacoesMap[m.saram];
+    const sol = obterSolicitacaoMilitar(m.saram);
     const isSelected = (saramMilitarSelecionadoMover === m.saram);
-    const p1Str = sol?.prio1_data ? `P1: ${formatarDataBR(sol.prio1_data)}` : '';
-    const isCanc = sol?.dia_anterior_cancelado;
+    const p1Norm = sol?.prio1_data ? normalizarDataYMD(sol.prio1_data) : '';
+    const p1Str = p1Norm ? `P1: ${formatarDataBR(p1Norm)}` : '';
+    const diaEscNorm = sol?.dia_escalado ? normalizarDataYMD(sol.dia_escalado) : '';
+    const isCanc = sol?.dia_anterior_cancelado || (diaEscNorm && datasCanceladas.includes(diaEscNorm));
 
     htmlChips += `
       <div class="chipMilitarNaoAlocado ${isSelected ? 'selecionadoParaMover' : ''}"
@@ -3440,8 +3554,8 @@ function renderizarBarraNaoAlocados() {
 async function abrirModalAlocacaoManual(saramPre, dataPre) {
   if (!temporadaAtual) return Swal.fire('Aviso', 'Nenhuma temporada ativa encontrada.', 'warning');
 
-  const datas = temporadaAtual.datas_aplicacao || [];
-  const datasCanceladas = temporadaAtual.datas_canceladas || [];
+  const datas = (temporadaAtual.datas_aplicacao || []).map(normalizarDataYMD);
+  const datasCanceladas = (temporadaAtual.datas_canceladas || []).map(normalizarDataYMD);
   const datasAtivas = datas.filter(d => !datasCanceladas.includes(d)).sort();
   const vagasMax = temporadaAtual.vagas_por_dia || 4;
 
@@ -3456,7 +3570,7 @@ async function abrirModalAlocacaoManual(saramPre, dataPre) {
   const escalados = [];
 
   elegiveis.forEach(m => {
-    const sol = solicitacoesMap[m.saram];
+    const sol = obterSolicitacaoMilitar(m.saram);
     if (sol && (
       sol.status_elegibilidade === 'baixa' ||
       sol.status_elegibilidade === 'dispensa' ||
@@ -3465,7 +3579,8 @@ async function abrirModalAlocacaoManual(saramPre, dataPre) {
       sol.status_solicitacao === 'nao_realizou'
     )) return;
 
-    if (!sol || !sol.dia_escalado || datasCanceladas.includes(sol.dia_escalado)) {
+    const diaEscNorm = sol?.dia_escalado ? normalizarDataYMD(sol.dia_escalado) : '';
+    if (!sol || !diaEscNorm || datasCanceladas.includes(diaEscNorm)) {
       naoAlocados.push(m);
     } else {
       escalados.push(m);
@@ -3476,10 +3591,13 @@ async function abrirModalAlocacaoManual(saramPre, dataPre) {
   if (naoAlocados.length > 0) {
     optMilitares += `<optgroup label="⚠️ NÃO ESCALADOS / PENDENTES (${naoAlocados.length})">`;
     naoAlocados.forEach(m => {
-      const sol = solicitacoesMap[m.saram];
+      const sol = obterSolicitacaoMilitar(m.saram);
       const sel = (saramPre && m.saram === saramPre) ? 'selected' : '';
-      const p1 = sol?.prio1_data ? ` [P1: ${formatarDataBR(sol.prio1_data)}]` : '';
-      const canc = sol?.dia_anterior_cancelado ? ` (Cancelado)` : '';
+      const p1Norm = sol?.prio1_data ? normalizarDataYMD(sol.prio1_data) : '';
+      const p1 = p1Norm ? ` [P1: ${formatarDataBR(p1Norm)}]` : '';
+      const diaEscNorm = sol?.dia_escalado ? normalizarDataYMD(sol.dia_escalado) : '';
+      const isCanc = sol?.dia_anterior_cancelado || (diaEscNorm && datasCanceladas.includes(diaEscNorm));
+      const canc = isCanc ? ` (Cancelado)` : '';
       optMilitares += `<option value="${m.saram}" ${sel}>${m.antiguidade}º ${m.posto} ${m.nomeGuerra} (SARAM ${m.saram})${p1}${canc}</option>`;
     });
     optMilitares += '</optgroup>';
@@ -3488,17 +3606,20 @@ async function abrirModalAlocacaoManual(saramPre, dataPre) {
   if (escalados.length > 0) {
     optMilitares += `<optgroup label="JÁ ESCALADOS (${escalados.length})">`;
     escalados.forEach(m => {
-      const sol = solicitacoesMap[m.saram];
+      const sol = obterSolicitacaoMilitar(m.saram);
       const sel = (saramPre && m.saram === saramPre) ? 'selected' : '';
-      optMilitares += `<option value="${m.saram}" ${sel}>${m.antiguidade}º ${m.posto} ${m.nomeGuerra} — Atual: ${formatarDataBR(sol.dia_escalado)}</option>`;
+      const diaEscNorm = sol?.dia_escalado ? normalizarDataYMD(sol.dia_escalado) : '';
+      optMilitares += `<option value="${m.saram}" ${sel}>${m.antiguidade}º ${m.posto} ${m.nomeGuerra} — Atual: ${formatarDataBR(diaEscNorm)}</option>`;
     });
     optMilitares += '</optgroup>';
   }
 
   let optDatas = '<option value="">— selecione a data de aplicação —</option>';
+  const solsUnicas = obterTodasSolicitacoesUnicas();
+  const datasExtrasNorm = (temporadaAtual.datas_extras || []).map(normalizarDataYMD);
   datasAtivas.forEach(d => {
-    const isExtra = (temporadaAtual.datas_extras || []).includes(d);
-    const count = Object.values(solicitacoesMap).filter(s => s.dia_escalado === d && (s.status_solicitacao === 'escalado' || s.status_solicitacao === 'realizou')).length;
+    const isExtra = datasExtrasNorm.includes(d);
+    const count = solsUnicas.filter(s => normalizarDataYMD(s.dia_escalado) === d && (s.status_solicitacao === 'escalado' || s.status_solicitacao === 'realizou')).length;
     const vagasLivresReg = Math.max(0, vagasMax - count);
     const sel = (dataPre && d === dataPre) ? 'selected' : '';
     const statusVagas = count < vagasMax
@@ -3734,7 +3855,7 @@ async function alternarPresencaMilitar(saram, dataStr) {
 function renderizarEscalaHorizontal() {
   const container = document.getElementById('escalaHorizontal');
   container.innerHTML = '';
-  const datas = temporadaAtual?.datas_aplicacao || [];
+  const datas = (temporadaAtual?.datas_aplicacao || []).map(normalizarDataYMD);
   const vagasMax = temporadaAtual?.vagas_por_dia || 4;
 
   if (!datas.length) {
@@ -3743,7 +3864,7 @@ function renderizarEscalaHorizontal() {
   }
 
   if (saramMilitarSelecionadoMover) {
-    const solSel = solicitacoesMap[saramMilitarSelecionadoMover];
+    const solSel = obterSolicitacaoMilitar(saramMilitarSelecionadoMover);
     const mSel = listaEfetivo.find(x => x.saram === saramMilitarSelecionadoMover);
     const nomeSel = mSel ? (mSel.posto + ' ' + mSel.nomeGuerra) : (solSel ? (solSel.posto_grad + ' ' + solSel.nome_guerra) : saramMilitarSelecionadoMover);
     
@@ -3759,16 +3880,17 @@ function renderizarEscalaHorizontal() {
   }
 
   const hojeStr = new Date().toISOString().split('T')[0];
-  const datasCanceladas = temporadaAtual?.datas_canceladas || [];
-  const datasExtras = temporadaAtual?.datas_extras || [];
+  const datasCanceladas = (temporadaAtual?.datas_canceladas || []).map(normalizarDataYMD);
+  const datasExtras = (temporadaAtual?.datas_extras || []).map(normalizarDataYMD);
+  const solsUnicas = obterTodasSolicitacoesUnicas();
 
   datas.forEach(dStr => {
     const isDiaPassado = (dStr < hojeStr);
     const isCancelada = datasCanceladas.includes(dStr);
     const isExtra = datasExtras.includes(dStr);
 
-    const escaladosNoDia = Object.values(solicitacoesMap)
-      .filter(s => s.dia_escalado === dStr && (s.status_solicitacao === 'escalado' || s.status_solicitacao === 'realizou'))
+    const escaladosNoDia = solsUnicas
+      .filter(s => normalizarDataYMD(s.dia_escalado) === dStr && (s.status_solicitacao === 'escalado' || s.status_solicitacao === 'realizou'))
       .sort((a, b) => a.antiguidade_index - b.antiguidade_index);
 
     const col = document.createElement('div');
@@ -4242,7 +4364,7 @@ function renderizarTabelaSecretaria() {
   const filtroEleg = document.getElementById('filtroStatusEleg')?.value || '';
 
   const filtrados = listaEfetivo.filter(m => {
-    const sol = solicitacoesMap[m.saram];
+    const sol = obterSolicitacaoMilitar(m.saram);
     const isMilitarR1 = m.isR1 || sol?.status_elegibilidade === 'r1_reserva';
 
     // Por padrão, esconde militares R1 de qualquer filtro, a menos que o filtro seja especificamente 'r1_reserva'
@@ -4256,8 +4378,9 @@ function renderizarTabelaSecretaria() {
 
     if (filtroEleg) {
       if (filtroEleg === 'reagendamento') {
-        const datasCanceladas = temporadaAtual?.datas_canceladas || [];
-        const isAfetadoCancelamento = sol?.dia_anterior_cancelado || (sol?.dia_escalado && datasCanceladas.includes(sol.dia_escalado));
+        const datasCanceladas = (temporadaAtual?.datas_canceladas || []).map(normalizarDataYMD);
+        const diaEscNorm = sol?.dia_escalado ? normalizarDataYMD(sol.dia_escalado) : '';
+        const isAfetadoCancelamento = sol?.dia_anterior_cancelado || (diaEscNorm && datasCanceladas.includes(diaEscNorm));
         const isPendenteElegivel = (statusSol === 'pendente' && statusEleg === 'elegivel' && !sol?.dia_escalado);
         if (isMilitarR1 || (!isAfetadoCancelamento && !isPendenteElegivel)) return false;
       } else if (filtroEleg === 'elegivel') {
@@ -4294,7 +4417,7 @@ function renderizarTabelaSecretaria() {
 
   filtrados.forEach(m => {
     const tr = document.createElement('tr');
-    const sol = solicitacoesMap[m.saram];
+    const sol = obterSolicitacaoMilitar(m.saram);
 
     // Determina o valor único e mutuamente exclusivo do select
     let valorSelect = 'elegivel';
@@ -4337,7 +4460,7 @@ function renderizarTabelaSecretaria() {
 
     let diaEscStr = '—';
     const isDesalocavel = !isMilitarR1 && valorSelect !== 'baixa' && valorSelect !== 'dispensa' && valorSelect !== 'missao' && valorSelect !== 'realizou' && valorSelect !== 'nao_realizou';
-    const datasCanceladasTab = temporadaAtual?.datas_canceladas || [];
+    const datasCanceladasTab = (temporadaAtual?.datas_canceladas || []).map(normalizarDataYMD);
 
     if (sol && sol.dia_escalado) {
       const rotuloMetodoTab = {
@@ -4354,21 +4477,23 @@ function renderizarTabelaSecretaria() {
         ? `<div style="font-size:0.68rem; color:var(--texto-2); margin-top:0.15rem;">(${rotuloMetodoTab})</div>` 
         : '';
 
-      const isCanc = datasCanceladasTab.includes(sol.dia_escalado);
+      const diaEscNorm = normalizarDataYMD(sol.dia_escalado);
+      const isCanc = datasCanceladasTab.includes(diaEscNorm);
 
       diaEscStr = `
         <div style="display:flex; flex-direction:column; gap:0.25rem;">
-          <div><b>${formatarDataBR(sol.dia_escalado)}</b>${isCanc ? ' <span class="badge rubi" style="font-size:0.62rem;">Cancelado</span>' : ''}${badgeMetodoTab}</div>
+          <div><b>${formatarDataBR(diaEscNorm)}</b>${isCanc ? ' <span class="badge rubi" style="font-size:0.62rem;">Cancelado</span>' : ''}${badgeMetodoTab}</div>
           <div style="display:flex; gap:0.3rem; margin-top:0.2rem;">
-            <button type="button" class="acao mini fantasma" style="padding:0.15rem 0.4rem; font-size:0.68rem;" onclick="abrirModalAlocacaoManual('${m.saram}', '${sol.dia_escalado}')" title="Alterar data na escala">✏️ Alterar</button>
+            <button type="button" class="acao mini fantasma" style="padding:0.15rem 0.4rem; font-size:0.68rem;" onclick="abrirModalAlocacaoManual('${m.saram}', '${diaEscNorm}')" title="Alterar data na escala">✏️ Alterar</button>
             <button type="button" class="acao mini rubi" style="padding:0.15rem 0.4rem; font-size:0.68rem;" onclick="desalocarMilitarManual('${m.saram}')" title="Remover da escala e colocar como não alocado">✕ Desalocar</button>
           </div>
         </div>
       `;
     } else if (isDesalocavel) {
+      const diaAntCancNorm = normalizarDataYMD(sol?.dia_anterior_cancelado);
       diaEscStr = `
         <div style="display:flex; flex-direction:column; gap:0.3rem;">
-          ${sol?.dia_anterior_cancelado ? `<span class="badge rubi" style="font-size:0.62rem;">Cancelado: ${formatarDataBR(sol.dia_anterior_cancelado)}</span>` : '<span style="color:var(--texto-3); font-size:0.75rem;">Não alocado</span>'}
+          ${diaAntCancNorm ? `<span class="badge rubi" style="font-size:0.62rem;">Cancelado: ${formatarDataBR(diaAntCancNorm)}</span>` : '<span style="color:var(--texto-3); font-size:0.75rem;">Não alocado</span>'}
           <button type="button" class="acao mini jade" style="padding:0.2rem 0.45rem; font-size:0.68rem; align-self:flex-start;" onclick="abrirModalAlocacaoManual('${m.saram}')">➕ Alocar Manual</button>
         </div>
       `;
@@ -4410,7 +4535,7 @@ async function salvarJustificativaMilitar(saram, textoJustificativa) {
   const m = listaEfetivo.find(x => x.saram === saram);
   if (!m || !temporadaAtual) return;
 
-  const sol = solicitacoesMap[saram] || {
+  const sol = obterSolicitacaoMilitar(saram) || {
     temporada_id: temporadaAtual.id,
     saram: m.saram,
     posto_grad: m.posto,
@@ -4432,7 +4557,7 @@ async function salvarJustificativaMilitar(saram, textoJustificativa) {
 
     if (error) throw error;
     if (data && data[0]) {
-      solicitacoesMap[saram] = data[0];
+      registrarSolicitacaoNoMap(data[0]);
       const toast = Swal.mixin({
         toast: true,
         position: 'top-end',
@@ -4455,7 +4580,7 @@ async function alterarElegibilidadeMilitar(saram, novoStatus) {
   const m = listaEfetivo.find(x => x.saram === saram);
   if (!m || !temporadaAtual) return;
 
-  const sol = solicitacoesMap[saram] || {
+  const sol = obterSolicitacaoMilitar(saram) || {
     temporada_id: temporadaAtual.id,
     saram: m.saram,
     posto_grad: m.posto,
@@ -4508,7 +4633,7 @@ async function alterarElegibilidadeMilitar(saram, novoStatus) {
 
     if (error) throw error;
     if (data && data[0]) {
-      solicitacoesMap[saram] = data[0];
+      registrarSolicitacaoNoMap(data[0]);
       atualizarKpisEContadores();
       renderizarTabelaSecretaria();
       renderizarEscalaHorizontal();
