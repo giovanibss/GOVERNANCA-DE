@@ -4477,6 +4477,7 @@ async function desalocarMilitarManual(saram) {
 
     if (error) throw error;
 
+    registrarSolicitacaoNoMap(sol);
     renderizarEscalaHorizontal();
     renderizarTabelaSecretaria();
     renderizarBarraNaoAlocados();
@@ -5124,10 +5125,11 @@ function renderizarTabelaSecretaria() {
   filtrados.forEach(m => {
     const tr = document.createElement('tr');
     const sol = obterSolicitacaoMilitar(m.saram);
+    const isMilitarR1 = Boolean(m.isR1 || sol?.status_elegibilidade === 'r1_reserva');
 
     // Determina o valor único e mutuamente exclusivo do select
     let valorSelect = 'elegivel';
-    if (m.isR1 || sol?.status_elegibilidade === 'r1_reserva') {
+    if (isMilitarR1) {
       valorSelect = 'r1_reserva';
     } else if (sol?.status_elegibilidade === 'baixa') {
       valorSelect = 'baixa';
