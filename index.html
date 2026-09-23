@@ -226,6 +226,39 @@ body.cortina .cue{animation-play-state:paused}
   text-transform:uppercase;color:var(--contrail-dim);margin-top:2px;
   text-shadow:0 1px 10px rgba(0,0,0,.5);
 }
+.top-btn-cadastro {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  padding: .38rem .85rem;
+  border-radius: 6px;
+  background: rgba(212, 168, 75, 0.16);
+  border: 1px solid rgba(212, 168, 75, 0.45);
+  color: var(--gold-lt, #ffd37a);
+  font-family: var(--f-display);
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all .22s cubic-bezier(.2,.8,.2,1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  margin-left: .5rem;
+  white-space: nowrap;
+}
+.top-btn-cadastro:hover {
+  background: var(--gold);
+  color: #061021;
+  border-color: var(--gold);
+  box-shadow: 0 6px 20px rgba(212, 168, 75, 0.4);
+  transform: translateY(-1px);
+}
+@media(max-width: 720px) {
+  .top-btn-cadastro span { display: none; }
+  .top-btn-cadastro { padding: .38rem .5rem; }
+}
 .top-clock{
   margin-left:auto;display:flex;align-items:center;gap:.6rem;
   font-family:var(--f-data);font-size:.68rem;color:var(--contrail-dim);
@@ -1059,6 +1092,8 @@ a.card-go{text-decoration:none}
   margin-top: 1rem;
   max-height: 140px;
   overflow-y: auto;
+}
+
 /* ══════════════════════════════════════════════════════════════
    HERO: BOTÃO DE CONSULTA RÁPIDA DE EFETIVO
    ══════════════════════════════════════════════════════════════ */
@@ -1752,6 +1787,12 @@ a.card-go{text-decoration:none}
 .edicao-hero-footer {
   padding: .85rem 1.25rem;
   background: rgba(10, 26, 54, 0.95);
+  border-top: 1px solid rgba(212, 168, 75, 0.25);
+  display: flex;
+  justify-content: flex-end;
+  gap: .75rem;
+}
+
 /* ══════════════════════════════════════════════════════════════
    FASE 4: BADGES DE PENDÊNCIAS & BOTÕES DE ADMISSÃO
    ══════════════════════════════════════════════════════════════ */
@@ -1989,6 +2030,10 @@ a.card-go{text-decoration:none}
     <b>Governança DE</b>
     <span>Secretaria da Divisão de Ensino</span>
   </div>
+  <button class="top-btn-cadastro" id="btn-top-cadastro-pessoal" onclick="abrirModalNovoMilitar()" title="Apresentação de novos integrantes / Formulário de Cadastro Pessoal">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+    <span>Cadastro Pessoal</span>
+  </button>
   <div class="top-clock">
     <span class="beacon" aria-hidden="true"></span>
     <span class="lbl" id="clock-day">—</span>
@@ -2018,15 +2063,6 @@ a.card-go{text-decoration:none}
         <span class="badge-pendencias-ef" id="hero-pendencias-badge" style="display:none;" title="Solicitações de novos militares aguardando aprovação">0 pendências</span>
         <span class="hero-efetivo-arrow">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-        </span>
-      </button>
-      <button class="hero-efetivo-btn" onclick="abrirModalNovoMilitar()" title="Apresentação de novos militares na DE" style="background:rgba(10,26,54,0.78);border-color:rgba(56,189,248,0.45);">
-        <span class="hero-efetivo-icon" style="background:rgba(56,189,248,0.18);color:#38bdf8;">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-        </span>
-        <span class="hero-efetivo-txt">
-          <strong>Novo Militar</strong>
-          <small>Formulário de Chegada</small>
         </span>
       </button>
     </div>
@@ -2187,7 +2223,7 @@ a.card-go{text-decoration:none}
             </svg>
             PDF
           </button>
-          <button class="sub-btn-mini" type="button" onclick="abrirConsultaEfetivoHero()" title="Ver lista rápida vertical de efetivo" style="margin-left:.35rem;">
+          <button class="sub-btn-mini" type="button" onclick="event.stopPropagation(); abrirConsultaEfetivoHero();" title="Ver lista rápida vertical de efetivo" style="margin-left:.35rem;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
             Consultar
           </button>
@@ -2200,9 +2236,9 @@ a.card-go{text-decoration:none}
             <strong>Admissão de Militar</strong>
             <span>Formulário de chegada · salvar rascunho</span>
           </div>
-          <button class="sub-btn-admissao" type="button" onclick="abrirModalNovoMilitar()" title="Formulário público para novo militar se cadastrar">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M12 5v14M5 12h14"/></svg>
-            + Cadastrar
+          <button class="sub-btn" type="button" onclick="event.stopPropagation(); abrirModalNovoMilitar();" title="Apresentação de novos integrantes / Formulário de Cadastro Pessoal" style="background:rgba(212,168,75,0.18);border:1px solid rgba(212,168,75,0.5);color:var(--gold-lt,#ffd37a);font-weight:700;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" width="13" height="13"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            Cadastro Pessoal
           </button>
         </div>
 
@@ -5417,6 +5453,42 @@ function limparBuscaHero() {
   inputBusca?.focus();
 }
 
+function escapeHtml_(s) {
+  return (s || '').toString()
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+async function salvarRamalHero(saram, valor, inputEl) {
+  try {
+    const saramNorm = window.AppConfig ? window.AppConfig.formatarSARAM(saram) : String(saram);
+    const novoRamal = valor.trim();
+    if (window.AppConfig && typeof window.AppConfig.saveMilitar === 'function') {
+      await window.AppConfig.saveMilitar({
+        saram: saramNorm,
+        ramal: novoRamal
+      }, { camposAlterados: ['ramal'] });
+    }
+
+    const idx = listaEfetivoHero.findIndex(m => m.saram === saramNorm);
+    if (idx >= 0) listaEfetivoHero[idx].ramal = novoRamal;
+    const idxF = listaEfetivoHeroFiltrada.findIndex(m => m.saram === saramNorm);
+    if (idxF >= 0) listaEfetivoHeroFiltrada[idxF].ramal = novoRamal;
+
+    if (inputEl) {
+      inputEl.style.borderColor = '#10b981';
+      inputEl.style.background = 'rgba(16,185,129,0.15)';
+      setTimeout(() => {
+        inputEl.style.borderColor = 'rgba(212,168,75,0.4)';
+        inputEl.style.background = 'rgba(3,9,20,0.85)';
+      }, 1500);
+    }
+  } catch(err) {
+    console.error('Erro ao salvar ramal no hero:', err);
+    alert('Erro ao atualizar ramal: ' + err.message);
+  }
+}
+
 function renderizarListaEfetivoHero() {
   const listEl = document.getElementById('hero-pes-lista');
   if (!listEl) return;
@@ -5450,7 +5522,7 @@ function renderizarListaEfetivoHero() {
         <div class="militar-vcard-top">
           <div class="militar-vcard-ident">
             <span class="militar-posto-badge">${m.posto_grad || '—'}</span>
-            <span class="militar-nome-guerra" title="${m.nome_completo || m.nome_guerra}">${m.nome_guerra || '—'}</span>
+            <span class="militar-nome-guerra" title="${escapeHtml_(m.nome_completo || m.nome_guerra)}">${escapeHtml_(m.nome_guerra || '—')}</span>
             ${tagStatusHero}
           </div>
           <a class="militar-ramal-box ${hasRamal ? '' : 'vazio'}" ${hasRamal ? `href="tel:${m.ramal}"` : ''} title="${hasRamal ? 'Ligar para o ramal' : 'Sem ramal cadastrado'}">
@@ -5460,10 +5532,14 @@ function renderizarListaEfetivoHero() {
         <div class="militar-vcard-sub">
           <span class="militar-saram">SARAM: <b>${m.saram || '—'}</b></span>
           <span class="militar-dot">·</span>
-          <span class="militar-secao">Seção: <span class="militar-secao-badge">${secaoExibida}</span></span>
+          <span class="militar-secao">Seção: <span class="militar-secao-badge">${escapeHtml_(secaoExibida)}</span></span>
         </div>
         ${modoSecretariaHeroAtivo ? `
-          <div class="militar-vcard-secretaria">
+          <div class="militar-vcard-secretaria" style="display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap;margin-top:.45rem;padding-top:.45rem;border-top:1px dashed rgba(212,168,75,0.25);">
+            <div style="display:inline-flex;align-items:center;gap:.35rem;">
+              <span style="font-family:var(--f-data);font-size:.68rem;color:var(--gold-lt);">📞 Ramal:</span>
+              <input type="text" class="militar-ramal-quick-edit" value="${escapeHtml_(m.ramal||'')}" placeholder="Ramal" style="width:75px;padding:.2rem .4rem;border-radius:4px;border:1px solid rgba(212,168,75,0.4);background:rgba(3,9,20,0.85);color:#fff;font-family:var(--f-data);font-size:.72rem;outline:none;" onchange="salvarRamalHero('${m.saram}', this.value, this)" title="Edite o ramal diretamente aqui com salvamento automático" />
+            </div>
             <button class="btn-editar-ficha-hero" onclick="abrirEdicaoMilitarHero('${m.saram}')" title="Editar dados cadastrais completos deste militar">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
               <span>Editar Ficha Completa</span>

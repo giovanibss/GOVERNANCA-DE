@@ -749,25 +749,73 @@
     },
 
     /**
-     * Salva ou atualiza um militar diretamente no Supabase e no cache local
+     * Salva ou atualiza um militar diretamente no Supabase e no cache local,
+     * rastreando campos editados manualmente para não regredirem na sincronização.
      */
-    async saveMilitar(militar) {
+    async saveMilitar(militar, { camposAlterados = [] } = {}) {
       if (!militar || !militar.saram) {
         throw new Error('SARAM é obrigatório para cadastrar ou editar um militar.');
       }
       militar.saram = this.formatarSARAM(militar.saram);
       militar.updated_at = new Date().toISOString();
 
-      // Atualiza cache local
+      // Recupera lista do cache local para mesclar
       let lista = [];
       try {
         lista = JSON.parse(localStorage.getItem(this.STORAGE_KEY_EFETIVO_DB) || '[]');
       } catch(e){}
+      
       const idx = lista.findIndex(m => m.saram === militar.saram);
-      if (idx >= 0) {
-        lista[idx] = { ...lista[idx], ...militar };
+      const anterior = idx >= 0 ? lista[idx] : null;
+
+      // Rastreia campos alterados manualmente no site
+      const camposDetectados = new Set(Array.isArray(camposAlterados) ? camposAlterados : []);
+      if (anterior) {
+        for (const [k, v] of Object.entries(militar)) {
+          if (['id', 'created_at', 'updated_at', 'raw_data', 'secoes_lista', 'secao_formatada'].includes(k)) continue;
+          if (v !== undefined && v !== anterior[k]) {
+            camposDetectados.add(k);
+          }
+        }
       } else {
-        lista.push(militar);
+        // Se é um militar novo cadastrado no site, todos os seus campos preenchidos são manuais
+        for (const [k, v] of Object.entries(militar)) {
+          if (['id', 'created_at', 'updated_at', 'raw_data', 'secoes_lista', 'secao_formatada'].includes(k)) continue;
+          if (v !== undefined && v !== null && v !== '') {
+            camposDetectados.add(k);
+          }
+        }
+      }
+
+      // Preserva e atualiza o histórico de campos manuais em raw_data
+      const rawDataExistente = anterior?.raw_data && typeof anterior.raw_data === 'object' ? { ...anterior.raw_data } : {};
+      const rawDataNovo = militar.raw_data && typeof militar.raw_data === 'object' ? { ...militar.raw_data } : {};
+      const historicoManuais = new Set([
+        ...(Array.isArray(rawDataExistente.campos_manuais) ? rawDataExistente.campos_manuais : []),
+        ...(Array.isArray(rawDataNovo.campos_manuais) ? rawDataNovo.campos_manuais : []),
+        ...camposDetectados
+      ]);
+      historicoManuais.delete('updated_at');
+      historicoManuais.delete('created_at');
+      historicoManuais.delete('raw_data');
+
+      const rawDataFinal = {
+        ...rawDataExistente,
+        ...rawDataNovo,
+        campos_manuais: Array.from(historicoManuais),
+        editado_no_site: true,
+        ultima_edicao_site: new Date().toISOString()
+      };
+      militar.raw_data = rawDataFinal;
+
+      // Objeto consolidado para o cache local
+      const militarConsolidado = anterior ? { ...anterior, ...militar } : { ...militar };
+      militarConsolidado.raw_data = rawDataFinal;
+
+      if (idx >= 0) {
+        lista[idx] = militarConsolidado;
+      } else {
+        lista.push(militarConsolidado);
       }
       localStorage.setItem(this.STORAGE_KEY_EFETIVO_DB, JSON.stringify(lista));
 
@@ -776,14 +824,17 @@
       let dbOk = false;
       if (sb) {
         try {
-          const { error } = await sb.from('efetivo_pessoal').upsert(militar, { onConflict: 'saram' });
+          // Prepara objeto limpo sem propriedades computadas voláteis
+          const { secoes_lista, secao_formatada, ...dadosParaBanco } = militarConsolidado;
+          const { error } = await sb.from('efetivo_pessoal').upsert(dadosParaBanco, { onConflict: 'saram' });
           if (!error) dbOk = true;
+          else console.warn('Aviso ao persistir no Supabase:', error.message);
         } catch(e) {
           console.warn('Falha ao persistir no Supabase (mantido no cache local):', e);
         }
       }
 
-      return { militar, dbOk };
+      return { militar: militarConsolidado, dbOk };
     },
 
     /**
@@ -795,7 +846,8 @@
     },
 
     /**
-     * Sincroniza em lote a base completa a partir da planilha oficial do Google Sheets
+     * Sincroniza em lote a base completa a partir da planilha oficial do Google Sheets,
+     * garantindo proteção total contra regressão de dados editados manualmente no site.
      */
     async syncEfetivoFromSheet(progressCb) {
       if (typeof progressCb === 'function') progressCb('Baixando dados da planilha oficial (A1:AZ250)...');
@@ -807,24 +859,114 @@
       const data = JSON.parse(jsonStr);
       const rows = data.table.rows || [];
 
-      const lista = [];
+      const listaPlanilha = [];
       for (let r = 3; r < rows.length; r++) {
         const m = this.parseEfetivoRow(rows[r]?.c || [], r);
-        if (m) lista.push(m);
+        if (m) listaPlanilha.push(m);
       }
 
-      if (typeof progressCb === 'function') progressCb(`${lista.length} militares processados. Gravando no armazenamento local...`);
-      localStorage.setItem(this.STORAGE_KEY_EFETIVO_DB, JSON.stringify(lista));
+      if (typeof progressCb === 'function') progressCb(`${listaPlanilha.length} militares processados da planilha. Analisando edições locais e remotas…`);
+
+      // 1. Carrega dados pré-existentes do Supabase e do LocalStorage para proteção
+      const sb = getSbClient();
+      const existentesMap = new Map();
+
+      // Primeiro lê do cache local
+      try {
+        const cached = JSON.parse(localStorage.getItem(this.STORAGE_KEY_EFETIVO_DB) || '[]');
+        cached.forEach(m => {
+          if (m && m.saram) existentesMap.set(this.formatarSARAM(m.saram), m);
+        });
+      } catch(e) {}
+
+      // Complementa com o Supabase se disponível
+      if (sb) {
+        try {
+          const { data: dbData, error } = await sb.from('efetivo_pessoal').select('*');
+          if (!error && dbData && dbData.length > 0) {
+            dbData.forEach(m => {
+              const s = this.formatarSARAM(m.saram);
+              const prev = existentesMap.get(s);
+              existentesMap.set(s, { ...(prev || {}), ...m });
+            });
+          }
+        } catch(e) {
+          console.warn('Erro ao carregar dados existentes do Supabase para merge:', e);
+        }
+      }
+
+      // 2. Mescla inteligente preservando dados manuais
+      let camposPreservadosCount = 0;
+      const listaFinal = [];
+
+      for (const mPlanilha of listaPlanilha) {
+        const saram = mPlanilha.saram;
+        const existente = existentesMap.get(saram);
+
+        if (!existente) {
+          // Militar novo que só existe na planilha
+          listaFinal.push(mPlanilha);
+          continue;
+        }
+
+        // Militar existente: funde protegendo edições manuais
+        const militarMesclado = { ...mPlanilha };
+        const rawExistente = existente.raw_data && typeof existente.raw_data === 'object' ? existente.raw_data : {};
+        const camposManuais = Array.isArray(rawExistente.campos_manuais) ? rawExistente.campos_manuais : [];
+
+        // Protege cada campo manual editado no site
+        camposManuais.forEach(campo => {
+          if (existente[campo] !== undefined && existente[campo] !== null && existente[campo] !== '') {
+            militarMesclado[campo] = existente[campo];
+            camposPreservadosCount++;
+          }
+        });
+
+        // Protege status de ciclo de vida militar se foi alterado no site
+        if (existente.status_efetivo && existente.status_efetivo !== 'ativo') {
+          militarMesclado.status_efetivo = existente.status_efetivo;
+          militarMesclado.ativo = existente.ativo;
+        }
+
+        // Mantém ID e metadados de histórico
+        if (existente.id) militarMesclado.id = existente.id;
+        if (existente.updated_at) militarMesclado.updated_at = existente.updated_at;
+        militarMesclado.raw_data = {
+          ...(mPlanilha.raw_data || {}),
+          ...rawExistente,
+          ultima_sincronizacao_planilha: new Date().toISOString()
+        };
+
+        listaFinal.push(militarMesclado);
+        existentesMap.delete(saram); // Marca como processado
+      }
+
+      // 3. Preserva militares cadastrados diretamente no site (ex: homologados via admissão) que não estejam na planilha
+      for (const [saram, mSite] of existentesMap.entries()) {
+        if (mSite && mSite.saram) {
+          listaFinal.push(mSite);
+        }
+      }
+
+      if (typeof progressCb === 'function') {
+        progressCb(`Mesclagem concluída (${camposPreservadosCount} campos manuais preservados). Gravando no banco…`);
+      }
+
+      // Atualiza cache local
+      localStorage.setItem(this.STORAGE_KEY_EFETIVO_DB, JSON.stringify(listaFinal));
 
       // Gravação remota no Supabase
-      const sb = getSbClient();
       let dbSuccess = false;
       let dbError = null;
 
       if (sb) {
-        if (typeof progressCb === 'function') progressCb(`Sincronizando com o banco de dados remoto Supabase...`);
         try {
-          const { error } = await sb.from('efetivo_pessoal').upsert(lista, { onConflict: 'saram' });
+          // Limpa propriedades transientes antes de enviar ao Supabase
+          const dadosLimpos = listaFinal.map(m => {
+            const { secoes_lista, secao_formatada, ...limpo } = m;
+            return limpo;
+          });
+          const { error } = await sb.from('efetivo_pessoal').upsert(dadosLimpos, { onConflict: 'saram' });
           if (error) {
             dbError = error.message;
           } else {
@@ -836,8 +978,9 @@
       }
 
       return {
-        total: lista.length,
-        militares: lista,
+        total: listaFinal.length,
+        militares: listaFinal,
+        camposPreservadosCount,
         dbSuccess,
         dbError
       };

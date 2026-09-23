@@ -631,6 +631,55 @@
       color: var(--gray-500);
     }
 
+    /* ── EDIÇÃO DIRETA NA TABELA (SECRETARIA) ── */
+    .btn-ctl.active-edit {
+      background: var(--navy-900) !important; color: var(--gold-400) !important;
+      border-color: var(--gold-500) !important; box-shadow: 0 0 0 2px rgba(212,168,75,0.35);
+    }
+    .cell-inline-input {
+      width: 100%; min-width: 65px; padding: .22rem .4rem;
+      border: 1px solid rgba(45,90,158,0.3); border-radius: 4px;
+      background: rgba(255,255,255,0.95); color: var(--navy-900);
+      font-family: inherit; font-size: .75rem; outline: none;
+      transition: all .15s ease;
+    }
+    .cell-inline-input:hover {
+      border-color: var(--navy-500); background: #ffffff;
+    }
+    .cell-inline-input:focus {
+      background: #ffffff; border-color: var(--navy-600);
+      box-shadow: 0 0 0 2px rgba(45,90,158,0.22);
+    }
+    .cell-inline-input.number {
+      width: 85px; text-align: right; font-family: var(--font-mono);
+    }
+    .cell-inline-input.date {
+      width: 125px; font-family: var(--font-mono); font-size: .72rem;
+    }
+    .cell-saved-flash {
+      animation: cellSavedAnim 1.4s ease-out;
+    }
+    @keyframes cellSavedAnim {
+      0% { background-color: #86efac !important; }
+      100% { background-color: transparent; }
+    }
+    .tag-inline-toggle {
+      cursor: pointer; border: none; font-family: inherit; font-size: .64rem; font-weight: 700;
+      padding: .15rem .45rem; border-radius: 3px; transition: transform .15s;
+    }
+    .tag-inline-toggle:hover {
+      transform: scale(1.08);
+    }
+    .tag-inline-toggle.sim {
+      background: var(--green-50); color: var(--green-500); border: 1px solid #bbf7d0;
+    }
+    .tag-inline-toggle.nao {
+      background: var(--gray-100); color: var(--gray-500); border: 1px solid var(--gray-300);
+    }
+    .cell-locked-indicator {
+      display: inline-flex; align-items: center; gap: .25rem; cursor: pointer;
+    }
+
     /* Modal / Ficha Cadastral */
     .pessoal-modal-overlay {
       position: fixed; inset: 0; z-index: 10000;
@@ -977,6 +1026,11 @@
           <option value="inativo">Inativos / Reserva (R1)</option>
           <option value="todos">Todos os Registros</option>
         </select>
+
+        <button class="btn-ctl" id="btn-toggle-edicao-direta" onclick="alternarEdicaoDiretaTabela()" title="Editar dados diretamente nas células da tabela">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          <span id="lbl-edicao-direta">✏️ Edição Direta</span>
+        </button>
 
         <button class="btn-ctl gold" onclick="abrirModalMilitarNovo()" title="Cadastrar novo militar diretamente no banco">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
@@ -2489,6 +2543,130 @@ function filtrarPessoal() {
   renderizarTabelaPessoal();
 }
 
+let modoEdicaoDiretaTabela = false;
+
+function alternarEdicaoDiretaTabela() {
+  modoEdicaoDiretaTabela = !modoEdicaoDiretaTabela;
+  const btn = document.getElementById('btn-toggle-edicao-direta');
+  const lbl = document.getElementById('lbl-edicao-direta');
+  if (btn && lbl) {
+    if (modoEdicaoDiretaTabela) {
+      btn.classList.add('active-edit');
+      lbl.innerHTML = '💾 Edição Ativa';
+      mostrarToastPessoal('Modo Edição Direta ativado. Altere qualquer campo na tabela para salvar automaticamente.');
+    } else {
+      btn.classList.remove('active-edit');
+      lbl.innerHTML = '✏️ Edição Direta';
+      mostrarToastPessoal('Modo Edição Direta desativado.');
+    }
+  }
+  renderizarTabelaPessoal();
+}
+
+function alertarCargoProtegido(cargo) {
+  alert(`🔒 Bloqueio de Proteção de Cargo:\n\nO cargo/função "${cargo || 'Oficial'}" e sua Seção são regulamentados por portaria e organograma oficial.\n\nPara alterá-los, utilize o módulo "Cargos e Funções" (cargos.html) e realize a Passagem de Cargo formal para manter a integridade da cadeia de comando.`);
+}
+
+async function salvarCampoInline(saram, campo, valor, el) {
+  try {
+    const saramNorm = window.AppConfig ? window.AppConfig.formatarSARAM(saram) : String(saram);
+    const alteracao = { saram: saramNorm, [campo]: valor };
+    
+    let res = null;
+    if (window.AppConfig && typeof window.AppConfig.saveMilitar === 'function') {
+      res = await window.AppConfig.saveMilitar(alteracao, { camposAlterados: [campo] });
+    } else {
+      let lista = JSON.parse(localStorage.getItem('afa_efetivo_db_cache_v2') || '[]');
+      const idx = lista.findIndex(m => m.saram === saramNorm);
+      if (idx >= 0) {
+        lista[idx] = { ...lista[idx], ...alteracao };
+        localStorage.setItem('afa_efetivo_db_cache_v2', JSON.stringify(lista));
+      }
+    }
+
+    const idxCompl = listaPessoalCompleta.findIndex(m => m.saram === saramNorm);
+    if (idxCompl >= 0) {
+      listaPessoalCompleta[idxCompl] = { ...listaPessoalCompleta[idxCompl], ...alteracao };
+      if (res?.militar?.raw_data) listaPessoalCompleta[idxCompl].raw_data = res.militar.raw_data;
+    }
+    const idxFilt = listaPessoalFiltrada.findIndex(m => m.saram === saramNorm);
+    if (idxFilt >= 0) {
+      listaPessoalFiltrada[idxFilt] = { ...listaPessoalFiltrada[idxFilt], ...alteracao };
+      if (res?.militar?.raw_data) listaPessoalFiltrada[idxFilt].raw_data = res.militar.raw_data;
+    }
+
+    const td = el ? el.closest('td') : null;
+    if (td) {
+      td.classList.remove('cell-saved-flash');
+      void td.offsetWidth;
+      td.classList.add('cell-saved-flash');
+    }
+
+    mostrarToastPessoal(`✓ ${campo.replace(/_/g, ' ')} atualizado no banco oficial.`);
+  } catch(err) {
+    console.error('Erro ao salvar campo inline:', err);
+    alert('Erro ao salvar alteração: ' + err.message);
+  }
+}
+
+function habilitarEdicaoRapidaCelula(td, saram, campo, tipo, valorAtual) {
+  if (td.querySelector('.cell-inline-input')) return;
+  const originalHtml = td.innerHTML;
+  
+  if (tipo === 'bool') {
+    const novoVal = !valorAtual;
+    salvarCampoInline(saram, campo, novoVal, td).then(() => {
+      td.innerHTML = novoVal ? '<span class="tag-sim">Sim</span>' : '<span class="tag-nao">Não</span>';
+    });
+    return;
+  }
+
+  const input = document.createElement('input');
+  input.className = 'cell-inline-input' + (tipo === 'number' ? ' number' : tipo === 'date' ? ' date' : '');
+  if (tipo === 'number') input.type = 'number';
+  else if (tipo === 'date') input.type = 'date';
+  else input.type = 'text';
+
+  input.value = valorAtual || '';
+  td.innerHTML = '';
+  td.appendChild(input);
+  input.focus();
+
+  const salvar = () => {
+    let v = input.value;
+    if (tipo === 'number') v = parseFloat(v) || 0;
+    salvarCampoInline(saram, campo, v, td);
+  };
+
+  input.addEventListener('blur', salvar);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      input.blur();
+    } else if (e.key === 'Escape') {
+      td.innerHTML = originalHtml;
+    }
+  });
+}
+
+function mostrarToastPessoal(msg) {
+  let toast = document.getElementById('pes-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'pes-toast';
+    toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:99999;background:#061021;color:#fff;border:1px solid #d4a84b;padding:.75rem 1.25rem;border-radius:8px;box-shadow:0 12px 36px rgba(0,0,0,0.5);font-size:.82rem;font-weight:600;display:flex;align-items:center;gap:.6rem;transition:opacity .3s ease;pointer-events:none;';
+    document.body.appendChild(toast);
+  }
+  toast.innerHTML = `<span style="color:#d4a84b">⚡</span> <span>${escapeHtml_(msg)}</span>`;
+  toast.style.display = 'flex';
+  toast.style.opacity = '1';
+
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => { toast.style.display = 'none'; }, 300);
+  }, 2600);
+}
+
 function renderizarTabelaPessoal() {
   const tbody = document.getElementById('pessoal-table-body');
   if (!tbody) return;
@@ -2519,10 +2697,11 @@ function renderizarTabelaPessoal() {
     }
 
     const cargoTag = m.cargo_funcao 
-      ? `<span class="tag-cargo-pub">${m.cargo_funcao}</span>` 
+      ? `<span class="tag-cargo-pub">${escapeHtml_(m.cargo_funcao)}</span>` 
       : '<span style="color:var(--gray-400)">—</span>';
     const soldoFormatado = m.soldo ? formatarMoedaBR(m.soldo) : '—';
     const auxValorFormatado = m.valor_auxilio_transporte ? formatarMoedaBR(m.valor_auxilio_transporte) : '—';
+    const edit = modoEdicaoDiretaTabela;
 
     html += `
       <tr>
@@ -2530,59 +2709,216 @@ function renderizarTabelaPessoal() {
           <div style="display:flex;align-items:center;gap:.55rem">
             <span class="tag-post-grad">${m.posto_grad || '—'}</span>
             <div>
-              <div style="font-weight:600;color:var(--navy-900);">${m.nome_guerra || '—'}</div>
+              ${edit ? `
+                <input class="cell-inline-input" style="font-weight:600;color:var(--navy-900);width:130px;" value="${escapeHtml_(m.nome_guerra || '')}" onchange="salvarCampoInline('${m.saram}', 'nome_guerra', this.value, this)" title="Nome de Guerra" />
+              ` : `
+                <div style="font-weight:600;color:var(--navy-900);" ondblclick="habilitarEdicaoRapidaCelula(this, '${m.saram}', 'nome_guerra', 'text', '${escapeHtml_(m.nome_guerra || '')}')" title="Duplo clique para editar">${m.nome_guerra || '—'}</div>
+              `}
               <small style="font-family:var(--font-mono);font-size:.65rem;color:var(--gray-500);">SARAM: ${m.saram || '—'}</small>
             </div>
           </div>
         </td>
 
         <td class="col-grp-militar" style="font-family:var(--font-mono);font-weight:600;color:var(--navy-700);">${m.ordem || '—'}</td>
-        <td class="col-grp-militar">${m.especialidade || '—'}</td>
-        <td class="col-grp-militar" style="font-weight:500;">${m.nome_completo || '—'}</td>
-        <td class="col-grp-militar" style="font-family:var(--font-mono);">${m.cpf || '—'}</td>
-        <td class="col-grp-militar" style="font-family:var(--font-mono);">${m.rg || '—'}</td>
+        
+        <td class="col-grp-militar">
+          ${edit ? `<input class="cell-inline-input" style="width:75px" value="${escapeHtml_(m.especialidade||'')}" onchange="salvarCampoInline('${m.saram}', 'especialidade', this.value, this)" />` 
+                 : `<span ondblclick="habilitarEdicaoRapidaCelula(this, '${m.saram}', 'especialidade', 'text', '${escapeHtml_(m.especialidade||'')}')" title="Duplo clique para editar">${m.especialidade || '—'}</span>`}
+        </td>
+
+        <td class="col-grp-militar" style="font-weight:500;">
+          ${edit ? `<input class="cell-inline-input" style="width:170px" value="${escapeHtml_(m.nome_completo||'')}" onchange="salvarCampoInline('${m.saram}', 'nome_completo', this.value, this)" />` 
+                 : `<span ondblclick="habilitarEdicaoRapidaCelula(this, '${m.saram}', 'nome_completo', 'text', '${escapeHtml_(m.nome_completo||'')}')" title="Duplo clique para editar">${m.nome_completo || '—'}</span>`}
+        </td>
+
+        <td class="col-grp-militar" style="font-family:var(--font-mono);">
+          ${edit ? `<input class="cell-inline-input" style="width:115px" value="${escapeHtml_(m.cpf||'')}" onchange="salvarCampoInline('${m.saram}', 'cpf', this.value, this)" />` 
+                 : `<span ondblclick="habilitarEdicaoRapidaCelula(this, '${m.saram}', 'cpf', 'text', '${escapeHtml_(m.cpf||'')}')" title="Duplo clique para editar">${m.cpf || '—'}</span>`}
+        </td>
+
+        <td class="col-grp-militar" style="font-family:var(--font-mono);">
+          ${edit ? `<input class="cell-inline-input" style="width:95px" value="${escapeHtml_(m.rg||'')}" onchange="salvarCampoInline('${m.saram}', 'rg', this.value, this)" />` 
+                 : `<span ondblclick="habilitarEdicaoRapidaCelula(this, '${m.saram}', 'rg', 'text', '${escapeHtml_(m.rg||'')}')" title="Duplo clique para editar">${m.rg || '—'}</span>`}
+        </td>
+
         <td class="col-grp-militar">${statusTag}</td>
 
-        <td class="col-grp-cargo">${cargoTag}</td>
-        <td class="col-grp-cargo" style="font-family:var(--font-mono);font-weight:600;color:var(--navy-700);">${m.ramal ? '📞 ' + m.ramal : '—'}</td>
-        <td class="col-grp-cargo">${m.funcao_publicada ? '<span class="tag-sim">Sim</span>' : '<span class="tag-nao">Não</span>'}</td>
-        <td class="col-grp-cargo">${formatarDataBR(m.data_inicio)}</td>
-        <td class="col-grp-cargo" style="max-width:260px;overflow:hidden;text-overflow:ellipsis;" title="${m.boletim || ''}">${m.boletim || '—'}</td>
+        <td class="col-grp-cargo">
+          <span class="cell-locked-indicator" onclick="alertarCargoProtegido('${escapeHtml_(m.cargo_funcao||'')}')" title="Cargos e seções são protegidos e alterados via módulo Cargos e Funções">🔒 ${cargoTag}</span>
+        </td>
 
-        <td class="col-grp-contato" style="font-family:var(--font-mono);">${m.telefone || '—'}</td>
-        <td class="col-grp-contato"><a href="mailto:${m.email || ''}" style="color:var(--navy-600);text-decoration:none;">${m.email || '—'}</a></td>
-        <td class="col-grp-contato">${m.lista_zimbra ? '<span class="tag-sim">Sim</span>' : '<span class="tag-nao">Não</span>'}</td>
-        <td class="col-grp-contato" style="max-width:280px;overflow:hidden;text-overflow:ellipsis;" title="${m.endereco || ''}">${m.endereco || '—'}</td>
+        <td class="col-grp-cargo" style="font-family:var(--font-mono);font-weight:600;color:var(--navy-700);">
+          ${edit ? `<input class="cell-inline-input" style="width:75px" value="${escapeHtml_(m.ramal||'')}" placeholder="Ramal" onchange="salvarCampoInline('${m.saram}', 'ramal', this.value, this)" />` 
+                 : `<span ondblclick="habilitarEdicaoRapidaCelula(this, '${m.saram}', 'ramal', 'text', '${escapeHtml_(m.ramal||'')}')" title="Duplo clique para editar">${m.ramal ? '📞 ' + m.ramal : '—'}</span>`}
+        </td>
 
-        <td class="col-grp-banco" style="font-family:var(--font-mono);font-weight:600;">${soldoFormatado}</td>
-        <td class="col-grp-banco">${m.banco_nome || '—'}</td>
-        <td class="col-grp-banco" style="font-family:var(--font-mono);">${m.banco_codigo || '—'}</td>
-        <td class="col-grp-banco" style="font-family:var(--font-mono);">${m.banco_agencia || '—'}</td>
-        <td class="col-grp-banco" style="font-family:var(--font-mono);">${m.banco_conta || '—'}</td>
-        <td class="col-grp-banco">${auxTag}</td>
-        <td class="col-grp-banco" style="font-family:var(--font-mono);">${auxValorFormatado}</td>
+        <td class="col-grp-cargo">
+          ${edit ? `<button class="tag-inline-toggle ${m.funcao_publicada ? 'sim' : 'nao'}" onclick="salvarCampoInline('${m.saram}', 'funcao_publicada', !${!!m.funcao_publicada}, this)">${m.funcao_publicada ? 'Sim' : 'Não'}</button>` 
+                 : (m.funcao_publicada ? '<span class="tag-sim">Sim</span>' : '<span class="tag-nao">Não</span>')}
+        </td>
 
-        <td class="col-grp-carreira">${formatarDataBR(m.data_nascimento)}</td>
-        <td class="col-grp-carreira">${formatarDataBR(m.data_praca)}</td>
-        <td class="col-grp-carreira">${formatarDataBR(m.data_formacao)}</td>
-        <td class="col-grp-carreira">${formatarDataBR(m.ultima_promocao)}</td>
-        <td class="col-grp-carreira">${formatarDataBR(m.proxima_promocao)}</td>
-        <td class="col-grp-carreira">${formatarDataBR(m.apresentacao_om)}</td>
-        <td class="col-grp-carreira">${m.tempo_localidade || '—'}</td>
-        <td class="col-grp-carreira">${formatarDataBR(m.data_final_reengajamento)}</td>
-        <td class="col-grp-carreira">${m.tempo_inicio_processo || '—'}</td>
-        <td class="col-grp-carreira">${formatarDataBR(m.fim_servico_temp)}</td>
-        <td class="col-grp-carreira">${m.status_reengajamento ? `<b style="color:var(--red-500)">${m.status_reengajamento}</b>` : '—'}</td>
-        <td class="col-grp-carreira">${m.disciplina || '—'}</td>
-        <td class="col-grp-carreira" style="font-family:var(--font-mono);font-weight:600;">${m.codigo_disciplina || '—'}</td>
-        <td class="col-grp-carreira">${m.escala_risaer || '—'}</td>
-        <td class="col-grp-carreira">${m.medalha_santos_dumont || '—'}</td>
-        <td class="col-grp-carreira">${m.medalha_bartolomeu_gusmao || '—'}</td>
+        <td class="col-grp-cargo">
+          ${edit ? `<input type="date" class="cell-inline-input date" value="${m.data_inicio||''}" onchange="salvarCampoInline('${m.saram}', 'data_inicio', this.value, this)" />` 
+                 : formatarDataBR(m.data_inicio)}
+        </td>
 
-        <td class="col-grp-aero">${formatarDataBR(m.aero_5717_ultima_pub)}</td>
-        <td class="col-grp-aero">${m.aero_5717_prox_pub || '—'}</td>
-        <td class="col-grp-aero">${formatarDataBR(m.aero_5718_ultima_pub)}</td>
-        <td class="col-grp-aero">${m.aero_5718_prox_pub || '—'}</td>
+        <td class="col-grp-cargo" style="max-width:260px;overflow:hidden;text-overflow:ellipsis;" title="${escapeHtml_(m.boletim || '')}">
+          <span class="cell-locked-indicator" onclick="alertarCargoProtegido('${escapeHtml_(m.cargo_funcao||'')}')" title="Boletim vinculado a Cargos e Funções">🔒 ${escapeHtml_(m.boletim || '—')}</span>
+        </td>
+
+        <td class="col-grp-contato" style="font-family:var(--font-mono);">
+          ${edit ? `<input class="cell-inline-input" style="width:125px" value="${escapeHtml_(m.telefone||'')}" placeholder="Telefone" onchange="salvarCampoInline('${m.saram}', 'telefone', this.value, this)" />` 
+                 : `<span ondblclick="habilitarEdicaoRapidaCelula(this, '${m.saram}', 'telefone', 'text', '${escapeHtml_(m.telefone||'')}')" title="Duplo clique para editar">${m.telefone || '—'}</span>`}
+        </td>
+
+        <td class="col-grp-contato">
+          ${edit ? `<input class="cell-inline-input" style="width:160px" value="${escapeHtml_(m.email||'')}" placeholder="E-mail" onchange="salvarCampoInline('${m.saram}', 'email', this.value, this)" />` 
+                 : `<a href="mailto:${m.email || ''}" style="color:var(--navy-600);text-decoration:none;" ondblclick="event.preventDefault(); habilitarEdicaoRapidaCelula(this.parentNode, '${m.saram}', 'email', 'text', '${escapeHtml_(m.email||'')}')" title="Duplo clique para editar">${m.email || '—'}</a>`}
+        </td>
+
+        <td class="col-grp-contato">
+          ${edit ? `<button class="tag-inline-toggle ${m.lista_zimbra ? 'sim' : 'nao'}" onclick="salvarCampoInline('${m.saram}', 'lista_zimbra', !${!!m.lista_zimbra}, this)">${m.lista_zimbra ? 'Sim' : 'Não'}</button>` 
+                 : (m.lista_zimbra ? '<span class="tag-sim">Sim</span>' : '<span class="tag-nao">Não</span>')}
+        </td>
+
+        <td class="col-grp-contato" style="max-width:280px;overflow:hidden;text-overflow:ellipsis;" title="${escapeHtml_(m.endereco || '')}">
+          ${edit ? `<input class="cell-inline-input" style="width:200px" value="${escapeHtml_(m.endereco||'')}" placeholder="Endereço" onchange="salvarCampoInline('${m.saram}', 'endereco', this.value, this)" />` 
+                 : `<span ondblclick="habilitarEdicaoRapidaCelula(this, '${m.saram}', 'endereco', 'text', '${escapeHtml_(m.endereco||'')}')" title="Duplo clique para editar">${escapeHtml_(m.endereco || '—')}</span>`}
+        </td>
+
+        <td class="col-grp-banco" style="font-family:var(--font-mono);font-weight:600;">
+          ${edit ? `<input type="number" step="0.01" class="cell-inline-input number" value="${m.soldo||0}" onchange="salvarCampoInline('${m.saram}', 'soldo', parseFloat(this.value)||0, this)" />` 
+                 : `<span ondblclick="habilitarEdicaoRapidaCelula(this, '${m.saram}', 'soldo', 'number', '${m.soldo||0}')" title="Duplo clique para editar">${soldoFormatado}</span>`}
+        </td>
+
+        <td class="col-grp-banco">
+          ${edit ? `<input class="cell-inline-input" style="width:110px" value="${escapeHtml_(m.banco_nome||'')}" onchange="salvarCampoInline('${m.saram}', 'banco_nome', this.value, this)" />` 
+                 : `<span ondblclick="habilitarEdicaoRapidaCelula(this, '${m.saram}', 'banco_nome', 'text', '${escapeHtml_(m.banco_nome||'')}')" title="Duplo clique para editar">${m.banco_nome || '—'}</span>`}
+        </td>
+
+        <td class="col-grp-banco" style="font-family:var(--font-mono);">
+          ${edit ? `<input class="cell-inline-input" style="width:70px" value="${escapeHtml_(m.banco_codigo||'')}" onchange="salvarCampoInline('${m.saram}', 'banco_codigo', this.value, this)" />` 
+                 : `<span ondblclick="habilitarEdicaoRapidaCelula(this, '${m.saram}', 'banco_codigo', 'text', '${escapeHtml_(m.banco_codigo||'')}')" title="Duplo clique para editar">${m.banco_codigo || '—'}</span>`}
+        </td>
+
+        <td class="col-grp-banco" style="font-family:var(--font-mono);">
+          ${edit ? `<input class="cell-inline-input" style="width:75px" value="${escapeHtml_(m.banco_agencia||'')}" onchange="salvarCampoInline('${m.saram}', 'banco_agencia', this.value, this)" />` 
+                 : `<span ondblclick="habilitarEdicaoRapidaCelula(this, '${m.saram}', 'banco_agencia', 'text', '${escapeHtml_(m.banco_agencia||'')}')" title="Duplo clique para editar">${m.banco_agencia || '—'}</span>`}
+        </td>
+
+        <td class="col-grp-banco" style="font-family:var(--font-mono);">
+          ${edit ? `<input class="cell-inline-input" style="width:90px" value="${escapeHtml_(m.banco_conta||'')}" onchange="salvarCampoInline('${m.saram}', 'banco_conta', this.value, this)" />` 
+                 : `<span ondblclick="habilitarEdicaoRapidaCelula(this, '${m.saram}', 'banco_conta', 'text', '${escapeHtml_(m.banco_conta||'')}')" title="Duplo clique para editar">${m.banco_conta || '—'}</span>`}
+        </td>
+
+        <td class="col-grp-banco">
+          ${edit ? `<button class="tag-inline-toggle ${m.auxilio_transporte ? 'sim' : 'nao'}" onclick="salvarCampoInline('${m.saram}', 'auxilio_transporte', !${!!m.auxilio_transporte}, this)">${m.auxilio_transporte ? 'Sim' : 'Não'}</button>` 
+                 : auxTag}
+        </td>
+
+        <td class="col-grp-banco" style="font-family:var(--font-mono);">
+          ${edit ? `<input type="number" step="0.01" class="cell-inline-input number" value="${m.valor_auxilio_transporte||0}" onchange="salvarCampoInline('${m.saram}', 'valor_auxilio_transporte', parseFloat(this.value)||0, this)" />` 
+                 : `<span ondblclick="habilitarEdicaoRapidaCelula(this, '${m.saram}', 'valor_auxilio_transporte', 'number', '${m.valor_auxilio_transporte||0}')" title="Duplo clique para editar">${auxValorFormatado}</span>`}
+        </td>
+
+        <td class="col-grp-carreira">
+          ${edit ? `<input type="date" class="cell-inline-input date" value="${m.data_nascimento||''}" onchange="salvarCampoInline('${m.saram}', 'data_nascimento', this.value, this)" />` 
+                 : formatarDataBR(m.data_nascimento)}
+        </td>
+
+        <td class="col-grp-carreira">
+          ${edit ? `<input type="date" class="cell-inline-input date" value="${m.data_praca||''}" onchange="salvarCampoInline('${m.saram}', 'data_praca', this.value, this)" />` 
+                 : formatarDataBR(m.data_praca)}
+        </td>
+
+        <td class="col-grp-carreira">
+          ${edit ? `<input type="date" class="cell-inline-input date" value="${m.data_formacao||''}" onchange="salvarCampoInline('${m.saram}', 'data_formacao', this.value, this)" />` 
+                 : formatarDataBR(m.data_formacao)}
+        </td>
+
+        <td class="col-grp-carreira">
+          ${edit ? `<input type="date" class="cell-inline-input date" value="${m.ultima_promocao||''}" onchange="salvarCampoInline('${m.saram}', 'ultima_promocao', this.value, this)" />` 
+                 : formatarDataBR(m.ultima_promocao)}
+        </td>
+
+        <td class="col-grp-carreira">
+          ${edit ? `<input class="cell-inline-input" style="width:110px" value="${escapeHtml_(m.proxima_promocao||'')}" onchange="salvarCampoInline('${m.saram}', 'proxima_promocao', this.value, this)" />` 
+                 : (m.proxima_promocao || '—')}
+        </td>
+
+        <td class="col-grp-carreira">
+          ${edit ? `<input type="date" class="cell-inline-input date" value="${m.apresentacao_om||''}" onchange="salvarCampoInline('${m.saram}', 'apresentacao_om', this.value, this)" />` 
+                 : formatarDataBR(m.apresentacao_om)}
+        </td>
+
+        <td class="col-grp-carreira">
+          ${edit ? `<input class="cell-inline-input" style="width:110px" value="${escapeHtml_(m.tempo_localidade||'')}" onchange="salvarCampoInline('${m.saram}', 'tempo_localidade', this.value, this)" />` 
+                 : (m.tempo_localidade || '—')}
+        </td>
+
+        <td class="col-grp-carreira">
+          ${edit ? `<input type="date" class="cell-inline-input date" value="${m.data_final_reengajamento||''}" onchange="salvarCampoInline('${m.saram}', 'data_final_reengajamento', this.value, this)" />` 
+                 : formatarDataBR(m.data_final_reengajamento)}
+        </td>
+
+        <td class="col-grp-carreira">
+          ${edit ? `<input class="cell-inline-input" style="width:110px" value="${escapeHtml_(m.tempo_inicio_processo||'')}" onchange="salvarCampoInline('${m.saram}', 'tempo_inicio_processo', this.value, this)" />` 
+                 : (m.tempo_inicio_processo || '—')}
+        </td>
+
+        <td class="col-grp-carreira">
+          ${edit ? `<input type="date" class="cell-inline-input date" value="${m.fim_servico_temp||''}" onchange="salvarCampoInline('${m.saram}', 'fim_servico_temp', this.value, this)" />` 
+                 : formatarDataBR(m.fim_servico_temp)}
+        </td>
+
+        <td class="col-grp-carreira">
+          ${m.status_reengajamento ? `<b style="color:var(--red-500)">${escapeHtml_(m.status_reengajamento)}</b>` : '—'}
+        </td>
+
+        <td class="col-grp-carreira">
+          ${edit ? `<input class="cell-inline-input" style="width:90px" value="${escapeHtml_(m.disciplina||'')}" onchange="salvarCampoInline('${m.saram}', 'disciplina', this.value, this)" />` 
+                 : (m.disciplina || '—')}
+        </td>
+
+        <td class="col-grp-carreira" style="font-family:var(--font-mono);font-weight:600;">
+          ${edit ? `<input class="cell-inline-input" style="width:90px" value="${escapeHtml_(m.codigo_disciplina||'')}" onchange="salvarCampoInline('${m.saram}', 'codigo_disciplina', this.value, this)" />` 
+                 : (m.codigo_disciplina || '—')}
+        </td>
+
+        <td class="col-grp-carreira">
+          ${edit ? `<input class="cell-inline-input" style="width:90px" value="${escapeHtml_(m.escala_risaer||'')}" onchange="salvarCampoInline('${m.saram}', 'escala_risaer', this.value, this)" />` 
+                 : (m.escala_risaer || '—')}
+        </td>
+
+        <td class="col-grp-carreira">
+          ${edit ? `<input class="cell-inline-input" style="width:80px" value="${escapeHtml_(m.medalha_santos_dumont||'')}" onchange="salvarCampoInline('${m.saram}', 'medalha_santos_dumont', this.value, this)" />` 
+                 : (m.medalha_santos_dumont || '—')}
+        </td>
+
+        <td class="col-grp-carreira">
+          ${edit ? `<input class="cell-inline-input" style="width:80px" value="${escapeHtml_(m.medalha_bartolomeu_gusmao||'')}" onchange="salvarCampoInline('${m.saram}', 'medalha_bartolomeu_gusmao', this.value, this)" />` 
+                 : (m.medalha_bartolomeu_gusmao || '—')}
+        </td>
+
+        <td class="col-grp-aero">
+          ${edit ? `<input type="date" class="cell-inline-input date" value="${m.aero_5717_ultima_pub||''}" onchange="salvarCampoInline('${m.saram}', 'aero_5717_ultima_pub', this.value, this)" />` 
+                 : formatarDataBR(m.aero_5717_ultima_pub)}
+        </td>
+
+        <td class="col-grp-aero">
+          ${edit ? `<input class="cell-inline-input" style="width:100px" value="${escapeHtml_(m.aero_5717_prox_pub||'')}" onchange="salvarCampoInline('${m.saram}', 'aero_5717_prox_pub', this.value, this)" />` 
+                 : (m.aero_5717_prox_pub || '—')}
+        </td>
+
+        <td class="col-grp-aero">
+          ${edit ? `<input type="date" class="cell-inline-input date" value="${m.aero_5718_ultima_pub||''}" onchange="salvarCampoInline('${m.saram}', 'aero_5718_ultima_pub', this.value, this)" />` 
+                 : formatarDataBR(m.aero_5718_ultima_pub)}
+        </td>
+
+        <td class="col-grp-aero">
+          ${edit ? `<input class="cell-inline-input" style="width:100px" value="${escapeHtml_(m.aero_5718_prox_pub||'')}" onchange="salvarCampoInline('${m.saram}', 'aero_5718_prox_pub', this.value, this)" />` 
+                 : (m.aero_5718_prox_pub || '—')}
+        </td>
 
         <td style="text-align:center;">
           <div style="display:inline-flex;gap:.3rem;">
