@@ -1839,6 +1839,68 @@ a.card-go{text-decoration:none}
   transform: translateY(-1px);
 }
 
+/* Wizard de Navegação do Cadastro */
+.cad-wizard-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px dashed rgba(212, 168, 75, 0.25);
+  grid-column: 1 / -1;
+}
+
+.cad-wizard-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .5rem 1.15rem;
+  border-radius: 6px;
+  font-family: var(--f-display);
+  font-size: .8rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all .2s;
+  border: 1px solid rgba(212, 168, 75, 0.4);
+  background: rgba(212, 168, 75, 0.12);
+  color: var(--gold-lt, #ffd37a);
+}
+
+.cad-wizard-btn:hover {
+  background: var(--gold);
+  color: #061021;
+  border-color: var(--gold);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(212, 168, 75, 0.3);
+}
+
+.cad-wizard-btn.sec {
+  border-color: rgba(207, 228, 255, 0.2);
+  background: rgba(207, 228, 255, 0.05);
+  color: var(--contrail, #94a3b8);
+}
+
+.cad-wizard-btn.sec:hover {
+  background: rgba(207, 228, 255, 0.15);
+  color: #fff;
+  border-color: rgba(207, 228, 255, 0.35);
+}
+
+.cad-transporte-box {
+  grid-column: 1 / -1;
+  background: rgba(14, 165, 233, 0.07);
+  border: 1px solid rgba(14, 165, 233, 0.35);
+  border-radius: 8px;
+  padding: 1rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: .85rem;
+  margin-top: .5rem;
+  animation: fadeIn .25s ease;
+}
+
 .card-retomada-saram {
   background: rgba(212, 168, 75, 0.08);
   border: 1px solid rgba(212, 168, 75, 0.3);
@@ -2998,13 +3060,13 @@ a.card-go{text-decoration:none}
       <button class="btn-drawer-close" onclick="fecharModalNovoMilitar()" title="Fechar">&times;</button>
     </div>
 
-    <!-- Barra de Abas -->
+    <!-- Barra de Abas (Padrão do Sistema) -->
     <div class="edicao-tabs-bar">
-      <button type="button" class="e-tab-btn active" id="cad-tab-btn-1" onclick="trocarTabCadastro(1)">1. Identificação</button>
-      <button type="button" class="e-tab-btn" id="cad-tab-btn-2" onclick="trocarTabCadastro(2)">2. Contatos & Endereço</button>
-      <button type="button" class="e-tab-btn" id="cad-tab-btn-3" onclick="trocarTabCadastro(3)">3. Financeiro & Auxílio</button>
-      <button type="button" class="e-tab-btn" id="cad-tab-btn-4" onclick="trocarTabCadastro(4)">4. Carreira & Praça</button>
-      <button type="button" class="e-tab-btn" id="cad-tab-btn-5" onclick="trocarTabCadastro(5)">5. Aeronavegantes & Obs</button>
+      <button type="button" class="edicao-tab-btn active" id="cad-tab-btn-1" onclick="trocarTabCadastro(1)">1. Identificação</button>
+      <button type="button" class="edicao-tab-btn" id="cad-tab-btn-2" onclick="trocarTabCadastro(2)">2. Contato</button>
+      <button type="button" class="edicao-tab-btn" id="cad-tab-btn-3" onclick="trocarTabCadastro(3)">3. Financeiro</button>
+      <button type="button" class="edicao-tab-btn" id="cad-tab-btn-4" onclick="trocarTabCadastro(4)">4. Carreira</button>
+      <button type="button" class="edicao-tab-btn" id="cad-tab-btn-5" onclick="trocarTabCadastro(5)">5. Aeronavegantes & Obs</button>
     </div>
 
     <!-- Corpo com Rolagem -->
@@ -3032,7 +3094,7 @@ a.card-go{text-decoration:none}
           </div>
           <div class="edicao-field">
             <label for="cad-posto">Posto / Graduação *</label>
-            <select id="cad-posto" required>
+            <select id="cad-posto" required onchange="atualizarSoldoPorPostoCadastro()">
               <option value="">Selecione...</option>
               <option value="CL">CL - Coronel</option>
               <option value="TC">TC - Tenente-Coronel</option>
@@ -3071,9 +3133,17 @@ a.card-go{text-decoration:none}
             <label for="cad-rg">Identidade Militar / RG</label>
             <input type="text" id="cad-rg" placeholder="Órgão expedidor e número" />
           </div>
+
+          <!-- Wizard Navegação Aba 1 -->
+          <div class="cad-wizard-nav">
+            <div></div>
+            <button type="button" class="cad-wizard-btn" onclick="avancarTabCadastro(2)">
+              Avançar: Contato ➔
+            </button>
+          </div>
         </div>
 
-        <!-- Aba 2: Contatos & Endereço -->
+        <!-- Aba 2: Contato -->
         <div class="edicao-grid-tab" id="cad-tab-sec-2" style="display:none;">
           <div class="edicao-field">
             <label for="cad-telefone">Telefone / WhatsApp *</label>
@@ -3098,13 +3168,23 @@ a.card-go{text-decoration:none}
             <label for="cad-endereco">Endereço Residencial Completo</label>
             <input type="text" id="cad-endereco" placeholder="Rua, número, bairro, cidade - UF, CEP" />
           </div>
+
+          <!-- Wizard Navegação Aba 2 -->
+          <div class="cad-wizard-nav">
+            <button type="button" class="cad-wizard-btn sec" onclick="voltarTabCadastro(1)">
+              ⬅ Voltar
+            </button>
+            <button type="button" class="cad-wizard-btn" onclick="avancarTabCadastro(3)">
+              Avançar: Financeiro ➔
+            </button>
+          </div>
         </div>
 
-        <!-- Aba 3: Financeiro & Auxílio -->
+        <!-- Aba 3: Financeiro -->
         <div class="edicao-grid-tab" id="cad-tab-sec-3" style="display:none;">
           <div class="edicao-field">
-            <label for="cad-soldo">Soldo Base (R$)</label>
-            <input type="number" id="cad-soldo" step="0.01" placeholder="0.00" />
+            <label for="cad-soldo">Soldo Base Oficial (R$) <small style="color:var(--gold-lt);font-weight:normal;">(Preenchido por Posto)</small></label>
+            <input type="number" id="cad-soldo" step="0.01" placeholder="0.00" readonly style="opacity:.85;background:rgba(212,168,75,0.06);border-color:rgba(212,168,75,0.3);color:var(--gold-lt);font-weight:700;" />
           </div>
           <div class="edicao-field">
             <label for="cad-banco-nome">Nome do Banco</label>
@@ -3123,19 +3203,67 @@ a.card-go{text-decoration:none}
             <input type="text" id="cad-banco-conta" placeholder="ex: 12345-6" />
           </div>
           <div class="edicao-field">
-            <label for="cad-aux-transp">Solicita Auxílio Transporte?</label>
-            <select id="cad-aux-transp">
+            <label for="cad-aux-transp">Beneficiário Aux. Transporte?</label>
+            <select id="cad-aux-transp" onchange="alternarCamposTransporteIntegrado()">
               <option value="false">Não</option>
               <option value="true">Sim</option>
             </select>
           </div>
-          <div class="edicao-field">
-            <label for="cad-aux-valor">Valor Estimado Aux. Transporte (R$)</label>
-            <input type="number" id="cad-aux-valor" step="0.01" placeholder="0.00" />
+
+          <!-- Sub-bloco Integrado do Auxílio Transporte -->
+          <div class="cad-transporte-box" id="cad-transporte-campos-integrados" style="display:none;">
+            <div style="grid-column:1 / -1; display:flex; align-items:center; gap:.5rem; font-family:var(--f-display); font-size:.85rem; color:#38bdf8; font-weight:700; border-bottom:1px solid rgba(56,189,248,0.25); padding-bottom:.4rem; margin-bottom:.2rem;">
+              <span>🚍 Informes para Cadastro no Módulo Auxílio Transporte</span>
+            </div>
+            <div class="edicao-field">
+              <label for="cad-transp-cidade">Cidade de Residência / Origem</label>
+              <input type="text" id="cad-transp-cidade" placeholder="ex: Pirassununga, Leme, Porto Ferreira..." />
+            </div>
+            <div class="edicao-field">
+              <label for="cad-transp-tipo">Meio de Transporte / Linha</label>
+              <select id="cad-transp-tipo">
+                <option value="ONIBUS_MUNICIPAL">Ônibus Municipal / Urbano</option>
+                <option value="ONIBUS_INTERMUNICIPAL">Ônibus Rodoviário / Intermunicipal</option>
+                <option value="FRETADO_VAN">Transporte Fretado / Van Credenciada</option>
+                <option value="OUTRO">Outro Meio Regulamentado</option>
+              </select>
+            </div>
+            <div class="edicao-field">
+              <label for="cad-transp-itinerario">Itinerário / Trajeto Diário</label>
+              <input type="text" id="cad-transp-itinerario" placeholder="ex: Residência ➔ AFA / AFA ➔ Residência" />
+            </div>
+            <div class="edicao-field">
+              <label for="cad-aux-valor">Valor Diário de Passagem / Deslocamento (R$)</label>
+              <input type="number" id="cad-aux-valor" step="0.01" placeholder="0.00" oninput="calcularPrevisaoTransporteMensal()" />
+            </div>
+            <div class="edicao-field">
+              <label for="cad-transp-dias">Dias Úteis Semanais de Deslocamento</label>
+              <select id="cad-transp-dias" onchange="calcularPrevisaoTransporteMensal()">
+                <option value="5" selected>5 dias úteis (Segunda a Sexta)</option>
+                <option value="4">4 dias por semana</option>
+                <option value="3">3 dias por semana</option>
+                <option value="2">2 dias por semana</option>
+                <option value="1">1 dia por semana</option>
+              </select>
+            </div>
+            <div class="edicao-field">
+              <label for="cad-transp-estimativa">Estimativa Mensal Bruta (R$)</label>
+              <input type="text" id="cad-transp-estimativa" placeholder="Calculado automaticamente" readonly style="opacity:.85;color:#38bdf8;font-weight:700;" />
+            </div>
+          </div>
+
+          <!-- Wizard Navegação Aba 3 -->
+          <div class="cad-wizard-nav">
+            <button type="button" class="cad-wizard-btn sec" onclick="voltarTabCadastro(2)">
+              ⬅ Voltar
+            </button>
+            <button type="button" class="cad-wizard-btn" onclick="avancarTabCadastro(4)">
+              Avançar: Carreira ➔
+            </button>
           </div>
         </div>
 
-        <!-- Aba 4: Carreira & Praça -->
+        <!-- Aba 4: Carreira -->
         <div class="edicao-grid-tab" id="cad-tab-sec-4" style="display:none;">
           <div class="edicao-field">
             <label for="cad-dt-nasc">Data de Nascimento</label>
@@ -3173,6 +3301,16 @@ a.card-go{text-decoration:none}
             <label for="cad-fim-serv-temp">Término do Serviço Temporário (se aplicável)</label>
             <input type="date" id="cad-fim-serv-temp" />
           </div>
+
+          <!-- Wizard Navegação Aba 4 -->
+          <div class="cad-wizard-nav">
+            <button type="button" class="cad-wizard-btn sec" onclick="voltarTabCadastro(3)">
+              ⬅ Voltar
+            </button>
+            <button type="button" class="cad-wizard-btn" onclick="avancarTabCadastro(5)">
+              Avançar: Aeronavegantes ➔
+            </button>
+          </div>
         </div>
 
         <!-- Aba 5: Aeronavegantes & Observações -->
@@ -3197,13 +3335,23 @@ a.card-go{text-decoration:none}
             <label for="cad-obs">Observações Relevantes da Apresentação</label>
             <textarea id="cad-obs" rows="3" placeholder="Informações adicionais da chegada do militar na DE..."></textarea>
           </div>
+
+          <!-- Wizard Navegação Aba 5 -->
+          <div class="cad-wizard-nav">
+            <button type="button" class="cad-wizard-btn sec" onclick="voltarTabCadastro(4)">
+              ⬅ Voltar
+            </button>
+            <button type="button" class="cad-wizard-btn" onclick="enviarCadastroForm()" style="background:var(--gold);color:#061021;">
+              🚀 Enviar para Secretaria
+            </button>
+          </div>
         </div>
       </form>
     </div>
 
-    <!-- Rodapé de Ações -->
+    <!-- Rodapé de Ações (Fixo do Modal) -->
     <div class="edicao-hero-footer" style="justify-content: space-between;">
-      <button class="cfg-btn sec" type="button" onclick="salvarRascunhoForm()" id="btn-salvar-rascunho" title="Salvar preenchimento parcial para continuar depois">
+      <button class="cfg-btn sec" type="button" onclick="salvarRascunhoForm()" id="btn-salvar-rascunho" title="Salvar preenchimento parcial para continuar depois em qualquer etapa">
         💾 Salvar Rascunho
       </button>
       <div style="display:flex; gap:.65rem;">
@@ -6044,12 +6192,115 @@ function trocarTabCadastro(tabNum) {
   }
 }
 
+function avancarTabCadastro(proxNum) {
+  // Se está saindo da aba 1, valida campos básicos
+  if (proxNum === 2) {
+    const saram = document.getElementById('cad-saram')?.value?.trim();
+    const posto = document.getElementById('cad-posto')?.value;
+    const guerra = document.getElementById('cad-nome-guerra')?.value?.trim();
+    const completo = document.getElementById('cad-nome-completo')?.value?.trim();
+    if (!saram || saram.length < 5) {
+      alert('Por favor, informe seu SARAM (mínimo 5 dígitos) antes de avançar.');
+      document.getElementById('cad-saram')?.focus();
+      return;
+    }
+    if (!posto) {
+      alert('Por favor, selecione seu Posto / Graduação.');
+      document.getElementById('cad-posto')?.focus();
+      return;
+    }
+    if (!guerra) {
+      alert('Por favor, informe seu Nome de Guerra.');
+      document.getElementById('cad-nome-guerra')?.focus();
+      return;
+    }
+    if (!completo) {
+      alert('Por favor, informe seu Nome Completo.');
+      document.getElementById('cad-nome-completo')?.focus();
+      return;
+    }
+  }
+
+  trocarTabCadastro(proxNum);
+  const panel = document.querySelector('#modalCadastroNovoMilitar .edicao-hero-body');
+  if (panel) panel.scrollTop = 0;
+}
+
+function voltarTabCadastro(antNum) {
+  trocarTabCadastro(antNum);
+  const panel = document.querySelector('#modalCadastroNovoMilitar .edicao-hero-body');
+  if (panel) panel.scrollTop = 0;
+}
+
+/* Soldos Oficiais FAB e Preenchimento Automático */
+const TABELA_SOLDOS_CADASTRO = {
+  'CL': 12505.00, 'CEL': 12505.00, 'CORONEL': 12505.00,
+  'TC': 12285.00, 'TEN CORONEL': 12285.00, 'TENENTE CORONEL': 12285.00,
+  'MJ': 12108.00, 'MAJOR': 12108.00,
+  'CP': 9976.00,  'CAP': 9976.00,  'CAPITAO': 9976.00, 'CAPITÃO': 9976.00,
+  '1T': 9004.00,  '1º TENENTE': 9004.00, '1TEN': 9004.00, '1º TEN': 9004.00,
+  '2T': 8179.00,  '2º TENENTE': 8179.00, '2TEN': 8179.00, '2º TEN': 8179.00,
+  'ASP': 7988.00, 'ASPIRANTE': 7988.00,
+  'SO': 6737.00,  'SUBOFICIAL': 6737.00, 'SUB OFICIAL': 6737.00,
+  '1S': 5988.00,  '1º SARGENTO': 5988.00, '1SGT': 5988.00, '1º SGT': 5988.00,
+  '2S': 5209.00,  '2º SARGENTO': 5209.00, '2SGT': 5209.00, '2º SGT': 5209.00,
+  '3S': 4177.00,  '3º SARGENTO': 4177.00, '3SGT': 4177.00, '3º SGT': 4177.00,
+  'CB': 2869.00,  'CABO': 2869.00,
+  'S1': 2103.00,  'SD 1ª CLASSE': 2103.00, '1CL': 2103.00,
+  'S2': 1927.00,  'SD 2ª CLASSE': 1927.00, '2CL': 1927.00,
+  'CV': 0.00
+};
+
+function atualizarSoldoPorPostoCadastro() {
+  const posto = document.getElementById('cad-posto')?.value;
+  const soldoEl = document.getElementById('cad-soldo');
+  if (!soldoEl) return;
+
+  if (posto && TABELA_SOLDOS_CADASTRO[posto] !== undefined) {
+    soldoEl.value = TABELA_SOLDOS_CADASTRO[posto].toFixed(2);
+  } else {
+    soldoEl.value = '';
+  }
+}
+
+function alternarCamposTransporteIntegrado() {
+  const sel = document.getElementById('cad-aux-transp');
+  const box = document.getElementById('cad-transporte-campos-integrados');
+  if (!sel || !box) return;
+
+  const isBeneficiario = (sel.value === 'true');
+  box.style.display = isBeneficiario ? 'grid' : 'none';
+  if (isBeneficiario) {
+    calcularPrevisaoTransporteMensal();
+  }
+}
+
+function calcularPrevisaoTransporteMensal() {
+  const valorDiario = parseFloat(document.getElementById('cad-aux-valor')?.value) || 0;
+  const diasSemana = parseInt(document.getElementById('cad-transp-dias')?.value, 10) || 5;
+  const estimativaEl = document.getElementById('cad-transp-estimativa');
+  if (!estimativaEl) return;
+
+  // Média de semanas úteis mensais = 4.4 (base de 22 dias úteis mensais para 5 dias/sem)
+  const diasMes = Math.round(diasSemana * 4.4);
+  const total = (valorDiario * diasMes).toFixed(2);
+  estimativaEl.value = `R$ ${total} (${diasMes} viagens mensais)`;
+}
+
 function coletarDadosFormCadastro() {
   const getVal = id => document.getElementById(id)?.value?.trim() || '';
 
+  const posto = getVal('cad-posto');
+  let soldo = parseFloat(getVal('cad-soldo')) || 0;
+  if (!soldo && posto && TABELA_SOLDOS_CADASTRO[posto]) {
+    soldo = TABELA_SOLDOS_CADASTRO[posto];
+  }
+
+  const auxTransp = (document.getElementById('cad-aux-transp')?.value === 'true');
+
   return {
     saram: getVal('cad-saram'),
-    posto_grad: getVal('cad-posto'),
+    posto_grad: posto,
     especialidade: getVal('cad-esp'),
     nome_guerra: getVal('cad-nome-guerra'),
     nome_completo: getVal('cad-nome-completo'),
@@ -6062,13 +6313,19 @@ function coletarDadosFormCadastro() {
     lista_zimbra: document.getElementById('cad-lista-zimbra')?.value === 'true',
     endereco: getVal('cad-endereco'),
 
-    soldo: parseFloat(getVal('cad-soldo')) || 0,
+    soldo: soldo,
     banco_nome: getVal('cad-banco-nome'),
     banco_codigo: getVal('cad-banco-cod'),
     banco_agencia: getVal('cad-banco-ag'),
     banco_conta: getVal('cad-banco-conta'),
-    auxilio_transporte: document.getElementById('cad-aux-transp')?.value === 'true',
+    auxilio_transporte: auxTransp,
     valor_auxilio_transporte: parseFloat(getVal('cad-aux-valor')) || 0,
+
+    // Campos integrados com o módulo de transporte
+    transporte_cidade: getVal('cad-transp-cidade'),
+    transporte_tipo: getVal('cad-transp-tipo'),
+    transporte_itinerario: getVal('cad-transp-itinerario'),
+    transporte_dias_semana: parseInt(getVal('cad-transp-dias'), 10) || 5,
 
     data_nascimento: getVal('cad-dt-nasc') || null,
     data_praca: getVal('cad-dt-praca') || null,
@@ -6108,13 +6365,26 @@ function preencherCamposCadastro(dados) {
   setVal('cad-lista-zimbra', dados.lista_zimbra ? 'true' : 'false');
   setVal('cad-endereco', dados.endereco || '');
 
-  setVal('cad-soldo', dados.soldo || '');
+  // Preenche ou calcula soldo
+  if (dados.soldo) {
+    setVal('cad-soldo', dados.soldo);
+  } else {
+    atualizarSoldoPorPostoCadastro();
+  }
+
   setVal('cad-banco-nome', dados.banco_nome || '');
   setVal('cad-banco-cod', dados.banco_codigo || '');
   setVal('cad-banco-ag', dados.banco_agencia || '');
   setVal('cad-banco-conta', dados.banco_conta || '');
-  setVal('cad-aux-transp', dados.auxilio_transporte ? 'true' : 'false');
+
+  const isBenef = !!dados.auxilio_transporte;
+  setVal('cad-aux-transp', isBenef ? 'true' : 'false');
   setVal('cad-aux-valor', dados.valor_auxilio_transporte || '');
+  setVal('cad-transp-cidade', dados.transporte_cidade || '');
+  setVal('cad-transp-tipo', dados.transporte_tipo || 'ONIBUS_MUNICIPAL');
+  setVal('cad-transp-itinerario', dados.transporte_itinerario || '');
+  setVal('cad-transp-dias', dados.transporte_dias_semana || '5');
+  alternarCamposTransporteIntegrado();
 
   setVal('cad-dt-nasc', dados.data_nascimento || '');
   setVal('cad-dt-praca', dados.data_praca || '');
@@ -6509,11 +6779,19 @@ window.addEventListener('afa_solicitacao_aprovada', () => {
   recarregarEfetivoHero(true);
 });
 
-// Inicialização de pendências
+// Inicialização de pendências e verificação de URL (?abrirCadastro=1)
+function inicializarFase4Index() {
+  atualizarBadgesPendencias();
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('abrirCadastro') === '1' || params.get('cadastro') === '1') {
+    setTimeout(abrirModalNovoMilitar, 400);
+  }
+}
+
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => setTimeout(atualizarBadgesPendencias, 600));
+  document.addEventListener('DOMContentLoaded', () => setTimeout(inicializarFase4Index, 600));
 } else {
-  setTimeout(atualizarBadgesPendencias, 600);
+  setTimeout(inicializarFase4Index, 600);
 }
 </script>
 </body>

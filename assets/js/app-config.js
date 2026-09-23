@@ -1270,6 +1270,28 @@
               updated_at: new Date().toISOString()
             })
             .eq('saram', saramNorm);
+
+          // Integração com o Módulo de Auxílio Transporte (at_militares)
+          if (novoMilitar.auxilio_transporte === true || String(novoMilitar.auxilio_transporte).toLowerCase().includes('sim')) {
+            const soldo = Number(novoMilitar.soldo) || 0;
+            const cotaParte = Number(((soldo * 0.06 / 30) * 22).toFixed(2));
+            const valorDiario = Number(novoMilitar.valor_auxilio_transporte) || 0;
+            const diasSemana = Number(novoMilitar.transporte_dias_semana) || 5;
+            const diasMes = Math.round(diasSemana * 4.4);
+            const valorMensal = Number((valorDiario * diasMes).toFixed(2)) || valorDiario;
+
+            const payloadTransporte = {
+              nome: (novoMilitar.nome_guerra || '').toUpperCase(),
+              grad: [novoMilitar.posto_grad, novoMilitar.especialidade].filter(Boolean).join(' ') || novoMilitar.posto_grad,
+              saram: saramNorm,
+              soldo: soldo,
+              cota_parte: cotaParte,
+              valor_mensal: valorMensal,
+              valor_diario: valorDiario,
+              ativo: true
+            };
+            await sb.from('at_militares').upsert([payloadTransporte], { onConflict: 'saram' }).catch(() => {});
+          }
         } catch(e) {
           console.warn('Erro ao persistir aprovação no Supabase:', e);
         }
