@@ -421,7 +421,7 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
           <input type="text" id="numSigad" placeholder="550297" autocomplete="off" style="max-width:140px" />
         </div>
         <button class="acao fantasma" id="btnCsv">Gerador CSV</button>
-        <button class="acao fantasma" id="btnSyncPlanilha" onclick="sincronizarMilitaresComPlanilhaCentral()">🔄 Sincronizar Planilha Central</button>
+        <button class="acao fantasma" id="btnSyncPlanilha" onclick="sincronizarMilitaresComPlanilhaCentral()" title="Sincronizar militares com o Banco de Dados Central">🔄 Sincronizar Efetivo (DB Central)</button>
         <button class="acao fantasma" id="btnAtualizarSec">Atualizar</button>
         <button class="acao fantasma" id="btnVerCad">Cadastrar militares</button>
         <button class="acao fantasma" id="btnPinNovo">⚙️ Configurações</button>
@@ -1365,17 +1365,27 @@ async function carregarSecretaria(){
   }));
 }
 async function sincronizarMilitaresComPlanilhaCentral() {
-  // 1. Prioriza base central unificada do Supabase via AppConfig (Fase 3)
+  // 1. Prioriza consulta direta ao Banco de Dados Supabase (efetivo_pessoal) e AppConfig
   try {
-    if (window.AppConfig && typeof window.AppConfig.fetchEfetivo === 'function') {
-      const efetivoDB = await window.AppConfig.fetchEfetivo({ activeOnly: true });
+    let efetivoDB = null;
+    if (SB.key) {
+      try {
+        const dadosDb = await sbGet('efetivo_pessoal?select=*&ativo=eq.true&order=ordem.asc');
+        if (dadosDb && dadosDb.length > 0) efetivoDB = dadosDb;
+      } catch(eDb) {}
+    }
+    if (!efetivoDB && window.AppConfig && typeof window.AppConfig.fetchEfetivo === 'function') {
+      efetivoDB = await window.AppConfig.fetchEfetivo({ activeOnly: true });
+    }
+
+    if (efetivoDB && efetivoDB.length > 0) {
       const militaresComAuxilio = efetivoDB.filter(m => m.auxilio_transporte === true || String(m.auxilio_transporte).toLowerCase().includes('sim'));
       if (militaresComAuxilio && militaresComAuxilio.length > 0) {
         let importados = 0;
         const soldosMap = JSON.parse(localStorage.getItem('at_soldos_map') || '{}');
 
         for (const m of militaresComAuxilio) {
-          const nomeGuerra = m.nome_guerra || '';
+          const nomeGuerra = (m.nome_guerra || '').toUpperCase();
           if (!nomeGuerra) continue;
           const posto = m.posto_grad || '';
           const esp = m.especialidade || '';
@@ -1389,7 +1399,7 @@ async function sincronizarMilitaresComPlanilhaCentral() {
           const valorDiario = valorMensal > 0 ? Number((valorMensal / 22).toFixed(2)) : 0;
 
           const payload = {
-            nome: nomeGuerra.toUpperCase(),
+            nome: nomeGuerra,
             grad: gradFormatada,
             saram: saram,
             soldo: soldo,
@@ -1402,18 +1412,46 @@ async function sincronizarMilitaresComPlanilhaCentral() {
           try {
             await sbUpsert('at_militares', payload, 'saram');
             importados++;
-          } catch(e) {}
+          } catch(e) {
+            try {
+              const payloadBase = {
+                nome: nomeGuerra,
+                grad: gradFormatada,
+                saram: saram,
+                valor_mensal: valorMensal,
+                valor_diario: valorDiario,
+                ativo: true
+              };
+              await sbUpsert('at_militares', payloadBase, 'saram');
+              importados++;
+            } catch(e2) {
+              console.warn('Falha ao upsert militar no AT:', nomeGuerra, e2);
+            }
+          }
         }
 
         try { localStorage.setItem('at_soldos_map', JSON.stringify(soldosMap)); } catch(e){}
         await carregarMilitares();
         if (typeof carregarSecretaria === 'function') await carregarSecretaria();
-        alert(`✓ ${importados} militares com Auxílio Transporte sincronizados diretamente da base central!`);
+        
+        if (typeof Swal !== 'undefined') {
+          Swal.fire({
+            icon: 'success',
+            title: 'Efetivo Sincronizado!',
+            text: `${importados} militares com Auxílio Transporte sincronizados diretamente da Base Central do Banco de Dados!`,
+            timer: 2500,
+            showConfirmButton: false,
+            background: '#101f3e',
+            color: '#cfe4ff'
+          });
+        } else {
+          alert(`✓ ${importados} militares com Auxílio Transporte sincronizados diretamente da base central!`);
+        }
         return;
       }
     }
   } catch(errDb) {
-    console.warn('AppConfig fetchEfetivo falhou em transporte.html, tentando fallback...', errDb);
+    console.warn('Busca da Base Central falhou em transporte.html, tentando fallback...', errDb);
   }
 
   // Fallback Google Sheets GViz
@@ -1913,6 +1951,35 @@ $('nSoldo').addEventListener('input', () => {
 $('nVig').addEventListener('input', () => {
   const v = Number($('nVig').value || 0);
   if (v > 0) $('nDia').value = (v / 22).toFixed(2);
+});
+
+$('nSaram').addEventListener('blur', async () => {
+  const s = $('nSaram').value.trim();
+  if (s.length >= 4 && (!$('nNome').value || !$('nGrad').value)) {
+    try {
+      let mil = null;
+      if (window.AppConfig && typeof window.AppConfig.buscarMilitar === 'function') {
+        mil = await window.AppConfig.buscarMilitar(s);
+      }
+      if (!mil && SB.key) {
+        const dados = await sbGet('efetivo_pessoal?saram=eq.' + s);
+        if (dados && dados[0]) mil = dados[0];
+      }
+      if (mil) {
+        if (!$('nNome').value) $('nNome').value = (mil.nome_guerra || '').toUpperCase();
+        if (!$('nGrad').value) $('nGrad').value = [mil.posto_grad, mil.especialidade].filter(Boolean).join(' ') || mil.posto_grad || '';
+        const sld = Number(mil.soldo) || obterSoldoPorGrad($('nGrad').value);
+        if (sld > 0) {
+          $('nSoldo').value = sld.toFixed(2);
+          $('nCota').value = calcularCotaParte(sld).toFixed(2);
+        }
+        if (mil.valor_auxilio_transporte && Number(mil.valor_auxilio_transporte) > 0 && !$('nVig').value) {
+          $('nVig').value = Number(mil.valor_auxilio_transporte).toFixed(2);
+          $('nDia').value = (Number(mil.valor_auxilio_transporte) / 22).toFixed(2);
+        }
+      }
+    } catch(e){}
+  }
 });
 
 $('btnAddMil').addEventListener('click', async () => {

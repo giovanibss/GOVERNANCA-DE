@@ -1290,7 +1290,20 @@
               valor_diario: valorDiario,
               ativo: true
             };
-            await sb.from('at_militares').upsert([payloadTransporte], { onConflict: 'saram' }).catch(() => {});
+            try {
+              const { error: errAt } = await sb.from('at_militares').upsert([payloadTransporte], { onConflict: 'saram' });
+              if (errAt) {
+                const payloadBase = {
+                  nome: payloadTransporte.nome,
+                  grad: payloadTransporte.grad,
+                  saram: payloadTransporte.saram,
+                  valor_mensal: payloadTransporte.valor_mensal,
+                  valor_diario: payloadTransporte.valor_diario,
+                  ativo: true
+                };
+                await sb.from('at_militares').upsert([payloadBase], { onConflict: 'saram' });
+              }
+            } catch(eAt) {}
           }
         } catch(e) {
           console.warn('Erro ao persistir aprovação no Supabase:', e);

@@ -226,39 +226,6 @@ body.cortina .cue{animation-play-state:paused}
   text-transform:uppercase;color:var(--contrail-dim);margin-top:2px;
   text-shadow:0 1px 10px rgba(0,0,0,.5);
 }
-.top-btn-cadastro {
-  display: inline-flex;
-  align-items: center;
-  gap: .45rem;
-  padding: .38rem .85rem;
-  border-radius: 6px;
-  background: rgba(212, 168, 75, 0.16);
-  border: 1px solid rgba(212, 168, 75, 0.45);
-  color: var(--gold-lt, #ffd37a);
-  font-family: var(--f-display);
-  font-size: .74rem;
-  font-weight: 700;
-  letter-spacing: .06em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all .22s cubic-bezier(.2,.8,.2,1);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
-  margin-left: .5rem;
-  white-space: nowrap;
-}
-.top-btn-cadastro:hover {
-  background: var(--gold);
-  color: #061021;
-  border-color: var(--gold);
-  box-shadow: 0 6px 20px rgba(212, 168, 75, 0.4);
-  transform: translateY(-1px);
-}
-@media(max-width: 720px) {
-  .top-btn-cadastro span { display: none; }
-  .top-btn-cadastro { padding: .38rem .5rem; }
-}
 .top-clock{
   margin-left:auto;display:flex;align-items:center;gap:.6rem;
   font-family:var(--f-data);font-size:.68rem;color:var(--contrail-dim);
@@ -319,12 +286,12 @@ body.cortina .cue{animation-play-state:paused}
 .rv[data-d="3"]{transition-delay:.27s}
 .rv[data-d="4"]{transition-delay:.36s}
 
-/* ═══ INTRO ═══ */
+/* ═══ INTRO & BOTÕES DE AÇÃO RÁPIDA ═══ */
 .intro{
   max-width:var(--shell);margin:0 auto;
   padding:clamp(3rem,12vh,7rem) var(--gutter) clamp(2rem,6vh,3.5rem);
 }
-.intro-in{max-width:min(600px,94%)}
+.intro-in{max-width:min(1080px,96%)}
 .eyebrow{
   display:flex;align-items:center;gap:.65rem;
   font-family:var(--f-data);font-size:.64rem;letter-spacing:.26em;
@@ -341,6 +308,76 @@ body.cortina .cue{animation-play-state:paused}
   margin-top:1.4rem;max-width:46ch;
   font-size:clamp(.92rem,1.6vw,1.03rem);line-height:1.64;
   color:var(--contrail-dim);
+}
+.twin-actions {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin-top: 1.35rem;
+  flex-wrap: wrap;
+}
+.btn-twin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .6rem;
+  padding: .75rem 1.3rem;
+  border-radius: 8px;
+  font-family: var(--f-display);
+  font-size: .95rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  line-height: 1.2;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  outline: none;
+  box-sizing: border-box;
+  transition: all .22s cubic-bezier(.2, .8, .2, 1);
+  -webkit-appearance: none;
+  appearance: none;
+  user-select: none;
+}
+.btn-twin svg {
+  flex-shrink: 0;
+}
+.btn-twin.gold {
+  background: var(--gold);
+  color: #061021;
+  border-color: var(--gold);
+  box-shadow: 0 8px 24px rgba(212,168,75,.3);
+}
+.btn-twin.gold:hover {
+  background: #e2b75a;
+  border-color: #e2b75a;
+  color: #030812;
+  box-shadow: 0 10px 28px rgba(212,168,75,.45);
+  transform: translateY(-2px);
+}
+.btn-twin.navy {
+  background: rgba(15,35,65,.85);
+  color: #fff;
+  border: 1px solid var(--gold);
+  box-shadow: 0 8px 24px rgba(0,0,0,.3);
+}
+.btn-twin.navy:hover {
+  background: rgba(22,50,92,.95);
+  border-color: var(--gold-lt);
+  color: #fff;
+  box-shadow: 0 10px 28px rgba(0,0,0,.45), 0 0 16px rgba(212,168,75,.25);
+  transform: translateY(-2px);
+}
+.btn-twin:active {
+  transform: translateY(0);
+}
+.btn-twin:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.btn-twin .badge-pendencias-ef {
+  margin-left: .25rem;
 }
 
 /* ═══ FAIXA DE SITUAÇÃO ═══ */
@@ -798,6 +835,8 @@ a.card-go{text-decoration:none}
   .card-chev svg{width:17px;height:17px}
   .sect-label > span{font-size:.6rem}
   .foot .motto{margin-left:0;width:100%}
+  .twin-actions{flex-direction:column;align-items:stretch;width:100%}
+  .btn-twin{width:100%;justify-content:center}
 }
 
 @media(prefers-reduced-motion:reduce){
@@ -2092,10 +2131,6 @@ a.card-go{text-decoration:none}
     <b>Governança DE</b>
     <span>Secretaria da Divisão de Ensino</span>
   </div>
-  <button class="top-btn-cadastro" id="btn-top-cadastro-pessoal" onclick="abrirModalNovoMilitar()" title="Apresentação de novos integrantes / Formulário de Cadastro Pessoal">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-    <span>Cadastro Pessoal</span>
-  </button>
   <div class="top-clock">
     <span class="beacon" aria-hidden="true"></span>
     <span class="lbl" id="clock-day">—</span>
@@ -2113,22 +2148,6 @@ a.card-go{text-decoration:none}
 
   <!-- HERO: só a arte -->
   <section class="hero" id="hero">
-    <div class="hero-actions">
-      <button class="hero-efetivo-btn" onclick="abrirConsultaEfetivoHero()" title="Consultar Efetivo da Divisão de Ensino">
-        <span class="hero-efetivo-icon">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-        </span>
-        <span class="hero-efetivo-txt">
-          <strong>Consultar Efetivo DE</strong>
-          <small id="hero-efetivo-subtxt">Lista Rápida · Seções · Ramais</small>
-        </span>
-        <span class="badge-pendencias-ef" id="hero-pendencias-badge" style="display:none;" title="Solicitações de novos militares aguardando aprovação">0 pendências</span>
-        <span class="hero-efetivo-arrow">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
-        </span>
-      </button>
-    </div>
-
     <div class="cue">
       <span class="cue-txt">Role para os módulos</span>
       <span class="cue-rail" aria-hidden="true"></span>
@@ -2140,14 +2159,23 @@ a.card-go{text-decoration:none}
       <p class="eyebrow rv">Academia da Força Aérea</p>
       <h1 class="rv" data-d="1">Governança da<em>Secretaria da Divisão de Ensino</em></h1>
       <p class="rv" data-d="2">Ponto único de acesso aos sistemas de controle da DE. Os números abaixo refletem a situação de agora — escolha um módulo para operar.</p>
-      <div class="twin-actions rv" data-d="3" style="display:flex;gap:.85rem;margin-top:1.25rem;flex-wrap:wrap">
-        <a href="solicitar.html" class="btn-twin gold" style="display:inline-flex;align-items:center;gap:.6rem;padding:.75rem 1.4rem;border-radius:8px;background:var(--gold);color:#061021;font-family:var(--f-display);font-size:1rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;text-decoration:none;box-shadow:0 8px 24px rgba(212,168,75,.3);transition:all .22s">
+      <div class="twin-actions rv" data-d="3">
+        <button type="button" class="btn-twin navy" onclick="abrirConsultaEfetivoHero()" title="Consultar Efetivo da Divisão de Ensino">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Consulta Efetivo
+          <span class="badge-pendencias-ef" id="hero-pendencias-badge" style="display:none;" title="Solicitações de novos militares aguardando aprovação">0 pendências</span>
+        </button>
+        <button type="button" class="btn-twin navy" id="btn-top-cadastro-pessoal" onclick="abrirModalNovoMilitar()" title="Apresentação de novos integrantes / Formulário de Cadastro Pessoal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+          Cadastro pessoal
+        </button>
+        <a href="solicitar.html" class="btn-twin gold" title="Informe / Solicitação de Missão Externa">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-          Informe de Missão Externa
+          Solicitação de Missão
         </a>
-        <a href="retorno.html" class="btn-twin navy" style="display:inline-flex;align-items:center;gap:.6rem;padding:.75rem 1.4rem;border-radius:8px;background:rgba(15,35,65,.85);color:#fff;border:1px solid var(--gold);font-family:var(--f-display);font-size:1rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,.3);transition:all .22s">
+        <a href="retorno.html" class="btn-twin navy" title="Apresentação de Retorno de Missão">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>
-          Apresentação de Retorno
+          Retorno de Missão
         </a>
       </div>
     </div>

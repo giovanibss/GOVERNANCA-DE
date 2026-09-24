@@ -1790,7 +1790,41 @@ function formatarSARAM(raw) {
 }
 
 async function carregarEfetivo() {
-  // 1. Prioriza base central unificada do Supabase via AppConfig (Fase 3)
+  // 1. Prioriza consulta direta ao Supabase (efetivo_pessoal) se online
+  if (sb) {
+    try {
+      const { data, error } = await sb.from('efetivo_pessoal')
+        .select('*')
+        .eq('ativo', true)
+        .order('ordem', { ascending: true });
+      if (!error && data && data.length > 0) {
+        listaEfetivo = data.map((m, i) => ({
+          efetivo_order: Number(m.ordem) || i,
+          posto: m.posto_grad || '',
+          esp: m.especialidade || '',
+          nome: m.nome_guerra || '',
+          funcao: m.cargo_funcao || '',
+          nome_completo: m.nome_completo || '',
+          cpf: formatarCPF(m.cpf),
+          email: m.email || '',
+          saram: formatarSARAM(m.saram),
+          rg: m.rg || '',
+          banco_nome: m.banco_nome || '',
+          banco_codigo: m.banco_codigo || '',
+          banco_agencia: m.banco_agencia || '',
+          banco_conta: m.banco_conta || ''
+        })).filter(m => m.nome || m.nome_completo);
+
+        localStorage.setItem(CACHE_EFETIVO_KEY, JSON.stringify(listaEfetivo));
+        preencherSelectsEfetivo();
+        return;
+      }
+    } catch(errSb) {
+      console.warn('Consulta direta a efetivo_pessoal falhou em diarias.html:', errSb);
+    }
+  }
+
+  // 2. Prioriza base central unificada do Supabase via AppConfig (Fase 3)
   try {
     if (window.AppConfig && typeof window.AppConfig.fetchEfetivo === 'function') {
       const militaresDB = await window.AppConfig.fetchEfetivo({ activeOnly: true });
@@ -2290,6 +2324,9 @@ function selecionarMilitarGratItem(itemIdx, efetivoIdx) {
   if (m.cpf) item.cpf = m.cpf;
   if (m.saram) item.saram = m.saram;
   item.om = 'AFA';
+  if (m.banco_nome) item.banco_nome = m.banco_nome;
+  if (m.banco_agencia) item.banco_agencia = m.banco_agencia;
+  if (m.banco_conta) item.banco_conta = m.banco_conta;
   renderMilitaresGratModal();
 }
 
@@ -4965,6 +5002,7 @@ function ouvirRealtimeTudo() {
     .on('postgres_changes', { event: '*', schema: 'public', table: 'solicitacoes_missao' }, () => recarregarTudo())
     .on('postgres_changes', { event: '*', schema: 'public', table: 'controle_os_processos' }, () => recarregarTudo())
     .on('postgres_changes', { event: '*', schema: 'public', table: 'militares_externos' }, () => carregarMilitaresExternos())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'efetivo_pessoal' }, () => carregarEfetivo())
     .subscribe();
 }
 
