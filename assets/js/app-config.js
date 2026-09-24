@@ -690,8 +690,8 @@
       const sb = getSbClient();
       let records = null;
 
-      // 1. Tenta buscar do Supabase se não for forçado ignorar
-      if (sb && !forceRefresh) {
+      // 1. Tenta buscar do Supabase
+      if (sb) {
         try {
           let query = sb.from('efetivo_pessoal').select('*').order('ordem', { ascending: true });
           if (activeOnly) query = query.eq('ativo', true);

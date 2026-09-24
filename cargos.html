@@ -1992,6 +1992,7 @@
       const anon = window.SUPABASE_ANON || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg';
       try {
         sb = window.supabase.createClient(url, anon, { auth: { persistSession: false } });
+        window.sb = sb;
       } catch(e) { console.warn('Supabase fallback:', e); }
     }
 
@@ -2139,11 +2140,55 @@
   /* ═══════════════════════════════════════════════════════════════════
      CARREGAMENTO DO EFETIVO (BASE CENTRAL UNIFICADA / SUPABASE)
      ═══════════════════════════════════════════════════════════════════ */
-  async function carregarEfetivoBaseCentral() {
-    // 1. Prioriza a base central unificada via AppConfig (Supabase efetivo_pessoal)
+  async function carregarEfetivoBaseCentral(forceRefresh = false) {
+    if (sb && !window.sb) window.sb = sb;
+    if (window.sb && !sb) sb = window.sb;
+
+    // 1. Prioriza consulta direta ao Supabase (efetivo_pessoal) se online
+    if (sb) {
+      try {
+        const { data, error } = await sb.from('efetivo_pessoal')
+          .select('*')
+          .neq('status_efetivo', 'ex_integrante')
+          .order('ordem', { ascending: true });
+        if (!error && data && data.length > 0) {
+          listaEfetivo = data.map((m, i) => ({
+            idx: i,
+            posto: m.posto_grad || '',
+            esp: m.especialidade || '',
+            nome: m.nome_guerra || '',
+            cargo_funcao: m.cargo_funcao || '',
+            funcao_col_h: m.cargo_funcao || '',
+            secoes_lista: m.secoes_lista || (window.AppConfig ? window.AppConfig.extrairSecoes(m.cargo_funcao) : (m.secao_formatada ? [m.secao_formatada] : ['Geral'])),
+            secao_formatada: m.secao_formatada || '',
+            nome_completo: m.nome_completo || '',
+            cpf: formatarCPF(m.cpf),
+            email: m.email || '',
+            saram: formatarSARAM(m.saram),
+            rg: m.rg || '',
+            ramal: m.ramal || '',
+            funcao_publicada: !!m.funcao_publicada,
+            boletim: m.boletim || '',
+            data_inicio: m.data_inicio || '',
+            status_efetivo: m.status_efetivo || 'ativo',
+            ativo: m.ativo !== false
+          })).filter(m => m.nome || m.nome_completo);
+
+          localStorage.setItem('cargos_efetivo_cache', JSON.stringify(listaEfetivo));
+          try {
+            localStorage.setItem('afa_efetivo_db_v1', JSON.stringify(data));
+          } catch(e) {}
+          return;
+        }
+      } catch(errSb) {
+        console.warn('Consulta direta a efetivo_pessoal falhou, tentando AppConfig:', errSb);
+      }
+    }
+
+    // 2. Consulta via AppConfig
     try {
       if (window.AppConfig && typeof window.AppConfig.fetchEfetivo === 'function') {
-        const militaresDB = await window.AppConfig.fetchEfetivo({ activeOnly: true });
+        const militaresDB = await window.AppConfig.fetchEfetivo({ activeOnly: true, forceRefresh: forceRefresh });
         if (militaresDB && militaresDB.length > 0) {
           listaEfetivo = militaresDB.map((m, i) => ({
             idx: i,
@@ -2151,8 +2196,8 @@
             esp: m.especialidade || '',
             nome: m.nome_guerra || '',
             cargo_funcao: m.cargo_funcao || '',
-            funcao_col_h: m.cargo_funcao || '', // compatibilidade com referências existentes
-            secoes_lista: m.secoes_lista || (window.AppConfig ? window.AppConfig.extrairSecoes(m.cargo_funcao) : []),
+            funcao_col_h: m.cargo_funcao || '',
+            secoes_lista: m.secoes_lista || (window.AppConfig ? window.AppConfig.extrairSecoes(m.cargo_funcao) : (m.secao_formatada ? [m.secao_formatada] : ['Geral'])),
             secao_formatada: m.secao_formatada || '',
             nome_completo: m.nome_completo || '',
             cpf: formatarCPF(m.cpf),
@@ -2172,45 +2217,7 @@
         }
       }
     } catch(errDb) {
-      console.warn('AppConfig fetchEfetivo falhou, tentando consulta direta ao Supabase...', errDb);
-    }
-
-    // 2. Consulta direta à tabela efetivo_pessoal no Supabase
-    if (sb) {
-      try {
-        const { data, error } = await sb.from('efetivo_pessoal')
-          .select('*')
-          .neq('status_efetivo', 'ex_integrante')
-          .order('ordem', { ascending: true });
-        if (!error && data && data.length > 0) {
-          listaEfetivo = data.map((m, i) => ({
-            idx: i,
-            posto: m.posto_grad || '',
-            esp: m.especialidade || '',
-            nome: m.nome_guerra || '',
-            cargo_funcao: m.cargo_funcao || '',
-            funcao_col_h: m.cargo_funcao || '',
-            secoes_lista: window.AppConfig ? window.AppConfig.extrairSecoes(m.cargo_funcao) : [m.secao_formatada || 'Geral'],
-            secao_formatada: m.secao_formatada || '',
-            nome_completo: m.nome_completo || '',
-            cpf: formatarCPF(m.cpf),
-            email: m.email || '',
-            saram: formatarSARAM(m.saram),
-            rg: m.rg || '',
-            ramal: m.ramal || '',
-            funcao_publicada: !!m.funcao_publicada,
-            boletim: m.boletim || '',
-            data_inicio: m.data_inicio || '',
-            status_efetivo: m.status_efetivo || 'ativo',
-            ativo: m.ativo !== false
-          })).filter(m => m.nome || m.nome_completo);
-
-          localStorage.setItem('cargos_efetivo_cache', JSON.stringify(listaEfetivo));
-          return;
-        }
-      } catch(errSb) {
-        console.warn('Consulta direta a efetivo_pessoal falhou:', errSb);
-      }
+      console.warn('AppConfig fetchEfetivo falhou, tentando cache local...', errDb);
     }
 
     // 3. Fallback para Cache Local Centralizado (afa_efetivo_db_v1 ou cargos_efetivo_cache)
@@ -2228,7 +2235,7 @@
               nome: m.nome_guerra || '',
               cargo_funcao: m.cargo_funcao || '',
               funcao_col_h: m.cargo_funcao || '',
-              secoes_lista: m.secoes_lista || (window.AppConfig ? window.AppConfig.extrairSecoes(m.cargo_funcao) : []),
+              secoes_lista: m.secoes_lista || (window.AppConfig ? window.AppConfig.extrairSecoes(m.cargo_funcao) : (m.secao_formatada ? [m.secao_formatada] : ['Geral'])),
               secao_formatada: m.secao_formatada || '',
               nome_completo: m.nome_completo || '',
               cpf: formatarCPF(m.cpf),
@@ -3290,17 +3297,67 @@
     if (modal) modal.style.display = 'none';
   }
 
-  function buscarMilitarParaEdicaoNo(query) {
+  async function buscarMilitarParaEdicaoNo(query) {
     const box = document.getElementById('sugestoes-edit-no');
     if (!box) return;
     if (!query || query.length < 2) { box.style.display = 'none'; return; }
 
-    const q = query.toLowerCase();
-    const matches = listaEfetivo.filter(m => 
-      (m.nome && m.nome.toLowerCase().includes(q)) ||
-      (m.nome_completo && m.nome_completo.toLowerCase().includes(q)) ||
-      (m.saram && m.saram.includes(q))
-    ).slice(0, 6);
+    const q = query.toLowerCase().trim();
+    const qDigits = q.replace(/\D/g, '');
+
+    let matches = listaEfetivo.filter(m => {
+      const nomeLow = (m.nome || '').toLowerCase();
+      const compLow = (m.nome_completo || '').toLowerCase();
+      const saramClean = (m.saram || '').replace(/\D/g, '');
+      return nomeLow.includes(q) || compLow.includes(q) || (qDigits && saramClean.includes(qDigits)) || (m.saram && m.saram.includes(q));
+    }).slice(0, 6);
+
+    if (!matches.length && sb && (qDigits.length >= 4 || q.length >= 3)) {
+      try {
+        let sql = sb.from('efetivo_pessoal').select('*').limit(6);
+        if (qDigits.length >= 4) {
+          sql = sql.ilike('saram', `%${qDigits}%`);
+        } else {
+          sql = sql.or(`nome_guerra.ilike.%${q}%,nome_completo.ilike.%${q}%`);
+        }
+        const { data } = await sql;
+        if (data && data.length > 0) {
+          data.forEach(dbMil => {
+            const parsed = {
+              idx: listaEfetivo.length,
+              posto: dbMil.posto_grad || '',
+              esp: dbMil.especialidade || '',
+              nome: dbMil.nome_guerra || '',
+              cargo_funcao: dbMil.cargo_funcao || '',
+              funcao_col_h: dbMil.cargo_funcao || '',
+              secoes_lista: dbMil.secoes_lista || (window.AppConfig ? window.AppConfig.extrairSecoes(dbMil.cargo_funcao) : (dbMil.secao_formatada ? [dbMil.secao_formatada] : ['Geral'])),
+              secao_formatada: dbMil.secao_formatada || '',
+              nome_completo: dbMil.nome_completo || '',
+              cpf: formatarCPF(dbMil.cpf),
+              email: dbMil.email || '',
+              saram: formatarSARAM(dbMil.saram),
+              rg: dbMil.rg || '',
+              ramal: dbMil.ramal || '',
+              funcao_publicada: !!dbMil.funcao_publicada,
+              boletim: dbMil.boletim || '',
+              data_inicio: dbMil.data_inicio || '',
+              status_efetivo: dbMil.status_efetivo || 'ativo',
+              ativo: dbMil.ativo !== false
+            };
+            if (!listaEfetivo.some(x => formatarSARAM(x.saram) === parsed.saram)) {
+              listaEfetivo.push(parsed);
+            }
+          });
+          localStorage.setItem('cargos_efetivo_cache', JSON.stringify(listaEfetivo));
+          matches = listaEfetivo.filter(m => {
+            const sClean = (m.saram || '').replace(/\D/g, '');
+            return (qDigits && sClean.includes(qDigits)) || (m.nome && m.nome.toLowerCase().includes(q)) || (m.nome_completo && m.nome_completo.toLowerCase().includes(q));
+          }).slice(0, 6);
+        }
+      } catch(err) {
+        console.warn('Busca remota falhou:', err);
+      }
+    }
 
     if (!matches.length) { box.style.display = 'none'; return; }
 
@@ -3313,7 +3370,8 @@
   }
 
   function selecionarMilitarParaEdicaoNo(saram) {
-    const m = listaEfetivo.find(x => x.saram === saram);
+    const saramNorm = formatarSARAM(saram);
+    const m = listaEfetivo.find(x => formatarSARAM(x.saram) === saramNorm);
     document.getElementById('sugestoes-edit-no').style.display = 'none';
     if (!m) return;
 
@@ -3927,18 +3985,73 @@
   /* ═══════════════════════════════════════════════════════════════════
      AUTOCOMPLETE DE MILITARES
      ═══════════════════════════════════════════════════════════════════ */
-  function buscarMilitar(termo, alvo) {
+  async function buscarMilitar(termo, alvo) {
     const box = document.getElementById(`sugestoes-${alvo}`);
     if (!box) return;
     const t = (termo || '').toLowerCase().trim();
     if (t.length < 2) { box.style.display = 'none'; return; }
 
-    const matches = listaEfetivo.filter(m => 
-      (m.nome && m.nome.toLowerCase().includes(t)) ||
-      (m.nome_completo && m.nome_completo.toLowerCase().includes(t)) ||
-      (m.saram && m.saram.includes(t)) ||
-      (m.cpf && m.cpf.includes(t))
-    ).slice(0, 8);
+    const tDigits = t.replace(/\D/g, '');
+
+    let matches = listaEfetivo.filter(m => {
+      const nomeLow = (m.nome || '').toLowerCase();
+      const compLow = (m.nome_completo || '').toLowerCase();
+      const saramClean = (m.saram || '').replace(/\D/g, '');
+      const cpfClean = (m.cpf || '').replace(/\D/g, '');
+
+      return nomeLow.includes(t) ||
+             compLow.includes(t) ||
+             (tDigits && saramClean.includes(tDigits)) ||
+             (tDigits && cpfClean.includes(tDigits)) ||
+             (m.saram && m.saram.toLowerCase().includes(t));
+    }).slice(0, 8);
+
+    if (!matches.length && sb && (tDigits.length >= 4 || t.length >= 3)) {
+      try {
+        let query = sb.from('efetivo_pessoal').select('*').limit(6);
+        if (tDigits.length >= 4) {
+          query = query.ilike('saram', `%${tDigits}%`);
+        } else {
+          query = query.or(`nome_guerra.ilike.%${t}%,nome_completo.ilike.%${t}%`);
+        }
+        const { data } = await query;
+        if (data && data.length > 0) {
+          data.forEach(dbMil => {
+            const parsed = {
+              idx: listaEfetivo.length,
+              posto: dbMil.posto_grad || '',
+              esp: dbMil.especialidade || '',
+              nome: dbMil.nome_guerra || '',
+              cargo_funcao: dbMil.cargo_funcao || '',
+              funcao_col_h: dbMil.cargo_funcao || '',
+              secoes_lista: dbMil.secoes_lista || (window.AppConfig ? window.AppConfig.extrairSecoes(dbMil.cargo_funcao) : (dbMil.secao_formatada ? [dbMil.secao_formatada] : ['Geral'])),
+              secao_formatada: dbMil.secao_formatada || '',
+              nome_completo: dbMil.nome_completo || '',
+              cpf: formatarCPF(dbMil.cpf),
+              email: dbMil.email || '',
+              saram: formatarSARAM(dbMil.saram),
+              rg: dbMil.rg || '',
+              ramal: dbMil.ramal || '',
+              funcao_publicada: !!dbMil.funcao_publicada,
+              boletim: dbMil.boletim || '',
+              data_inicio: dbMil.data_inicio || '',
+              status_efetivo: dbMil.status_efetivo || 'ativo',
+              ativo: dbMil.ativo !== false
+            };
+            if (!listaEfetivo.some(x => formatarSARAM(x.saram) === parsed.saram)) {
+              listaEfetivo.push(parsed);
+            }
+          });
+          localStorage.setItem('cargos_efetivo_cache', JSON.stringify(listaEfetivo));
+          matches = listaEfetivo.filter(m => {
+            const sClean = (m.saram || '').replace(/\D/g, '');
+            return (tDigits && sClean.includes(tDigits)) || (m.nome && m.nome.toLowerCase().includes(t)) || (m.nome_completo && m.nome_completo.toLowerCase().includes(t));
+          }).slice(0, 8);
+        }
+      } catch(err) {
+        console.warn('Busca remota no Supabase falhou:', err);
+      }
+    }
 
     if (!matches.length) {
       box.innerHTML = '<div style="padding:0.6rem;font-size:0.8rem;color:var(--texto-3)">Nenhum militar encontrado no efetivo.</div>';
@@ -3956,8 +4069,38 @@
     box.style.display = 'block';
   }
 
-  function selecionarMilitar(saram, alvo) {
-    const m = listaEfetivo.find(x => x.saram === saram);
+  async function selecionarMilitar(saram, alvo) {
+    const saramNorm = formatarSARAM(saram);
+    let m = listaEfetivo.find(x => formatarSARAM(x.saram) === saramNorm);
+    if (!m && sb) {
+      try {
+        const { data } = await sb.from('efetivo_pessoal').select('*').eq('saram', saramNorm).maybeSingle();
+        if (data) {
+          m = {
+            idx: listaEfetivo.length,
+            posto: data.posto_grad || '',
+            esp: data.especialidade || '',
+            nome: data.nome_guerra || '',
+            cargo_funcao: data.cargo_funcao || '',
+            funcao_col_h: data.cargo_funcao || '',
+            secoes_lista: data.secoes_lista || (window.AppConfig ? window.AppConfig.extrairSecoes(data.cargo_funcao) : (data.secao_formatada ? [data.secao_formatada] : ['Geral'])),
+            secao_formatada: data.secao_formatada || '',
+            nome_completo: data.nome_completo || '',
+            cpf: formatarCPF(data.cpf),
+            email: data.email || '',
+            saram: formatarSARAM(data.saram),
+            rg: data.rg || '',
+            ramal: data.ramal || '',
+            funcao_publicada: !!data.funcao_publicada,
+            boletim: data.boletim || '',
+            data_inicio: data.data_inicio || '',
+            status_efetivo: data.status_efetivo || 'ativo',
+            ativo: data.ativo !== false
+          };
+          listaEfetivo.push(m);
+        }
+      } catch(e) {}
+    }
     const box = document.getElementById(`sugestoes-${alvo}`);
     if (box) box.style.display = 'none';
     if (!m) return;
@@ -4174,17 +4317,71 @@
   /* ═══════════════════════════════════════════════════════════════════
      ABA 2: MINHA FUNÇÃO / CARGO (CONSULTA)
      ═══════════════════════════════════════════════════════════════════ */
-  function buscarMilitarConsulta(termo) {
+  async function buscarMilitarConsulta(termo) {
     const box = document.getElementById('sugestoes-consulta');
     if (!box) return;
     const t = (termo || '').toLowerCase().trim();
     if (t.length < 2) { box.style.display = 'none'; return; }
 
-    const matches = listaEfetivo.filter(m => 
-      (m.nome && m.nome.toLowerCase().includes(t)) ||
-      (m.nome_completo && m.nome_completo.toLowerCase().includes(t)) ||
-      (m.saram && m.saram.includes(t))
-    ).slice(0, 8);
+    const tDigits = t.replace(/\D/g, '');
+
+    let matches = listaEfetivo.filter(m => {
+      const nomeLow = (m.nome || '').toLowerCase();
+      const compLow = (m.nome_completo || '').toLowerCase();
+      const saramClean = (m.saram || '').replace(/\D/g, '');
+
+      return nomeLow.includes(t) ||
+             compLow.includes(t) ||
+             (tDigits && saramClean.includes(tDigits)) ||
+             (m.saram && m.saram.toLowerCase().includes(t));
+    }).slice(0, 8);
+
+    if (!matches.length && sb && (tDigits.length >= 4 || t.length >= 3)) {
+      try {
+        let query = sb.from('efetivo_pessoal').select('*').limit(6);
+        if (tDigits.length >= 4) {
+          query = query.ilike('saram', `%${tDigits}%`);
+        } else {
+          query = query.or(`nome_guerra.ilike.%${t}%,nome_completo.ilike.%${t}%`);
+        }
+        const { data } = await query;
+        if (data && data.length > 0) {
+          data.forEach(dbMil => {
+            const parsed = {
+              idx: listaEfetivo.length,
+              posto: dbMil.posto_grad || '',
+              esp: dbMil.especialidade || '',
+              nome: dbMil.nome_guerra || '',
+              cargo_funcao: dbMil.cargo_funcao || '',
+              funcao_col_h: dbMil.cargo_funcao || '',
+              secoes_lista: dbMil.secoes_lista || (window.AppConfig ? window.AppConfig.extrairSecoes(dbMil.cargo_funcao) : (dbMil.secao_formatada ? [dbMil.secao_formatada] : ['Geral'])),
+              secao_formatada: dbMil.secao_formatada || '',
+              nome_completo: dbMil.nome_completo || '',
+              cpf: formatarCPF(dbMil.cpf),
+              email: dbMil.email || '',
+              saram: formatarSARAM(dbMil.saram),
+              rg: dbMil.rg || '',
+              ramal: dbMil.ramal || '',
+              funcao_publicada: !!dbMil.funcao_publicada,
+              boletim: dbMil.boletim || '',
+              data_inicio: dbMil.data_inicio || '',
+              status_efetivo: dbMil.status_efetivo || 'ativo',
+              ativo: dbMil.ativo !== false
+            };
+            if (!listaEfetivo.some(x => formatarSARAM(x.saram) === parsed.saram)) {
+              listaEfetivo.push(parsed);
+            }
+          });
+          localStorage.setItem('cargos_efetivo_cache', JSON.stringify(listaEfetivo));
+          matches = listaEfetivo.filter(m => {
+            const sClean = (m.saram || '').replace(/\D/g, '');
+            return (tDigits && sClean.includes(tDigits)) || (m.nome && m.nome.toLowerCase().includes(t)) || (m.nome_completo && m.nome_completo.toLowerCase().includes(t));
+          }).slice(0, 8);
+        }
+      } catch(err) {
+        console.warn('Busca remota falhou:', err);
+      }
+    }
 
     if (!matches.length) {
       box.innerHTML = '<div style="padding:0.6rem;font-size:0.8rem;color:var(--texto-3)">Nenhum militar encontrado.</div>';
@@ -4205,7 +4402,37 @@
     const boxSug = document.getElementById('sugestoes-consulta');
     if (boxSug) boxSug.style.display = 'none';
 
-    const militar = listaEfetivo.find(x => x.saram === saram);
+    const saramNorm = formatarSARAM(saram);
+    let militar = listaEfetivo.find(x => formatarSARAM(x.saram) === saramNorm);
+    if (!militar && sb) {
+      try {
+        const { data } = await sb.from('efetivo_pessoal').select('*').eq('saram', saramNorm).maybeSingle();
+        if (data) {
+          militar = {
+            idx: listaEfetivo.length,
+            posto: data.posto_grad || '',
+            esp: data.especialidade || '',
+            nome: data.nome_guerra || '',
+            cargo_funcao: data.cargo_funcao || '',
+            funcao_col_h: data.cargo_funcao || '',
+            secoes_lista: data.secoes_lista || (window.AppConfig ? window.AppConfig.extrairSecoes(data.cargo_funcao) : (data.secao_formatada ? [data.secao_formatada] : ['Geral'])),
+            secao_formatada: data.secao_formatada || '',
+            nome_completo: data.nome_completo || '',
+            cpf: formatarCPF(data.cpf),
+            email: data.email || '',
+            saram: formatarSARAM(data.saram),
+            rg: data.rg || '',
+            ramal: data.ramal || '',
+            funcao_publicada: !!data.funcao_publicada,
+            boletim: data.boletim || '',
+            data_inicio: data.data_inicio || '',
+            status_efetivo: data.status_efetivo || 'ativo',
+            ativo: data.ativo !== false
+          };
+          listaEfetivo.push(militar);
+        }
+      } catch(e) {}
+    }
     if (!militar) return;
 
     document.getElementById('busca-consulta-militar').value = `${militar.posto || ''} ${militar.nome || militar.nome_completo}`;
