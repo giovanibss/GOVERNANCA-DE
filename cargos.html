@@ -2088,7 +2088,7 @@
 
     if (!sb || typeof sb.channel !== 'function') return;
     try {
-      sb.channel('cargos_realtime_channel')
+      const canalRealtime = sb.channel('cargos_realtime_channel')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'efetivo_pessoal' }, async () => {
           await carregarEfetivoBaseCentral();
           await carregarOrganograma();
@@ -2106,12 +2106,16 @@
           await carregarMilitaresAtivos();
           await carregarOrganograma();
           renderizarOrganograma();
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'cargos_organograma_estrutura' }, async () => {
+        });
+
+      if (localStorage.getItem('supabase_has_organograma_estrutura') === '1') {
+        canalRealtime.on('postgres_changes', { event: '*', schema: 'public', table: 'cargos_organograma_estrutura' }, async () => {
           await carregarOrganograma();
           renderizarOrganograma();
-        })
-        .subscribe();
+        });
+      }
+
+      canalRealtime.subscribe();
     } catch(e) {
       console.warn('Realtime subscription fallback:', e);
     }
@@ -2149,7 +2153,7 @@
       try {
         const { data, error } = await sb.from('efetivo_pessoal')
           .select('*')
-          .neq('status_efetivo', 'ex_integrante')
+          .eq('ativo', true)
           .order('ordem', { ascending: true });
         if (!error && data && data.length > 0) {
           listaEfetivo = data.map((m, i) => ({
@@ -2378,11 +2382,14 @@
      ═══════════════════════════════════════════════════════════════════ */
   async function carregarOrganograma() {
     let dados = [];
-    if (sb) {
+    const hasRemoteEstrutura = localStorage.getItem('supabase_has_organograma_estrutura') === '1';
+    if (sb && hasRemoteEstrutura) {
       try {
         const { data, error } = await sb.from('cargos_organograma_estrutura').select('*').order('ordem');
         if (!error && data && data.length) {
           dados = data;
+        } else if (error && (error.code === 'PGRST205' || error.status === 404)) {
+          localStorage.setItem('supabase_has_organograma_estrutura', '0');
         }
       } catch(e) {
         // Fallback silencioso para dados estruturados
@@ -3457,9 +3464,12 @@
     }
 
     // 4. Salvar no Supabase se configurado
-    if (sb) {
+    if (sb && localStorage.getItem('supabase_has_organograma_estrutura') === '1') {
       try {
-        await sb.from('cargos_organograma_estrutura').upsert(noData, { onConflict: 'chave_sigla' });
+        const { error } = await sb.from('cargos_organograma_estrutura').upsert(noData, { onConflict: 'chave_sigla' });
+        if (error && (error.code === 'PGRST205' || error.status === 404)) {
+          localStorage.setItem('supabase_has_organograma_estrutura', '0');
+        }
       } catch(err) {
         console.warn('Erro ao salvar no Supabase:', err);
       }
@@ -3517,7 +3527,7 @@
     // Remover nó da lista
     listaOrganograma = listaOrganograma.filter(n => n.chave_sigla !== chaveOriginal);
 
-    if (sb) {
+    if (sb && localStorage.getItem('supabase_has_organograma_estrutura') === '1') {
       try {
         await sb.from('cargos_organograma_estrutura').delete().eq('chave_sigla', chaveOriginal);
       } catch(err){}
@@ -4990,7 +5000,7 @@
           noOrgano.titular_nome = item.militar_designado_nome;
           noOrgano.titular_posto = item.militar_designado_posto;
           noOrgano.titular_saram = item.militar_designado_saram;
-          if (sb) {
+          if (sb && localStorage.getItem('supabase_has_organograma_estrutura') === '1') {
             try {
               await sb.from('cargos_organograma_estrutura').update({
                 titular_nome: item.militar_designado_nome,

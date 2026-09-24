@@ -1348,10 +1348,14 @@
      */
     async fetchOrganogramaCargos() {
       const sb = getSbClient();
-      if (sb) {
+      const hasRemoteEstrutura = localStorage.getItem('supabase_has_organograma_estrutura') === '1';
+      if (sb && hasRemoteEstrutura) {
         try {
           const { data, error } = await sb.from('cargos_organograma_estrutura').select('*');
           if (!error && data && data.length) return data;
+          if (error && (error.code === 'PGRST205' || error.status === 404)) {
+            localStorage.setItem('supabase_has_organograma_estrutura', '0');
+          }
         } catch(e) {}
       }
       try {
