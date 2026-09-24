@@ -1557,13 +1557,13 @@
         <!-- ABA SETTINGS 2: SINCRONIZAÇÃO COM EFETIVO -->
         <div id="set-aba-sync" style="display:none">
           <div class="painel" style="background:rgba(15,23,42,0.6);margin-bottom:1rem">
-            <h4 style="color:var(--ouro-lt);margin-bottom:0.5rem">Sincronizador da Coluna H (Planilha Efetivo)</h4>
+            <h4 style="color:var(--ouro-lt);margin-bottom:0.5rem">Sincronizador com a Base Central de Efetivo</h4>
             <p style="font-size:0.83rem;color:var(--texto-2);margin-bottom:1rem">
-              Lê os registros da planilha Efetivo oficial, extrai a seção descrita entre parêntesis (ex: <code>Chefe (DE)</code> ou <code>Adjunto (SDINT)</code>), classifica cargos ("Chefe") e funções, cadastra as seções faltantes no catálogo e associa o estado inicial dos militares.
+              Lê os registros da Base Central de Efetivo oficial, extrai a seção descrita entre parêntesis (ex: <code>Chefe (DE)</code> ou <code>Adjunto (SDINT)</code>), classifica cargos ("Chefe") e funções, cadastra as seções faltantes no catálogo e associa o estado inicial dos militares.
             </p>
             <button class="btn btn-jade" id="btn-sync-efetivo" onclick="executarSincronizacaoEfetivo()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
-              Sincronizar com Planilha Efetivo Agora
+              Sincronizar com Base Central de Efetivo
             </button>
           </div>
           <div id="sync-log-box" style="font-family:var(--f-mono);font-size:0.78rem;background:#050c1c;padding:0.75rem;border-radius:8px;border:1px solid var(--linha);color:var(--texto-2);max-height:180px;overflow-y:auto;display:none"></div>
@@ -1574,8 +1574,8 @@
           <div class="painel" style="background:rgba(15,23,42,0.6);margin-bottom:1rem">
             <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem;margin-bottom:0.75rem">
               <div>
-                <h4 style="color:var(--ouro-lt);margin-bottom:0.25rem">Auditoria Comparativa (Planilha Efetivo vs Banco)</h4>
-                <p style="font-size:0.82rem;color:var(--texto-2)">Verifica discrepâncias entre os dados do efetivo, cargos ativos e catálogo.</p>
+                <h4 style="color:var(--ouro-lt);margin-bottom:0.25rem">Auditoria Comparativa (Base Central vs Cargos Ativos)</h4>
+                <p style="font-size:0.82rem;color:var(--texto-2)">Verifica discrepâncias entre a Base Central de efetivo, cargos ativos e catálogo.</p>
               </div>
               <div style="display:flex;gap:0.5rem">
                 <button class="btn btn-ouro btn-sm" onclick="executarAuditoriaSistema()">
@@ -1615,7 +1615,7 @@
                   <tr>
                     <th>Militar</th>
                     <th>SARAM</th>
-                    <th>Coluna H (Planilha)</th>
+                    <th>Cargo/Função (Base Central)</th>
                     <th>Status no Banco</th>
                     <th style="text-align:right">Ação</th>
                   </tr>
@@ -1859,10 +1859,8 @@
 
   /* ═══════════════════════════════════════════════════════════════════
      ESTADO GLOBAL E CONSTANTES
+     Base Central Unificada via Supabase (efetivo_pessoal) e AppConfig
      ═══════════════════════════════════════════════════════════════════ */
-  const EFETIVO_SHEET_ID = '1UOMh4y-wHL8kHcB9TUUcEmkeF7z6KYAs4vipsoOFgfA';
-  const EFETIVO_URL = `https://docs.google.com/spreadsheets/d/${EFETIVO_SHEET_ID}/gviz/tq?tqx=out:json&sheet=efetivo&range=A5:AC250&headers=0`;
-
   let sb = null;
   let listaEfetivo = [];
   let listaSecoes = [];
@@ -2004,8 +2002,8 @@
     // Sincronizar solicitações que possam ter ficado pendentes no localStorage
     await sincronizarSolicitacoesLocais();
 
-    // Carregar Efetivo da Planilha e Dados do Banco
-    await carregarEfetivoPlanilha();
+    // Carregar Efetivo da Base Central e Dados do Banco
+    await carregarEfetivoBaseCentral();
     await carregarConfiguracoes();
     await carregarSecoesECatalogo();
     await carregarSolicitacoes();
@@ -2080,9 +2078,21 @@
   }
 
   function inicializarRealtimeCargos() {
+    // Escuta evento global de alteração do efetivo central disparado pelo sistema
+    window.addEventListener('afa_efetivo_alterado', async () => {
+      await carregarEfetivoBaseCentral();
+      await carregarOrganograma();
+      renderizarOrganograma();
+    });
+
     if (!sb || typeof sb.channel !== 'function') return;
     try {
       sb.channel('cargos_realtime_channel')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'efetivo_pessoal' }, async () => {
+          await carregarEfetivoBaseCentral();
+          await carregarOrganograma();
+          renderizarOrganograma();
+        })
         .on('postgres_changes', { event: '*', schema: 'public', table: 'cargos_solicitacoes' }, async () => {
           await carregarSolicitacoes();
           renderizarTabelaSecretaria();
@@ -2127,10 +2137,10 @@
   }
 
   /* ═══════════════════════════════════════════════════════════════════
-     CARREGAMENTO DO EFETIVO (PLANILHA GOOGLE GVIZ)
+     CARREGAMENTO DO EFETIVO (BASE CENTRAL UNIFICADA / SUPABASE)
      ═══════════════════════════════════════════════════════════════════ */
-  async function carregarEfetivoPlanilha() {
-    // 1. Prioriza a base central unificada do Supabase via AppConfig (Fase 3)
+  async function carregarEfetivoBaseCentral() {
+    // 1. Prioriza a base central unificada via AppConfig (Supabase efetivo_pessoal)
     try {
       if (window.AppConfig && typeof window.AppConfig.fetchEfetivo === 'function') {
         const militaresDB = await window.AppConfig.fetchEfetivo({ activeOnly: true });
@@ -2140,12 +2150,21 @@
             posto: m.posto_grad || '',
             esp: m.especialidade || '',
             nome: m.nome_guerra || '',
-            funcao_col_h: m.cargo_funcao || '',
+            cargo_funcao: m.cargo_funcao || '',
+            funcao_col_h: m.cargo_funcao || '', // compatibilidade com referências existentes
+            secoes_lista: m.secoes_lista || (window.AppConfig ? window.AppConfig.extrairSecoes(m.cargo_funcao) : []),
+            secao_formatada: m.secao_formatada || '',
             nome_completo: m.nome_completo || '',
             cpf: formatarCPF(m.cpf),
             email: m.email || '',
             saram: formatarSARAM(m.saram),
-            rg: m.rg || ''
+            rg: m.rg || '',
+            ramal: m.ramal || '',
+            funcao_publicada: !!m.funcao_publicada,
+            boletim: m.boletim || '',
+            data_inicio: m.data_inicio || '',
+            status_efetivo: m.status_efetivo || 'ativo',
+            ativo: m.ativo !== false
           })).filter(m => m.nome || m.nome_completo);
 
           localStorage.setItem('cargos_efetivo_cache', JSON.stringify(listaEfetivo));
@@ -2153,43 +2172,187 @@
         }
       }
     } catch(errDb) {
-      console.warn('AppConfig fetchEfetivo falhou, tentando fallback...', errDb);
+      console.warn('AppConfig fetchEfetivo falhou, tentando consulta direta ao Supabase...', errDb);
     }
 
-    // 2. Fallback para Google Sheets GViz
-    try {
-      const res = await fetch(EFETIVO_URL);
-      const txt = await res.text();
-      const jsonStr = txt.replace(/^\/\*O_o\*\/\s*google\.visualization\.Query\.setResponse\(/, '').replace(/\);?\s*$/, '');
-      const data = JSON.parse(jsonStr);
-
-      if (data.table && data.table.rows) {
-        listaEfetivo = data.table.rows.map((r, i) => {
-          const c = r.c || [];
-          const v = idx => (c[idx]?.v !== undefined && c[idx]?.v !== null) ? c[idx].v.toString().trim() : '';
-          return {
+    // 2. Consulta direta à tabela efetivo_pessoal no Supabase
+    if (sb) {
+      try {
+        const { data, error } = await sb.from('efetivo_pessoal')
+          .select('*')
+          .neq('status_efetivo', 'ex_integrante')
+          .order('ordem', { ascending: true });
+        if (!error && data && data.length > 0) {
+          listaEfetivo = data.map((m, i) => ({
             idx: i,
-            posto: v(2),           // Col C (Posto/Grad)
-            esp: v(3),             // Col D (Especialidade)
-            nome: v(4),            // Col E (Nome de Guerra)
-            funcao_col_h: v(7),    // Col H (Função original na planilha)
-            nome_completo: v(13),  // Col N (Nome Completo)
-            cpf: formatarCPF(v(14)),   // Col O (CPF)
-            email: v(15),          // Col P (E-mail)
-            saram: formatarSARAM(v(19)), // Col T (SARAM)
-            rg: v(20)              // Col U (RG)
-          };
-        }).filter(m => m.nome || m.nome_completo);
+            posto: m.posto_grad || '',
+            esp: m.especialidade || '',
+            nome: m.nome_guerra || '',
+            cargo_funcao: m.cargo_funcao || '',
+            funcao_col_h: m.cargo_funcao || '',
+            secoes_lista: window.AppConfig ? window.AppConfig.extrairSecoes(m.cargo_funcao) : [m.secao_formatada || 'Geral'],
+            secao_formatada: m.secao_formatada || '',
+            nome_completo: m.nome_completo || '',
+            cpf: formatarCPF(m.cpf),
+            email: m.email || '',
+            saram: formatarSARAM(m.saram),
+            rg: m.rg || '',
+            ramal: m.ramal || '',
+            funcao_publicada: !!m.funcao_publicada,
+            boletim: m.boletim || '',
+            data_inicio: m.data_inicio || '',
+            status_efetivo: m.status_efetivo || 'ativo',
+            ativo: m.ativo !== false
+          })).filter(m => m.nome || m.nome_completo);
 
-        localStorage.setItem('cargos_efetivo_cache', JSON.stringify(listaEfetivo));
+          localStorage.setItem('cargos_efetivo_cache', JSON.stringify(listaEfetivo));
+          return;
+        }
+      } catch(errSb) {
+        console.warn('Consulta direta a efetivo_pessoal falhou:', errSb);
+      }
+    }
+
+    // 3. Fallback para Cache Local Centralizado (afa_efetivo_db_v1 ou cargos_efetivo_cache)
+    try {
+      const rawCentral = localStorage.getItem('afa_efetivo_db_v1');
+      if (rawCentral) {
+        const militaresDB = JSON.parse(rawCentral);
+        if (militaresDB && militaresDB.length > 0) {
+          listaEfetivo = militaresDB
+            .filter(m => m.ativo !== false && m.status_efetivo !== 'ex_integrante')
+            .map((m, i) => ({
+              idx: i,
+              posto: m.posto_grad || '',
+              esp: m.especialidade || '',
+              nome: m.nome_guerra || '',
+              cargo_funcao: m.cargo_funcao || '',
+              funcao_col_h: m.cargo_funcao || '',
+              secoes_lista: m.secoes_lista || (window.AppConfig ? window.AppConfig.extrairSecoes(m.cargo_funcao) : []),
+              secao_formatada: m.secao_formatada || '',
+              nome_completo: m.nome_completo || '',
+              cpf: formatarCPF(m.cpf),
+              email: m.email || '',
+              saram: formatarSARAM(m.saram),
+              rg: m.rg || '',
+              ramal: m.ramal || '',
+              funcao_publicada: !!m.funcao_publicada,
+              boletim: m.boletim || '',
+              data_inicio: m.data_inicio || '',
+              status_efetivo: m.status_efetivo || 'ativo',
+              ativo: m.ativo !== false
+            })).filter(m => m.nome || m.nome_completo);
+
+          localStorage.setItem('cargos_efetivo_cache', JSON.stringify(listaEfetivo));
+          return;
+        }
+      }
+      const cached = localStorage.getItem('cargos_efetivo_cache');
+      if (cached) listaEfetivo = JSON.parse(cached);
+    } catch(e) {
+      console.warn('Erro ao ler cache local de efetivo:', e);
+    }
+  }
+
+  // Alias para manter compatibilidade com quaisquer chamadas legadas
+  const carregarEfetivoPlanilha = carregarEfetivoBaseCentral;
+
+  /**
+   * Sincroniza a alteração de Cargo/Função diretamente com a base central de militares (efetivo_pessoal)
+   */
+  async function sincronizarMilitarComBaseCentralPessoal(saram, dadosCargo, isDispensa = false) {
+    if (!saram) return;
+    const saramNorm = formatarSARAM(saram);
+
+    // 0. Atualiza cache em memória listaEfetivo e cargos_efetivo_cache
+    try {
+      if (Array.isArray(listaEfetivo)) {
+        const mLocal = listaEfetivo.find(m => formatarSARAM(m.saram) === saramNorm);
+        if (mLocal) {
+          if (isDispensa) {
+            mLocal.cargo_funcao = '';
+            mLocal.funcao_col_h = '';
+            mLocal.secao_formatada = '';
+            mLocal.secoes_lista = [];
+            mLocal.funcao_publicada = false;
+            mLocal.boletim = '';
+            mLocal.data_inicio = null;
+          } else {
+            const nomeCargo = (dadosCargo && dadosCargo.cargo_funcao_nome) ? dadosCargo.cargo_funcao_nome : '';
+            const siglaSec = (dadosCargo && (dadosCargo.secao_sigla || dadosCargo.secao_nome)) ? (dadosCargo.secao_sigla || dadosCargo.secao_nome) : '';
+            const formatado = siglaSec ? `${nomeCargo} (${siglaSec})` : nomeCargo;
+            mLocal.cargo_funcao = formatado;
+            mLocal.funcao_col_h = formatado;
+            mLocal.secao_formatada = siglaSec;
+            mLocal.secoes_lista = siglaSec ? [siglaSec] : [];
+            mLocal.funcao_publicada = true;
+            mLocal.boletim = (dadosCargo && dadosCargo.boletim_publicacao) ? dadosCargo.boletim_publicacao : '';
+            mLocal.data_inicio = (dadosCargo && dadosCargo.data_assuncao) ? dadosCargo.data_assuncao : null;
+          }
+          localStorage.setItem('cargos_efetivo_cache', JSON.stringify(listaEfetivo));
+        }
       }
     } catch(e) {
-      console.warn('Erro ao carregar planilha de efetivo, tentando cache local...', e);
-      try {
-        const cached = localStorage.getItem('cargos_efetivo_cache');
-        if (cached) listaEfetivo = JSON.parse(cached);
-      } catch(e2){}
+      console.warn('Erro ao atualizar listaEfetivo local em memória:', e);
     }
+
+    // 1. Atualiza cache local central afa_efetivo_db_v1
+    try {
+      let listaCentral = JSON.parse(localStorage.getItem('afa_efetivo_db_v1') || '[]');
+      const idx = listaCentral.findIndex(m => formatarSARAM(m.saram) === saramNorm);
+      if (idx >= 0) {
+        if (isDispensa) {
+          listaCentral[idx].cargo_funcao = '';
+          listaCentral[idx].secao_formatada = '';
+          listaCentral[idx].secoes_lista = [];
+          listaCentral[idx].funcao_publicada = false;
+          listaCentral[idx].boletim = '';
+          listaCentral[idx].data_inicio = null;
+        } else {
+          const nomeCargo = (dadosCargo && dadosCargo.cargo_funcao_nome) ? dadosCargo.cargo_funcao_nome : '';
+          const siglaSec = (dadosCargo && (dadosCargo.secao_sigla || dadosCargo.secao_nome)) ? (dadosCargo.secao_sigla || dadosCargo.secao_nome) : '';
+          const formatado = siglaSec ? `${nomeCargo} (${siglaSec})` : nomeCargo;
+          listaCentral[idx].cargo_funcao = formatado;
+          listaCentral[idx].secao_formatada = siglaSec;
+          listaCentral[idx].secoes_lista = siglaSec ? [siglaSec] : [];
+          listaCentral[idx].funcao_publicada = true;
+          listaCentral[idx].boletim = (dadosCargo && dadosCargo.boletim_publicacao) ? dadosCargo.boletim_publicacao : '';
+          listaCentral[idx].data_inicio = (dadosCargo && dadosCargo.data_assuncao) ? dadosCargo.data_assuncao : null;
+        }
+        listaCentral[idx].updated_at = new Date().toISOString();
+        localStorage.setItem('afa_efetivo_db_v1', JSON.stringify(listaCentral));
+      }
+    } catch(e) {
+      console.warn('Erro ao atualizar cache local central de efetivo:', e);
+    }
+
+    // 2. Atualiza no Supabase (efetivo_pessoal)
+    if (sb) {
+      try {
+        const payload = isDispensa ? {
+          cargo_funcao: '',
+          secao_formatada: '',
+          funcao_publicada: false,
+          boletim: '',
+          data_inicio: null,
+          updated_at: new Date().toISOString()
+        } : {
+          cargo_funcao: dadosCargo.secao_nome ? `${dadosCargo.cargo_funcao_nome} (${dadosCargo.secao_sigla || dadosCargo.secao_nome})` : dadosCargo.cargo_funcao_nome,
+          secao_formatada: dadosCargo.secao_sigla || dadosCargo.secao_nome || '',
+          funcao_publicada: true,
+          boletim: dadosCargo.boletim_publicacao || '',
+          data_inicio: dadosCargo.data_assuncao || null,
+          updated_at: new Date().toISOString()
+        };
+
+        await sb.from('efetivo_pessoal').update(payload).eq('saram', saramNorm);
+      } catch(err) {
+        console.warn('Erro ao atualizar efetivo_pessoal no Supabase:', err);
+      }
+    }
+
+    // 3. Notifica as outras telas abertas e componentes
+    window.dispatchEvent(new CustomEvent('afa_efetivo_alterado', { detail: { saram: saramNorm, isDispensa } }));
   }
 
   function formatarCPF(v) {
@@ -2256,24 +2419,24 @@
         }
       }
 
-      // 3. Obter titular Chefe/Encarregado diretamente da planilha Efetivo (apenas se ainda não possuir titular definido)
+      // 3. Obter titular Chefe/Encarregado diretamente da Base Central de Efetivo (apenas se ainda não possuir titular definido)
       if (!no.titular_nome && listaEfetivo && listaEfetivo.length) {
         const s = no.chave_sigla.toLowerCase();
-        let titularPlanilha = null;
+        let titularEfetivo = null;
 
         if (no.chave_sigla === 'VC-DE') {
-          titularPlanilha = listaEfetivo.find(m => (m.funcao_col_h || '').toLowerCase().includes('adjunto (de)'));
+          titularEfetivo = listaEfetivo.find(m => (m.cargo_funcao || m.funcao_col_h || '').toLowerCase().includes('adjunto (de)'));
         } else {
-          titularPlanilha = listaEfetivo.find(m => {
-            const h = (m.funcao_col_h || '').toLowerCase();
+          titularEfetivo = listaEfetivo.find(m => {
+            const h = (m.cargo_funcao || m.funcao_col_h || '').toLowerCase();
             return h.includes(`chefe (${s})`) || h.includes(`encarregado (${s})`);
           });
         }
 
-        if (titularPlanilha) {
-          no.titular_posto = titularPlanilha.posto || no.titular_posto;
-          no.titular_nome = titularPlanilha.nome || titularPlanilha.nome_completo || no.titular_nome;
-          no.titular_saram = titularPlanilha.saram || no.titular_saram;
+        if (titularEfetivo) {
+          no.titular_posto = titularEfetivo.posto || no.titular_posto;
+          no.titular_nome = titularEfetivo.nome || titularEfetivo.nome_completo || no.titular_nome;
+          no.titular_saram = titularEfetivo.saram || no.titular_saram;
         }
       }
     });
@@ -2599,12 +2762,27 @@
 
   function obterMembrosDaSecao(sigla, secaoNome) {
     if (!listaEfetivo || !listaEfetivo.length) return [];
-    const s = sigla.toLowerCase();
-    const sn = (secaoNome || '').toLowerCase();
+    const s = (sigla || '').toLowerCase().trim();
+    const sn = (secaoNome || '').toLowerCase().trim();
 
     return listaEfetivo.filter(m => {
-      const h = (m.funcao_col_h || '').toLowerCase();
-      return h.includes(`(${s})`) || (sn && h.includes(`(${sn})`));
+      // 1. Checar seções lista (modelo estruturado da Base Central)
+      if (Array.isArray(m.secoes_lista) && m.secoes_lista.length > 0) {
+        if (m.secoes_lista.some(sec => {
+          const secLow = (sec || '').toLowerCase().trim();
+          return secLow === s || (sn && secLow === sn);
+        })) {
+          return true;
+        }
+      }
+      // 2. Checar secao_formatada
+      if (m.secao_formatada) {
+        const sfLow = m.secao_formatada.toLowerCase().trim();
+        if (sfLow === s || (sn && sfLow === sn)) return true;
+      }
+      // 3. Fallback para padrão de texto: "(SIGLA)" ou "Chefe (SIGLA)"
+      const h = (m.cargo_funcao || m.funcao_col_h || '').toLowerCase();
+      return (s && h.includes(`(${s})`)) || (sn && h.includes(`(${sn})`));
     });
   }
 
@@ -2807,7 +2985,7 @@
 
     const membros = obterMembrosDaSecao(sigla, secaoNome);
     if (!membros.length) {
-      listaBox.innerHTML = '<p style="color:var(--texto-3);text-align:center;padding:1.5rem">Nenhum militar registrado nesta seção na planilha Efetivo.</p>';
+      listaBox.innerHTML = '<p style="color:var(--texto-3);text-align:center;padding:1.5rem">Nenhum militar registrado nesta seção na base de dados de efetivo.</p>';
     } else {
       listaBox.innerHTML = membros.map(m => `
         <div class="member-item-row">
@@ -2816,7 +2994,7 @@
               <span class="node-posto-tag posto-oficial" style="margin-right:0.3rem">${m.posto}</span>
               ${m.nome}
             </div>
-            <div class="member-funcao-text">${m.funcao_col_h || 'Membro da Equipe'}</div>
+            <div class="member-funcao-text">${m.cargo_funcao || m.funcao_col_h || 'Membro da Equipe'}</div>
             <div class="member-full-details">${m.nome_completo || '—'} · SARAM: ${m.saram || '—'}</div>
           </div>
           <div>
@@ -3315,7 +3493,7 @@
 
     if (corpo) corpo.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:1.5rem">Executando varredura analítica...</td></tr>';
 
-    await carregarEfetivoPlanilha();
+    await carregarEfetivoBaseCentral();
     await carregarSecoesECatalogo();
     await carregarMilitaresAtivos();
 
@@ -3328,7 +3506,7 @@
     listaSecoes.forEach(s => secoesMap.set(s.nome.toLowerCase(), s));
 
     listaEfetivo.forEach(m => {
-      const textoH = (m.funcao_col_h || '').trim();
+      const textoH = (m.cargo_funcao || m.funcao_col_h || '').trim();
       const militarBanco = listaMilitaresAtivos.find(a => a.saram === m.saram);
 
       if (!textoH) {
@@ -3336,7 +3514,7 @@
           <tr>
             <td><strong>${m.posto} ${m.nome}</strong></td>
             <td><code>${m.saram || '—'}</code></td>
-            <td style="color:var(--texto-3)">Sem função na coluna H</td>
+            <td style="color:var(--texto-3)">Sem cargo/função cadastrado</td>
             <td><span class="badge" style="background:rgba(255,255,255,0.08)">Sem Atribuição</span></td>
             <td style="text-align:right">—</td>
           </tr>
@@ -3344,7 +3522,7 @@
         return;
       }
 
-      // Extrair seção da coluna H
+      // Extrair seção da especificação do cargo/função do militar
       const match = /([^(]+)\s*\(([^)]+)\)/.exec(textoH);
       if (match) {
         const funcaoTitulo = match[1].trim();
@@ -3469,6 +3647,13 @@
         }, { onConflict: 'saram' });
       } catch(e){}
     }
+
+    await sincronizarMilitarComBaseCentralPessoal(m.saram, {
+      cargo_funcao_nome: funcaoTitulo,
+      secao_sigla: secaoSigla,
+      secao_nome: secaoObj.nome,
+      boletim_publicacao: 'Auditoria de Sincronia'
+    }, false);
 
     await executarAuditoriaSistema();
     await carregarOrganograma();
@@ -3756,7 +3941,7 @@
     ).slice(0, 8);
 
     if (!matches.length) {
-      box.innerHTML = '<div style="padding:0.6rem;font-size:0.8rem;color:var(--texto-3)">Nenhum militar encontrado na planilha.</div>';
+      box.innerHTML = '<div style="padding:0.6rem;font-size:0.8rem;color:var(--texto-3)">Nenhum militar encontrado no efetivo.</div>';
       box.style.display = 'block';
       return;
     }
@@ -4028,18 +4213,19 @@
     // Buscar atribuição ativa no banco ou na lista carregada
     let ativo = listaMilitaresAtivos.find(a => a.saram === saram);
 
-    // Se não tiver registro ativo no banco, extrai da Coluna H da planilha como fallback
-    if (!ativo && militar.funcao_col_h) {
-      const match = militar.funcao_col_h.match(/(.*?)\s*\((.*?)\)/);
+    // Se não tiver registro ativo na tabela de cargos, extrai dos dados do efetivo como fallback
+    if (!ativo && (militar.cargo_funcao || militar.funcao_col_h)) {
+      const funcTxt = militar.cargo_funcao || militar.funcao_col_h;
+      const match = funcTxt.match(/(.*?)\s*\((.*?)\)/);
       ativo = {
         saram: militar.saram,
         nome: militar.nome_completo || militar.nome,
         posto_grad: militar.posto,
-        cargo_funcao_nome: match ? match[1].trim() : militar.funcao_col_h,
-        secao_nome: match ? match[2].trim() : 'Divisão de Ensino',
-        tipo: militar.funcao_col_h.toLowerCase().includes('chefe') ? 'cargo' : 'funcao',
-        data_assuncao: null,
-        boletim_publicacao: 'Conforme Planilha Efetivo',
+        cargo_funcao_nome: match ? match[1].trim() : funcTxt,
+        secao_nome: match ? match[2].trim() : (militar.secao_formatada || 'Divisão de Ensino'),
+        tipo: funcTxt.toLowerCase().includes('chefe') ? 'cargo' : 'funcao',
+        data_assuncao: militar.data_inicio || null,
+        boletim_publicacao: militar.boletim || 'Conforme Base Central Efetivo',
         siloms_num: '—'
       };
     }
@@ -4500,7 +4686,7 @@
   }
 
   async function registrarAtribuicaoMilitarAtivo(item) {
-    // 1. Se for FUNÇÃO e ação for DISPENSA: remover militar de cargos_militares_ativos
+    // 1. Se for FUNÇÃO e ação for DISPENSA: remover militar de cargos_militares_ativos e sincronizar com base central
     if (item.tipo === 'funcao' && item.acao_tipo === 'dispensa') {
       const saramDisp = item.militar_dispensado_saram;
       if (saramDisp) {
@@ -4510,11 +4696,12 @@
           } catch(e) { console.warn(e); }
         }
         listaMilitaresAtivos = listaMilitaresAtivos.filter(m => m.saram !== saramDisp);
+        await sincronizarMilitarComBaseCentralPessoal(saramDisp, null, true);
       }
       return;
     }
 
-    // 2. Se houver militar dispensado (cargo ou transmissão): remover das atribuições ativas
+    // 2. Se houver militar dispensado (cargo ou transmissão): remover das atribuições ativas e sincronizar com base central
     if (item.militar_dispensado_saram) {
       if (sb) {
         try {
@@ -4522,9 +4709,10 @@
         } catch(e) { console.warn(e); }
       }
       listaMilitaresAtivos = listaMilitaresAtivos.filter(m => m.saram !== item.militar_dispensado_saram);
+      await sincronizarMilitarComBaseCentralPessoal(item.militar_dispensado_saram, null, true);
     }
 
-    // 3. Se houver militar designado: upsert em cargos_militares_ativos
+    // 3. Se houver militar designado: upsert em cargos_militares_ativos e sincronizar com base central
     if (item.militar_designado_saram) {
       const payloadAtivo = {
         saram: item.militar_designado_saram,
@@ -4560,6 +4748,9 @@
       } else {
         listaMilitaresAtivos.push(payloadAtivo);
       }
+
+      // Sincronizar com a Base Central de Efetivo
+      await sincronizarMilitarComBaseCentralPessoal(item.militar_designado_saram, payloadAtivo, false);
 
       // 4. Se for Cargo, atualizar o nó correspondente no Organograma
       if (item.tipo === 'cargo') {
@@ -5310,7 +5501,7 @@
   }
 
   /* ═══════════════════════════════════════════════════════════════════
-     SINCRONIZAÇÃO COM PLANILHA EFETIVO (COLUNA H)
+     SINCRONIZAÇÃO COM A BASE CENTRAL DE EFETIVO
      ═══════════════════════════════════════════════════════════════════ */
   async function executarSincronizacaoEfetivo() {
     const btn = document.getElementById('btn-sync-efetivo');
@@ -5318,11 +5509,11 @@
     if (btn) btn.disabled = true;
     if (logBox) {
       logBox.style.display = 'block';
-      logBox.innerHTML = '⏳ Baixando dados atualizados da planilha Efetivo...<br>';
+      logBox.innerHTML = '⏳ Sincronizando com a Base Central de Efetivo...<br>';
     }
 
     try {
-      await carregarEfetivoPlanilha();
+      await carregarEfetivoBaseCentral();
 
       let novasSecoes = 0;
       let novosCargos = 0;
@@ -5334,7 +5525,7 @@
       }
 
       for (const m of listaEfetivo) {
-        const textoH = (m.funcao_col_h || '').trim();
+        const textoH = (m.cargo_funcao || m.funcao_col_h || '').trim();
         if (!textoH) continue;
 
         // Expressão regular para capturar itens no formato: "Nome Cargo/Função (SIGLA)"
@@ -5391,8 +5582,8 @@
                 secao_nome: secaoObj.nome,
                 tipo: tipoItem,
                 cargo_funcao_nome: titulo,
-                boletim_publicacao: 'Importado da Planilha Efetivo',
-                origem: 'planilha',
+                boletim_publicacao: 'Sincronizado da Base Central de Efetivo',
+                origem: 'base_central',
                 updated_at: new Date().toISOString()
               }, { onConflict: 'saram' });
             } catch(e){}
@@ -5416,7 +5607,7 @@
       Swal.fire({
         icon: 'success',
         title: 'Sincronização Concluída!',
-        html: `Base de dados atualizada a partir da Coluna H do Efetivo.<br><small>${novasSecoes} seções e ${novosCargos} cargos/funções catalogados.</small>`,
+        html: `Base de dados atualizada a partir da Base Central de Efetivo.<br><small>${novasSecoes} seções e ${novosCargos} cargos/funções catalogados.</small>`,
         confirmButtonColor: '#d4a84b'
       });
 
