@@ -5047,7 +5047,7 @@
 
       if (item.militar_dispensado_saram) {
         const txtDisp = `Dispensado(a) do cargo de ${cargoNome}, da ${secaoNome}, da Divisão de Ensino, ${vigenciaTxt}.`;
-        const csvDisp = `${item.militar_dispensado_saram},${cargoNome},da ${secaoNome},da Divisão de Ensino,da AFA,${bolData || ''}`;
+        const csvDisp = `${item.militar_dispensado_saram};${cargoNome} da ${secaoNome},da Divisão de Ensino,da AFA;${bolData || ''}`;
         allTextToCopy += `[DISPENSA - MOTIVO ${motDisp}]\nCSV: ${csvDisp}\nTexto: ${txtDisp}\n\n`;
         dispHtml = `
           <div style="margin-bottom:0.8rem;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:0.75rem">
@@ -5069,7 +5069,7 @@
 
       if (item.militar_designado_saram) {
         const txtDesig = `Designado(a) para o cargo de ${cargoNome}, da ${secaoNome}, da Divisão de Ensino, ${vigenciaTxt}.`;
-        const csvDesig = `${item.militar_designado_saram},${cargoNome},da ${secaoNome},da Divisão de Ensino,da AFA,${bolData || ''}`;
+        const csvDesig = `${item.militar_designado_saram};${cargoNome} da ${secaoNome},da Divisão de Ensino,da AFA;${bolData || ''}`;
         allTextToCopy += `[DESIGNAÇÃO - MOTIVO ${motDesig}]\nCSV: ${csvDesig}\nTexto: ${txtDesig}\n\n`;
         desigHtml = `
           <div style="margin-bottom:0.8rem;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:0.75rem">
@@ -5134,8 +5134,8 @@
     // Cadeia da função: Função, da Seção, da Divisão de Ensino, da AFA
     const funcaoCadeia = `${funcaoNome}, da ${secaoNome}, da Divisão de Ensino, da AFA`;
 
-    // Linha CSV oficial (SARAM, Função, da Seção, da Divisão de Ensino, da AFA, Data)
-    const linhaCsv = `${saram},${funcaoNome},da ${secaoNome},da Divisão de Ensino,da AFA,${dataFmt}`;
+    // Linha CSV oficial (SARAM;Função da Seção,da Divisão de Ensino,da AFA;Data)
+    const linhaCsv = `${saram};${funcaoNome} da ${secaoNome},da Divisão de Ensino,da AFA;${dataFmt}`;
 
     // Texto formatado do item de publicação
     const textoPublicacao = isDispensa
@@ -5167,7 +5167,7 @@
           </div>
 
           <div style="background:rgba(15,23,42,0.6);border:1px solid var(--linha);border-radius:8px;padding:0.6rem 0.8rem;font-size:0.75rem;color:var(--texto-3)">
-            <b>Campos do CSV (6 colunas separadas por vírgula):</b> SARAM (<code>${saram || '—'}</code>), Função (<code>${funcaoNome}</code>), Seção (<code>da ${secaoNome}</code>), Divisão (<code>da Divisão de Ensino</code>), OM (<code>da AFA</code>), Data (<code>${dataFmt || '—'}</code>)
+            <b>Formato CSV:</b> SARAM (<code>${saram || '—'}</code>) ; Função/Seção/OM (<code>${funcaoNome} da ${secaoNome},da Divisão de Ensino,da AFA</code>) ; Data (<code>${dataFmt || '—'}</code>)
           </div>
         </div>
       `,
