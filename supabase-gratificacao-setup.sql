@@ -10,6 +10,9 @@ CREATE TABLE IF NOT EXISTS public.gratificacao_representacao (
   
   ano INT NOT NULL DEFAULT EXTRACT(YEAR FROM CURRENT_DATE),
   num_os TEXT NOT NULL,
+  num_omis TEXT,
+  sigad_numero TEXT,
+  siloms_numero TEXT,
   
   -- Dados do Militar (conectado ao Efetivo)
   militar_id TEXT,
@@ -74,3 +77,7 @@ ON public.gratificacao_representacao FOR DELETE USING (true);
 
 -- Habilitar Realtime
 ALTER PUBLICATION supabase_realtime ADD TABLE public.gratificacao_representacao;
+
+-- Migrações incrementais para bases existentes:
+ALTER TABLE public.gratificacao_representacao ADD COLUMN IF NOT EXISTS sigad_numero TEXT;
+ALTER TABLE public.gratificacao_representacao ADD COLUMN IF NOT EXISTS siloms_numero TEXT;

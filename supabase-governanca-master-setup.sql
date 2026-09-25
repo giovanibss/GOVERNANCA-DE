@@ -153,6 +153,7 @@ CREATE TABLE IF NOT EXISTS public.gratificacao_representacao (
   ano INT NOT NULL DEFAULT EXTRACT(YEAR FROM CURRENT_DATE),
   num_os TEXT NOT NULL,
   num_omis TEXT,
+  sigad_numero TEXT,
   siloms_numero TEXT,
   comgep_linha TEXT,
   militares JSONB NOT NULL DEFAULT '[]'::jsonb,

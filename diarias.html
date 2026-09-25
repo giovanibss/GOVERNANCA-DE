@@ -208,6 +208,8 @@ select.search option{background:var(--navy-1);color:var(--navy-900)}
 .badge-analise{background:rgba(212,168,75,.14);color:var(--gold-400);border-color:rgba(212,168,75,.3)}
 .badge-siloms-ok{background:rgba(90,162,224,.15);color:var(--ceu);border-color:rgba(90,162,224,.35);font-weight:700}
 .badge-siloms-pend{background:rgba(232,177,63,.14);color:var(--yellow-500);border-color:rgba(232,177,63,.32);font-weight:700}
+.badge-sigad-ok{background:rgba(212,168,75,.18);color:var(--gold-400);border-color:rgba(212,168,75,.4);font-weight:700}
+.badge-sigad-pend{background:rgba(148,163,184,.12);color:var(--gray-500);border-color:rgba(148,163,184,.25);font-weight:700}
 .badge-legada{background:rgba(232,177,63,.16);color:var(--yellow-500);border-color:rgba(232,177,63,.4);font-weight:700}
 .badge-semos{background:rgba(90,162,224,.13);color:var(--ceu);border-color:rgba(90,162,224,.3);font-weight:700}
 
@@ -789,7 +791,7 @@ footer img{height:16px;opacity:.45}
           Nova Gratificação
         </button>
         <select class="search" style="flex:0 0 auto;min-width:120px;font-weight:700" id="grat-ano" onchange="renderGratificacao()"></select>
-        <input class="search" id="grat-busca" type="search" placeholder="Buscar por OS, militar, CPF, SARAM ou missão..." oninput="renderGratificacao()" />
+        <input class="search" id="grat-busca" type="search" placeholder="Buscar por OS, SIGAD, militar, CPF, SARAM ou missão..." oninput="renderGratificacao()" />
       </div>
       <div class="os-grid" id="lista-gratificacao">
         <div class="skel"></div><div class="skel"></div>
@@ -2942,7 +2944,8 @@ async function sincronizarProcessoComControle(reg, silencioso) {
     servico_local: reg.servico_local,
     periodo_inicio: reg.data_inicio,
     periodo_fim: reg.data_fim,
-    siloms_numero: reg.siloms_numero || '',
+    sigad_numero: reg.sigad_numero || existe?.sigad_numero || '',
+    siloms_numero: reg.siloms_numero || existe?.siloms_numero || '',
     comgep_linha: reg.comgep_linha || ''
   };
 
@@ -3036,7 +3039,12 @@ function renderGratificacao() {
   if (termo) {
     lista = lista.filter(g => {
       const mils = Array.isArray(g.militares) ? g.militares : [];
-      return [g.num_os, g.num_omis, g.servico_local, ...mils.map(m => `${m.nome} ${m.cpf} ${m.saram}`)]
+      const procCtrl = (dadosControle || []).find(c =>
+        (c.missao_id && String(c.missao_id) === String(g.id)) ||
+        ((c.num_os === g.num_os || (g.num_omis && c.num_omis === g.num_omis)) && Number(c.ano) === Number(g.ano))
+      );
+      const sigad = g.sigad_numero || procCtrl?.sigad_numero || '';
+      return [g.num_os, g.num_omis, g.servico_local, sigad, g.siloms_numero, ...mils.map(m => `${m.nome} ${m.cpf} ${m.saram}`)]
         .some(c => (c || '').toLowerCase().includes(termo));
     });
   }
@@ -3098,6 +3106,16 @@ function cardMissao(g, contexto) {
     ? `OMIS ${esc(g.num_omis)} <span style="color:var(--gold-500)">→</span> OS ${esc(g.num_os)}`
     : `OMIS ${esc(g.num_omis)} · sem OS`;
 
+  const procCtrl = (dadosControle || []).find(c =>
+    (c.missao_id && String(c.missao_id) === String(g.id)) ||
+    ((c.num_os === g.num_os || (g.num_omis && c.num_omis === g.num_omis)) && Number(c.ano) === Number(g.ano))
+  );
+  const sigadNum = g.sigad_numero || procCtrl?.sigad_numero || '';
+
+  const sigadBadge = sigadNum
+    ? `<span class="os-badge badge-sigad-ok" title="Número SIGAD: ${esc(sigadNum)}">SIGAD ${esc(sigadNum)}</span>`
+    : `<span class="os-badge badge-sigad-pend" title="SIGAD pendente">SIGAD pendente</span>`;
+
   const silomsBadge = g.siloms_numero
     ? `<span class="os-badge badge-siloms-ok">SILOMS ${esc(g.siloms_numero)}</span>`
     : `<span class="os-badge badge-siloms-pend">SILOMS pendente</span>`;
@@ -3139,7 +3157,11 @@ function cardMissao(g, contexto) {
     </div>
     <div class="os-head">
       <div class="os-num">${linhaNum}<span>${esc(M.rotulo)} · ${g.ano}</span></div>
-      ${seloNum}
+      <div style="margin-left:auto;display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;align-items:center">
+        ${seloNum}
+        ${sigadBadge}
+        ${silomsBadge}
+      </div>
     </div>
     <p class="os-desc">${esc(g.servico_local)}</p>
     <div class="os-meta">
@@ -3152,11 +3174,17 @@ function cardMissao(g, contexto) {
         ${fmtData(prim.data_inicio || g.data_inicio)} → ${fmtData(prim.data_fim || g.data_fim)}
         <u>${silomsBadge.replace(/<[^>]+>/g, '')}</u>
       </div>
+      <div class="os-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8"/></svg>
+        <span>SIGAD: <b style="font-family:var(--f-mono);${sigadNum ? 'color:var(--gold-400)' : 'color:var(--yellow-500)'}">${sigadNum ? esc(sigadNum) : 'pendente'}</b></span>
+        ${sigadNum ? `<button class="mini-copy-btn" onclick="event.stopPropagation();navigator.clipboard.writeText('${esc(sigadNum)}');toast('SIGAD copiado: ${esc(sigadNum)}!')" title="Copiar SIGAD" style="background:transparent;border:none;cursor:pointer;color:var(--ceu);font-size:.78rem;padding:0 3px">📋</button>` : ''}
+      </div>
       ${financeiro}
     </div>
     <div class="grat-actions">${docs}</div>
   </article>`;
 }
+
 
 /* ══════════════════════════════════════════════════════════════
    5 · ORDENS DE MISSÃO (OMIS - ABA 3) & FLUXO SILOMS
@@ -3223,6 +3251,14 @@ function linhaMissao(g) {
   selos.push(g.siloms_numero
     ? `<span class="os-badge badge-siloms-ok">SILOMS ${esc(g.siloms_numero)}</span>`
     : '<span class="os-badge badge-siloms-pend">SILOMS pendente</span>');
+  const procCtrlOmis = (dadosControle || []).find(c =>
+    (c.missao_id && String(c.missao_id) === String(g.id)) ||
+    ((c.num_os === g.num_os || (g.num_omis && c.num_omis === g.num_omis)) && Number(c.ano) === Number(g.ano))
+  );
+  const sigadOmis = g.sigad_numero || procCtrlOmis?.sigad_numero || '';
+  if (sigadOmis) {
+    selos.push(`<span class="os-badge badge-sigad-ok" title="Número SIGAD">SIGAD ${esc(sigadOmis)}</span>`);
+  }
   if (g.pdf_retorno_assinado) selos.push('<span class="os-badge badge-paga">&#10004; RETORNO</span>');
 
   /* ── documentos ── */
@@ -4185,6 +4221,22 @@ async function salvarControleProcesso() {
         dadosControle.unshift({ ...payload, id: 'ctrl_' + Date.now(), _local: true });
       }
     }
+    if (payload.sigad_numero) {
+      const g = (dadosGratificacao || []).find(x =>
+        (x.num_os === payload.num_os || (payload.num_omis && x.num_omis === payload.num_omis)) &&
+        Number(x.ano) === Number(payload.ano)
+      );
+      if (g) {
+        g.sigad_numero = payload.sigad_numero;
+        gravarCacheGrat();
+        renderGratificacao();
+        if (configurado && !String(g.id).startsWith('temp_')) {
+          try {
+            await sb.from('gratificacao_representacao').update({ sigad_numero: payload.sigad_numero }).eq('id', g.id);
+          } catch(e) {}
+        }
+      }
+    }
     gravarCacheControle();
     renderControle();
     fecharModalControle();
@@ -4231,7 +4283,10 @@ const FLUXOS = {
       { chave: 'p1_docs', curto: 'OMIS / OS / Autorização', titulo: 'Confeccionar e solicitar assinatura de OMIS, OS e Doc de Autorização',
         desc: 'Os três documentos saem do módulo e vão para assinatura no SILOMS.' },
       { chave: 'p2_oficio', curto: 'Ofício DIRENS', titulo: 'Confeccionar Ofício para a DIRENS',
-        desc: 'Anexar ao ofício os documentos assinados do passo anterior.' },
+        desc: 'Anexar ao ofício os documentos assinados do passo anterior e informar o número SIGAD gerado para tramitação.',
+        anexos: [
+          { chave: 'oficio_sigad', rotulo: 'Nº SIGAD do Ofício DIRENS', campo: 'sigad_numero', campoRotulo: 'Nº SIGAD' }
+        ] },
       { chave: 'p3_despacho', curto: 'Despacho ACI', titulo: 'Despacho do Ofício da DIRENS para o ACI (minuta)',
         desc: 'Minuta do despacho encaminhada ao ACI.',
         paralela: { chave: 'comgep_lancado', rotulo: 'Inserir os dados deste documento na planilha on-line do COMGEP',
@@ -4433,7 +4488,45 @@ async function gravarCampoProcesso(id, campo, valor) {
   const c = dadosControle.find(x => String(x.id) === String(id));
   if (!c) return;
   c[campo] = valor;
-  await persistirProcesso(c, { [campo]: valor });
+  const patch = { [campo]: valor };
+
+  // Se preencheu o campo de um anexo, marca automaticamente o anexo como ok
+  if (valor && String(valor).trim()) {
+    const etapas = etapasDoProcesso(c);
+    const marcados = Array.isArray(c.anexos_ok) ? c.anexos_ok.slice()
+                   : (typeof c.anexos_ok === 'string' ? JSON.parse(c.anexos_ok || '[]') : []);
+    etapas.forEach(e => {
+      (e.anexos || []).forEach(a => {
+        if (a.campo === campo && !marcados.includes(a.chave)) {
+          marcados.push(a.chave);
+          c.anexos_ok = marcados;
+          patch.anexos_ok = marcados;
+        }
+      });
+    });
+  }
+
+  await persistirProcesso(c, patch);
+
+  if (campo === 'sigad_numero') {
+    // Sincroniza imediatamente com a lista de gratificações (dadosGratificacao)
+    const g = (dadosGratificacao || []).find(x =>
+      (c.missao_id && String(x.id) === String(c.missao_id)) ||
+      (!c.missao_id && x.num_os === c.num_os && Number(x.ano) === Number(c.ano))
+    );
+    if (g) {
+      g.sigad_numero = valor;
+      gravarCacheGrat();
+      renderGratificacao();
+      if (configurado && !String(g.id).startsWith('temp_')) {
+        try {
+          await sb.from('gratificacao_representacao').update({ sigad_numero: valor }).eq('id', g.id);
+        } catch(e) {}
+      }
+    }
+    renderControle();
+    toast(`Nº SIGAD ${valor ? valor + ' ' : ''}salvo com sucesso!`);
+  }
 }
 
 async function persistirProcesso(c, patch) {
@@ -4533,11 +4626,14 @@ function linhaDoTempo(c) {
                 : `<span class="aviso-militar nao">⏳ o militar ainda não anexou</span>`}
             </div>`;
         }
-        const ok = marcados.includes(a.chave);
+        const ok = marcados.includes(a.chave) || !!(a.campo && c[a.campo] && String(c[a.campo]).trim());
+        const estiloInput = (a.campo === 'sigad_numero')
+          ? 'style="width:130px;font-weight:700;font-family:var(--f-mono);border-color:var(--gold-500);color:var(--gold-400)"'
+          : '';
         return `<div class="tl-anexo ${ok ? 'ok' : ''}">
             <span class="cx" onclick="alternarAnexo('${c.id}','${a.chave}')">${ok ? '✓' : ''}</span>
             <span>${esc(a.rotulo)}</span>
-            ${a.campo ? `<input class="mini" placeholder="${esc(a.campoRotulo)}" value="${esc(c[a.campo] || '')}"
+            ${a.campo ? `<input class="mini" ${estiloInput} placeholder="${esc(a.campoRotulo)}" value="${esc(c[a.campo] || '')}"
                onchange="gravarCampoProcesso('${c.id}','${a.campo}',this.value)" />` : ''}
           </div>`;
       }).join('') + `</div>`;
@@ -4623,6 +4719,7 @@ function renderControle() {
                   style="${estado === 'correcao' ? 'background:rgba(224,90,90,.16);color:var(--red-500);border-color:rgba(224,90,90,.4)' : ''}">
                   ${qtdFeitas}/${etapas.length} · ${esc(etapas[i].curto)}</span>`);
     if (c._local) selos.push('<span class="os-badge" style="background:rgba(224,90,90,.14);color:var(--red-500);border-color:rgba(224,90,90,.4)">&#9888; fora de sincronia</span>');
+    if (c.sigad_numero) selos.push(`<span class="os-badge badge-sigad-ok" title="Número SIGAD">SIGAD ${esc(c.sigad_numero)}</span>`);
     if (c.siloms_numero) selos.push(`<span class="os-badge badge-siloms-ok">SILOMS ${esc(c.siloms_numero)}</span>`);
     if (fichaDoMilitar(c)) selos.push('<span class="os-badge badge-paga">&#10004; FICHA ANEXADA</span>');
 
@@ -4983,6 +5080,18 @@ async function recarregarTudo() {
       gravarCacheControle();
       const naoSync = dadosControle.filter(c => c._local).length;
       if (naoSync) setSync('cfg', `${naoSync} processo(s) fora de sincronia`);
+
+      // Sincroniza sigad_numero de dadosControle para dadosGratificacao caso não exista
+      (dadosGratificacao || []).forEach(g => {
+        if (!g.sigad_numero) {
+          const c = dadosControle.find(x =>
+            (x.missao_id && String(x.missao_id) === String(g.id)) ||
+            ((x.num_os === g.num_os || (g.num_omis && x.num_omis === g.num_omis)) && Number(x.ano) === Number(g.ano))
+          );
+          if (c && c.sigad_numero) g.sigad_numero = c.sigad_numero;
+        }
+      });
+      gravarCacheGrat();
     } else if (resCtrl.error) {
       /* mantém o que já estava em tela em vez de esvaziar a tabela */
       setSync('off', 'Esteira offline');

@@ -5047,38 +5047,44 @@
 
       if (item.militar_dispensado_saram) {
         const txtDisp = `Dispensado(a) do cargo de ${cargoNome}, da ${secaoNome}, da Divisão de Ensino, ${vigenciaTxt}.`;
-        const csvDisp = `${item.militar_dispensado_saram};${bolData || ''};${cargoNome};${secaoNome};Divisão de Ensino;AFA;${motDisp}`;
-        allTextToCopy += `[DISPENSA - MOTIVO ${motDisp}]\n${txtDisp}\n\n`;
+        const csvDisp = `${item.militar_dispensado_saram},${cargoNome},da ${secaoNome},da Divisão de Ensino,da AFA,${bolData || ''}`;
+        allTextToCopy += `[DISPENSA - MOTIVO ${motDisp}]\nCSV: ${csvDisp}\nTexto: ${txtDisp}\n\n`;
         dispHtml = `
           <div style="margin-bottom:0.8rem;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:0.75rem">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;gap:0.4rem;flex-wrap:wrap">
               <strong style="color:#fca5a5;font-size:0.85rem">1. Dispensa de Cargo (Motivo ${motDisp})</strong>
-              <button class="btn btn-fantasma btn-sm" onclick="copiarTexto('${encodeURIComponent(txtDisp)}')">📋 Copiar Texto</button>
+              <div style="display:flex;gap:0.35rem">
+                <button class="btn btn-ouro btn-sm" onclick="copiarTexto('${encodeURIComponent(csvDisp)}')">📋 Copiar CSV</button>
+                <button class="btn btn-fantasma btn-sm" onclick="copiarTexto('${encodeURIComponent(txtDisp)}')">📋 Copiar Texto</button>
+              </div>
             </div>
             <div style="font-size:0.8rem;color:var(--texto-2);margin-bottom:0.3rem">
               <b>${item.militar_dispensado_posto || ''} ${item.militar_dispensado_nome || ''}</b> (SARAM: <code>${item.militar_dispensado_saram}</code>)
             </div>
             <div style="background:#050c1c;padding:0.5rem;border-radius:6px;font-size:0.8rem;font-style:italic;color:#e2e8f0;margin-bottom:0.4rem">"${txtDisp}"</div>
-            <div style="font-size:0.72rem;font-family:monospace;color:#94a3b8">CSV: ${csvDisp}</div>
+            <div style="font-size:0.72rem;font-family:monospace;color:#94a3b8;background:rgba(0,0,0,0.3);padding:0.3rem 0.5rem;border-radius:4px"><b>CSV:</b> <code>${csvDisp}</code></div>
           </div>
         `;
       }
 
       if (item.militar_designado_saram) {
         const txtDesig = `Designado(a) para o cargo de ${cargoNome}, da ${secaoNome}, da Divisão de Ensino, ${vigenciaTxt}.`;
-        const csvDesig = `${item.militar_designado_saram};${bolData || ''};${cargoNome};${secaoNome};Divisão de Ensino;AFA;${motDesig}`;
-        allTextToCopy += `[DESIGNAÇÃO - MOTIVO ${motDesig}]\n${txtDesig}\n\n`;
+        const csvDesig = `${item.militar_designado_saram},${cargoNome},da ${secaoNome},da Divisão de Ensino,da AFA,${bolData || ''}`;
+        allTextToCopy += `[DESIGNAÇÃO - MOTIVO ${motDesig}]\nCSV: ${csvDesig}\nTexto: ${txtDesig}\n\n`;
         desigHtml = `
           <div style="margin-bottom:0.8rem;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:0.75rem">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;gap:0.4rem;flex-wrap:wrap">
               <strong style="color:#6ee7b7;font-size:0.85rem">2. Designação de Cargo (Motivo ${motDesig})</strong>
-              <button class="btn btn-fantasma btn-sm" onclick="copiarTexto('${encodeURIComponent(txtDesig)}')">📋 Copiar Texto</button>
+              <div style="display:flex;gap:0.35rem">
+                <button class="btn btn-ouro btn-sm" onclick="copiarTexto('${encodeURIComponent(csvDesig)}')">📋 Copiar CSV</button>
+                <button class="btn btn-fantasma btn-sm" onclick="copiarTexto('${encodeURIComponent(txtDesig)}')">📋 Copiar Texto</button>
+              </div>
             </div>
             <div style="font-size:0.8rem;color:var(--texto-2);margin-bottom:0.3rem">
               <b>${item.militar_designado_posto || ''} ${item.militar_designado_nome || ''}</b> (SARAM: <code>${item.militar_designado_saram}</code>)
             </div>
             <div style="background:#050c1c;padding:0.5rem;border-radius:6px;font-size:0.8rem;font-style:italic;color:#e2e8f0;margin-bottom:0.4rem">"${txtDesig}"</div>
-            <div style="font-size:0.72rem;font-family:monospace;color:#94a3b8">CSV: ${csvDesig}</div>
+            <div style="font-size:0.72rem;font-family:monospace;color:#94a3b8;background:rgba(0,0,0,0.3);padding:0.3rem 0.5rem;border-radius:4px"><b>CSV:</b> <code>${csvDesig}</code></div>
           </div>
         `;
       }
@@ -5128,8 +5134,8 @@
     // Cadeia da função: Função, da Seção, da Divisão de Ensino, da AFA
     const funcaoCadeia = `${funcaoNome}, da ${secaoNome}, da Divisão de Ensino, da AFA`;
 
-    // Linha CSV oficial com todos os campos (SARAM; Data; Função; Seção; Divisão; OM)
-    const linhaCsv = `${saram};${dataFmt};${funcaoNome};${secaoNome};Divisão de Ensino;AFA`;
+    // Linha CSV oficial (SARAM, Função, da Seção, da Divisão de Ensino, da AFA, Data)
+    const linhaCsv = `${saram},${funcaoNome},da ${secaoNome},da Divisão de Ensino,da AFA,${dataFmt}`;
 
     // Texto formatado do item de publicação
     const textoPublicacao = isDispensa
@@ -5161,7 +5167,7 @@
           </div>
 
           <div style="background:rgba(15,23,42,0.6);border:1px solid var(--linha);border-radius:8px;padding:0.6rem 0.8rem;font-size:0.75rem;color:var(--texto-3)">
-            <b>Campos do CSV (6 colunas):</b> SARAM (<code>${saram || '—'}</code>) ; Data (<code>${dataFmt || '—'}</code>) ; Função (<code>${funcaoNome}</code>) ; Seção (<code>${secaoNome}</code>) ; Divisão (<code>Divisão de Ensino</code>) ; OM (<code>AFA</code>)
+            <b>Campos do CSV (6 colunas separadas por vírgula):</b> SARAM (<code>${saram || '—'}</code>), Função (<code>${funcaoNome}</code>), Seção (<code>da ${secaoNome}</code>), Divisão (<code>da Divisão de Ensino</code>), OM (<code>da AFA</code>), Data (<code>${dataFmt || '—'}</code>)
           </div>
         </div>
       `,
