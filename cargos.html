@@ -5046,7 +5046,7 @@
 
       if (item.militar_dispensado_saram) {
         const txtDisp = `Dispensado(a) do cargo de ${cargoNome}, da ${secaoNome}, da Divisão de Ensino, ${vigenciaCargo}.`;
-        const csvDisp = `${item.militar_dispensado_saram};${cargoNome} da ${secaoNome},da Divisão de Ensino,da AFA;${vigenciaCargo}`;
+        const csvDisp = `${item.militar_dispensado_saram};${cargoNome} da ${secaoNome}; Divisão de Ensino; AFA; com carga;${vigenciaCargo}`;
         allTextToCopy += `[DISPENSA - MOTIVO ${motDisp}]\nCSV: ${csvDisp}\nTexto: ${txtDisp}\n\n`;
         dispHtml = `
           <div style="margin-bottom:0.8rem;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.3);border-radius:8px;padding:0.75rem">
@@ -5068,7 +5068,7 @@
 
       if (item.militar_designado_saram) {
         const txtDesig = `Designado(a) para o cargo de ${cargoNome}, da ${secaoNome}, da Divisão de Ensino, ${vigenciaCargo}.`;
-        const csvDesig = `${item.militar_designado_saram};${cargoNome} da ${secaoNome},da Divisão de Ensino,da AFA;${vigenciaCargo}`;
+        const csvDesig = `${item.militar_designado_saram};${cargoNome} da ${secaoNome}; Divisão de Ensino; AFA; com carga;${vigenciaCargo}`;
         allTextToCopy += `[DESIGNAÇÃO - MOTIVO ${motDesig}]\nCSV: ${csvDesig}\nTexto: ${txtDesig}\n\n`;
         desigHtml = `
           <div style="margin-bottom:0.8rem;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.3);border-radius:8px;padding:0.75rem">
@@ -5102,7 +5102,7 @@
               📌 <b>Lembrete Secretaria:</b> Após publicar no boletim, anexe o PDF-A e envie e-mail para SREG solicitando o TTAC.
             </div>
             <div style="background:rgba(15,23,42,0.6);border:1px solid var(--linha);border-radius:8px;padding:0.6rem 0.8rem;font-size:0.75rem;color:var(--texto-3);margin-top:0.4rem">
-              <b>Formato CSV:</b> SARAM ; Cargo da Seção,da Divisão de Ensino,da AFA ; Vigência
+              <b>Formato CSV:</b> SARAM ; Cargo da Seção ; Divisão de Ensino ; AFA ; com carga ; Vigência
             </div>
           </div>
         `,
