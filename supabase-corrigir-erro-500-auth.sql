@@ -54,12 +54,18 @@ SELECT
 FROM auth.users u;
 
 
--- 3. GARANTIR A SENHA E PERFIL DO ADMINISTRADOR (Cap Halfeld)
+-- 3. GARANTIR A SENHA E PERFIL DO ADMINISTRADOR (1S Halfeld)
 -- Senha inicial: 6088651 | Perfil: admin
 UPDATE auth.users
 SET
   encrypted_password = crypt('6088651', gen_salt('bf', 10)),
   email_confirmed_at = COALESCE(email_confirmed_at, now()),
+  raw_user_meta_data = jsonb_build_object(
+    'nome_completo', 'RAMON HALFELD MARANHÃO',
+    'nome_guerra', 'HALFELD',
+    'posto_grad', '1S',
+    'saram', '6088651'
+  ),
   updated_at = now()
 WHERE email = 'halfeldrhm@fab.mil.br';
 
@@ -67,6 +73,8 @@ UPDATE public.usuarios_sistema
 SET
   perfil = 'admin',
   status_aprovacao = 'ativo',
+  posto_grad = '1S',
+  nome_completo = 'RAMON HALFELD MARANHÃO',
   updated_at = now()
 WHERE email = 'halfeldrhm@fab.mil.br' OR saram = '6088651';
 

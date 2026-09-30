@@ -379,15 +379,15 @@ SELECT public.criar_ou_atualizar_usuario_auth(
   'halfeldrhm@fab.mil.br',
   '6088651',                        -- Senha inicial para o primeiro login
   '6088651',                        -- SARAM
-  'RODRIGO HENRIQUE MOREIRA HALFELD', -- Nome Completo
+  'RAMON HALFELD MARANHÃO',          -- Nome Completo
   'HALFELD',                         -- Nome de Guerra
-  'CAP',                            -- Posto
-  'DE',                             -- Seção
+  '1S',                             -- Posto/Graduação: 1S
+  'Encarregado (Sec-DE)',           -- Seção / Função
   'admin',                          -- Perfil: ADMINISTRADOR TOTAL
   'ativo'                           -- Status: ATIVO
 );
 
 -- Garante perfil admin explicitamente na tabela
 UPDATE public.usuarios_sistema
-SET perfil = 'admin', status_aprovacao = 'ativo'
+SET perfil = 'admin', status_aprovacao = 'ativo', posto_grad = '1S', nome_completo = 'RAMON HALFELD MARANHÃO'
 WHERE email = 'halfeldrhm@fab.mil.br' OR saram = '6088651';

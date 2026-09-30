@@ -5559,10 +5559,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const session = await window.AppAuth.getSession();
       const user = session?.user || null;
-      let profile = window.AppAuth.getProfile();
+      let profile = null;
 
-      if (user && !profile) {
-        profile = await window.AppAuth.fetchProfile(user.id);
+      if (user) {
+        if (typeof window.AppAuth.refreshProfile === 'function') {
+          profile = await window.AppAuth.refreshProfile();
+        }
+        if (!profile && typeof window.AppAuth.getProfile === 'function') {
+          profile = window.AppAuth.getProfile();
+        }
+        if (!profile && typeof window.AppAuth.fetchProfile === 'function') {
+          profile = await window.AppAuth.fetchProfile(user.id);
+        }
       }
 
       if (userLoading) userLoading.style.display = 'none';
@@ -7486,6 +7494,9 @@ window.addEventListener('afa_solicitacao_aprovada', () => {
 // Inicialização de pendências, autenticação e verificação de URL (?abrirCadastro=1)
 async function inicializarFase4Index() {
   if (window.AppAuth) {
+    if (typeof window.AppAuth.refreshProfile === 'function') {
+      await window.AppAuth.refreshProfile();
+    }
     window.AppAuth.renderUserBar('#afa-topbar-placeholder');
     const p = window.AppAuth.getProfile();
     const loginBtn = document.getElementById('hero-btn-login');
