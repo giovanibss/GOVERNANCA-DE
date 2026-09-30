@@ -33,6 +33,10 @@
 
   // Tenta obter o cliente Supabase disponível globalmente
   function getSbClient() {
+    if (window.AppAuth && typeof window.AppAuth.getClient === 'function') {
+      const cli = window.AppAuth.getClient();
+      if (cli) return cli;
+    }
     if (window.sbCli) return window.sbCli;
     if (window.sb) return window.sb;
     if (window.supabaseClient) return window.supabaseClient;
@@ -43,7 +47,14 @@
       const anon = window.SUPABASE_ANON || window.SB?.key || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg';
       if (url && anon && !url.startsWith('COLE_')) {
         try {
-          _sbInstance = window.supabase.createClient(url, anon, { auth: { persistSession: false } });
+          _sbInstance = window.supabase.createClient(url, anon, {
+            auth: {
+              persistSession: true,
+              autoRefreshToken: true,
+              detectSessionInUrl: true
+            }
+          });
+          window.sbCli = _sbInstance;
           return _sbInstance;
         } catch(e) {}
       }
@@ -127,9 +138,12 @@
     },
 
     /**
-     * Verifica se o PIN digitado confere com o PIN master
+     * Verifica se o PIN digitado confere com o PIN master ou se o usuário já é operador autenticado
      */
     async verifyPin(inputPin) {
+      if (window.AppAuth && window.AppAuth.isOperador()) {
+        return true;
+      }
       const cfg = await this.loadConfig();
       const cleanInput = String(inputPin || '').trim();
       return cleanInput === cfg.pin;

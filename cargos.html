@@ -10,6 +10,7 @@
 
   <!-- Bibliotecas Externas -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/auth.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="assets/js/smtp.js"></script>
   <script src="assets/js/app-config.js"></script>
@@ -1036,6 +1037,8 @@
 </head>
 <body>
 
+  <div id="afa-topbar-placeholder"></div>
+
   <!-- TOPBAR -->
   <header class="topbar">
     <a href="index.html" class="topbar-brand" title="Voltar ao Hub Governança DE">
@@ -1435,18 +1438,28 @@
     <!-- ══════════════════════════════════════════════════════════════ -->
     <section id="aba-secretaria" class="painel" style="display:none">
       
-      <!-- PIN GATE -->
+      <!-- GATE DE ACESSO SECRETARIA -->
       <div id="pin-gate-box" class="pin-gate-wrap">
         <div style="font-size:2.5rem;margin-bottom:0.75rem">🔒</div>
         <h2 style="font-size:1.3rem;margin-bottom:0.4rem">Acesso Restrito à Secretaria</h2>
-        <p style="font-size:0.85rem;color:var(--texto-2);margin-bottom:1.5rem">Informe o PIN do sistema para acessar o painel de publicações e tramitações.</p>
-        
-        <form onsubmit="validarPinSecretaria(event)">
-          <input type="password" id="campo-pin-secretaria" class="campo pin-input" maxlength="10" placeholder="••••" autocomplete="off" required />
-          <div>
-            <button type="submit" class="btn btn-ouro">Desbloquear Painel</button>
-          </div>
-        </form>
+        <p style="font-size:0.85rem;color:var(--texto-2);margin-bottom:1.5rem">Este painel gerencia publicações de boletins e designações oficiais. Identifique-se com sua conta militar para prosseguir.</p>
+
+        <div style="margin-bottom:1.2rem;">
+          <a href="login.html?redirect=cargos.html%23secretaria" class="btn btn-ouro" style="display:inline-flex;align-items:center;justify-content:center;gap:.5rem;width:100%;max-width:280px;text-decoration:none;margin:0 auto 1rem;font-weight:700;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            Entrar com Conta Militar
+          </a>
+        </div>
+
+        <details style="font-size:0.82rem;color:var(--texto-3);cursor:pointer;">
+          <summary style="outline:none;user-select:none;">Acesso alternativo via PIN de emergência</summary>
+          <form onsubmit="validarPinSecretaria(event)" style="margin-top:1rem;">
+            <input type="password" id="campo-pin-secretaria" class="campo pin-input" maxlength="10" placeholder="••••" autocomplete="off" />
+            <div style="margin-top:0.6rem;">
+              <button type="submit" class="btn btn-ouro" style="font-size:0.8rem;padding:0.4rem 1rem;">Validar PIN</button>
+            </div>
+          </form>
+        </details>
       </div>
 
       <!-- CONTEÚDO DA SECRETARIA (APÓS PIN) -->
@@ -4532,7 +4545,17 @@
      ABA 3: SECRETARIA (PIN GATE E GESTÃO)
      ═══════════════════════════════════════════════════════════════════ */
   function verificarSessaoSecretaria() {
-    const ok = sessionStorage.getItem('cargos_sec_ok') === '1' || sessionStorage.getItem('secretaria_pin_ok') === '1';
+    if (window.AppAuth) {
+      window.AppAuth.renderUserBar('#afa-topbar-placeholder');
+      if (window.AppAuth.isOperador()) {
+        sessionStorage.setItem('cargos_sec_ok', '1');
+        sessionStorage.setItem('secretaria_pin_ok', '1');
+      }
+    }
+
+    const ok = (window.AppAuth && window.AppAuth.isOperador()) ||
+               sessionStorage.getItem('cargos_sec_ok') === '1' || 
+               sessionStorage.getItem('secretaria_pin_ok') === '1';
     sessaoSecretariaDesbloqueada = ok;
     
     if (ok) {
@@ -4555,7 +4578,7 @@
         btnSecToggle.style.background = 'rgba(212,168,75,0.12)';
         btnSecToggle.style.borderColor = 'rgba(212,168,75,0.4)';
         btnSecToggle.style.color = 'var(--ouro-lt)';
-        btnSecToggle.title = 'Acessar Gestão da Secretaria (Requer PIN)';
+        btnSecToggle.title = 'Acessar Gestão da Secretaria';
       }
     }
 
@@ -4574,7 +4597,6 @@
     } else {
       if (gate) gate.style.display = 'block';
       if (content) content.style.display = 'none';
-      setTimeout(() => document.getElementById('campo-pin-secretaria')?.focus(), 100);
     }
   }
 
@@ -4592,7 +4614,7 @@
       pinCorreto = localStorage.getItem('secretaria_pin') || '123456';
     }
 
-    if (pinDigitado === pinCorreto || pinDigitado === '123456') {
+    if (pinDigitado === pinCorreto) {
       sessionStorage.setItem('cargos_sec_ok', '1');
       sessionStorage.setItem('secretaria_pin_ok', '1');
       verificarSessaoSecretaria();
@@ -4602,9 +4624,15 @@
     }
   }
 
-  function bloquearSecretaria() {
+  async function bloquearSecretaria() {
     sessionStorage.removeItem('cargos_sec_ok');
     sessionStorage.removeItem('secretaria_pin_ok');
+    if (window.AppAuth && window.AppAuth.isAuthenticated()) {
+      if (confirm('Deseja encerrar sua sessão militar?')) {
+        await window.AppAuth.logout('login.html?redirect=cargos.html');
+        return;
+      }
+    }
     verificarSessaoSecretaria();
   }
 

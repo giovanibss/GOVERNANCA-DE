@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Acesso Seguro · Governança DE · Academia da Força Aérea</title>
+<link rel="icon" href="assets/favicon.ico" sizes="any" />
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png" sizes="180x180" />
+<link rel="manifest" href="site.webmanifest" />
+<meta name="theme-color" content="#061021" />
+
+<!-- Fontes Oficiais -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Oswald:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+:root {
+  --navy-ink: #061021;
+  --navy-card: rgba(10, 24, 48, 0.82);
+  --navy-border: rgba(207, 228, 255, 0.16);
+  --navy-input: rgba(6, 16, 33, 0.75);
+  
+  --gold: #d4a84b;
+  --gold-500: #d4a84b;
+  --gold-lt: #e9c877;
+  --gold-dim: rgba(212, 168, 75, 0.15);
+  --gold-border: rgba(212, 168, 75, 0.4);
+
+  --contrail: #cfe4ff;
+  --contrail-dim: rgba(207, 228, 255, 0.65);
+  --red: #ef4444;
+  --green: #10b981;
+
+  --f-display: 'Oswald', system-ui, sans-serif;
+  --f-body: 'Inter', system-ui, sans-serif;
+  --f-mono: 'JetBrains Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--f-body);
+  background: var(--navy-ink);
+  color: var(--contrail);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow-x: hidden;
+  padding: 1.5rem 1rem;
+}
+
+/* Fundo com Arte Hero e Desfoque Suave */
+.bg-backdrop {
+  position: fixed;
+  inset: -5% 0 0 0;
+  z-index: 0;
+  background: url('assets/hero-afa.jpg') center 35%/cover no-repeat;
+  filter: brightness(0.25) contrast(1.1) saturate(1.2);
+  transform: scale(1.05);
+  will-change: transform;
+}
+
+.bg-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background: radial-gradient(circle at center, rgba(6,16,33,0.45) 0%, rgba(6,16,33,0.92) 85%);
+  pointer-events: none;
+}
+
+/* Container Principal */
+.auth-wrapper {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 520px;
+  background: var(--navy-card);
+  border: 1px solid var(--navy-border);
+  border-radius: 20px;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* Cabeçalho do Card com Brasões */
+.auth-header {
+  padding: 2.2rem 2rem 1.5rem;
+  text-align: center;
+  border-bottom: 1px solid var(--navy-border);
+  background: linear-gradient(180deg, rgba(212, 168, 75, 0.08) 0%, rgba(6, 16, 33, 0) 100%);
+}
+
+.crests-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.crest-img {
+  height: 52px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
+}
+
+.crest-divider {
+  width: 1px;
+  height: 36px;
+  background: rgba(207, 228, 255, 0.2);
+}
+
+.auth-title {
+  font-family: var(--f-display);
+  font-size: 1.7rem;
+  font-weight: 500;
+  color: #ffffff;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 0.2rem;
+}
+
+.auth-subtitle {
+  font-size: 0.88rem;
+  color: var(--gold-lt);
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* Abas de Navegação (Entrar / Cadastrar) */
+.auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid var(--navy-border);
+  background: rgba(6, 16, 33, 0.5);
+}
+
+.tab-btn {
+  padding: 1rem 0.5rem;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--contrail-dim);
+  font-family: var(--f-display);
+  font-size: 1.05rem;
+  letter-spacing: 0.8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.tab-btn:hover {
+  color: #fff;
+  background: rgba(207, 228, 255, 0.04);
+}
+
+.tab-btn.active {
+  color: var(--gold-lt);
+  border-bottom-color: var(--gold);
+  background: rgba(212, 168, 75, 0.06);
+  font-weight: 500;
+}
+
+/* Corpo do Formulário */
+.auth-body {
+  padding: 2rem;
+}
+
+.form-pane {
+  display: none;
+}
+
+.form-pane.active {
+  display: block;
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--contrail);
+  margin-bottom: 0.4rem;
+  letter-spacing: 0.3px;
+}
+
+.form-label span.req {
+  color: var(--gold);
+}
+
+.input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 1rem;
+  color: var(--contrail-dim);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+
+.form-input, .form-select {
+  width: 100%;
+  padding: 0.78rem 1rem 0.78rem 2.7rem;
+  background: var(--navy-input);
+  border: 1px solid var(--navy-border);
+  border-radius: 10px;
+  color: #ffffff;
+  font-family: var(--f-body);
+  font-size: 0.92rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.form-input.no-icon, .form-select.no-icon {
+  padding-left: 1rem;
+}
+
+.form-input:focus, .form-select:focus {
+  border-color: var(--gold);
+  background: rgba(10, 24, 48, 0.95);
+  box-shadow: 0 0 0 3px rgba(212, 168, 75, 0.15);
+}
+
+.form-input::placeholder {
+  color: rgba(207, 228, 255, 0.35);
+}
+
+.form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23cfe4ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.9rem center;
+  padding-right: 2.5rem;
+  cursor: pointer;
+}
+
+.form-select option {
+  background: #0b1a33;
+  color: #fff;
+}
+
+.toggle-pwd {
+  position: absolute;
+  right: 0.8rem;
+  background: transparent;
+  border: none;
+  color: var(--contrail-dim);
+  cursor: pointer;
+  padding: 0.3rem;
+  display: flex;
+  align-items: center;
+}
+
+.toggle-pwd:hover {
+  color: #fff;
+}
+
+/* Medidor de Força de Senha */
+.pwd-meter {
+  height: 4px;
+  width: 100%;
+  background: rgba(207, 228, 255, 0.1);
+  border-radius: 2px;
+  margin-top: 0.45rem;
+  overflow: hidden;
+  display: flex;
+}
+
+.pwd-meter-fill {
+  height: 100%;
+  width: 0%;
+  transition: all 0.3s ease;
+  border-radius: 2px;
+}
+
+.pwd-text {
+  font-size: 0.72rem;
+  color: var(--contrail-dim);
+  margin-top: 0.25rem;
+  text-align: right;
+}
+
+/* Linha Auxiliar (Lembrar / Esqueci) */
+.form-helper-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  margin-top: -0.2rem;
+  margin-bottom: 1.4rem;
+}
+
+.remember-check {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+  user-select: none;
+  color: var(--contrail-dim);
+}
+
+.forgot-link {
+  color: var(--gold-lt);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.forgot-link:hover {
+  text-decoration: underline;
+  color: #fff;
+}
+
+/* Botões de Ação */
+.btn-submit {
+  width: 100%;
+  padding: 0.88rem;
+  background: linear-gradient(135deg, #d4a84b 0%, #b88b30 100%);
+  border: none;
+  border-radius: 10px;
+  color: #061021;
+  font-family: var(--f-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 20px rgba(212, 168, 75, 0.3);
+  transition: all 0.25s ease;
+}
+
+.btn-submit:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 25px rgba(212, 168, 75, 0.45);
+}
+
+.btn-submit:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
+
+/* Alertas de Notificação */
+.alert-box {
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  font-size: 0.86rem;
+  line-height: 1.4;
+  margin-bottom: 1.25rem;
+  display: none;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.alert-box.error {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #fca5a5;
+}
+
+.alert-box.success {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: #6ee7b7;
+}
+
+.alert-box.info {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  background: rgba(212, 168, 75, 0.12);
+  border: 1px solid rgba(212, 168, 75, 0.4);
+  color: #fde68a;
+}
+
+/* Spinner */
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(6, 16, 33, 0.25);
+  border-top-color: #061021;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: none;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Rodapé */
+.auth-footer {
+  padding: 1.2rem;
+  text-align: center;
+  border-top: 1px solid var(--navy-border);
+  background: rgba(6, 16, 33, 0.4);
+  font-size: 0.8rem;
+  color: var(--contrail-dim);
+}
+
+.auth-footer a {
+  color: var(--contrail);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.auth-footer a:hover {
+  color: var(--gold-lt);
+}
+
+/* Modal de Esqueci Senha */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(6, 16, 33, 0.85);
+  backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.modal-overlay.active {
+  display: flex;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-box {
+  width: 100%;
+  max-width: 440px;
+  background: #0b1a33;
+  border: 1px solid var(--gold-border);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+}
+
+.modal-title {
+  font-family: var(--f-display);
+  font-size: 1.4rem;
+  color: #fff;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modal-desc {
+  font-size: 0.86rem;
+  color: var(--contrail-dim);
+  line-height: 1.4;
+  margin-bottom: 1.5rem;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.btn-secondary {
+  flex: 1;
+  padding: 0.75rem;
+  background: transparent;
+  border: 1px solid var(--navy-border);
+  border-radius: 8px;
+  color: var(--contrail);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-secondary:hover {
+  background: rgba(207, 228, 255, 0.08);
+}
+
+@media (max-width: 480px) {
+  .form-row { grid-template-columns: 1fr; }
+  .auth-body { padding: 1.5rem 1.25rem; }
+  .auth-header { padding: 1.8rem 1.25rem 1.25rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="bg-backdrop"></div>
+<div class="bg-overlay"></div>
+
+<main class="auth-wrapper">
+  <!-- Cabeçalho -->
+  <header class="auth-header">
+    <div class="crests-row">
+      <img src="assets/brasao-de.png" alt="Divisão de Ensino" class="crest-img" />
+      <div class="crest-divider"></div>
+      <img src="assets/brasao-afa.jpg" alt="Academia da Força Aérea" class="crest-img" />
+    </div>
+    <h1 class="auth-title">Governança DE</h1>
+    <div class="auth-subtitle">Portal Integrado de Sistemas · AFA</div>
+  </header>
+
+  <!-- Abas de Acesso / Cadastro -->
+  <nav class="auth-tabs" aria-label="Abas de acesso">
+    <button class="tab-btn active" id="tabBtnLogin" onclick="trocarAbaAuth('login')">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      Entrar
+    </button>
+    <button class="tab-btn" id="tabBtnCadastro" onclick="trocarAbaAuth('cadastro')">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+      Criar Conta
+    </button>
+  </nav>
+
+  <!-- Área dos Formulários -->
+  <div class="auth-body">
+    <!-- Caixa de Alerta Global -->
+    <div id="authAlert" class="alert-box" role="alert"></div>
+
+    <!-- ═══ PAINEL 1: LOGIN ═══ -->
+    <div id="paneLogin" class="form-pane active">
+      <!-- Aviso de Primeiro Acesso (E-mail Zimbra + SARAM) -->
+      <div style="margin-bottom:1.25rem; padding:0.85rem 1rem; border-radius:8px; background:rgba(212,168,75,0.08); border:1px solid rgba(212,168,75,0.28); display:flex; gap:0.75rem; align-items:flex-start;">
+        <span style="font-size:1.25rem; line-height:1.2;">💡</span>
+        <div style="font-size:0.82rem; color:var(--contrail-dim); line-height:1.45;">
+          <strong style="color:var(--gold-lt);">Primeiro Acesso Militar:</strong><br>
+          Todos os militares cadastrados no efetivo já possuem conta ativa criada automaticamente.<br>
+          • <b>Usuário:</b> Seu e-mail Zimbra (ex: <code>usuario@fab.mil.br</code>) ou seu <b>SARAM</b><br>
+          • <b>Senha Inicial:</b> Seu número <b>SARAM</b><br>
+          <span style="color:#cfe4ff; font-size:0.77rem;">Ao entrar, você poderá definir sua senha pessoal com total segurança.</span>
+        </div>
+      </div>
+
+      <form id="formLogin" onsubmit="handleLoginSubmit(event)" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="loginUser">E-mail Institucional ou SARAM <span class="req">*</span></label>
+          <div class="input-wrap">
+            <span class="input-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </span>
+            <input type="text" id="loginUser" class="form-input" placeholder="ex: silvass@fab.mil.br ou 7654321" required autocomplete="username" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="loginPass">Senha de Acesso <span class="req">*</span></label>
+          <div class="input-wrap">
+            <span class="input-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </span>
+            <input type="password" id="loginPass" class="form-input" placeholder="•••••••• (no 1º acesso: seu SARAM)" required autocomplete="current-password" />
+            <button type="button" class="toggle-pwd" onclick="toggleSenhaVisibilidade('loginPass', this)" title="Ver senha">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-helper-row">
+          <label class="remember-check">
+            <input type="checkbox" id="chkLembrar" checked />
+            Lembrar meu acesso
+          </label>
+          <a href="javascript:void(0)" class="forgot-link" onclick="abrirModalRecuperacao()">Esqueci minha senha</a>
+        </div>
+
+        <button type="submit" id="btnLoginSubmit" class="btn-submit">
+          <span class="spinner" id="loginSpinner"></span>
+          <span class="btn-label" id="loginBtnLabel">Acessar Sistema</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- ═══ PAINEL 2: CADASTRO ═══ -->
+    <div id="paneCadastro" class="form-pane">
+      <div style="margin-bottom:1.1rem; padding:0.75rem 0.95rem; border-radius:8px; background:rgba(96,165,250,0.08); border:1px solid rgba(96,165,250,0.25); display:flex; gap:0.65rem; align-items:flex-start;">
+        <span style="font-size:1.15rem; line-height:1.2;">ℹ️</span>
+        <div style="font-size:0.8rem; color:#cfe4ff; line-height:1.4;">
+          <strong>Já pertence ao efetivo da DE?</strong><br>
+          Seus dados já estão cadastrados! Acesse a aba <b>Entrar</b> e faça login com seu <b>E-mail Zimbra</b> e a senha inicial que é o seu número <b>SARAM</b>.
+        </div>
+      </div>
+
+      <form id="formCadastro" onsubmit="handleCadastroSubmit(event)" novalidate>
+        
+        <!-- SARAM com Auto-Localização no Efetivo -->
+        <div class="form-group">
+          <label class="form-label" for="cadSaram">SARAM <span class="req">*</span> (Identidade Militar FAB)</label>
+          <div class="input-wrap">
+            <span class="input-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="7" y1="8" x2="17" y2="8"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="7" y1="16" x2="12" y2="16"/></svg>
+            </span>
+            <input type="text" id="cadSaram" class="form-input" placeholder="7 dígitos (ex: 6543210)" maxlength="7" inputmode="numeric" onblur="verificarSaramAutopreenchimento()" required />
+          </div>
+          <small id="saramMsg" style="display:block;margin-top:0.25rem;font-size:0.75rem;color:var(--gold-lt);"></small>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="cadPosto">Posto / Graduação <span class="req">*</span></label>
+            <select id="cadPosto" class="form-select no-icon" required>
+              <option value="" disabled selected>Selecione...</option>
+              <optgroup label="Oficiais">
+                <option value="CL">Coronel (CL)</option>
+                <option value="TC">Tenente-Coronel (TC)</option>
+                <option value="MAJ">Major (MAJ)</option>
+                <option value="CAP">Capitão (CAP)</option>
+                <option value="1T">Primeiro-Tenente (1T)</option>
+                <option value="2T">Segundo-Tenente (2T)</option>
+                <option value="ASP">Aspirante (ASP)</option>
+              </optgroup>
+              <optgroup label="Graduados e Praças">
+                <option value="SO">Suboficial (SO)</option>
+                <option value="1S">Primeiro-Sargento (1S)</option>
+                <option value="2S">Segundo-Sargento (2S)</option>
+                <option value="3S">Terceiro-Sargento (3S)</option>
+                <option value="CB">Cabo (CB)</option>
+                <option value="S1">Soldado de Primeira Classe (S1)</option>
+                <option value="S2">Soldado de Segunda Classe (S2)</option>
+              </optgroup>
+              <optgroup label="Civis">
+                <option value="CV">Servidor Civil (CV)</option>
+                <option value="PROF">Professor Civil (PROF)</option>
+              </optgroup>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="cadNomeGuerra">Nome de Guerra <span class="req">*</span></label>
+            <input type="text" id="cadNomeGuerra" class="form-input no-icon" placeholder="ex: SILVA" style="text-transform:uppercase;" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="cadNomeCompleto">Nome Completo <span class="req">*</span></label>
+          <input type="text" id="cadNomeCompleto" class="form-input no-icon" placeholder="Nome militar completo" style="text-transform:uppercase;" required />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="cadCpf">CPF (opcional)</label>
+            <input type="text" id="cadCpf" class="form-input no-icon" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this)" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="cadSecao">Subdivisão / Seção</label>
+            <select id="cadSecao" class="form-select no-icon">
+              <option value="DE" selected>Divisão de Ensino (DE)</option>
+              <option value="SDINT">Subdivisão de Instrução Militar (SDINT)</option>
+              <option value="SDIR">Subdivisão de Instrução Geral (SDIR)</option>
+              <option value="CEL-INFRA">Célula de Infraestrutura (CEL-INFRA)</option>
+              <option value="SEC-DE">Secretaria da DE (SEC-DE)</option>
+              <option value="CEL-PLAN">Célula de Planejamento (CEL-PLAN)</option>
+              <option value="OUTRA">Outra Seção / OM Externa</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="cadEmail">E-mail Institucional <span class="req">*</span></label>
+          <div class="input-wrap">
+            <span class="input-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </span>
+            <input type="email" id="cadEmail" class="form-input" placeholder="ex: usuario@fab.mil.br" required autocomplete="email" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="cadPass">Criar Senha <span class="req">*</span></label>
+            <div class="input-wrap">
+              <input type="password" id="cadPass" class="form-input no-icon" placeholder="Mín. 8 dígitos" required oninput="avaliarForcaSenha(this.value)" />
+            </div>
+            <div class="pwd-meter"><div id="pwdMeterFill" class="pwd-meter-fill"></div></div>
+            <div id="pwdMeterText" class="pwd-text">Mínimo de 8 caracteres</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="cadPassConfirm">Confirmar Senha <span class="req">*</span></label>
+            <div class="input-wrap">
+              <input type="password" id="cadPassConfirm" class="form-input no-icon" placeholder="Repita a senha" required />
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" id="btnCadSubmit" class="btn-submit" style="margin-top:0.5rem;">
+          <span class="spinner" id="cadSpinner"></span>
+          <span class="btn-label" id="cadBtnLabel">Confirmar Cadastro</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Rodapé do Card -->
+  <footer class="auth-footer">
+    <a href="index.html">← Retornar ao Painel Inicial</a>
+    <span style="margin: 0 0.5rem; opacity: 0.3;">|</span>
+    <span>Academia da Força Aérea · FAB</span>
+  </footer>
+</main>
+
+<!-- Modal de Recuperação de Senha -->
+<div id="modalRecuperacao" class="modal-overlay" onclick="if(event.target===this) fecharModalRecuperacao()">
+  <div class="modal-box">
+    <h3 class="modal-title">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Recuperar Acesso
+    </h3>
+    <p class="modal-desc">
+      Informe o seu e-mail cadastrado. Enviaremos um link oficial e seguro para você redefinir sua senha de acesso.
+    </p>
+
+    <div id="modalAlert" class="alert-box"></div>
+
+    <form onsubmit="handleRecuperarSubmit(event)">
+      <div class="form-group">
+        <label class="form-label" for="recEmail">E-mail Institucional</label>
+        <div class="input-wrap">
+          <span class="input-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </span>
+          <input type="email" id="recEmail" class="form-input" placeholder="seu.email@fab.mil.br" required />
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" onclick="fecharModalRecuperacao()">Cancelar</button>
+        <button type="submit" id="btnRecSubmit" class="btn-submit" style="flex:1;">
+          <span class="spinner" id="recSpinner"></span>
+          <span id="recBtnLabel">Enviar Link</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Scripts de Autenticação -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/auth.js"></script>
+
+<script>
+// ═══ CONTROLE DE NAVEGAÇÃO ENTRE ABAS ═══
+function trocarAbaAuth(aba) {
+  limparAlerta();
+  const btnLogin = document.getElementById('tabBtnLogin');
+  const btnCad = document.getElementById('tabBtnCadastro');
+  const paneLogin = document.getElementById('paneLogin');
+  const paneCad = document.getElementById('paneCadastro');
+
+  if (aba === 'login') {
+    btnLogin.classList.add('active');
+    btnCad.classList.remove('active');
+    paneLogin.classList.add('active');
+    paneCad.classList.remove('active');
+    document.getElementById('loginUser').focus();
+  } else {
+    btnCad.classList.add('active');
+    btnLogin.classList.remove('active');
+    paneCad.classList.add('active');
+    paneLogin.classList.remove('active');
+    document.getElementById('cadSaram').focus();
+  }
+}
+
+function toggleSenhaVisibilidade(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  const isPwd = input.type === 'password';
+  input.type = isPwd ? 'text' : 'password';
+  btn.style.color = isPwd ? '#d4a84b' : 'rgba(207,228,255,.65)';
+}
+
+function exibirAlerta(tipo, texto) {
+  const alertEl = document.getElementById('authAlert');
+  alertEl.className = `alert-box ${tipo}`;
+  alertEl.innerHTML = `<span>${tipo === 'error' ? '⚠️' : (tipo === 'success' ? '✓' : '💡')}</span> <div>${texto}</div>`;
+  alertEl.style.display = 'flex';
+}
+
+function limparAlerta() {
+  const alertEl = document.getElementById('authAlert');
+  alertEl.style.display = 'none';
+  alertEl.textContent = '';
+}
+
+// ═══ MEDIDOR DE FORÇA DE SENHA ═══
+function avaliarForcaSenha(senha) {
+  const fill = document.getElementById('pwdMeterFill');
+  const text = document.getElementById('pwdMeterText');
+  if (!senha) {
+    fill.style.width = '0%';
+    text.textContent = 'Mínimo de 8 caracteres';
+    return;
+  }
+  let score = 0;
+  if (senha.length >= 8) score += 25;
+  if (senha.length >= 10) score += 15;
+  if (/[A-Z]/.test(senha)) score += 20;
+  if (/[0-9]/.test(senha)) score += 20;
+  if (/[^A-Za-z0-9]/.test(senha)) score += 20;
+
+  fill.style.width = `${Math.min(score, 100)}%`;
+  if (score < 40) {
+    fill.style.background = '#ef4444';
+    text.textContent = 'Senha Fraca (adicione números e letras maiúsculas)';
+    text.style.color = '#fca5a5';
+  } else if (score < 75) {
+    fill.style.background = '#f59e0b';
+    text.textContent = 'Senha Razoável';
+    text.style.color = '#fde68a';
+  } else {
+    fill.style.background = '#10b981';
+    text.textContent = 'Senha Forte e Segura ✓';
+    text.style.color = '#6ee7b7';
+  }
+}
+
+function mascaraCPF(input) {
+  let v = input.value.replace(/\D/g, '');
+  if (v.length > 11) v = v.substring(0, 11);
+  v = v.replace(/(\d{3})(\d)/, '$1.$2');
+  v = v.replace(/(\d{3})(\d)/, '$1.$2');
+  v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+  input.value = v;
+}
+
+// ═══ AUTO-PREENCHIMENTO POR SARAM ═══
+async function verificarSaramAutopreenchimento() {
+  const saram = document.getElementById('cadSaram').value.trim();
+  const msgEl = document.getElementById('saramMsg');
+  if (saram.length < 5) {
+    msgEl.textContent = '';
+    return;
+  }
+
+  msgEl.textContent = '🔍 Consultando cadastro do efetivo...';
+
+  try {
+    const militar = await window.AppAuth.findMilitarNoEfetivo(saram);
+    if (militar) {
+      if (militar.posto_grad) document.getElementById('cadPosto').value = militar.posto_grad;
+      if (militar.nome_guerra) document.getElementById('cadNomeGuerra').value = militar.nome_guerra;
+      if (militar.nome_completo) document.getElementById('cadNomeCompleto').value = militar.nome_completo;
+      if (militar.email) document.getElementById('cadEmail').value = militar.email;
+      if (militar.cpf) document.getElementById('cadCpf').value = militar.cpf;
+      msgEl.innerHTML = `✓ Militar localizado: <b>${militar.posto_grad} ${militar.nome_guerra}</b>. Dados vinculados!`;
+      msgEl.style.color = '#6ee7b7';
+    } else {
+      msgEl.textContent = '💡 SARAM não encontrado na pré-base. Preencha seus dados normalmente.';
+      msgEl.style.color = 'var(--gold-lt)';
+    }
+  } catch(e) {
+    msgEl.textContent = '';
+  }
+}
+
+// ═══ SUBMISSÃO DE LOGIN ═══
+async function handleLoginSubmit(e) {
+  e.preventDefault();
+  limparAlerta();
+
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const btn = document.getElementById('btnLoginSubmit');
+  const spinner = document.getElementById('loginSpinner');
+  const label = document.getElementById('loginBtnLabel');
+
+  if (!user || !pass) {
+    exibirAlerta('error', 'Por favor, informe seu e-mail ou SARAM e sua senha.');
+    return;
+  }
+
+  btn.disabled = true;
+  spinner.style.display = 'inline-block';
+  label.textContent = 'Autenticando...';
+
+  try {
+    const { user: usuario, profile } = await window.AppAuth.login(user, pass);
+
+    // Destino após login
+    const params = new URLSearchParams(window.location.search);
+    const redirectUrl = params.get('redirect') ? decodeURIComponent(params.get('redirect')) : 'index.html';
+
+    const isPrimeiroAcesso = sessionStorage.getItem('afa_trocar_senha_aviso') === '1';
+    if (isPrimeiroAcesso) {
+      exibirAlerta('success', `Autenticado com sucesso! Bem-vindo, ${profile?.posto_grad || ''} ${profile?.nome_guerra || ''}. <b>Primeiro acesso com senha padrão (SARAM)</b> — redirecionando para você definir sua nova senha pessoal...`);
+    } else {
+      exibirAlerta('success', `Autenticado com sucesso! Bem-vindo, ${profile?.posto_grad || ''} ${profile?.nome_guerra || ''}. Redirecionando...`);
+    }
+
+    setTimeout(() => {
+      window.location.href = redirectUrl;
+    }, isPrimeiroAcesso ? 1000 : 600);
+
+  } catch(err) {
+    exibirAlerta('error', err.message || 'Erro ao realizar login. Tente novamente.');
+    btn.disabled = false;
+    spinner.style.display = 'none';
+    label.textContent = 'Acessar Sistema';
+  }
+}
+
+// ═══ SUBMISSÃO DE CADASTRO ═══
+async function handleCadastroSubmit(e) {
+  e.preventDefault();
+  limparAlerta();
+
+  const saram = document.getElementById('cadSaram').value.trim();
+  const postoGrad = document.getElementById('cadPosto').value;
+  const nomeGuerra = document.getElementById('cadNomeGuerra').value.trim();
+  const nomeCompleto = document.getElementById('cadNomeCompleto').value.trim();
+  const cpf = document.getElementById('cadCpf').value.trim();
+  const secaoSigla = document.getElementById('cadSecao').value;
+  const email = document.getElementById('cadEmail').value.trim();
+  const pass = document.getElementById('cadPass').value;
+  const passConfirm = document.getElementById('cadPassConfirm').value;
+
+  if (pass !== passConfirm) {
+    exibirAlerta('error', 'A confirmação de senha não confere com a senha digitada.');
+    document.getElementById('cadPassConfirm').focus();
+    return;
+  }
+
+  if (pass.length < 8) {
+    exibirAlerta('error', 'A senha de acesso deve ter pelo menos 8 caracteres.');
+    document.getElementById('cadPass').focus();
+    return;
+  }
+
+  const btn = document.getElementById('btnCadSubmit');
+  const spinner = document.getElementById('cadSpinner');
+  const label = document.getElementById('cadBtnLabel');
+
+  btn.disabled = true;
+  spinner.style.display = 'inline-block';
+  label.textContent = 'Criando Conta...';
+
+  try {
+    await window.AppAuth.register({
+      email,
+      password: pass,
+      saram,
+      cpf,
+      nomeCompleto,
+      nomeGuerra,
+      postoGrad,
+      secaoSigla
+    });
+
+    exibirAlerta('success', `✓ Conta militar criada com sucesso para ${postoGrad} ${nomeGuerra}! Verifique seu e-mail caso seja necessária confirmação.`);
+
+    setTimeout(() => {
+      trocarAbaAuth('login');
+      document.getElementById('loginUser').value = email;
+      document.getElementById('loginPass').value = '';
+      exibirAlerta('info', 'Sua conta foi registrada! Se seu perfil necessitar de homologação pela Secretaria da DE, entre em contato para liberação.');
+    }, 1800);
+
+  } catch(err) {
+    exibirAlerta('error', err.message || 'Erro ao registrar nova conta.');
+    btn.disabled = false;
+    spinner.style.display = 'none';
+    label.textContent = 'Confirmar Cadastro';
+  }
+}
+
+// ═══ RECUPERAÇÃO DE SENHA ═══
+function abrirModalRecuperacao() {
+  const modal = document.getElementById('modalRecuperacao');
+  const recAlert = document.getElementById('modalAlert');
+  recAlert.style.display = 'none';
+  modal.classList.add('active');
+  const currentEmail = document.getElementById('loginUser').value.trim();
+  if (currentEmail.includes('@')) {
+    document.getElementById('recEmail').value = currentEmail;
+  }
+  document.getElementById('recEmail').focus();
+}
+
+function fecharModalRecuperacao() {
+  document.getElementById('modalRecuperacao').classList.remove('active');
+}
+
+async function handleRecuperarSubmit(e) {
+  e.preventDefault();
+  const email = document.getElementById('recEmail').value.trim();
+  const recAlert = document.getElementById('modalAlert');
+  const btn = document.getElementById('btnRecSubmit');
+  const spinner = document.getElementById('recSpinner');
+  const label = document.getElementById('recBtnLabel');
+
+  btn.disabled = true;
+  spinner.style.display = 'inline-block';
+  label.textContent = 'Enviando...';
+
+  try {
+    await window.AppAuth.resetPassword(email);
+    recAlert.className = 'alert-box success';
+    recAlert.innerHTML = `<span>✓</span> <div>E-mail de recuperação enviado para <b>${email}</b>! Verifique sua caixa de entrada e spam.</div>`;
+    recAlert.style.display = 'flex';
+    setTimeout(() => {
+      fecharModalRecuperacao();
+      exibirAlerta('info', 'Instruções para redefinição de senha foram enviadas ao seu e-mail.');
+    }, 2500);
+  } catch(err) {
+    recAlert.className = 'alert-box error';
+    recAlert.innerHTML = `<span>⚠️</span> <div>${err.message || 'Erro ao solicitar recuperação.'}</div>`;
+    recAlert.style.display = 'flex';
+  } finally {
+    btn.disabled = false;
+    spinner.style.display = 'none';
+    label.textContent = 'Enviar Link';
+  }
+}
+
+// ═══ VERIFICAÇÃO AUTOMÁTICA AO CARREGAR ═══
+document.addEventListener('DOMContentLoaded', async () => {
+  await window.AppAuth.init();
+
+  // Se já estiver logado e com conta ativa, redireciona diretamente
+  if (window.AppAuth.isAuthenticated() && window.AppAuth.isAtivo()) {
+    const params = new URLSearchParams(window.location.search);
+    const redirectUrl = params.get('redirect') ? decodeURIComponent(params.get('redirect')) : 'index.html';
+    window.location.href = redirectUrl;
+  }
+
+  // Se a URL tiver ?cadastro=1, abre direto na aba de cadastro
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('cadastro') === '1') {
+    trocarAbaAuth('cadastro');
+  }
+});
+</script>
+</body>
+</html>

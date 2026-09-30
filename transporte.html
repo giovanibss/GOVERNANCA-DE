@@ -491,6 +491,8 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
 <div id="areaImpressao"></div>
 
 <footer>Governança DE · Academia da Força Aérea — módulo Auxílio Transporte · <b>v4.0</b> (documentos em PDF nativo · cadastro em janela)</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/auth.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="compiladordoc.js"></script>
 <script src="assets/js/app-config.js"></script>
@@ -729,7 +731,12 @@ function pintarCiclo(){
 /* ══════════════ ABAS + ACESSO DA SECRETARIA ══════════════ */
 const ABAS = [ ['abaMil','telaMil'], ['abaSec','telaSec'] ];
 ABAS.forEach(([a, t]) => $(a).addEventListener('click', () => trocarAba(a)));
-function secLiberada(){ return sessionStorage.getItem('secretaria_pin_ok') === '1' || sessionStorage.getItem('efetivo_pin_ok') === '1' || sessionStorage.getItem('at_sec_ok') === '1'; }
+function secLiberada(){ 
+  return (window.AppAuth && window.AppAuth.isOperador()) || 
+         sessionStorage.getItem('secretaria_pin_ok') === '1' || 
+         sessionStorage.getItem('efetivo_pin_ok') === '1' || 
+         sessionStorage.getItem('at_sec_ok') === '1'; 
+}
 function trocarAba(id){
   ABAS.forEach(([a, t]) => {
     const on = a === id;
@@ -764,7 +771,7 @@ async function verificarPin(){
       faixa($('pinMsg'), 'erro', 'PIN não configurado no servidor — rode o SQL de atualização (v2) no Supabase.');
       return;
     }
-    if (digitado.toLowerCase() === pin.toLowerCase() || digitado.toLowerCase() === 'secretaria' || digitado === '123456'){
+    if (digitado.toLowerCase() === pin.toLowerCase()){
       sessionStorage.setItem('secretaria_pin_ok', '1');
       sessionStorage.setItem('efetivo_pin_ok', '1');
       sessionStorage.setItem('at_sec_ok', '1');

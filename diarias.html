@@ -625,6 +625,8 @@ footer img{height:16px;opacity:.45}
 </head>
 <body>
 
+<div id="afa-topbar-placeholder"></div>
+
 <header>
   <div class="logo">
     <div class="crest"><img src="assets/brasao-afa.jpg" alt="AFA" /></div>
@@ -647,25 +649,36 @@ footer img{height:16px;opacity:.45}
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
       Configurações
     </button>
-    <button class="hbtn" id="lock-btn" onclick="bloquearSessaoMissoes()" style="display:none" title="Bloquear acesso com PIN">
+    <button class="hbtn" id="lock-btn" onclick="bloquearSessaoMissoes()" style="display:none" title="Bloquear ou Encerrar Sessão">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-      Bloquear
+      Sair
     </button>
     <a href="solicitar.html" target="_blank" class="hbtn gold">+ Solicitar OS</a>
   </div>
 </header>
 
-<!-- GATE DE SENHA PIN -->
+<!-- GATE DE ACESSO AO MÓDULO -->
 <div id="pinGate" class="pin-gate-wrap">
   <div class="pin-gate-card">
     <div class="pin-gate-icon">🔒</div>
     <div class="pin-gate-title">Acesso Restrito ao Operador</div>
-    <div class="pin-gate-desc">Informe a Senha / PIN da Secretária para acessar a gestão de Missões, Diárias, OMIS e Processos.</div>
-    <div class="pin-gate-form">
-      <input type="password" id="pinInput" class="pin-gate-input" placeholder="••••" maxlength="12" inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter') verificarPinMissoes()" />
-      <button class="pin-gate-submit" onclick="verificarPinMissoes()">Entrar</button>
+    <div class="pin-gate-desc">Este módulo gerencia Ordens de Serviço, Diárias e Processos da Divisão de Ensino. Identifique-se com sua conta militar institucional para prosseguir.</div>
+    
+    <div style="margin-bottom:1.2rem;">
+      <a href="login.html?redirect=diarias.html" class="hbtn gold" style="display:inline-flex;align-items:center;justify-content:center;gap:.5rem;width:100%;padding:.75rem;font-size:1rem;font-weight:700;border-radius:8px;text-decoration:none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Entrar com Conta Militar
+      </a>
     </div>
-    <div id="pinErrorMsg" class="pin-gate-err" style="display:none;"></div>
+
+    <details style="font-size:.82rem;color:var(--gray-400);cursor:pointer;margin-top:.5rem;">
+      <summary style="outline:none;user-select:none;">Acesso alternativo via PIN de emergência</summary>
+      <div class="pin-gate-form" style="margin-top:.8rem;">
+        <input type="password" id="pinInput" class="pin-gate-input" placeholder="••••" maxlength="12" inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter') verificarPinMissoes()" />
+        <button class="pin-gate-submit" onclick="verificarPinMissoes()">Validar</button>
+      </div>
+      <div id="pinErrorMsg" class="pin-gate-err" style="display:none;margin-top:.5rem;"></div>
+    </details>
   </div>
 </div>
 
@@ -1560,19 +1573,22 @@ footer img{height:16px;opacity:.45}
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/auth.js"></script>
 <script src="assets/js/app-config.js"></script>
 <script>
 /* ══════════════════════════════════════════════════════════════
-   1 · SUPABASE
+   1 · SUPABASE & AUTENTICAÇÃO
    ══════════════════════════════════════════════════════════════ */
-const SUPABASE_URL  = 'https://sovrgsbdhdpxsaomspsp.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg';
+const SUPABASE_URL  = window.SUPABASE_URL || 'https://sovrgsbdhdpxsaomspsp.supabase.co';
+const SUPABASE_ANON = window.SUPABASE_ANON || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg';
 
 const CONFIG_ID = 'default';
 const CACHE_KEY = 'afa_diarias_cache_v2';
 
 const configurado = !SUPABASE_URL.startsWith('COLE_') && !SUPABASE_ANON.startsWith('COLE_');
-const sb = configurado ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
+const sb = (window.AppAuth && typeof window.AppAuth.getClient === 'function') 
+  ? window.AppAuth.getClient() 
+  : (configurado ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, { auth: { persistSession: true } }) : null);
 
 function urlPdf(caminho) {
   if (!caminho) return '#';
@@ -5067,8 +5083,21 @@ async function recarregarTudo() {
     if (resSolic.error) console.error('solicitacoes_missao:', resSolic.error);
     if (resCtrl.error) console.error('controle_os_processos:', resCtrl.error);
 
-    if (resGrat.data) { dadosGratificacao = resGrat.data; normalizarTodas(); gravarCacheGrat(); }
-    if (resSolic.data) { dadosSolicitacoes = resSolic.data; gravarCacheSolicitacoes(); }
+    if (resGrat.data) {
+      if (resGrat.data.length > 0 || !dadosGratificacao.length) {
+        dadosGratificacao = resGrat.data;
+        normalizarTodas();
+        gravarCacheGrat();
+      } else if (resGrat.data.length === 0 && dadosGratificacao.length > 0) {
+        console.warn('gratificacao_representacao retornou 0 registros do Supabase. Mantendo dados do cache local por precaução.');
+      }
+    }
+    if (resSolic.data) {
+      if (resSolic.data.length > 0 || !dadosSolicitacoes.length) {
+        dadosSolicitacoes = resSolic.data;
+        gravarCacheSolicitacoes();
+      }
+    }
 
     if (resCtrl.data) {
       /* preserva o que ainda não subiu para o servidor — antes isso era apagado
@@ -5123,8 +5152,18 @@ async function lerPinServidor(){
   return localStorage.getItem('secretaria_pin') || '123456';
 }
 
-function checarAutenticacaoPIN() {
-  const pinOk = sessionStorage.getItem('secretaria_pin_ok') === '1' || sessionStorage.getItem('efetivo_pin_ok') === '1';
+async function checarAutenticacaoPIN() {
+  if (window.AppAuth) {
+    window.AppAuth.renderUserBar('#afa-topbar-placeholder');
+    if (window.AppAuth.isOperador()) {
+      sessionStorage.setItem('secretaria_pin_ok', '1');
+      sessionStorage.setItem('efetivo_pin_ok', '1');
+    }
+  }
+
+  const pinOk = (window.AppAuth && window.AppAuth.isOperador()) || 
+                sessionStorage.getItem('secretaria_pin_ok') === '1' || 
+                sessionStorage.getItem('efetivo_pin_ok') === '1';
   const gate = document.getElementById('pinGate');
   const content = document.getElementById('missoesContent');
   const lockBtn = document.getElementById('lock-btn');
@@ -5137,7 +5176,7 @@ function checarAutenticacaoPIN() {
     if (content) content.style.display = 'none';
     if (lockBtn) lockBtn.style.display = 'none';
     const input = document.getElementById('pinInput');
-    if (input) { input.value = ''; input.focus(); }
+    if (input) { input.value = ''; }
   }
 }
 
@@ -5168,9 +5207,15 @@ async function verificarPinMissoes() {
   }
 }
 
-function bloquearSessaoMissoes() {
+async function bloquearSessaoMissoes() {
   sessionStorage.removeItem('secretaria_pin_ok');
   sessionStorage.removeItem('efetivo_pin_ok');
+  if (window.AppAuth && window.AppAuth.isAuthenticated()) {
+    if (confirm('Deseja encerrar sua sessão militar?')) {
+      await window.AppAuth.logout('login.html?redirect=diarias.html');
+      return;
+    }
+  }
   checarAutenticacaoPIN();
 }
 

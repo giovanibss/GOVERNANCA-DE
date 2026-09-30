@@ -987,6 +987,7 @@ footer {
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/auth.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="assets/js/smtp.js"></script>
 <script src="assets/js/app-config.js"></script>
@@ -994,9 +995,11 @@ footer {
 /* ══════════════════════════════════════════════════════════════
    CONFIGURAÇÃO SUPABASE & PLANILHA CENTRAL
    ══════════════════════════════════════════════════════════════ */
-const SUPABASE_URL = 'https://sovrgsbdhdpxsaomspsp.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg';
-const sb = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON) : null;
+const SUPABASE_URL = window.SUPABASE_URL || 'https://sovrgsbdhdpxsaomspsp.supabase.co';
+const SUPABASE_ANON = window.SUPABASE_ANON || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg';
+const sb = (window.AppAuth && typeof window.AppAuth.getClient === 'function') 
+  ? window.AppAuth.getClient() 
+  : (window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON, { auth: { persistSession: true } }) : null);
 
 const EFETIVO_SHEET_ID = '1UOMh4y-wHL8kHcB9TUUcEmkeF7z6KYAs4vipsoOFgfA';
 const EFETIVO_URL = `https://docs.google.com/spreadsheets/d/${EFETIVO_SHEET_ID}/gviz/tq?tqx=out:json&sheet=efetivo&range=A5:AC250&headers=0`;
@@ -1844,6 +1847,10 @@ function atualizarKpisEContadores() {
    MODAL DE DETALHES DOS KPIS (ACESSO SECRETARIA)
    ══════════════════════════════════════════════════════════════ */
 async function checarAcessoSecretaria() {
+  if (window.AppAuth && window.AppAuth.isOperador()) {
+    sessionStorage.setItem('secretaria_pin_ok', '1');
+    return true;
+  }
   const pinOk = sessionStorage.getItem('secretaria_pin_ok') === '1' || sessionStorage.getItem('efetivo_pin_ok') === '1';
   if (pinOk) return true;
 
@@ -1852,7 +1859,12 @@ async function checarAcessoSecretaria() {
     html: `
       <div style="font-size:0.88rem; color:#cbd5e1; margin-bottom:0.75rem; text-align:left; line-height:1.5;">
         A listagem nominal do efetivo é restrita à Secretaria.<br/>
-        Digite o <b>PIN da Secretaria</b> para desbloquear a visualização:
+        Identifique-se com sua <b>Conta Militar</b> ou digite o <b>PIN da Secretaria</b>:
+      </div>
+      <div style="margin-bottom:0.75rem;">
+        <a href="login.html?redirect=tacf.html" style="display:inline-block;padding:0.4rem 0.8rem;background:rgba(212,168,75,0.2);border:1px solid #d4a84b;color:#fde68a;border-radius:6px;font-size:0.82rem;text-decoration:none;font-weight:600;">
+          Fazer Login com Conta Militar
+        </a>
       </div>
     `,
     input: 'password',
@@ -1873,7 +1885,7 @@ async function checarAcessoSecretaria() {
   }
   if (!ok) {
     const pinSalvo = localStorage.getItem('secretaria_pin') || localStorage.getItem('efetivo_pin') || '123456';
-    ok = (inputPin === pinSalvo || inputPin.toLowerCase() === 'secretaria' || inputPin === '123456');
+    ok = (inputPin === pinSalvo);
   }
 
   if (ok) {
@@ -2961,10 +2973,17 @@ async function salvarSolicitacaoMilitar() {
    ABA 2: SECRETARIA & PIN "Secretaria"
    ══════════════════════════════════════════════════════════════ */
 function verificarPinSessao() {
-  const pinOk = sessionStorage.getItem('secretaria_pin_ok') === '1' || sessionStorage.getItem('efetivo_pin_ok') === '1';
+  if (window.AppAuth && window.AppAuth.isOperador()) {
+    sessionStorage.setItem('secretaria_pin_ok', '1');
+  }
+  const pinOk = (window.AppAuth && window.AppAuth.isOperador()) ||
+                sessionStorage.getItem('secretaria_pin_ok') === '1' || 
+                sessionStorage.getItem('efetivo_pin_ok') === '1';
   if (pinOk) {
-    document.getElementById('pinGate').style.display = 'none';
-    document.getElementById('secArea').style.display = 'block';
+    const gate = document.getElementById('pinGate');
+    const sec = document.getElementById('secArea');
+    if (gate) gate.style.display = 'none';
+    if (sec) sec.style.display = 'block';
   }
 }
 
@@ -2978,17 +2997,21 @@ async function validarPinSecretaria() {
   }
   if (!ok) {
     const pinSalvo = localStorage.getItem('secretaria_pin') || localStorage.getItem('efetivo_pin') || '123456';
-    ok = (inputPin === pinSalvo || inputPin.toLowerCase() === 'secretaria' || inputPin === '123456');
+    ok = (inputPin === pinSalvo);
   }
 
   if (ok) {
     sessionStorage.setItem('secretaria_pin_ok', '1');
-    document.getElementById('pinGate').style.display = 'none';
-    document.getElementById('secArea').style.display = 'block';
-    msg.style.display = 'none';
+    const gate = document.getElementById('pinGate');
+    const sec = document.getElementById('secArea');
+    if (gate) gate.style.display = 'none';
+    if (sec) sec.style.display = 'block';
+    if (msg) msg.style.display = 'none';
   } else {
-    msg.style.display = 'block';
-    msg.textContent = '❌ PIN incorreto. Use o PIN master da Secretaria.';
+    if (msg) {
+      msg.style.display = 'block';
+      msg.textContent = '❌ PIN incorreto. Use o PIN master da Secretaria.';
+    }
   }
 }
 

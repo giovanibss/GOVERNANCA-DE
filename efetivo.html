@@ -755,6 +755,8 @@
 </head>
 <body>
 
+<div id="afa-topbar-placeholder"></div>
+
 <header>
   <div class="logo">
     <div class="crest"><img src="assets/brasao-afa.jpg" alt="Brasão da AFA" /></div>
@@ -805,17 +807,28 @@
 
 <div id="status-banner"><span id="status-msg"></span></div>
 
-<!-- PORTÃO DE PIN DE ACESSO RESTRITO -->
+<!-- PORTÃO DE ACESSO AO EFETIVO -->
 <div id="pinGate" class="pin-gate-wrap" style="display:none;">
   <div class="pin-gate-card">
     <div class="pin-gate-icon">🔒</div>
     <div class="pin-gate-title">Acesso Restrito ao Efetivo</div>
-    <div class="pin-gate-desc">Informe o PIN cadastrado para acessar a chamada e o painel de controle da Divisão de Ensino.</div>
-    <div class="pin-gate-form">
-      <input type="password" id="pinInput" class="pin-gate-input" placeholder="••••" maxlength="12" inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter') verificarPinEfetivo()" />
-      <button class="pin-gate-submit" onclick="verificarPinEfetivo()">Entrar</button>
+    <div class="pin-gate-desc">Painel restrito da Divisão de Ensino. Identifique-se com sua conta militar institucional para acessar o controle do efetivo.</div>
+
+    <div style="margin-bottom:1.2rem;">
+      <a href="login.html?redirect=efetivo.html" class="nav-btn gold-highlight" style="display:inline-flex;align-items:center;justify-content:center;gap:.5rem;width:100%;padding:.75rem;font-size:1rem;font-weight:700;border-radius:8px;text-decoration:none;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Entrar com Conta Militar
+      </a>
     </div>
-    <div id="pinErrorMsg" class="pin-gate-err" style="display:none;"></div>
+
+    <details style="font-size:.82rem;color:var(--gray-400);cursor:pointer;margin-top:.5rem;">
+      <summary style="outline:none;user-select:none;">Acesso alternativo via PIN de emergência</summary>
+      <div class="pin-gate-form" style="margin-top:.8rem;">
+        <input type="password" id="pinInput" class="pin-gate-input" placeholder="••••" maxlength="12" inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter') verificarPinEfetivo()" />
+        <button class="pin-gate-submit" onclick="verificarPinEfetivo()">Validar</button>
+      </div>
+      <div id="pinErrorMsg" class="pin-gate-err" style="display:none;margin-top:.5rem;"></div>
+    </details>
   </div>
 </div>
 
@@ -1435,6 +1448,8 @@
   <img src="assets/cocar-fab.png" class="cocar-icon" alt="" />
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/auth.js"></script>
 <script src="assets/js/app-config.js"></script>
 <script>
 /* ══════════════════════════════════════════════════════════════
@@ -2130,7 +2145,10 @@ const SB = {
 };
 
 function sbCab(extra){
-  return Object.assign({ apikey: SB.key, Authorization: 'Bearer ' + SB.key, 'Content-Type': 'application/json' }, extra || {});
+  const token = (window.AppAuth && window.AppAuth.getSession()) 
+    ? window.AppAuth.getSession().access_token 
+    : SB.key;
+  return Object.assign({ apikey: SB.key, Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' }, extra || {});
 }
 async function sbGet(caminho){
   const r = await fetch(SB.url + '/rest/v1/' + caminho, { headers: sbCab(), cache: 'no-store' });
@@ -2154,8 +2172,20 @@ async function lerPinServidor(){
   return localStorage.getItem('efetivo_pin') || '123456';
 }
 
-function checarAutenticacaoPIN() {
-  const pinOk = sessionStorage.getItem('secretaria_pin_ok') === '1' || sessionStorage.getItem('efetivo_pin_ok') === '1' || sessionStorage.getItem('at_sec_ok') === '1';
+async function checarAutenticacaoPIN() {
+  if (window.AppAuth) {
+    window.AppAuth.renderUserBar('#afa-topbar-placeholder');
+    if (window.AppAuth.isOperador()) {
+      sessionStorage.setItem('secretaria_pin_ok', '1');
+      sessionStorage.setItem('efetivo_pin_ok', '1');
+      sessionStorage.setItem('at_sec_ok', '1');
+    }
+  }
+
+  const pinOk = (window.AppAuth && window.AppAuth.isOperador()) ||
+                sessionStorage.getItem('secretaria_pin_ok') === '1' || 
+                sessionStorage.getItem('efetivo_pin_ok') === '1' || 
+                sessionStorage.getItem('at_sec_ok') === '1';
   const gate = document.getElementById('pinGate');
   const content = document.getElementById('efetivoContent');
   const lockBtn = document.getElementById('lock-btn');
@@ -2168,7 +2198,7 @@ function checarAutenticacaoPIN() {
     if (content) content.style.display = 'none';
     if (lockBtn) lockBtn.style.display = 'none';
     const input = document.getElementById('pinInput');
-    if (input) { input.value = ''; input.focus(); }
+    if (input) { input.value = ''; }
   }
 }
 
@@ -2181,7 +2211,7 @@ async function verificarPinEfetivo() {
 
   try {
     const pinServidor = await lerPinServidor();
-    if (val.toLowerCase() === pinServidor.toLowerCase() || val.toLowerCase() === 'secretaria' || val === '123456') {
+    if (val.toLowerCase() === pinServidor.toLowerCase()) {
       sessionStorage.setItem('secretaria_pin_ok', '1');
       sessionStorage.setItem('efetivo_pin_ok', '1');
       sessionStorage.setItem('at_sec_ok', '1');
@@ -2200,10 +2230,16 @@ async function verificarPinEfetivo() {
   }
 }
 
-function bloquearSessao() {
+async function bloquearSessao() {
   sessionStorage.removeItem('secretaria_pin_ok');
   sessionStorage.removeItem('efetivo_pin_ok');
   sessionStorage.removeItem('at_sec_ok');
+  if (window.AppAuth && window.AppAuth.isAuthenticated()) {
+    if (confirm('Deseja encerrar sua sessão militar?')) {
+      await window.AppAuth.logout('login.html?redirect=efetivo.html');
+      return;
+    }
+  }
   checarAutenticacaoPIN();
 }
 
