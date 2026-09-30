@@ -143,6 +143,15 @@ BEGIN
       email_confirmed_at,
       raw_app_meta_data,
       raw_user_meta_data,
+      confirmation_token,
+      recovery_token,
+      email_change_token_new,
+      email_change,
+      email_change_token_current,
+      phone_change,
+      phone_change_token,
+      reauthentication_token,
+      is_sso_user,
       created_at,
       updated_at
     ) VALUES (
@@ -161,15 +170,26 @@ BEGIN
         'posto_grad', p_posto_grad,
         'secao_sigla', p_secao_sigla
       ),
+      '', '', '', '', '', '', '', '',
+      false,
       now(),
       now()
     );
   ELSE
-    -- Atualiza senha e garante que email está confirmado
+    -- Atualiza senha e garante que email está confirmado e tokens sanitizados
     UPDATE auth.users
     SET
       encrypted_password = v_enc_pass,
       email_confirmed_at = COALESCE(email_confirmed_at, now()),
+      confirmation_token = COALESCE(confirmation_token, ''),
+      recovery_token = COALESCE(recovery_token, ''),
+      email_change_token_new = COALESCE(email_change_token_new, ''),
+      email_change = COALESCE(email_change, ''),
+      email_change_token_current = COALESCE(email_change_token_current, ''),
+      phone_change = COALESCE(phone_change, ''),
+      phone_change_token = COALESCE(phone_change_token, ''),
+      reauthentication_token = COALESCE(reauthentication_token, ''),
+      is_sso_user = COALESCE(is_sso_user, false),
       raw_user_meta_data = COALESCE(raw_user_meta_data, '{}'::jsonb) || jsonb_build_object(
         'saram', v_clean_saram,
         'nome_completo', p_nome_completo,
