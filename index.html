@@ -5540,7 +5540,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (authStatusBadge) {
-      if (window.AppAuth.isConfigured()) {
+      const isConf = (typeof window.AppAuth.isConfigured === 'function')
+        ? window.AppAuth.isConfigured()
+        : !!window.AppAuth.getClient();
+
+      if (isConf) {
         authStatusBadge.className = 'cfg-badge-status ok';
         authStatusBadge.innerHTML = '<span>● Supabase Auth &amp; RBAC: Ativo e Conectado</span>';
       } else {

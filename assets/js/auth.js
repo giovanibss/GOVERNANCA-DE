@@ -89,6 +89,10 @@
       return _initPromise;
     },
 
+    isConfigured() {
+      return !SUPABASE_URL.startsWith('COLE_') && !SUPABASE_ANON.startsWith('COLE_') && !!getClient();
+    },
+
     getClient() {
       return getClient();
     },
