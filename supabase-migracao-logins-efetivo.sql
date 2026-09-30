@@ -208,20 +208,23 @@ BEGIN
       user_id,
       identity_data,
       provider,
+      provider_id,
       last_sign_in_at,
       created_at,
       updated_at
     ) VALUES (
-      v_user_id::text,
+      v_user_id,
       v_user_id,
       jsonb_build_object('sub', v_user_id::text, 'email', v_clean_email),
       'email',
+      v_user_id::text,
       now(),
       now(),
       now()
     )
     ON CONFLICT (id) DO UPDATE SET
       identity_data = jsonb_build_object('sub', v_user_id::text, 'email', v_clean_email),
+      provider_id = v_user_id::text,
       updated_at = now();
   EXCEPTION WHEN OTHERS THEN
     -- Fallback para schemas com chave composta (provider, identity_id)
