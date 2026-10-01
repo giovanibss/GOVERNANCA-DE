@@ -841,8 +841,32 @@
           // Prepara objeto limpo sem propriedades computadas voláteis
           const { secoes_lista, secao_formatada, ...dadosParaBanco } = militarConsolidado;
           const { error } = await sb.from('efetivo_pessoal').upsert(dadosParaBanco, { onConflict: 'saram' });
-          if (!error) dbOk = true;
-          else console.warn('Aviso ao persistir no Supabase:', error.message);
+          if (!error) {
+            dbOk = true;
+
+            // Propaga automaticamente para o Módulo de Auxílio Transporte (at_militares) se houver alteração de auxílio
+            if (militarConsolidado.saram && (militarConsolidado.valor_auxilio_transporte !== undefined || militarConsolidado.auxilio_transporte !== undefined)) {
+              try {
+                const saramNorm = this.formatarSARAM(militarConsolidado.saram);
+                const payloadAt = {};
+                if (militarConsolidado.valor_auxilio_transporte !== undefined) {
+                  const valNum = Number(militarConsolidado.valor_auxilio_transporte) || 0;
+                  payloadAt.valor_mensal = valNum;
+                  payloadAt.valor_diario = valNum > 0 ? Number((valNum / 22).toFixed(2)) : 0;
+                }
+                if (militarConsolidado.auxilio_transporte !== undefined) {
+                  payloadAt.ativo = militarConsolidado.auxilio_transporte === true || String(militarConsolidado.auxilio_transporte).toLowerCase().includes('sim');
+                }
+                if (Object.keys(payloadAt).length > 0) {
+                  await sb.from('at_militares').update(payloadAt).eq('saram', saramNorm);
+                }
+              } catch(eAt) {
+                console.warn('Aviso: falha ao sincronizar at_militares em saveMilitar:', eAt);
+              }
+            }
+          } else {
+            console.warn('Aviso ao persistir no Supabase:', error.message);
+          }
         } catch(e) {
           console.warn('Falha ao persistir no Supabase (mantido no cache local):', e);
         }
@@ -1400,26 +1424,61 @@
       return this.SEED_ORGANOGRAMA_CARGOS;
     },
 
+    SIGLA_ALIAS: {
+      'CIE': 'CIE-DE',
+      'COS': 'COS-DE',
+      'SEC': 'SEC-DE',
+      'SECRETARIA': 'SEC-DE',
+      'CCMD': 'CADA',
+      'DOCENCIA': 'CADA',
+      'CDENS': 'CDENS',
+      'CPUBL': 'CPUBL',
+      'CINST-IA': 'CINST-SDIA',
+      'CINST-INT': 'CINST-SDINT',
+      'BIBLIOTECA': 'BIBLI'
+    },
+
+    normalizarSiglaSecao(sigla) {
+      if (!sigla) return '';
+      const s = String(sigla).toUpperCase().trim();
+      return this.SIGLA_ALIAS[s] || s;
+    },
+
     /**
      * Retorna todas as seções subordinadas (em cascata) a partir de uma sigla raiz
      */
     obterSecoesSubordinadas(siglaRaiz, listaNos) {
       if (!siglaRaiz) return [];
-      const raizNorm = String(siglaRaiz).trim().toUpperCase();
+      const raizNorm = this.normalizarSiglaSecao(siglaRaiz);
       const nos = (listaNos && listaNos.length) ? listaNos : this.SEED_ORGANOGRAMA_CARGOS;
       if (raizNorm === 'DE' || raizNorm === 'VC-DE') {
         // Chefia e Vice-Chefia da DE comandam todas as seções
-        return nos.map(n => n.chave_sigla.toUpperCase());
+        const allSec = new Set();
+        nos.forEach(n => {
+          const c = this.normalizarSiglaSecao(n.chave_sigla);
+          allSec.add(c);
+          for (const [alias, real] of Object.entries(this.SIGLA_ALIAS)) {
+            if (real === c) allSec.add(alias);
+          }
+        });
+        return Array.from(allSec);
       }
       const set = new Set([raizNorm]);
+      // Também adiciona aliases que apontam para a raiz
+      for (const [alias, real] of Object.entries(this.SIGLA_ALIAS)) {
+        if (real === raizNorm) set.add(alias);
+      }
       let adicionou = true;
       while (adicionou) {
         adicionou = false;
         for (const no of nos) {
-          const p = String(no.parent_sigla || '').trim().toUpperCase();
-          const c = String(no.chave_sigla || '').trim().toUpperCase();
+          const p = this.normalizarSiglaSecao(no.parent_sigla);
+          const c = this.normalizarSiglaSecao(no.chave_sigla);
           if (p && set.has(p) && !set.has(c)) {
             set.add(c);
+            for (const [alias, real] of Object.entries(this.SIGLA_ALIAS)) {
+              if (real === c) set.add(alias);
+            }
             adicionou = true;
           }
         }
@@ -1467,7 +1526,7 @@
 
       const organo = await this.fetchOrganogramaCargos();
       const nosTitular = organo.filter(n => this.formatarSARAM(n.titular_saram) === saramNorm);
-      const secoesTitular = new Set(nosTitular.map(n => n.chave_sigla.toUpperCase()));
+      const secoesTitular = new Set(nosTitular.map(n => this.normalizarSiglaSecao(n.chave_sigla)));
       let cargoTitulo = nosTitular.length ? (nosTitular[0].titulo_exibicao || nosTitular[0].secao_nome) : '';
 
       // Também confere se o militar tem cargo explícito de Chefe/Encarregado no efetivo
@@ -1476,7 +1535,7 @@
         const isCargoChefia = /\b(chefe|vice-chefe|comandante|diretor|encarregado|coordenador)\b/i.test(militar.cargo_funcao);
         if (isCargoChefia) {
           const secoes = this.extrairSecoes(militar.cargo_funcao);
-          secoes.forEach(s => secoesTitular.add(s.toUpperCase()));
+          secoes.forEach(s => secoesTitular.add(this.normalizarSiglaSecao(s)));
           if (!cargoTitulo) cargoTitulo = militar.cargo_funcao;
         }
       }

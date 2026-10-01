@@ -1630,7 +1630,8 @@ async function loadEfetivo() {
             const secoes = (m.secoes_lista && m.secoes_lista.length) 
               ? m.secoes_lista 
               : (window.AppConfig ? window.AppConfig.extrairSecoes(m.cargo_funcao) : [m.secao_sigla || 'DE']);
-            const secaoPrincipal = String(m.secao_sigla || secoes[0] || 'DE').toUpperCase().trim();
+            const norm = window.AppConfig ? window.AppConfig.normalizarSiglaSecao.bind(window.AppConfig) : (s => String(s || '').toUpperCase().trim());
+            const secaoPrincipal = norm(m.secao_sigla || secoes[0] || 'DE');
             return {
               id: 'm' + i,
               rank: (m.posto_grad || m.graduacao || '').trim(),
@@ -1638,7 +1639,7 @@ async function loadEfetivo() {
               name: (m.nome_guerra || m.nome_completo || '').trim(),
               saram: m.saram ? String(m.saram).replace(/\D/g, '') : '',
               secao: secaoPrincipal,
-              secoes_lista: secoes.map(s => String(s).toUpperCase().trim()),
+              secoes_lista: secoes.map(s => norm(s)),
               cargo_funcao: m.cargo_funcao || '',
               status: 'pool'
             };
@@ -1718,9 +1719,11 @@ function podeEditarMilitarNaChamada(m) {
   if (!chefiaInfo || !chefiaInfo.isChefe) return false;
   const sub = chefiaInfo.secoesSubordinadas || [];
   if (sub.includes('TODAS')) return true;
-  const sec = String(m.secao || '').toUpperCase().trim();
-  if (sec && sub.includes(sec)) return true;
-  if (m.secoes_lista && m.secoes_lista.some(s => sub.includes(String(s).toUpperCase().trim()))) return true;
+  const norm = window.AppConfig ? window.AppConfig.normalizarSiglaSecao.bind(window.AppConfig) : (s => String(s || '').toUpperCase().trim());
+  const subNorm = sub.map(norm);
+  const sec = norm(m.secao);
+  if (sec && subNorm.includes(sec)) return true;
+  if (m.secoes_lista && m.secoes_lista.some(s => subNorm.includes(norm(s)))) return true;
   return false;
 }
 
@@ -1791,22 +1794,27 @@ function escapeHtml_(s) {
 
 function renderBoard() {
   const q = (document.getElementById('search').value || '').toLowerCase().trim();
-  const filtroSec = (document.getElementById('sel-filtro-secao-chamada')?.value || 'todos').toUpperCase().trim();
+  const filtroSec = (document.getElementById('sel-filtro-secao-chamada')?.value || 'meus').toUpperCase().trim();
+  const isOperador = window.AppAuth && window.AppAuth.isOperador();
+  const ehChefeSetorial = chefiaInfo && chefiaInfo.isChefe && !chefiaInfo.isSuperChefe && !isOperador;
+  const norm = window.AppConfig ? window.AppConfig.normalizarSiglaSecao.bind(window.AppConfig) : (s => String(s || '').toUpperCase().trim());
 
-  const matchSecao = m => {
-    if (filtroSec === 'TODOS') return true;
-    if (filtroSec === 'MEUS') {
-      if (!chefiaInfo || !chefiaInfo.secoesSubordinadas) return true;
-      const sub = chefiaInfo.secoesSubordinadas;
-      if (sub.includes('TODAS')) return true;
-      const sec = String(m.secao || '').toUpperCase().trim();
-      if (sec && sub.includes(sec)) return true;
-      if (m.secoes_lista && m.secoes_lista.some(s => sub.includes(String(s).toUpperCase().trim()))) return true;
-      return false;
+  // 1. Regra de ouro: Chefe setorial vê APENAS subordinados de direito, ocultando totalmente os demais
+  const matchJurisdicao = m => {
+    if (ehChefeSetorial) {
+      return podeEditarMilitarNaChamada(m);
     }
-    const sec = String(m.secao || '').toUpperCase().trim();
-    if (sec === filtroSec) return true;
-    if (m.secoes_lista && m.secoes_lista.some(s => String(s).toUpperCase().trim() === filtroSec)) return true;
+    return true;
+  };
+
+  // 2. Filtro de seção selecionado
+  const matchSecao = m => {
+    if (!matchJurisdicao(m)) return false;
+    if (filtroSec === 'TODOS' || filtroSec === 'MEUS') return true;
+    const filtroNorm = norm(filtroSec);
+    const sec = norm(m.secao);
+    if (sec === filtroNorm) return true;
+    if (m.secoes_lista && m.secoes_lista.some(s => norm(s) === filtroNorm)) return true;
     return false;
   };
 
@@ -1815,11 +1823,11 @@ function renderBoard() {
   const buckets = { pool: [], present: [], absent: [] };
   efetivo.forEach(m => { if (match(m)) buckets[m.status].push(m); });
 
-  fillCol('pool', buckets.pool, 'Arraste os militares para Presentes ou Faltas');
+  fillCol('pool', buckets.pool, ehChefeSetorial ? 'Todos os seus subordinados já foram alocados' : 'Arraste os militares para Presentes ou Faltas');
   fillCol('present', buckets.present, 'Solte aqui quem está presente');
   fillCol('absent', buckets.absent, 'Solte aqui quem faltou');
 
-  // Contadores (sobre os militares do filtro ativo)
+  // Contadores (sobre os militares visíveis na jurisdição e filtro ativo)
   const all = { pool:0, present:0, absent:0 };
   efetivo.forEach(m => {
     if (matchSecao(m)) all[m.status]++;
@@ -1829,15 +1837,14 @@ function renderBoard() {
   document.getElementById('head-absent').textContent = all.absent;
 
   const totalExibido = all.pool + all.present + all.absent;
-  document.getElementById('cnt-total').textContent = totalExibido || '—';
+  document.getElementById('cnt-total').textContent = totalExibido || '0';
   document.getElementById('cnt-present').textContent = all.present;
   document.getElementById('cnt-absent').textContent = all.absent;
   document.getElementById('cnt-pending').textContent = all.pool;
   const chamados = all.present + all.absent;
-  document.getElementById('cnt-pct').textContent = chamados ? Math.round(all.present / chamados * 100) + '%' : '—';
+  document.getElementById('cnt-pct').textContent = totalExibido ? Math.round(chamados / totalExibido * 100) + '%' : '—';
 
   // Habilita gravar só quando houver pelo menos uma marcação e permissão de gravação
-  const isOperador = window.AppAuth && window.AppAuth.isOperador();
   const podeGravar = isOperador || (chefiaInfo && (chefiaInfo.isChefe || chefiaInfo.isSuperChefe));
   document.getElementById('save-btn').disabled = !podeGravar || (all.present + all.absent) === 0;
 
@@ -2303,6 +2310,7 @@ async function checarAutenticacaoPIN() {
 function atualizarBadgeEFiltrosChefia() {
   const sel = document.getElementById('sel-filtro-secao-chamada');
   const optMeus = document.getElementById('opt-meus-subordinados');
+  const optTodos = sel ? sel.querySelector('option[value="todos"]') : null;
   const badge = document.getElementById('badge-chefia-status');
   const saveBtn = document.getElementById('save-btn');
   const isOperador = window.AppAuth && window.AppAuth.isOperador();
@@ -2316,35 +2324,42 @@ function atualizarBadgeEFiltrosChefia() {
   }
 
   const { isChefe, isSuperChefe, secoesTitular, secoesSubordinadas } = chefiaInfo;
+  const ehChefeSetorial = isChefe && !isSuperChefe && !isOperador;
 
   if (isSuperChefe || isOperador) {
     if (badge) {
       badge.style.display = 'inline-flex';
       badge.innerHTML = `🛡️ <b>Acesso Geral:</b> ${isOperador ? 'Secretaria / Operador' : 'Chefia DE'}`;
     }
+    if (optTodos) optTodos.style.display = 'block';
     if (optMeus) optMeus.style.display = 'none';
+    if (sel && !sel.dataset.userChanged) sel.value = 'todos';
     if (saveBtn) saveBtn.style.display = 'inline-flex';
-  } else if (isChefe) {
+  } else if (ehChefeSetorial) {
     if (badge) {
       badge.style.display = 'inline-flex';
       const titulos = secoesTitular.join(', ');
       badge.innerHTML = `⭐ <b>Chefia:</b> ${escapeHtml_(titulos)} <span style="margin-left:6px;font-size:0.7rem;opacity:0.8;">(${secoesSubordinadas.length} seções sob sua gestão)</span>`;
     }
+    if (optTodos) optTodos.style.display = 'none'; // Oculta opção de ver toda a DE para chefes setoriais
     if (optMeus) {
       optMeus.style.display = 'block';
-      optMeus.textContent = `🏢 Meus Subordinados (${secoesTitular.join(', ')})`;
+      optMeus.textContent = `🏢 Minha Jurisdição (${secoesTitular.join(', ')})`;
     }
-    // Para chefes de seção, padrão é focar nos seus subordinados se não tiver alterado manualmente
-    if (sel && !sel.dataset.userChanged) {
-      sel.value = 'meus';
+    // Para chefes de seção, padrão obrigatório é focar na sua jurisdição
+    if (sel) {
+      if (sel.value === 'todos' || !sel.dataset.userChanged) {
+        sel.value = 'meus';
+      }
     }
     if (saveBtn) saveBtn.style.display = 'inline-flex';
   } else {
-    // Militar comum (Efetivo)
+    // Militar comum (Efetivo em modo leitura)
     if (badge) {
       badge.style.display = 'inline-flex';
       badge.innerHTML = `👁️ <b>Consulta:</b> Efetivo (Modo Leitura)`;
     }
+    if (optTodos) optTodos.style.display = 'block';
     if (optMeus) optMeus.style.display = 'none';
     if (saveBtn) saveBtn.style.display = 'none';
   }
@@ -2360,8 +2375,12 @@ function preencherOpcoesSecoes(sel) {
   if (!sel) return;
   const valorAtual = sel.value;
   const isOperador = window.AppAuth && window.AppAuth.isOperador();
-  const isChefe = chefiaInfo && (chefiaInfo.isChefe || chefiaInfo.isSuperChefe);
+  const isSuperChefe = chefiaInfo && chefiaInfo.isSuperChefe;
+  const isChefe = chefiaInfo && chefiaInfo.isChefe;
+  const ehChefeSetorial = isChefe && !isSuperChefe && !isOperador;
   const subs = chefiaInfo?.secoesSubordinadas || [];
+  const norm = window.AppConfig ? window.AppConfig.normalizarSiglaSecao.bind(window.AppConfig) : (s => String(s || '').toUpperCase().trim());
+  const subsNorm = subs.map(norm);
 
   // Remove grupos de seção anteriores mantendo 'todos' e 'meus'
   const optGroupAntigo = sel.querySelector('optgroup');
@@ -2369,26 +2388,40 @@ function preencherOpcoesSecoes(sel) {
 
   const secoesExistentes = new Set();
   efetivo.forEach(m => {
-    if (m.secao) secoesExistentes.add(m.secao.toUpperCase().trim());
-    if (m.secoes_lista) m.secoes_lista.forEach(s => secoesExistentes.add(String(s).toUpperCase().trim()));
+    if (m.secao) secoesExistentes.add(norm(m.secao));
+    if (m.secoes_lista) m.secoes_lista.forEach(s => secoesExistentes.add(norm(s)));
   });
 
-  const listaOrdenada = Array.from(secoesExistentes).filter(s => s && s !== 'DE').sort();
-  if (listaOrdenada.length > 0) {
+  // Filtra seções: se for chefe setorial, exibe apenas seções que pertencem à sua jurisdição
+  const listaFiltrada = Array.from(secoesExistentes)
+    .filter(s => s && s !== 'DE')
+    .filter(sec => {
+      if (ehChefeSetorial) {
+        return subsNorm.includes(sec);
+      }
+      return true;
+    })
+    .sort();
+
+  if (listaFiltrada.length > 0) {
     const optGroup = document.createElement('optgroup');
-    optGroup.label = '── Filtrar por Seção ──';
-    listaOrdenada.forEach(sec => {
+    optGroup.label = ehChefeSetorial ? '── Suas Seções Subordinadas ──' : '── Filtrar por Seção ──';
+    listaFiltrada.forEach(sec => {
       const opt = document.createElement('option');
       opt.value = sec;
-      const ehJurisdicao = isChefe && (isOperador || chefiaInfo?.isSuperChefe || subs.includes(sec));
-      opt.textContent = `${sec}${ehJurisdicao ? ' (Sua chefia)' : ''}`;
+      const ehTitular = chefiaInfo?.secoesTitular && chefiaInfo.secoesTitular.map(norm).includes(sec);
+      opt.textContent = `${sec}${ehTitular ? ' (Sua Seção Titular)' : ' (Subordinada)'}`;
       optGroup.appendChild(opt);
     });
     sel.appendChild(optGroup);
   }
 
   // Restaura valor selecionado se ainda existir
-  if (valorAtual) sel.value = valorAtual;
+  if (valorAtual && (valorAtual === 'meus' || listaFiltrada.includes(norm(valorAtual)))) {
+    sel.value = valorAtual;
+  } else if (ehChefeSetorial) {
+    sel.value = 'meus';
+  }
 }
 
 async function bloquearSessao() {
