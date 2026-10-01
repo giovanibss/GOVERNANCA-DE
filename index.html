@@ -825,6 +825,8 @@ a.card-go{text-decoration:none}
   .top-id b{font-size:.76rem;letter-spacing:.09em}
   .top-id span{font-size:.54rem}
   .top-clock .lbl{display:none}
+  .top-logout-btn{padding:0;width:38px}
+  .top-logout-btn span{display:none}
   .mark{width:31px;height:31px}
   .stat{padding:.85rem}
   .strip-in{grid-template-columns:1fr}
@@ -847,7 +849,14 @@ a.card-go{text-decoration:none}
   .bg-art{transform:none}
 }
 
-/* ═══ BOTÃO DE ENGRENAGEM (CONFIGURAÇÕES DO SITE) ═══ */
+/* ═══ BOTÕES SUPERIORES: ENGRENAGEM E LOGOUT ═══ */
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  flex-shrink: 0;
+}
+
 .top-gear-btn {
   background: rgba(6,16,33,0.55);
   border: 1px solid rgba(212,168,75,0.35);
@@ -878,6 +887,44 @@ a.card-go{text-decoration:none}
 }
 .top-gear-btn:hover svg {
   transform: rotate(90deg);
+}
+
+.top-logout-btn {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #f87171;
+  height: 38px;
+  padding: 0 .75rem;
+  border-radius: 8px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: var(--f-body);
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+  cursor: pointer;
+  transition: all .25s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  text-decoration: none;
+}
+.top-logout-btn svg {
+  width: 16px;
+  height: 16px;
+  transition: transform .2s ease;
+}
+.top-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.32);
+  border-color: #ef4444;
+  color: #fff;
+  transform: scale(1.05);
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.45);
+}
+.top-logout-btn:hover svg {
+  transform: translateX(2px);
 }
 
 /* ═══ MODAL DE CONFIGURAÇÕES DO SITE ═══ */
@@ -2289,12 +2336,20 @@ input[type="password"]::-ms-clear {
     <span class="lbl" id="clock-day">—</span>
     <span id="clock-time">—</span>
   </div>
-  <button class="top-gear-btn" id="btn-config-site" title="Configurações da Governança DE (Acessos e Integrações)" aria-label="Configurações da Governança DE">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="12" r="3"></circle>
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-    </svg>
-  </button>
+  <div class="top-actions">
+    <button class="top-logout-btn" id="btn-top-logout" type="button" onclick="executarLogoutTopo()" title="Encerrar sessão militar (Logout)" aria-label="Sair da Conta">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+      </svg>
+      <span>Sair</span>
+    </button>
+    <button class="top-gear-btn" id="btn-config-site" title="Configurações da Governança DE (Acessos e Integrações)" aria-label="Configurações da Governança DE">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
+    </button>
+  </div>
 </header>
 
 <div class="shell">
@@ -5536,6 +5591,9 @@ document.addEventListener('DOMContentLoaded', () => {
       userContent.style.display = 'block';
 
       if (!user) {
+        if (typeof window.verificarEstadoLogoutTopo === 'function') {
+          window.verificarEstadoLogoutTopo(null, null);
+        }
         // Modo Visitante / Não Autenticado
         userContent.innerHTML = `
           <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
@@ -5563,6 +5621,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // Usuário Autenticado
+      if (typeof window.verificarEstadoLogoutTopo === 'function') {
+        window.verificarEstadoLogoutTopo(user, profile);
+      }
       const initials = (profile?.nome_guerra || user.email || 'US').substring(0, 2).toUpperCase();
       const perfilNome = (profile?.perfil || 'militar').toLowerCase();
       const statusNome = (profile?.status_aprovacao || 'ativo').toLowerCase();
@@ -5622,12 +5683,20 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       document.getElementById('btn-logout-cfg-modal')?.addEventListener('click', async () => {
-        if (!confirm('Deseja realmente encerrar sua sessão?')) return;
-        try {
-          await window.AppAuth.signOut();
-          window.location.reload();
-        } catch(err) {
-          alert('Erro ao sair: ' + err.message);
+        if (typeof window.executarLogoutTopo === 'function') {
+          await window.executarLogoutTopo();
+        } else {
+          if (!confirm('Deseja realmente encerrar sua sessão militar?')) return;
+          try {
+            if (window.AppAuth && typeof window.AppAuth.logout === 'function') {
+              await window.AppAuth.logout('login.html');
+            } else {
+              await window.AppAuth.signOut();
+              window.location.reload();
+            }
+          } catch(err) {
+            alert('Erro ao sair: ' + err.message);
+          }
         }
       });
 
@@ -6166,6 +6235,92 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 450);
     }, 850);
   }
+
+  /* ═══ CONTROLE DE SESSÃO / LOGOUT DO TOPO (AO LADO DA ENGRENAGEM) ═══ */
+  window.verificarEstadoLogoutTopo = function(optionalUser, optionalProfile) {
+    const btn = document.getElementById('btn-top-logout');
+    if (!btn) return;
+
+    let isAuth = false;
+    let p = optionalProfile || null;
+
+    if (window.AppAuth) {
+      if (typeof window.AppAuth.isAuthenticated === 'function') {
+        isAuth = window.AppAuth.isAuthenticated();
+      } else if (typeof window.AppAuth.getUser === 'function') {
+        isAuth = !!window.AppAuth.getUser();
+      }
+      if (!p && typeof window.AppAuth.getProfile === 'function') {
+        p = window.AppAuth.getProfile();
+      }
+    }
+
+    if (!isAuth && optionalUser) {
+      isAuth = true;
+    }
+
+    if (!isAuth) {
+      try {
+        const cached = sessionStorage.getItem('afa_auth_user_profile');
+        if (cached) {
+          isAuth = true;
+          if (!p) p = JSON.parse(cached);
+        }
+      } catch (e) {}
+    }
+
+    if (isAuth) {
+      btn.style.display = 'inline-flex';
+      const desc = p ? `${p.posto_grad || ''} ${p.nome_guerra || ''}`.trim() : '';
+      btn.title = desc ? `Encerrar sessão de ${desc} (Logout)` : 'Encerrar sessão militar (Logout)';
+      btn.setAttribute('aria-label', desc ? `Sair da conta de ${desc}` : 'Sair da Conta');
+    } else {
+      btn.style.display = 'none';
+    }
+  };
+
+  window.executarLogoutTopo = async function() {
+    let p = null;
+    if (window.AppAuth && typeof window.AppAuth.getProfile === 'function') {
+      p = window.AppAuth.getProfile();
+    }
+    if (!p) {
+      try {
+        const cached = sessionStorage.getItem('afa_auth_user_profile');
+        if (cached) p = JSON.parse(cached);
+      } catch (e) {}
+    }
+
+    const desc = p ? `${p.posto_grad || ''} ${p.nome_guerra || ''}`.trim() : '';
+    const confirmMsg = desc
+      ? `Conectado como ${desc}.\nDeseja realmente encerrar a sessão militar?`
+      : 'Deseja realmente encerrar sua sessão militar?';
+
+    if (!confirm(confirmMsg)) return;
+
+    try {
+      if (window.AppAuth && typeof window.AppAuth.logout === 'function') {
+        await window.AppAuth.logout('login.html');
+      } else {
+        sessionStorage.clear();
+        localStorage.removeItem('afa_auth_user_profile');
+        window.location.href = 'login.html';
+      }
+    } catch (err) {
+      console.warn('[LogoutTopo] Erro ao deslogar:', err);
+      sessionStorage.clear();
+      window.location.href = 'login.html';
+    }
+  };
+
+  // Garante listener direto no botão do topo
+  document.getElementById('btn-top-logout')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    window.executarLogoutTopo();
+  });
+
+  // Verificação inicial rápida via cache
+  window.verificarEstadoLogoutTopo();
 
   // Mostrar/Ocultar senhas global com delegação e suporte a qualquer elemento dinâmico
   window.toggleCfgPwd = function(btnOrId) {
@@ -7621,6 +7776,9 @@ async function inicializarFase4Index() {
 
     // Se o usuário não estiver autenticado:
     if (!window.AppAuth.isAuthenticated()) {
+      if (typeof window.verificarEstadoLogoutTopo === 'function') {
+        window.verificarEstadoLogoutTopo(null, null);
+      }
       if (isAcessoCadastro) {
         // Exceção de Regra de Negócio: Única sessão pública permitida sem login
         setTimeout(abrirModalNovoMilitar, 300);
@@ -7645,11 +7803,17 @@ async function inicializarFase4Index() {
         loginBtn.title = `Conectado como ${p.posto_grad} ${p.nome_guerra} (${p.perfil})`;
         loginBtn.href = 'javascript:void(0)';
         loginBtn.onclick = () => {
-          if (confirm(`Conectado como ${p.posto_grad} ${p.nome_guerra} [${p.perfil}]. Deseja encerrar a sessão militar?`)) {
+          if (typeof window.executarLogoutTopo === 'function') {
+            window.executarLogoutTopo();
+          } else if (confirm(`Conectado como ${p.posto_grad} ${p.nome_guerra} [${p.perfil}]. Deseja encerrar a sessão militar?`)) {
             window.AppAuth.logout();
           }
         };
       }
+    }
+
+    if (typeof window.verificarEstadoLogoutTopo === 'function') {
+      window.verificarEstadoLogoutTopo(window.AppAuth?.getUser?.(), p);
     }
   }
 
