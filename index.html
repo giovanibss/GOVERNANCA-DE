@@ -5684,13 +5684,103 @@ document.addEventListener('DOMContentLoaded', () => {
     if (listContainer) listContainer.style.display = 'none';
 
     try {
+      // 1. Busca os usuários da tabela usuarios_sistema
       const { data, error } = await sb
         .from('usuarios_sistema')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*');
 
       if (error) throw error;
-      _usuariosModalCache = data || [];
+      const usuarios = data || [];
+
+      // 2. Busca lista oficial do efetivo para vincular a ordem de antiguidade (1..65)
+      let efetivoOficial = [];
+      try {
+        if (window.AppConfig && typeof window.AppConfig.fetchEfetivo === 'function') {
+          efetivoOficial = await window.AppConfig.fetchEfetivo({ activeOnly: false });
+        } else {
+          const { data: efData } = await sb
+            .from('efetivo_pessoal')
+            .select('saram, ordem, posto_grad, nome_guerra, ativo')
+            .order('ordem', { ascending: true });
+          efetivoOficial = efData || [];
+        }
+      } catch (errEf) {
+        console.warn('[ModalAuth] Aviso ao buscar efetivo para ordem de antiguidade:', errEf);
+      }
+
+      // 3. Mapeia a ordem oficial por SARAM e Nome de Guerra
+      const saramOrdemMap = new Map();
+      const guerraOrdemMap = new Map();
+      (efetivoOficial || []).forEach(m => {
+        if (!m) return;
+        const o = (m.ordem !== undefined && m.ordem !== null && m.ordem !== '' && !isNaN(Number(m.ordem))) ? Number(m.ordem) : null;
+        if (o !== null) {
+          const sLimpo = String(m.saram || '').replace(/\D/g, '');
+          if (sLimpo) saramOrdemMap.set(sLimpo, o);
+          const gNorm = String(m.nome_guerra || '').trim().toUpperCase();
+          if (gNorm) guerraOrdemMap.set(gNorm, o);
+        }
+      });
+
+      // Tabela de hierarquia militar para fallback se militar não possuir ordem numérica
+      const POSTO_PESO_ORDEM = {
+        'CL': 100, 'CEL': 100, 'CORONEL': 100,
+        'TC': 200, 'TEN CEL': 200, 'TENENTE-CORONEL': 200, 'TENENTE CORONEL': 200,
+        'MJ': 300, 'MAJ': 300, 'MAJOR': 300,
+        'CP': 400, 'CAP': 400, 'CAPITÃO': 400, 'CAPITAO': 400,
+        '1T': 500, '1º TEN': 500, '1º TENENTE': 500, 'PRIMEIRO-TENENTE': 500, 'PRIMEIRO TENENTE': 500,
+        '2T': 600, '2º TEN': 600, '2º TENENTE': 600, 'SEGUNDO-TENENTE': 600, 'SEGUNDO TENENTE': 600,
+        'AP': 700, 'ASP': 700, 'ASPIRANTE': 700,
+        'SO': 800, 'SUBOFICIAL': 800,
+        '1S': 900, '1º SGT': 900, '1º SARGENTO': 900, 'PRIMEIRO-SARGENTO': 900, 'PRIMEIRO SARGENTO': 900,
+        '2S': 1000, '2º SGT': 1000, '2º SARGENTO': 1000, 'SEGUNDO-SARGENTO': 1000, 'SEGUNDO SARGENTO': 1000,
+        '3S': 1100, '3º SGT': 1100, '3º SARGENTO': 1100, 'TERCEIRO-SARGENTO': 1100, 'TERCEIRO SARGENTO': 1100,
+        'CB': 1200, 'CABO': 1200,
+        'S1': 1300, 'SOLDADO 1ª CLASSE': 1300, 'SOLDADO 1A CLASSE': 1300,
+        'S2': 1400, 'SOLDADO 2ª CLASSE': 1400, 'SOLDADO 2A CLASSE': 1400,
+        'CV': 1500, 'CIVIL': 1500
+      };
+
+      function getPesoPosto(p) {
+        if (!p) return 9000;
+        const norm = String(p).trim().toUpperCase();
+        for (const [k, v] of Object.entries(POSTO_PESO_ORDEM)) {
+          if (norm.startsWith(k) || norm.includes(k)) return v;
+        }
+        return 9000;
+      }
+
+      // 4. Vincula ordem de antiguidade aos usuários
+      usuarios.forEach(u => {
+        const sLimpo = String(u.saram || '').replace(/\D/g, '');
+        const gNorm = String(u.nome_guerra || '').trim().toUpperCase();
+        let o = saramOrdemMap.get(sLimpo);
+        if (o === undefined && gNorm) o = guerraOrdemMap.get(gNorm);
+        u._ordem_antiguidade = (o !== undefined) ? o : null;
+      });
+
+      // 5. Ordena rigorosamente pela Ordem de Antiguidade do Efetivo
+      usuarios.sort((a, b) => {
+        const temA = (a._ordem_antiguidade !== null);
+        const temB = (b._ordem_antiguidade !== null);
+
+        if (temA && temB) {
+          return a._ordem_antiguidade - b._ordem_antiguidade;
+        }
+        if (temA && !temB) return -1;
+        if (!temA && temB) return 1;
+
+        // Fallback: Posto e Nome
+        const pesoA = getPesoPosto(a.posto_grad);
+        const pesoB = getPesoPosto(b.posto_grad);
+        if (pesoA !== pesoB) return pesoA - pesoB;
+
+        const nomeA = (a.nome_guerra || a.nome_completo || a.email || '').toLowerCase();
+        const nomeB = (b.nome_guerra || b.nome_completo || b.email || '').toLowerCase();
+        return nomeA.localeCompare(nomeB);
+      });
+
+      _usuariosModalCache = usuarios;
 
       // Atualiza badge de pendentes
       const pendentes = _usuariosModalCache.filter(u => u.status_aprovacao === 'pendente').length;
@@ -5770,6 +5860,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const emailExib = escapeHtmlModal(u.email || '—');
       const uId = escapeHtmlModal(u.id);
 
+      const ordemBadge = (u._ordem_antiguidade !== null && u._ordem_antiguidade !== undefined)
+        ? `<span style="display:inline-flex; align-items:center; justify-content:center; min-width:26px; height:20px; padding:0 6px; border-radius:4px; font-size:0.72rem; font-weight:800; background:rgba(212,168,75,0.18); border:1px solid rgba(212,168,75,0.45); color:#ffd37a;" title="Posição #${u._ordem_antiguidade} na ordem oficial de antiguidade do efetivo">#${u._ordem_antiguidade}</span>`
+        : '';
+
       // Botão de reset de senha conforme hierarquia:
       // - Admins gerenciam senhas de Admins e de todos os membros.
       // - Membros da Secretaria gerenciam senhas de qualquer militar exceto Admins.
@@ -5837,6 +5931,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="cfg-user-row" id="cfg-user-row-${uId}">
           <div style="flex:1; min-width:200px;">
             <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+              ${ordemBadge}
               <span style="font-weight:700; color:#fff; font-size:0.88rem;">${gradExib} ${nomeExib}</span>
               <span class="cfg-badge-role ${perfil}">${perfil === 'militar' || perfil === 'efetivo' ? 'EFETIVO' : perfil.toUpperCase()}</span>
               <span class="cfg-badge-state ${status}">${status.toUpperCase()}</span>
@@ -5985,7 +6080,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       await carregarListaUsuariosModal();
     } catch(e) {
-      alert('❌ Erro ao resetar senha: ' + (e.message || e));
+      const msg = e.message || String(e);
+      if (msg.includes('gen_salt') || msg.includes('pgcrypto') || msg.includes('42883')) {
+        alert('❌ Erro no banco de dados ao gerar hash de senha:\n' + msg + '\n\n💡 Solução: Execute o script atualizado "supabase-admin-reset-senha.sql" no SQL Editor do Supabase para habilitar a extensão pgcrypto.');
+      } else {
+        alert('❌ Erro ao resetar senha: ' + msg);
+      }
     }
   };
 

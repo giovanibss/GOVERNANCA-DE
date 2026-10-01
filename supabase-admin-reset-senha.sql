@@ -3,12 +3,16 @@
 -- Projeto: Governança DE · Academia da Força Aérea
 -- ══════════════════════════════════════════════════════════════════════════════
 
+-- Garante que a extensão pgcrypto esteja instalada no schema extensions (padrão Supabase)
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;
+
 -- 1. FUNÇÃO RPC: admin_resetar_senha_usuario
 -- Regras de Negócio:
 -- • Administradores gerenciam senhas de Administradores e de todos os demais membros.
 -- • Membros da Secretaria (operadores) gerenciam senhas de qualquer membro comum,
 --   mas NÃO possuem permissão para alterar senha de Administradores.
 -- • Executada com SECURITY DEFINER para acessar auth.users com segurança controlada.
+-- • search_path inclui extensions para localizar crypt() e gen_salt().
 
 CREATE OR REPLACE FUNCTION public.admin_resetar_senha_usuario(
   p_target_user_id UUID,
@@ -17,7 +21,7 @@ CREATE OR REPLACE FUNCTION public.admin_resetar_senha_usuario(
 RETURNS JSONB
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public, auth
+SET search_path = public, auth, extensions
 AS $$
 DECLARE
   v_caller_id UUID;
@@ -28,6 +32,7 @@ DECLARE
   v_target_nome TEXT;
   v_target_perfil TEXT;
   v_is_saram_default BOOLEAN;
+  v_enc_pass TEXT;
 BEGIN
   -- Identifica o usuário que está executando a chamada via JWT
   v_caller_id := auth.uid();
@@ -68,10 +73,25 @@ BEGIN
   -- Se a nova senha for igual ao SARAM, marca a flag para forçar o aviso de troca no primeiro login
   v_is_saram_default := (TRIM(p_nova_senha) = TRIM(COALESCE(v_target_saram, '')));
 
+  -- Gera o hash bcrypt blindado (tenta schema extensions primeiro, depois search_path e public)
+  BEGIN
+    v_enc_pass := extensions.crypt(TRIM(p_nova_senha), extensions.gen_salt('bf'::text, 10));
+  EXCEPTION WHEN OTHERS THEN
+    BEGIN
+      v_enc_pass := crypt(TRIM(p_nova_senha), gen_salt('bf'::text, 10));
+    EXCEPTION WHEN OTHERS THEN
+      BEGIN
+        v_enc_pass := public.crypt(TRIM(p_nova_senha), public.gen_salt('bf'::text, 10));
+      EXCEPTION WHEN OTHERS THEN
+        RAISE EXCEPTION 'Extensão pgcrypto indisponível para geração de hash de senha (verifique se a extensão pgcrypto está instalada no SQL Editor do Supabase com "CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA extensions;"): %', SQLERRM;
+      END;
+    END;
+  END;
+
   -- 1. Atualiza o hash da senha em auth.users
   UPDATE auth.users
   SET
-    encrypted_password = crypt(TRIM(p_nova_senha), gen_salt('bf', 10)),
+    encrypted_password = v_enc_pass,
     updated_at = now()
   WHERE id = p_target_user_id;
 
