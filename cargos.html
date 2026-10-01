@@ -1450,16 +1450,6 @@
             Entrar com Conta Militar
           </a>
         </div>
-
-        <details style="font-size:0.82rem;color:var(--texto-3);cursor:pointer;">
-          <summary style="outline:none;user-select:none;">Acesso alternativo via PIN de emergência</summary>
-          <form onsubmit="validarPinSecretaria(event)" style="margin-top:1rem;">
-            <input type="password" id="campo-pin-secretaria" class="campo pin-input" maxlength="10" placeholder="••••" autocomplete="off" />
-            <div style="margin-top:0.6rem;">
-              <button type="submit" class="btn btn-ouro" style="font-size:0.8rem;padding:0.4rem 1rem;">Validar PIN</button>
-            </div>
-          </form>
-        </details>
       </div>
 
       <!-- CONTEÚDO DA SECRETARIA (APÓS PIN) -->
@@ -1999,6 +1989,12 @@
 
   // Inicialização ao carregar página
   document.addEventListener('DOMContentLoaded', async () => {
+    if (window.AppAuth) {
+      const authOk = await window.AppAuth.requireAuth({ redirect: true });
+      if (!authOk) return;
+      window.AppAuth.renderUserBar('#afa-topbar-placeholder');
+    }
+
     // Inicializar Supabase
     if (window.supabase && typeof window.supabase.createClient === 'function') {
       const url = window.SUPABASE_URL || 'https://sovrgsbdhdpxsaomspsp.supabase.co';
@@ -3172,46 +3168,37 @@
       return;
     }
 
-    let pinCorreto = '123456';
-    if (window.AppConfig && typeof window.AppConfig.getPin === 'function') {
-      pinCorreto = window.AppConfig.getPin();
-    } else if (configCargos.pin) {
-      pinCorreto = configCargos.pin;
-    } else {
-      pinCorreto = localStorage.getItem('secretaria_pin') || '123456';
+    if (window.AppAuth && window.AppAuth.isOperador()) {
+      sessaoSecretariaDesbloqueada = true;
+      verificarSessaoSecretaria();
+      renderizarOrganograma();
+      Swal.fire({
+        icon: 'success',
+        title: 'Modo Secretaria Ativo!',
+        text: 'Você agora pode alocar novas seções, alterar subordinações e gerenciar o organograma.',
+        timer: 2000,
+        showConfirmButton: false,
+        background: '#0a192f',
+        color: '#f1f5f9'
+      });
+      return;
     }
 
-    const { value: pinDigitado } = await Swal.fire({
-      title: '🔒 Acesso da Secretaria',
-      text: 'Digite o PIN de 6 dígitos para gerenciar o organograma e editar a cascata de seções:',
-      input: 'password',
-      inputPlaceholder: 'Digite o PIN (ex: 123456)',
-      inputAttributes: { maxlength: '10', autofocus: 'autofocus', style: 'text-align:center;letter-spacing:0.3em;font-size:1.2rem;' },
-      showCancelButton: true,
-      confirmButtonText: 'Desbloquear Gestão',
-      cancelButtonText: 'Cancelar',
+    Swal.fire({
+      icon: 'warning',
+      title: 'Acesso Restrito',
+      text: 'O gerenciamento do organograma é exclusivo da Secretaria DE. Por favor, autentique-se com sua conta militar institucional.',
+      confirmButtonText: 'Fazer Login',
       confirmButtonColor: '#d4a84b',
+      showCancelButton: true,
+      cancelButtonText: 'Fechar',
       background: '#0a192f',
       color: '#f1f5f9'
-    });
-
-    if (pinDigitado) {
-      if (pinDigitado === pinCorreto || pinDigitado === '123456') {
-        sessionStorage.setItem('cargos_sec_ok', '1');
-        sessaoSecretariaDesbloqueada = true;
-        verificarSessaoSecretaria();
-        renderizarOrganograma();
-        Swal.fire({
-          icon: 'success',
-          title: 'Modo Secretaria Ativo!',
-          text: 'Você agora pode alocar novas seções, alterar subordinações e redefinir a cascata hierárquica.',
-          timer: 2000,
-          showConfirmButton: false
-        });
-      } else {
-        Swal.fire({ icon: 'error', title: 'PIN Incorreto', text: 'Senha incorreta para acesso da Secretaria.' });
+    }).then(res => {
+      if (res.isConfirmed) {
+        window.location.href = 'login.html?redirect=cargos.html';
       }
-    }
+    });
   }
 
   async function restaurarOrganogramaPadrao() {
@@ -4553,9 +4540,7 @@
       }
     }
 
-    const ok = (window.AppAuth && window.AppAuth.isOperador()) ||
-               sessionStorage.getItem('cargos_sec_ok') === '1' || 
-               sessionStorage.getItem('secretaria_pin_ok') === '1';
+    const ok = window.AppAuth && window.AppAuth.isOperador();
     sessaoSecretariaDesbloqueada = ok;
     
     if (ok) {
@@ -4595,32 +4580,21 @@
       if (content) content.style.display = 'block';
       carregarDadosSecretaria();
     } else {
-      if (gate) gate.style.display = 'block';
+      if (gate) {
+        gate.style.display = 'block';
+        const u = window.AppAuth && window.AppAuth.getUser();
+        if (u) {
+          const pEl = gate.querySelector('p');
+          if (pEl) pEl.innerHTML = `Sua conta militar (<b>${u.nome_guerra || u.email}</b>, perfil: <b>${u.perfil || 'militar'}</b>) não possui privilégios de Secretaria.<br><br>Caso necessite de acesso à gestão de publicações e designações, solicite a um Administrador ou à Secretaria.`;
+          const link = gate.querySelector('a.btn');
+          if (link) {
+            link.textContent = '← Voltar para Organograma / Cargos';
+            link.href = '#';
+            link.onclick = (e) => { e.preventDefault(); if (typeof trocarAba === 'function') trocarAba('organograma'); };
+          }
+        }
+      }
       if (content) content.style.display = 'none';
-    }
-  }
-
-  async function validarPinSecretaria(e) {
-    e.preventDefault();
-    const pinDigitado = document.getElementById('campo-pin-secretaria').value.trim();
-    
-    // Obter PIN configurado via AppConfig ou local
-    let pinCorreto = '123456';
-    if (window.AppConfig && typeof window.AppConfig.getPin === 'function') {
-      pinCorreto = window.AppConfig.getPin();
-    } else if (configCargos.pin) {
-      pinCorreto = configCargos.pin;
-    } else {
-      pinCorreto = localStorage.getItem('secretaria_pin') || '123456';
-    }
-
-    if (pinDigitado === pinCorreto) {
-      sessionStorage.setItem('cargos_sec_ok', '1');
-      sessionStorage.setItem('secretaria_pin_ok', '1');
-      verificarSessaoSecretaria();
-    } else {
-      Swal.fire({ icon: 'error', title: 'PIN Incorreto', text: 'O PIN informado não confere com a senha da Secretaria.', confirmButtonColor: '#d4a84b' });
-      document.getElementById('campo-pin-secretaria').select();
     }
   }
 
@@ -5374,8 +5348,7 @@
      MODAL SETTINGS: SEÇÕES, EXCLUSÃO SEGURA, EDIÇÃO E SINCRONIZAÇÃO
      ═══════════════════════════════════════════════════════════════════ */
   function abrirModalSettings() {
-    // Se a secretaria não estiver desbloqueada, pede o PIN
-    const ok = sessionStorage.getItem('cargos_sec_ok') === '1' || sessionStorage.getItem('secretaria_pin_ok') === '1';
+    const ok = window.AppAuth && window.AppAuth.isOperador();
     if (!ok) {
       trocarAba('secretaria');
       return;

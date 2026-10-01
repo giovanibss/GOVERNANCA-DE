@@ -288,6 +288,7 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
 </style>
 </head>
 <body>
+<div id="afa-topbar-placeholder"></div>
 
 <header class="topo">
   <a class="volta" href="index.html">← Hub</a>
@@ -391,19 +392,12 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
     <div class="painel" id="pinGate" style="max-width:460px">
       <h3>🔒 Acesso restrito à secretaria</h3>
       <p style="font-size:.8rem;color:var(--texto-2);margin-bottom:1rem">
-        Informe o PIN da secretaria para abrir o painel de conferência e o cadastro de militares.
+        O painel de conferência e cadastro de militares no Auxílio Transporte é restrito à Secretaria DE. Identifique-se com sua conta militar institucional para prosseguir.
       </p>
-      <div class="linhaCtl" style="margin-bottom:0">
-        <div class="campo">
-          <label for="pinCampo">PIN</label>
-          <input type="password" id="pinCampo" inputmode="numeric" autocomplete="off" style="letter-spacing:.35em;font-size:1.05rem;max-width:170px" />
-        </div>
-        <button class="acao" id="btnPin">Entrar</button>
-      </div>
-      <div id="pinMsg" class="faixaMsg erro" style="display:none;margin-top:1rem;margin-bottom:0"></div>
+      <a href="login.html?redirect=transporte.html" class="acao" style="text-decoration:none;display:inline-block;text-align:center;">Entrar com Conta Militar</a>
     </div>
 
-    <!-- conteúdo liberado após o PIN -->
+    <!-- conteúdo liberado para a Secretaria -->
     <div id="secArea" style="display:none">
     <div class="painel">
       <h3>Painel da secretaria</h3>
@@ -732,10 +726,7 @@ function pintarCiclo(){
 const ABAS = [ ['abaMil','telaMil'], ['abaSec','telaSec'] ];
 ABAS.forEach(([a, t]) => $(a).addEventListener('click', () => trocarAba(a)));
 function secLiberada(){ 
-  return (window.AppAuth && window.AppAuth.isOperador()) || 
-         sessionStorage.getItem('secretaria_pin_ok') === '1' || 
-         sessionStorage.getItem('efetivo_pin_ok') === '1' || 
-         sessionStorage.getItem('at_sec_ok') === '1'; 
+  return !!(window.AppAuth && window.AppAuth.isOperador());
 }
 function trocarAba(id){
   ABAS.forEach(([a, t]) => {
@@ -752,37 +743,18 @@ function trocarAba(id){
     } else {
       $('pinGate').style.display = '';
       $('secArea').style.display = 'none';
-      $('pinCampo').focus();
+      const u = window.AppAuth && window.AppAuth.getUser();
+      if (u) {
+        const pEl = $('pinGate').querySelector('p');
+        if (pEl) pEl.innerHTML = `Sua conta militar (<b>${u.nome_guerra || u.email}</b>, perfil: <b>${u.perfil || 'militar'}</b>) não possui privilégios de Secretaria.<br><br>Caso necessite de acesso ao painel de conferência, solicite a um Administrador ou à Secretaria.`;
+        const link = $('pinGate').querySelector('a.acao');
+        if (link) {
+          link.textContent = '← Voltar para Minha Declaração';
+          link.href = '#';
+          link.onclick = (e) => { e.preventDefault(); trocarAba('abaMil'); };
+        }
+      }
     }
-  }
-}
-async function lerPinServidor(){
-  if (window.AppConfig) return window.AppConfig.getPin();
-  const r = await sbGet('at_config?select=pin&id=eq.default');
-  return (r[0] && String(r[0].pin)) || '123456';
-}
-async function verificarPin(){
-  const digitado = $('pinCampo').value.trim();
-  esconde($('pinMsg'));
-  if (!digitado) return;
-  try {
-    const pin = await lerPinServidor();
-    if (pin === null){
-      faixa($('pinMsg'), 'erro', 'PIN não configurado no servidor — rode o SQL de atualização (v2) no Supabase.');
-      return;
-    }
-    if (digitado.toLowerCase() === pin.toLowerCase()){
-      sessionStorage.setItem('secretaria_pin_ok', '1');
-      sessionStorage.setItem('efetivo_pin_ok', '1');
-      sessionStorage.setItem('at_sec_ok', '1');
-      $('pinCampo').value = '';
-      trocarAba('abaSec');
-    } else {
-      faixa($('pinMsg'), 'erro', 'PIN incorreto. Em caso de dúvida, contate secde.afa@fab.mil.br.');
-      $('pinCampo').select();
-    }
-  } catch (e) {
-    faixa($('pinMsg'), 'erro', '⚠️ Não consegui validar o PIN: ' + e.message);
   }
 }
 function getMotivoCodigo(){
@@ -798,9 +770,6 @@ async function setMotivoCodigo(val){
   }
   return cod;
 }
-
-$('btnPin').addEventListener('click', verificarPin);
-$('pinCampo').addEventListener('keydown', e => { if (e.key === 'Enter') verificarPin(); });
 $('btnPinNovo').addEventListener('click', async () => {
   const motivoAtual = getMotivoCodigo();
 
@@ -818,16 +787,6 @@ $('btnPinNovo').addEventListener('click', async () => {
           </div>
           <small style="display:block;font-size:0.7rem;color:var(--texto-3);margin-top:0.4rem">
             Código numérico de publicação do motivo (pré-configurado: <b>1063</b>).
-          </small>
-        </div>
-
-        <div style="background:rgba(6,13,29,0.5);padding:0.75rem 0.9rem;border-radius:8px;border:1px solid var(--linha)">
-          <label style="display:block;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--texto-3);font-weight:700;margin-bottom:0.4rem">
-            Alterar PIN da Secretaria
-          </label>
-          <input type="password" id="cfg-pin-novo" placeholder="Deixe em branco para não alterar" style="width:100%;font-size:0.9rem;letter-spacing:0.2em" />
-          <small style="display:block;font-size:0.7rem;color:var(--texto-3);margin-top:0.4rem">
-            PIN para liberar a área restrita da secretaria (mínimo 4 caracteres).
           </small>
         </div>
       </div>
@@ -852,28 +811,13 @@ $('btnPinNovo').addEventListener('click', async () => {
   }).then(async (res) => {
     if (!res.isConfirmed) return;
     const novoMotivo = (document.getElementById('cfg-motivo-codigo').value.trim()) || '1063';
-    const novoPin = (document.getElementById('cfg-pin-novo').value.trim());
 
     await setMotivoCodigo(novoMotivo);
-
-    if (novoPin) {
-      if (novoPin.length < 4) {
-        Swal.fire({ icon: 'warning', title: 'PIN Curto', text: 'O PIN deve conter pelo menos 4 caracteres.', background: '#101f3e', color: '#cfe4ff' });
-        return;
-      }
-      try {
-        if (window.AppConfig && typeof window.AppConfig.setPin === 'function') {
-          await window.AppConfig.setPin(novoPin);
-        } else {
-          await sbPatch('at_config?id=eq.default', { pin: novoPin });
-        }
-      } catch(e){}
-    }
 
     Swal.fire({
       icon: 'success',
       title: 'Configurações Salvas!',
-      html: `Código do Motivo atualizado para <span class="badge-motivo">Motivo ${novoMotivo}</span>.${novoPin ? '<br>Novo PIN da secretaria salvo.' : ''}`,
+      html: `Código do Motivo atualizado para <span class="badge-motivo">Motivo ${novoMotivo}</span>.`,
       timer: 2000,
       showConfirmButton: false,
       background: '#101f3e',
@@ -2810,6 +2754,11 @@ $('btnDocEmail').addEventListener('click', gerarTemplateEmailRemessa);
 
 /* ══════════════ INICIALIZAÇÃO ══════════════ */
 (async function init(){
+  if (window.AppAuth) {
+    const authOk = await window.AppAuth.requireAuth({ redirect: true });
+    if (!authOk) return;
+    window.AppAuth.renderUserBar('#afa-topbar-placeholder');
+  }
   pintarCiclo();
   const compPadrao = compDoCiclo();
   $('selComp').value = compPadrao;

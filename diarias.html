@@ -670,15 +670,6 @@ footer img{height:16px;opacity:.45}
         Entrar com Conta Militar
       </a>
     </div>
-
-    <details style="font-size:.82rem;color:var(--gray-400);cursor:pointer;margin-top:.5rem;">
-      <summary style="outline:none;user-select:none;">Acesso alternativo via PIN de emergência</summary>
-      <div class="pin-gate-form" style="margin-top:.8rem;">
-        <input type="password" id="pinInput" class="pin-gate-input" placeholder="••••" maxlength="12" inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter') verificarPinMissoes()" />
-        <button class="pin-gate-submit" onclick="verificarPinMissoes()">Validar</button>
-      </div>
-      <div id="pinErrorMsg" class="pin-gate-err" style="display:none;margin-top:.5rem;"></div>
-    </details>
   </div>
 </div>
 
@@ -5144,72 +5135,51 @@ function ouvirRealtimeTudo() {
     .subscribe();
 }
 
-/* ══════════════════════════════════════════════════════════════
-   12 · AUTENTICAÇÃO E PIN DO OPERADOR
-   ══════════════════════════════════════════════════════════════ */
-async function lerPinServidor(){
-  if (window.AppConfig) return window.AppConfig.getPin();
-  return localStorage.getItem('secretaria_pin') || '123456';
-}
 
+/* ══════════════════════════════════════════════════════════════
+   12 · AUTENTICAÇÃO DO OPERADOR (SUPABASE AUTH & RBAC)
+   ══════════════════════════════════════════════════════════════ */
 async function checarAutenticacaoPIN() {
   if (window.AppAuth) {
+    const authOk = await window.AppAuth.requireAuth({ redirect: true });
+    if (!authOk) return;
     window.AppAuth.renderUserBar('#afa-topbar-placeholder');
-    if (window.AppAuth.isOperador()) {
-      sessionStorage.setItem('secretaria_pin_ok', '1');
-      sessionStorage.setItem('efetivo_pin_ok', '1');
-    }
   }
 
-  const pinOk = (window.AppAuth && window.AppAuth.isOperador()) || 
-                sessionStorage.getItem('secretaria_pin_ok') === '1' || 
-                sessionStorage.getItem('efetivo_pin_ok') === '1';
+  const isOperador = window.AppAuth && window.AppAuth.isOperador();
   const gate = document.getElementById('pinGate');
   const content = document.getElementById('missoesContent');
   const lockBtn = document.getElementById('lock-btn');
-  if (pinOk) {
+
+  if (isOperador) {
     if (gate) gate.style.display = 'none';
     if (content) content.style.display = 'block';
     if (lockBtn) lockBtn.style.display = 'inline-flex';
   } else {
-    if (gate) gate.style.display = 'flex';
-    if (content) content.style.display = 'none';
-    if (lockBtn) lockBtn.style.display = 'none';
-    const input = document.getElementById('pinInput');
-    if (input) { input.value = ''; }
-  }
-}
-
-async function verificarPinMissoes() {
-  const input = document.getElementById('pinInput');
-  const errDiv = document.getElementById('pinErrorMsg');
-  const val = (input?.value || '').trim();
-  if (errDiv) errDiv.style.display = 'none';
-  if (!val) return;
-
-  try {
-    const pinServidor = await lerPinServidor();
-    if (val === pinServidor) {
-      sessionStorage.setItem('secretaria_pin_ok', '1');
-      sessionStorage.setItem('efetivo_pin_ok', '1');
-      checarAutenticacaoPIN();
-    } else {
-      if (errDiv) {
-        errDiv.textContent = 'PIN incorreto. Tente novamente.';
-        errDiv.style.display = 'block';
+    if (gate) {
+      gate.style.display = 'flex';
+      const u = window.AppAuth && window.AppAuth.getUser();
+      if (u) {
+        const titleEl = gate.querySelector('.pin-gate-title');
+        const descEl = gate.querySelector('.pin-gate-desc');
+        const linkWrap = gate.querySelector('div[style*="margin-bottom:1.2rem"]');
+        if (titleEl) titleEl.textContent = 'Acesso Restrito à Secretaria';
+        if (descEl) descEl.innerHTML = `Sua conta militar (<b>${u.nome_guerra || u.email}</b>, perfil: <b>${u.perfil || 'militar'}</b>) não possui privilégios de Operador da Secretaria.<br><br>Se você precisa emitir diárias ou gerenciar OS, solicite permissão à Secretaria da DE ou a um Administrador.`;
+        if (linkWrap) {
+          linkWrap.innerHTML = `
+            <a href="index.html" class="hbtn gold" style="display:inline-flex;align-items:center;justify-content:center;gap:.5rem;width:100%;padding:.75rem;font-size:1rem;font-weight:700;border-radius:8px;text-decoration:none;">
+              ← Voltar ao Hub Principal
+            </a>
+          `;
+        }
       }
     }
-  } catch(e) {
-    if (errDiv) {
-      errDiv.textContent = 'Erro ao verificar PIN.';
-      errDiv.style.display = 'block';
-    }
+    if (content) content.style.display = 'none';
+    if (lockBtn) lockBtn.style.display = 'none';
   }
 }
 
 async function bloquearSessaoMissoes() {
-  sessionStorage.removeItem('secretaria_pin_ok');
-  sessionStorage.removeItem('efetivo_pin_ok');
   if (window.AppAuth && window.AppAuth.isAuthenticated()) {
     if (confirm('Deseja encerrar sua sessão militar?')) {
       await window.AppAuth.logout('login.html?redirect=diarias.html');

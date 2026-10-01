@@ -287,6 +287,7 @@
 </style>
 </head>
 <body>
+  <div id="afa-topbar-placeholder"></div>
 
   <header>
     <div class="head-brand">
@@ -650,6 +651,7 @@
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/auth.js?v=20260930_1"></script>
   <script src="assets/js/app-config.js"></script>
   <script>
     const SUPABASE_URL  = 'https://sovrgsbdhdpxsaomspsp.supabase.co';
@@ -1281,7 +1283,19 @@
       btn.textContent = 'Enviar Solicitação de Missão';
     }
 
-    carregarEfetivo();
+    (async function initSolicitar() {
+      if (window.AppAuth) {
+        const authOk = await window.AppAuth.requireAuth({ redirect: true });
+        if (!authOk) return;
+        window.AppAuth.renderUserBar('#afa-topbar-placeholder');
+        const u = window.AppAuth.getUser();
+        if (u && u.email) {
+          const emailInput = document.getElementById('f-solic-email');
+          if (emailInput && !emailInput.value) emailInput.value = u.email;
+        }
+      }
+      carregarEfetivo();
+    })();
   </script>
 </body>
 </html>

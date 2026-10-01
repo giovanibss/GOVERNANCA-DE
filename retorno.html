@@ -162,6 +162,7 @@
   </style>
 </head>
 <body>
+  <div id="afa-topbar-placeholder"></div>
 
   <header>
     <div class="head-brand">
@@ -359,6 +360,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/app-config.js"></script>
+  <script src="assets/js/auth.js?v=20260930_1"></script>
   <script>
     /* ══════════════════════════════════════════════════════════════
        APRESENTAÇÃO POR RETORNO DE MISSÃO — v2.0
@@ -989,6 +991,11 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+      if (window.AppAuth) {
+        const u = AppAuth.requireAuth({ redirect: true });
+        if (!u) return;
+        AppAuth.renderUserBar('#afa-topbar-placeholder');
+      }
       console.log('%c retorno.html v2.0 · busca por identidade + PDF por modalidade ',
                   'background:#0a192f;color:#d4a84b;font-weight:700');
       carregarCatalogoMissoes().catch(e => {

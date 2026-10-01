@@ -282,6 +282,7 @@ footer{padding:2.2rem clamp(1rem,4vw,2.4rem);border-top:1px solid var(--linha);
 </style>
 </head>
 <body>
+<div id="afa-topbar-placeholder"></div>
 
 <header class="topo">
   <a class="volta" href="index.html">← Hub</a>
@@ -548,6 +549,8 @@ footer{padding:2.2rem clamp(1rem,4vw,2.4rem);border-top:1px solid var(--linha);
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/app-config.js"></script>
+<script src="assets/js/auth.js?v=20260930_1"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
@@ -1882,6 +1885,11 @@ function ligarScroll(){
 /* ─── 14. PARTIDA ───────────────────────────────────────────── */
 
 function iniciar(){
+  if(window.AppAuth){
+    var u = AppAuth.requireAuth({ redirect: true });
+    if(!u) return;
+    AppAuth.renderUserBar('#afa-topbar-placeholder');
+  }
   if(!window.THREE){
     avisar('A biblioteca 3D não carregou. Verifique a conexão e recarregue a página.', 'erro');
     return;

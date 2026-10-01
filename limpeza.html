@@ -395,6 +395,7 @@
 </style>
 </head>
 <body>
+<div id="afa-topbar-placeholder"></div>
 
 <header>
   <div class="logo">
@@ -582,6 +583,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/auth.js?v=20260930_1"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script>
@@ -1522,9 +1524,16 @@ function hideTip(){ tip.classList.remove('show'); }
 document.addEventListener('mousemove', e => { tip.style.left = (e.clientX+14)+'px'; tip.style.top = (e.clientY-32)+'px'; });
 
 /* INIT */
-montarFormReporte();
-aplicarDeepLink();
-fetchAll();
+(async function initLimpeza() {
+  if (window.AppAuth) {
+    const authOk = await window.AppAuth.requireAuth({ redirect: true });
+    if (!authOk) return;
+    window.AppAuth.renderUserBar('#afa-topbar-placeholder');
+  }
+  montarFormReporte();
+  aplicarDeepLink();
+  fetchAll();
+})();
 
 /* Realtime: a sirene acende em todos os dispositivos abertos */
 if (sbCli) {

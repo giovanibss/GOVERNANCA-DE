@@ -796,7 +796,7 @@
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
       <span>Gravar chamada</span>
     </button>
-    <button class="nav-btn" id="lock-btn" onclick="bloquearSessao()" title="Bloquear acesso com PIN" style="display:none;">
+    <button class="nav-btn" id="lock-btn" onclick="bloquearSessao()" title="Encerrar Sessão" style="display:none;">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       <span>Bloquear</span>
     </button>
@@ -820,15 +820,6 @@
         Entrar com Conta Militar
       </a>
     </div>
-
-    <details style="font-size:.82rem;color:var(--gray-400);cursor:pointer;margin-top:.5rem;">
-      <summary style="outline:none;user-select:none;">Acesso alternativo via PIN de emergência</summary>
-      <div class="pin-gate-form" style="margin-top:.8rem;">
-        <input type="password" id="pinInput" class="pin-gate-input" placeholder="••••" maxlength="12" inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter') verificarPinEfetivo()" />
-        <button class="pin-gate-submit" onclick="verificarPinEfetivo()">Validar</button>
-      </div>
-      <div id="pinErrorMsg" class="pin-gate-err" style="display:none;margin-top:.5rem;"></div>
-    </details>
   </div>
 </div>
 
@@ -900,10 +891,6 @@
           <button class="btn-ctl gold" onclick="copiarResumoWhatsApp()">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
             Copiar Resumo Oficial
-          </button>
-          <button class="btn-ctl" onclick="alterarPinModal()">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            Alterar PIN
           </button>
         </div>
       </div>
@@ -2094,6 +2081,10 @@ function colUnder(x, y) {
    BOTÃO "Salvar / sincronizar" — reenvia todas as marcações do dia
    ══════════════════════════════════════════════════════════════ */
 async function saveChamada() {
+  if (!window.AppAuth || !window.AppAuth.isOperador()) {
+    alert('Acesso restrito: Apenas membros da Secretaria da Divisão de Ensino possuem permissão para gravar a chamada.');
+    return;
+  }
   const marcados = efetivo.filter(m => m.status !== 'pool');
   if (!marcados.length) { setBanner('error', 'Nenhuma marcação para sincronizar.'); return; }
 
@@ -2163,77 +2154,34 @@ async function sbPatch(caminho, corpo){
   return r.json();
 }
 
-async function lerPinServidor(){
-  if (window.AppConfig) return window.AppConfig.getPin();
-  try {
-    const r = await sbGet('at_config?select=pin&id=eq.default');
-    if (r && r[0] && r[0].pin) return String(r[0].pin).trim();
-  } catch(e){}
-  return localStorage.getItem('efetivo_pin') || '123456';
-}
-
+/* ══════════════════════════════════════════════════════════════
+   AUTENTICAÇÃO DO OPERADOR (SUPABASE AUTH & RBAC)
+   ══════════════════════════════════════════════════════════════ */
 async function checarAutenticacaoPIN() {
   if (window.AppAuth) {
+    const authOk = await window.AppAuth.requireAuth({ redirect: true });
+    if (!authOk) return;
     window.AppAuth.renderUserBar('#afa-topbar-placeholder');
-    if (window.AppAuth.isOperador()) {
-      sessionStorage.setItem('secretaria_pin_ok', '1');
-      sessionStorage.setItem('efetivo_pin_ok', '1');
-      sessionStorage.setItem('at_sec_ok', '1');
-    }
   }
 
-  const pinOk = (window.AppAuth && window.AppAuth.isOperador()) ||
-                sessionStorage.getItem('secretaria_pin_ok') === '1' || 
-                sessionStorage.getItem('efetivo_pin_ok') === '1' || 
-                sessionStorage.getItem('at_sec_ok') === '1';
+  const isOperador = window.AppAuth && window.AppAuth.isOperador();
   const gate = document.getElementById('pinGate');
   const content = document.getElementById('efetivoContent');
   const lockBtn = document.getElementById('lock-btn');
-  if (pinOk) {
-    if (gate) gate.style.display = 'none';
-    if (content) content.style.display = 'block';
-    if (lockBtn) lockBtn.style.display = 'inline-flex';
-  } else {
-    if (gate) gate.style.display = 'flex';
-    if (content) content.style.display = 'none';
-    if (lockBtn) lockBtn.style.display = 'none';
-    const input = document.getElementById('pinInput');
-    if (input) { input.value = ''; }
-  }
-}
+  const saveBtn = document.getElementById('save-btn');
 
-async function verificarPinEfetivo() {
-  const input = document.getElementById('pinInput');
-  const errDiv = document.getElementById('pinErrorMsg');
-  const val = (input?.value || '').trim();
-  if (errDiv) errDiv.style.display = 'none';
-  if (!val) return;
+  // Todo militar autenticado acessa a visualização do efetivo (o que era livre)
+  if (gate) gate.style.display = 'none';
+  if (content) content.style.display = 'block';
+  if (lockBtn) lockBtn.style.display = 'inline-flex';
 
-  try {
-    const pinServidor = await lerPinServidor();
-    if (val.toLowerCase() === pinServidor.toLowerCase()) {
-      sessionStorage.setItem('secretaria_pin_ok', '1');
-      sessionStorage.setItem('efetivo_pin_ok', '1');
-      sessionStorage.setItem('at_sec_ok', '1');
-      checarAutenticacaoPIN();
-    } else {
-      if (errDiv) {
-        errDiv.textContent = 'PIN incorreto. Tente novamente.';
-        errDiv.style.display = 'block';
-      }
-    }
-  } catch(e) {
-    if (errDiv) {
-      errDiv.textContent = 'Erro ao verificar PIN: ' + e.message;
-      errDiv.style.display = 'block';
-    }
+  // Gravar chamada restrito a membros da Secretaria
+  if (saveBtn) {
+    saveBtn.style.display = isOperador ? 'inline-flex' : 'none';
   }
 }
 
 async function bloquearSessao() {
-  sessionStorage.removeItem('secretaria_pin_ok');
-  sessionStorage.removeItem('efetivo_pin_ok');
-  sessionStorage.removeItem('at_sec_ok');
   if (window.AppAuth && window.AppAuth.isAuthenticated()) {
     if (confirm('Deseja encerrar sua sessão militar?')) {
       await window.AppAuth.logout('login.html?redirect=efetivo.html');
@@ -2241,24 +2189,6 @@ async function bloquearSessao() {
     }
   }
   checarAutenticacaoPIN();
-}
-
-async function alterarPinModal() {
-  const novo = prompt('Digite o novo PIN de acesso (mínimo 4 caracteres):');
-  if (novo === null) return;
-  const pinLimpo = novo.trim();
-  if (pinLimpo.length < 4) {
-    alert('O PIN deve ter no mínimo 4 caracteres.');
-    return;
-  }
-  try {
-    await sbPatch('at_config?id=eq.default', { pin: pinLimpo });
-    localStorage.setItem('efetivo_pin', pinLimpo);
-    alert('PIN alterado com sucesso!');
-  } catch(e) {
-    localStorage.setItem('efetivo_pin', pinLimpo);
-    alert('PIN salvo localmente. (Nota: ' + e.message + ')');
-  }
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -2599,6 +2529,10 @@ function filtrarPessoal() {
 let modoEdicaoDiretaTabela = false;
 
 function alternarEdicaoDiretaTabela() {
+  if (!window.AppAuth || !window.AppAuth.isOperador()) {
+    alert('Acesso restrito: Apenas membros da Secretaria da Divisão de Ensino possuem permissão para editar dados do efetivo.');
+    return;
+  }
   modoEdicaoDiretaTabela = !modoEdicaoDiretaTabela;
   const btn = document.getElementById('btn-toggle-edicao-direta');
   const lbl = document.getElementById('lbl-edicao-direta');
@@ -2621,6 +2555,10 @@ function alertarCargoProtegido(cargo) {
 }
 
 async function salvarCampoInline(saram, campo, valor, el) {
+  if (!window.AppAuth || !window.AppAuth.isOperador()) {
+    alert('Acesso restrito: Apenas membros da Secretaria da Divisão de Ensino possuem permissão para alterar dados do efetivo.');
+    return;
+  }
   try {
     const saramNorm = window.AppConfig ? window.AppConfig.formatarSARAM(saram) : String(saram);
     const alteracao = { saram: saramNorm, [campo]: valor };
@@ -2663,6 +2601,9 @@ async function salvarCampoInline(saram, campo, valor, el) {
 }
 
 function habilitarEdicaoRapidaCelula(td, saram, campo, tipo, valorAtual) {
+  if (!window.AppAuth || !window.AppAuth.isOperador()) {
+    return;
+  }
   if (td.querySelector('.cell-inline-input')) return;
   const originalHtml = td.innerHTML;
   

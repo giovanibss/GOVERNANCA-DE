@@ -266,6 +266,7 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
 </style>
 </head>
 <body>
+<div id="afa-topbar-placeholder"></div>
 
 <header class="topo">
   <a class="volta" href="index.html">← Hub</a>
@@ -375,16 +376,9 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
     <div class="painel" id="pinGate" style="max-width:460px">
       <h3>🔒 Acesso restrito à secretaria</h3>
       <p style="font-size:.8rem;color:var(--texto-2);margin-bottom:1rem">
-        Informe o PIN da secretaria para abrir a consolidação das indicações e gerenciar cursos.
+        O gerenciamento de cursos e consolidação de indicações é restrito à Secretaria DE. Identifique-se com sua conta militar institucional para prosseguir.
       </p>
-      <div class="linhaCtl" style="margin-bottom:0">
-        <div class="campo">
-          <label for="pinCampo">PIN</label>
-          <input type="password" id="pinCampo" inputmode="numeric" autocomplete="off" style="letter-spacing:.35em;font-size:1.05rem;max-width:170px" />
-        </div>
-        <button class="acao" id="btnPin">Entrar</button>
-      </div>
-      <div id="pinMsg" class="faixaMsg erro" style="display:none;margin-top:1rem;margin-bottom:0"></div>
+      <a href="login.html?redirect=cursos.html" class="acao" style="text-decoration:none;display:inline-block;text-align:center;">Entrar com Conta Militar</a>
     </div>
 
     <div id="secArea" style="display:none">
@@ -480,7 +474,6 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
         </div>
         <div class="linhaCtl" style="margin-bottom:0">
           <button class="acao" id="btnEnviarTca">Enviar TCA</button>
-          <button class="acao fantasma" id="btnPinNovo">Alterar PIN</button>
         </div>
       </div>
 
@@ -588,6 +581,8 @@ footer{padding:2rem;text-align:center;color:var(--texto-3);font-size:.72rem}
 <footer>Governança DE · Academia da Força Aérea — módulo Indicação para Cursos · <b>v1.1</b></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/js/auth.js?v=20260930_1"></script>
 <script src="assets/js/app-config.js"></script>
 <script>
 console.log('%cIndicação para Cursos · v1.1', 'color:#d4a84b;font-weight:bold');
@@ -1059,23 +1054,8 @@ async function carregarTcas(){
 }
 
 /* ══════════════ SECRETARIA ══════════════ */
-function secLiberada(){ return sessionStorage.getItem('cur_sec_ok') === '1'; }
-
-async function lerPinServidor(){
-  if (window.AppConfig) return window.AppConfig.getPin();
-  const r = await sbGet('cur_config?select=pin&id=eq.default');
-  return (r[0] && String(r[0].pin)) || null;
-}
-async function verificarPin(){
-  const digitado = $('pinCampo').value.trim();
-  esconde($('pinMsg'));
-  if (!digitado) return;
-  try {
-    const pin = await lerPinServidor();
-    if (pin === null){ faixa($('pinMsg'), 'erro', 'PIN não configurado — rode o SQL <code>supabase-cursos-setup.sql</code> no projeto.'); return; }
-    if (digitado === pin){ sessionStorage.setItem('cur_sec_ok','1'); $('pinCampo').value=''; trocarAba('abaSec'); }
-    else { faixa($('pinMsg'), 'erro', 'PIN incorreto. Em caso de dúvida, contate secde.afa@fab.mil.br.'); $('pinCampo').select(); }
-  } catch (e){ faixa($('pinMsg'), 'erro', '⚠️ Não consegui validar o PIN: ' + e.message); }
+function secLiberada(){
+  return !!(window.AppAuth && window.AppAuth.isOperador());
 }
 
 function preencherSelectCursoSec(){
@@ -1439,7 +1419,18 @@ function trocarAba(id){
       carregarManifs().then(pintarSecretaria);
       carregarTcas();
     } else {
-      $('pinGate').style.display = ''; $('secArea').style.display = 'none'; $('pinCampo').focus();
+      $('pinGate').style.display = ''; $('secArea').style.display = 'none';
+      const u = window.AppAuth && window.AppAuth.getUser();
+      if (u) {
+        const pEl = $('pinGate').querySelector('p');
+        if (pEl) pEl.innerHTML = `Sua conta militar (<b>${u.nome_guerra || u.email}</b>, perfil: <b>${u.perfil || 'militar'}</b>) não possui privilégios de Secretaria.<br><br>Caso necessite de acesso ao gerenciamento de cursos, solicite a um Administrador ou à Secretaria.`;
+        const link = $('pinGate').querySelector('a.acao');
+        if (link) {
+          link.textContent = '← Voltar para Catálogo de Cursos';
+          link.href = '#';
+          link.onclick = (e) => { e.preventDefault(); trocarAba('abaCur'); };
+        }
+      }
     }
   }
   if (id === 'abaMinha') preencherSelectPessoas($('mPessoa'), $('mTipo').value);
@@ -1463,16 +1454,6 @@ $('btnOk').addEventListener('click', () => { $('modalOk').style.display = 'none'
 $('mTipo').addEventListener('change', () => preencherSelectPessoas($('mPessoa'), $('mTipo').value));
 $('btnVerMinhas').addEventListener('click', verMinhas);
 $('mPessoa').addEventListener('change', verMinhas);
-
-$('btnPin').addEventListener('click', verificarPin);
-$('pinCampo').addEventListener('keydown', e => { if (e.key === 'Enter') verificarPin(); });
-$('btnPinNovo').addEventListener('click', async () => {
-  const novo = prompt('Novo PIN da secretaria (mínimo 4 caracteres):');
-  if (novo === null) return;
-  if (novo.trim().length < 4){ alert('PIN muito curto — use pelo menos 4 caracteres.'); return; }
-  try { await sbPatch('cur_config?id=eq.default', { pin: novo.trim() }); alert('PIN alterado.'); }
-  catch (e){ alert('Não consegui alterar o PIN: ' + e.message); }
-});
 $('pzFiltro').addEventListener('change', pintarPrazos);
 $('pzComando').addEventListener('change', pintarPrazos);
 $('secCurso').addEventListener('change', () => { $('secSigad').value = ''; pintarSecretaria(); });
@@ -1523,6 +1504,11 @@ function acharHero(){
 }
 
 async function iniciar(recarga){
+  if (window.AppAuth) {
+    const authOk = await window.AppAuth.requireAuth({ redirect: true });
+    if (!authOk) return;
+    window.AppAuth.renderUserBar('#afa-topbar-placeholder');
+  }
   if (recarga) faixa($('faixaCursos'), 'info', '⏳ Atualizando…');
   if (!SB.key){ faixa($('avisoConfig'), 'alerta', '⚙️ Falta preencher a chave anônima do Supabase no topo do script.'); }
   HERO_OK = await acharHero();

@@ -157,7 +157,26 @@
 
     isOperador() {
       const p = this.getProfile();
-      return p && (p.perfil === 'admin' || p.perfil === 'operador') && p.status_aprovacao === 'ativo';
+      return p && (p.perfil === 'admin' || p.perfil === 'operador' || p.perfil === 'secretaria' || p.perfil === 'gestor') && p.status_aprovacao === 'ativo';
+    },
+
+    isStaff() {
+      return this.isOperador();
+    },
+
+    /**
+     * Valida permissão de gerenciamento / reset de senha:
+     * - Admin pode gerenciar senha de qualquer militar (inclusive outros Admins).
+     * - Membros da Secretaria (operador) podem gerenciar senhas de qualquer membro COMUM (não-admin).
+     */
+    canManagePassword(targetUser) {
+      if (!this.isAuthenticated() || !this.isAtivo()) return false;
+      if (this.isAdmin()) return true;
+      if (this.isOperador()) {
+        const targetRole = String(targetUser?.perfil || 'militar').toLowerCase();
+        return targetRole !== 'admin';
+      }
+      return false;
     },
 
     isCoordenador() {
@@ -365,10 +384,16 @@
     /**
      * Guarda de Rotas: intercepta páginas restritas e redireciona se necessário
      */
-    async requireAuth({ allowedRoles = [], redirect = true } = {}) {
+    async requireAuth({ allowedRoles = [], redirect = true, allowCadastro = true } = {}) {
       await this.init();
 
       const paginaAtual = window.location.pathname.split('/').pop() || 'index.html';
+      const params = new URLSearchParams(window.location.search);
+
+      // Exceção de Regra de Negócio: O formulário de Cadastro Pessoal é a única sessão permitida sem login
+      if (allowCadastro && (params.get('abrirCadastro') === '1' || params.get('cadastro') === '1')) {
+        return true;
+      }
 
       // 1. Usuário não autenticado
       if (!this.isAuthenticated()) {
@@ -481,6 +506,8 @@
       const roleBadgeColors = {
         admin: { bg: 'rgba(212,168,75,.18)', border: '#d4a84b', text: '#ffd37a', label: 'ADMINISTRADOR' },
         operador: { bg: 'rgba(52,211,153,.15)', border: '#34d399', text: '#6ee7b7', label: 'SECRETARIA DE' },
+        secretaria: { bg: 'rgba(52,211,153,.15)', border: '#34d399', text: '#6ee7b7', label: 'SECRETARIA DE' },
+        gestor: { bg: 'rgba(52,211,153,.15)', border: '#34d399', text: '#6ee7b7', label: 'SECRETARIA DE' },
         coordenador: { bg: 'rgba(96,165,250,.15)', border: '#60a5fa', text: '#93c5fd', label: 'COORDENAÇÃO' },
         militar: { bg: 'rgba(207,228,255,.12)', border: 'rgba(207,228,255,.3)', text: '#cfe4ff', label: 'MILITAR' }
       };

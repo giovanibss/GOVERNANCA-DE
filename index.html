@@ -2273,7 +2273,7 @@ a.card-go{text-decoration:none}
     <span class="lbl" id="clock-day">—</span>
     <span id="clock-time">—</span>
   </div>
-  <button class="top-gear-btn" id="btn-config-site" title="Configurações do Site (PIN e Integrações)" aria-label="Configurações do Site">
+  <button class="top-gear-btn" id="btn-config-site" title="Configurações da Governança DE (Acessos e Integrações)" aria-label="Configurações da Governança DE">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="3"></circle>
       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -3096,7 +3096,7 @@ a.card-go{text-decoration:none}
   </div>
 </div>
 
-<!-- MODAL DE CONFIGURAÇÕES DO SITE (PIN & GMAIL API) -->
+<!-- MODAL DE CONFIGURAÇÕES DA GOVERNANÇA DE (LOGIN, ACESSOS & GMAIL API) -->
 <div class="cfg-backdrop" id="modalConfigSite" role="dialog" aria-modal="true" aria-labelledby="cfg-title">
   <div class="cfg-modal">
     <div class="cfg-header">
@@ -3114,9 +3114,6 @@ a.card-go{text-decoration:none}
     <nav class="cfg-nav" role="tablist">
       <button class="cfg-tab-btn active" data-tab="tab-auth" role="tab">
         🛡️ Login &amp; Usuários <span id="cfg-auth-pend-badge" style="display:none;margin-left:5px;padding:2px 7px;font-size:0.68rem;background:#ef4444;color:#fff;border-radius:10px;font-weight:700;">0</span>
-      </button>
-      <button class="cfg-tab-btn" data-tab="tab-pin" role="tab">
-        🔐 Gerenciamento do PIN
       </button>
       <button class="cfg-tab-btn" data-tab="tab-gmail" role="tab">
         📧 Integrações (Gmail API)
@@ -3187,50 +3184,7 @@ a.card-go{text-decoration:none}
         </div>
       </div>
 
-      <!-- ABA 1: GERENCIAMENTO DO PIN -->
-      <div class="cfg-panel" id="tab-pin" role="tabpanel">
-        <div class="cfg-badge-status ok" id="cfg-pin-status-badge">
-          <span>● PIN Master Ativo: Sincronizado no Supabase</span>
-        </div>
-
-        <div class="cfg-card-info">
-          <b>Centralização de Segurança:</b> O PIN definido aqui é compartilhado por todos os módulos do aplicativo (Diárias, Efetivo, Cursos, TACF e Transporte). A alteração é refletida em tempo real em todos os sistemas.
-        </div>
-
-        <form id="cfg-form-pin" onsubmit="return false;">
-          <div class="cfg-group">
-            <label class="cfg-label" for="cfg-pin-atual">PIN Atual da Secretaria</label>
-            <div class="cfg-input-wrap">
-              <input type="password" id="cfg-pin-atual" class="cfg-input" placeholder="Digite o PIN atual..." autocomplete="off" />
-              <button type="button" class="cfg-toggle-pwd" data-for="cfg-pin-atual">👁️ Ver</button>
-            </div>
-          </div>
-
-          <div style="display:flex; gap:1rem;" class="cfg-group-row">
-            <div class="cfg-group" style="flex:1;">
-              <label class="cfg-label" for="cfg-pin-novo">Novo PIN (mínimo 4 caracteres)</label>
-              <div class="cfg-input-wrap">
-                <input type="password" id="cfg-pin-novo" class="cfg-input" placeholder="Novo PIN..." autocomplete="off" />
-                <button type="button" class="cfg-toggle-pwd" data-for="cfg-pin-novo">👁️ Ver</button>
-              </div>
-            </div>
-            <div class="cfg-group" style="flex:1;">
-              <label class="cfg-label" for="cfg-pin-conf">Confirmar Novo PIN</label>
-              <div class="cfg-input-wrap">
-                <input type="password" id="cfg-pin-conf" class="cfg-input" placeholder="Repita o novo PIN..." autocomplete="off" />
-                <button type="button" class="cfg-toggle-pwd" data-for="cfg-pin-conf">👁️ Ver</button>
-              </div>
-            </div>
-          </div>
-
-          <div style="margin-top:1.5rem; display:flex; justify-content:flex-end; gap:.75rem;">
-            <button type="button" class="cfg-btn sec" id="btn-sync-pin">🔄 Resincronizar PIN</button>
-            <button type="button" class="cfg-btn" id="btn-save-pin">💾 Salvar Novo PIN</button>
-          </div>
-        </form>
-      </div>
-
-      <!-- ABA 2: INTEGRAÇÕES GMAIL API -->
+      <!-- ABA 1: INTEGRAÇÕES GMAIL API -->
       <div class="cfg-panel" id="tab-gmail" role="tabpanel">
         <div class="cfg-badge-status warn" id="cfg-gmail-status-badge">
           <span>● Envio Automático de E-mails: Pronto para Configuração</span>
@@ -5461,7 +5415,7 @@ addEventListener('storage', e=>{
   if (e.key === 'cargos_solicitacoes_cache' || e.key === 'cargos_secoes_cache') carregarCargosHub();
 });
 
-/* ═══ LÓGICA DO MODAL DE CONFIGURAÇÕES (GERENCIAMENTO DO PIN & GMAIL API) ═══ */
+/* ═══ LÓGICA DO MODAL DE CONFIGURAÇÕES (LOGIN, RBAC & GMAIL API) ═══ */
 document.addEventListener('DOMContentLoaded', () => {
   const modal = document.getElementById('modalConfigSite');
   const btnOpen = document.getElementById('btn-config-site');
@@ -5479,23 +5433,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const elRelay = document.getElementById('cfg-gmail-relay');
     const elEnable = document.getElementById('cfg-gmail-enable');
     const gBadge = document.getElementById('cfg-gmail-status-badge');
-    const pinBadge = document.getElementById('cfg-pin-status-badge');
-
     if (elUser) elUser.value = g.user;
     if (elName) elName.value = g.senderName;
     if (elPass) elPass.value = g.appPassword;
     if (elRelay) elRelay.value = localStorage.getItem('gmail_relay_url') || '';
     if (elEnable) elEnable.checked = g.enabled;
-
-    if (pinBadge) {
-      if (window.AppConfig.isRemoteDbReady) {
-        pinBadge.className = 'cfg-badge-status ok';
-        pinBadge.innerHTML = '<span>● PIN Master Ativo: Sincronizado no Supabase</span>';
-      } else {
-        pinBadge.className = 'cfg-badge-status warn';
-        pinBadge.innerHTML = '<span>● PIN Ativo no Dispositivo (💡 Execute <code>supabase-app-config-setup.sql</code> no Supabase)</span>';
-      }
-    }
 
     if (gBadge) {
       if ((g.user && g.appPassword) || localStorage.getItem('gmail_relay_url')) {
@@ -5814,15 +5756,50 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    const callerIsAdmin = window.AppAuth && window.AppAuth.isAdmin();
+    const callerIsOperador = window.AppAuth && window.AppAuth.isOperador();
+
     listContainer.innerHTML = filtrados.map(u => {
       const perfil = (u.perfil || 'militar').toLowerCase();
       const status = (u.status_aprovacao || 'pendente').toLowerCase();
+      const isTargetAdmin = (perfil === 'admin');
       const nomeExib = escapeHtmlModal(u.nome_guerra || u.nome_completo || 'Militar');
       const gradExib = escapeHtmlModal(u.posto_grad || '');
       const saramExib = escapeHtmlModal(u.saram || '—');
       const secaoExib = escapeHtmlModal(u.secao_sigla || '—');
       const emailExib = escapeHtmlModal(u.email || '—');
       const uId = escapeHtmlModal(u.id);
+
+      // Botão de reset de senha conforme hierarquia:
+      // - Admins gerenciam senhas de Admins e de todos os membros.
+      // - Membros da Secretaria gerenciam senhas de qualquer militar exceto Admins.
+      let btnResetar = '';
+      if (isTargetAdmin && !callerIsAdmin) {
+        btnResetar = `
+          <button type="button" class="cfg-btn-sm warning" disabled style="opacity:0.45; cursor:not-allowed;" title="Apenas Administradores podem gerenciar senhas de Administradores">
+            🔒 Admin Protegido
+          </button>
+        `;
+      } else {
+        btnResetar = `
+          <button type="button" class="cfg-btn-sm warning" onclick="window._resetarSenhaUserModal('${uId}', '${escapeHtmlModal(u.saram || '')}', '${escapeHtmlModal(gradExib + ' ' + nomeExib)}', '${perfil}')" title="Resetar senha deste militar">
+            🔑 Resetar Senha
+          </button>
+        `;
+      }
+
+      // Seletor de alteração de privilégio/perfil: exclusivo para Administradores
+      let controlePerfil = '';
+      if (callerIsAdmin) {
+        controlePerfil = `
+          <select class="cfg-select-sm" onchange="window._alterarPerfilUserModal('${uId}', this.value)" title="Alterar privilégio (exclusivo Administrador)">
+            <option value="militar" ${perfil === 'militar' ? 'selected' : ''}>Militar</option>
+            <option value="operador" ${perfil === 'operador' ? 'selected' : ''}>Operador (Sec)</option>
+            <option value="coordenador" ${perfil === 'coordenador' ? 'selected' : ''}>Coordenador</option>
+            <option value="admin" ${perfil === 'admin' ? 'selected' : ''}>Admin</option>
+          </select>
+        `;
+      }
 
       let botoesAcao = '';
       if (status === 'pendente') {
@@ -5833,25 +5810,24 @@ document.addEventListener('DOMContentLoaded', () => {
           <button type="button" class="cfg-btn-sm primary" onclick="window._aprovarUserModal('${uId}', 'operador')" title="Aprovar com privilégio de Operador">
             ★ Operador
           </button>
-          <button type="button" class="cfg-btn-sm danger" onclick="window._bloquearUserModal('${uId}')" title="Bloquear / Rejeitar solicitação">
+          <button type="button" class="cfg-btn-sm danger" onclick="window._bloquearUserModal('${uId}', '${perfil}')" title="Bloquear / Rejeitar solicitação">
             ✕ Bloquear
           </button>
         `;
       } else if (status === 'ativo') {
         botoesAcao = `
-          <select class="cfg-select-sm" onchange="window._alterarPerfilUserModal('${uId}', this.value)" title="Alterar privilégio">
-            <option value="militar" ${perfil === 'militar' ? 'selected' : ''}>Militar</option>
-            <option value="operador" ${perfil === 'operador' ? 'selected' : ''}>Operador</option>
-            <option value="coordenador" ${perfil === 'coordenador' ? 'selected' : ''}>Coordenador</option>
-            <option value="admin" ${perfil === 'admin' ? 'selected' : ''}>Admin</option>
-          </select>
-          <button type="button" class="cfg-btn-sm danger" onclick="window._bloquearUserModal('${uId}')" title="Bloquear acesso">
-            🚫 Bloquear
-          </button>
+          ${controlePerfil}
+          ${btnResetar}
+          ${(callerIsAdmin || !isTargetAdmin) ? `
+            <button type="button" class="cfg-btn-sm danger" onclick="window._bloquearUserModal('${uId}', '${perfil}')" title="Bloquear acesso">
+              🚫 Bloquear
+            </button>
+          ` : ''}
         `;
       } else {
         botoesAcao = `
-          <button type="button" class="cfg-btn-sm warning" onclick="window._reativarUserModal('${uId}')" title="Reativar acesso do militar">
+          ${btnResetar}
+          <button type="button" class="cfg-btn-sm warning" onclick="window._reativarUserModal('${uId}', '${perfil}')" title="Reativar acesso do militar">
             🔄 Reativar
           </button>
         `;
@@ -5915,7 +5891,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  window._bloquearUserModal = async function(userId) {
+  window._bloquearUserModal = async function(userId, targetPerfil) {
+    if (targetPerfil === 'admin' && !(window.AppAuth && window.AppAuth.isAdmin())) {
+      alert('Acesso negado: Apenas Administradores podem bloquear outro Administrador.');
+      return;
+    }
     if (!confirm('Deseja realmente bloquear o acesso deste usuário ao sistema?')) return;
     if (!window.AppAuth) return;
     const sb = window.AppAuth.getClient();
@@ -5931,7 +5911,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 
-  window._reativarUserModal = async function(userId) {
+  window._reativarUserModal = async function(userId, targetPerfil) {
+    if (targetPerfil === 'admin' && !(window.AppAuth && window.AppAuth.isAdmin())) {
+      alert('Acesso negado: Apenas Administradores podem reativar outro Administrador.');
+      return;
+    }
     if (!window.AppAuth) return;
     const sb = window.AppAuth.getClient();
     try {
@@ -5943,6 +5927,65 @@ document.addEventListener('DOMContentLoaded', () => {
       await carregarListaUsuariosModal();
     } catch(e) {
       alert('Erro ao reativar usuário: ' + e.message);
+    }
+  };
+
+  window._resetarSenhaUserModal = async function(userId, saram, militarDesc, targetPerfil) {
+    if (!window.AppAuth) return alert('Sistema de autenticação indisponível.');
+    const callerIsAdmin = window.AppAuth.isAdmin();
+
+    // Regra: Membros da secretaria não podem resetar senha de administradores
+    if (targetPerfil === 'admin' && !callerIsAdmin) {
+      alert('Acesso negado: Membros da Secretaria não possuem permissão para gerenciar ou resetar senha de Administrador. Solicite a um Administrador.');
+      return;
+    }
+
+    const saramLimpo = (saram || '').replace(/\D/g, '');
+
+    let novaSenha = '';
+    if (saramLimpo && saramLimpo.length >= 4) {
+      const resp = prompt(
+        `🔑 RESET DE SENHA — ${militarDesc}\n\n` +
+        `Escolha uma das opções:\n` +
+        `• Digite 1 para resetar para a Senha Padrão (SARAM: ${saramLimpo}) [Recomendado: força troca no próximo login]\n` +
+        `• Ou digite diretamente a NOVA SENHA desejada (mínimo 4 caracteres):\n\n` +
+        `Para cancelar, deixe em branco ou feche esta janela.`,
+        '1'
+      );
+      if (resp === null || resp.trim() === '') return;
+      novaSenha = (resp.trim() === '1') ? saramLimpo : resp.trim();
+    } else {
+      const resp = prompt(
+        `🔑 RESET DE SENHA — ${militarDesc}\n\n` +
+        `Digite a NOVA SENHA para este militar (mínimo 4 caracteres):`,
+        ''
+      );
+      if (resp === null || resp.trim() === '') return;
+      novaSenha = resp.trim();
+    }
+
+    if (novaSenha.length < 4) {
+      alert('⚠️ A nova senha deve conter pelo menos 4 caracteres.');
+      return;
+    }
+
+    try {
+      const sb = window.AppAuth.getClient();
+      const { data, error } = await sb.rpc('admin_resetar_senha_usuario', {
+        p_target_user_id: userId,
+        p_nova_senha: novaSenha
+      });
+
+      if (error) throw error;
+
+      if (novaSenha === saramLimpo) {
+        alert(`✅ Sucesso!\nA senha de ${militarDesc} foi resetada para o SARAM padrão (${saramLimpo}).\n\nNo próximo login, o militar receberá a orientação para cadastrar sua senha pessoal.`);
+      } else {
+        alert(`✅ Sucesso!\nA nova senha para ${militarDesc} foi definida com sucesso.`);
+      }
+      await carregarListaUsuariosModal();
+    } catch(e) {
+      alert('❌ Erro ao resetar senha: ' + (e.message || e));
     }
   };
 
@@ -6025,52 +6068,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Ação de Resincronizar PIN
-  document.getElementById('btn-sync-pin')?.addEventListener('click', async () => {
-    if (!window.AppConfig) return;
-    try {
-      await window.AppConfig.loadConfig();
-      alert('✅ PIN resincronizado com o banco de dados Supabase com sucesso!');
-    } catch(e) {
-      alert('Erro ao resincronizar PIN: ' + e.message);
-    }
-  });
-
-  // Ação de Salvar PIN
-  document.getElementById('btn-save-pin')?.addEventListener('click', async () => {
-    const pAtual = document.getElementById('cfg-pin-atual')?.value || '';
-    const pNovo = document.getElementById('cfg-pin-novo')?.value || '';
-    const pConf = document.getElementById('cfg-pin-conf')?.value || '';
-
-    if (!window.AppConfig) return alert('Motor AppConfig indisponível.');
-
-    const pinValido = await window.AppConfig.verifyPin(pAtual);
-    if (!pinValido) {
-      alert('⚠️ O PIN Atual informado está incorreto.');
-      return;
-    }
-
-    if (!pNovo || pNovo.length < 4) {
-      alert('⚠️ O Novo PIN precisa ter pelo menos 4 caracteres.');
-      return;
-    }
-
-    if (pNovo !== pConf) {
-      alert('⚠️ O Novo PIN e a Confirmação não coincidem.');
-      return;
-    }
-
-    try {
-      await window.AppConfig.setPin(pNovo);
-      alert('✅ PIN master atualizado com sucesso em todo o aplicativo!');
-      document.getElementById('cfg-pin-atual').value = '';
-      document.getElementById('cfg-pin-novo').value = '';
-      document.getElementById('cfg-pin-conf').value = '';
-    } catch(err) {
-      alert('Erro ao alterar PIN: ' + err.message);
-    }
-  });
-
   // Ação de Salvar Gmail Config
   document.getElementById('btn-save-gmail')?.addEventListener('click', async () => {
     const user = document.getElementById('cfg-gmail-user')?.value || '';
@@ -6150,7 +6147,7 @@ async function abrirConsultaEfetivoHero() {
   document.body.style.overflow = 'hidden';
 
   // Verifica se a sessão já está autenticada na Secretaria
-  if (sessionStorage.getItem('secretaria_pin_ok') === '1') {
+  if ((window.AppAuth && window.AppAuth.isOperador()) || sessionStorage.getItem('secretaria_pin_ok') === '1') {
     modoSecretariaHeroAtivo = true;
   }
   atualizarUiModoSecretariaHero();
@@ -6422,26 +6419,16 @@ async function toggleModoSecretariaHero() {
     return;
   }
 
-  // Verifica se já tem PIN válido na sessão
-  if (sessionStorage.getItem('secretaria_pin_ok') === '1') {
+  // Verifica se está autenticado como operador/admin
+  if (window.AppAuth && window.AppAuth.isOperador()) {
     modoSecretariaHeroAtivo = true;
     atualizarUiModoSecretariaHero();
     await recarregarEfetivoHero(true);
     return;
   }
 
-  const pin = prompt('Digite o PIN de acesso da Secretaria:');
-  if (!pin) return;
-
-  const ok = window.AppConfig ? await window.AppConfig.verifyPin(pin.trim()) : (pin.trim() === '123456');
-  if (ok) {
-    sessionStorage.setItem('secretaria_pin_ok', '1');
-    modoSecretariaHeroAtivo = true;
-    atualizarUiModoSecretariaHero();
-    await recarregarEfetivoHero(true);
-  } else {
-    alert('PIN incorreto. Acesso restrito à Secretaria.');
-  }
+  alert('Acesso restrito: A edição rápida do efetivo requer login com perfil de Operador ou Administrador.');
+  window.location.href = 'login.html?redirect=index.html';
 }
 
 function bloquearSecretariaHero() {
@@ -6893,6 +6880,10 @@ function fecharModalNovoMilitar() {
   const modal = document.getElementById('modalCadastroNovoMilitar');
   if (modal) modal.classList.remove('active');
   document.body.style.overflow = '';
+  // Se o visitante estiver sem sessão autenticada, redireciona para login
+  if (window.AppAuth && !window.AppAuth.isAuthenticated()) {
+    window.location.href = 'login.html';
+  }
 }
 
 function trocarTabCadastro(tabNum) {
@@ -7258,18 +7249,11 @@ async function enviarCadastroForm() {
 /* Fila de Aprovação da Secretaria & Widget Sanduíche */
 async function abrirFilaAprovacaoSecretaria() {
   // Verifica autenticação da Secretaria
-  if (!modoSecretariaHeroAtivo && sessionStorage.getItem('secretaria_pin_ok') !== '1') {
-    const pin = prompt('Acesso restrito à Secretaria. Digite seu PIN:');
-    if (!pin) return;
-    const ok = window.AppConfig ? await window.AppConfig.verifyPin(pin.trim()) : (pin.trim() === '123456');
-    if (ok) {
-      sessionStorage.setItem('secretaria_pin_ok', '1');
-      modoSecretariaHeroAtivo = true;
-      atualizarUiModoSecretariaHero();
-    } else {
-      alert('PIN incorreto. Acesso restrito à Secretaria.');
-      return;
-    }
+  const isOperador = (window.AppAuth && window.AppAuth.isOperador()) || modoSecretariaHeroAtivo;
+  if (!isOperador) {
+    alert('Acesso restrito: A Fila de Homologação de Admissões requer login com perfil de Operador ou Administrador.');
+    window.location.href = 'login.html?redirect=index.html';
+    return;
   }
 
   const modal = document.getElementById('modalFilaAprovacaoSecretaria');
@@ -7493,7 +7477,25 @@ window.addEventListener('afa_solicitacao_aprovada', () => {
 
 // Inicialização de pendências, autenticação e verificação de URL (?abrirCadastro=1)
 async function inicializarFase4Index() {
+  const params = new URLSearchParams(window.location.search);
+  const isAcessoCadastro = (params.get('abrirCadastro') === '1' || params.get('cadastro') === '1');
+
   if (window.AppAuth) {
+    await window.AppAuth.init();
+
+    // Se o usuário não estiver autenticado:
+    if (!window.AppAuth.isAuthenticated()) {
+      if (isAcessoCadastro) {
+        // Exceção de Regra de Negócio: Única sessão pública permitida sem login
+        setTimeout(abrirModalNovoMilitar, 300);
+        return;
+      } else {
+        // Qualquer outro acesso exige autenticação militar
+        window.location.href = 'login.html?redirect=index.html';
+        return;
+      }
+    }
+
     if (typeof window.AppAuth.refreshProfile === 'function') {
       await window.AppAuth.refreshProfile();
     }
@@ -7501,7 +7503,7 @@ async function inicializarFase4Index() {
     const p = window.AppAuth.getProfile();
     const loginBtn = document.getElementById('hero-btn-login');
     const loginLabel = document.getElementById('hero-login-label');
-    if (window.AppAuth.isAuthenticated() && p) {
+    if (p) {
       if (loginLabel) loginLabel.textContent = `${p.posto_grad || ''} ${p.nome_guerra || 'Militar'}`;
       if (loginBtn) {
         loginBtn.title = `Conectado como ${p.posto_grad} ${p.nome_guerra} (${p.perfil})`;
@@ -7516,8 +7518,7 @@ async function inicializarFase4Index() {
   }
 
   atualizarBadgesPendencias();
-  const params = new URLSearchParams(window.location.search);
-  if (params.get('abrirCadastro') === '1' || params.get('cadastro') === '1') {
+  if (isAcessoCadastro) {
     setTimeout(abrirModalNovoMilitar, 400);
   }
 }
