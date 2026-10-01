@@ -442,7 +442,7 @@
               Sua conta foi criada com sucesso, mas o acesso aos módulos administrativos requer liberação da <b>Secretaria da Divisão de Ensino</b>.
             </p>
             <div style="background:rgba(212,168,75,.08);border:1px dashed rgba(212,168,75,.3);border-radius:10px;padding:1rem;font-size:.85rem;color:#e9c877;margin-bottom:2rem;text-align:left;">
-              💡 <b>Próximo Passo:</b> Entre em contato com a Secretaria DE (Ramal 7992 / 7815) informando seu SARAM para ter seu perfil homologado (Operador, Coordenador ou Militar).
+              💡 <b>Próximo Passo:</b> Entre em contato com a Secretaria DE (Ramal 7992 / 7815) informando seu SARAM para ter seu perfil homologado (Operador, Coordenador ou Efetivo).
             </div>
             <div style="display:flex;gap:1rem;justify-content:center;">
               <button onclick="window.AppAuth.logout('index.html')" style="padding:.75rem 1.5rem;background:transparent;border:1px solid rgba(207,228,255,.3);color:#cfe4ff;border-radius:8px;cursor:pointer;font-weight:600;">Página Inicial</button>
@@ -509,7 +509,8 @@
         secretaria: { bg: 'rgba(52,211,153,.15)', border: '#34d399', text: '#6ee7b7', label: 'SECRETARIA DE' },
         gestor: { bg: 'rgba(52,211,153,.15)', border: '#34d399', text: '#6ee7b7', label: 'SECRETARIA DE' },
         coordenador: { bg: 'rgba(96,165,250,.15)', border: '#60a5fa', text: '#93c5fd', label: 'COORDENAÇÃO' },
-        militar: { bg: 'rgba(207,228,255,.12)', border: 'rgba(207,228,255,.3)', text: '#cfe4ff', label: 'MILITAR' }
+        militar: { bg: 'rgba(207,228,255,.12)', border: 'rgba(207,228,255,.3)', text: '#cfe4ff', label: 'EFETIVO' },
+        efetivo: { bg: 'rgba(207,228,255,.12)', border: 'rgba(207,228,255,.3)', text: '#cfe4ff', label: 'EFETIVO' }
       };
 
       const roleInfo = roleBadgeColors[p.perfil] || roleBadgeColors.militar;

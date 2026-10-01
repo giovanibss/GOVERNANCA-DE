@@ -1343,31 +1343,39 @@
        FASE 3: GESTÃO DE CARGOS, DESLIGAMENTO E EX-INTEGRANTES
        ══════════════════════════════════════════════════════════════ */
     SEED_ORGANOGRAMA_CARGOS: [
-      { chave_sigla: 'DE', secao_nome: 'Divisão de Ensino', titulo_exibicao: 'CHEFE', titular_saram: '3147550' },
-      { chave_sigla: 'VC-DE', secao_nome: 'Vice-Chefia da Divisão de Ensino', titulo_exibicao: 'VC-DE', titular_saram: '1047612' },
-      { chave_sigla: 'SEC-DE', secao_nome: 'Secretaria da Divisão de Ensino', titulo_exibicao: 'SEC-DE', titular_saram: '4311779' },
-      { chave_sigla: 'CLMP', secao_nome: 'Célula de Logística de Material e Patrimônio', titulo_exibicao: 'CLMP', titular_saram: '3324346' },
-      { chave_sigla: 'CADA', secao_nome: 'Subdivisão de Apoio Docente e Discente', titulo_exibicao: 'CADA', titular_saram: '3410773' },
-      { chave_sigla: 'CADE', secao_nome: 'Célula de Análise de Desempenho de Ensino', titulo_exibicao: 'CADE', titular_saram: '7335326' },
-      { chave_sigla: 'CAAP', secao_nome: 'Célula de Avaliação e Abordagem Psicopedagógica', titulo_exibicao: 'CAAP', titular_saram: '7272448' },
-      { chave_sigla: 'CDEns', secao_nome: 'Célula de Documentação do Ensino', titulo_exibicao: 'CDEns', titular_saram: '7430540' },
-      { chave_sigla: 'SED', secao_nome: 'Seção de Educação a Distância', titulo_exibicao: 'SED', titular_saram: '3962180' },
-      { chave_sigla: 'SDPL', secao_nome: 'Subdivisão de Planejamento', titulo_exibicao: 'SDPL', titular_saram: '3324346' },
-      { chave_sigla: 'SPE', secao_nome: 'Seção de Planejamento de Ensino', titulo_exibicao: 'SPE', titular_saram: '6482805' },
-      { chave_sigla: 'SAPRE', secao_nome: 'Seção de Análise de Programação de Ensino', titulo_exibicao: 'SAPRE', titular_saram: '7488718' },
-      { chave_sigla: 'SDEX', secao_nome: 'Subdivisão de Execução', titulo_exibicao: 'SDEX', titular_saram: '3256537' },
-      { chave_sigla: 'SAE', secao_nome: 'Seção de Admissão e Exclusão', titulo_exibicao: 'SAE', titular_saram: '7430442' },
-      { chave_sigla: 'SPI', secao_nome: 'Seção de Programas Internacionais', titulo_exibicao: 'SPI', titular_saram: '7488734' },
-      { chave_sigla: 'SSE', secao_nome: 'Seção de Serviços Escolares', titulo_exibicao: 'SSE', titular_saram: '7488645' },
-      { chave_sigla: 'SVA', secao_nome: 'Seção de Verificação de Aprendizagem', titulo_exibicao: 'SVA', titular_saram: '3822427' },
-      { chave_sigla: 'SPPC', secao_nome: 'Subdivisão de Pesquisa e Produção Científica', titulo_exibicao: 'SPPC', titular_saram: '4200101' },
-      { chave_sigla: 'CTCC', secao_nome: 'Coordenadoria de Trabalho de Conclusão de Curso', titulo_exibicao: 'CTCC', titular_saram: '7488793' },
-      { chave_sigla: 'CPC', secao_nome: 'Coordenadoria de Produção Científica', titulo_exibicao: 'CPC', titular_saram: '7708408' },
-      { chave_sigla: 'CPubl', secao_nome: 'Coordenadoria de Publicação', titulo_exibicao: 'CPubl', titular_saram: '7535082' },
-      { chave_sigla: 'BIBLI', secao_nome: 'Biblioteca da Divisão de Ensino', titulo_exibicao: 'BIBLI', titular_saram: '7430450' },
-      { chave_sigla: 'SDIA', secao_nome: 'Subdivisão de Instrução de Aviação', titulo_exibicao: 'SDIA', titular_saram: '3822141' },
-      { chave_sigla: 'SDINT', secao_nome: 'Subdivisão de Instrução de Intendência', titulo_exibicao: 'SDINT', titular_saram: '1047612' },
-      { chave_sigla: 'SDINF', secao_nome: 'Subdivisão de Instrução de Infantaria', titulo_exibicao: 'SDINF', titular_saram: '3834743' }
+      { chave_sigla: 'DE', parent_sigla: null, secao_nome: 'Divisão de Ensino', titulo_exibicao: 'CHEFE', tipo_no: 'raiz', ordem: 1, nivel: 0, titular_posto: 'Cel Av', titular_nome: 'Marcelo Resende', titular_saram: '3147550', categoria: 'chefe' },
+      { chave_sigla: 'VC-DE', parent_sigla: 'DE', secao_nome: 'Vice-Chefia da Divisão de Ensino', titulo_exibicao: 'VC-DE', tipo_no: 'staff', ordem: 1, nivel: 1, titular_posto: 'Cel R1', titular_nome: 'Lopes', titular_saram: '1047612', categoria: 'chefe' },
+      { chave_sigla: 'SEC-DE', parent_sigla: 'VC-DE', secao_nome: 'Secretaria da Divisão de Ensino', titulo_exibicao: 'SEC-DE', tipo_no: 'staff', ordem: 1, nivel: 2, titular_posto: 'Cap AV', titular_nome: 'Bassanesi', titular_saram: '4311779', categoria: 'chefe' },
+      { chave_sigla: 'CIE-DE', parent_sigla: 'SEC-DE', secao_nome: 'Célula de Infraestrutura do Ensino', titulo_exibicao: 'Célula de Infraestrutura do Ensino (CIE-DE)', tipo_no: 'celula', ordem: 1, nivel: 3, titular_posto: '1T', titular_nome: 'Alex', titular_saram: '7488718', categoria: 'oficial' },
+      { chave_sigla: 'COS-DE', parent_sigla: 'SEC-DE', secao_nome: 'Célula de Obtenções e Serviços', titulo_exibicao: 'Célula de Obtenções e Serviços (COS-DE)', tipo_no: 'celula', ordem: 2, nivel: 3, titular_posto: '1T', titular_nome: 'Camila Calherani', titular_saram: '7272421', categoria: 'oficial' },
+      { chave_sigla: 'CLMP', parent_sigla: 'VC-DE', secao_nome: 'Célula de Logística de Material e Patrimônio', titulo_exibicao: 'CLMP', tipo_no: 'staff', ordem: 2, nivel: 2, titular_posto: 'Ten Cel Av', titular_nome: 'Pacheco', titular_saram: '3324346', categoria: 'chefe' },
+      { chave_sigla: 'CADA', parent_sigla: 'DE', secao_nome: 'Subdivisão de Apoio Docente e Discente', titulo_exibicao: 'CADA', tipo_no: 'subdivisao', ordem: 2, nivel: 1, titular_posto: 'Ten Cel Av', titular_nome: 'Belli', titular_saram: '3410773', categoria: 'chefe' },
+      { chave_sigla: 'CADE', parent_sigla: 'CADA', secao_nome: 'Célula de Análise de Desempenho de Ensino', titulo_exibicao: 'CADE', tipo_no: 'celula', ordem: 1, nivel: 2, titular_posto: '1T', titular_nome: 'Remédio', titular_saram: '7335326', categoria: 'oficial' },
+      { chave_sigla: 'CAAP', parent_sigla: 'CADA', secao_nome: 'Célula de Avaliação e Abordagem Psicopedagógica', titulo_exibicao: 'CAAP', tipo_no: 'celula', ordem: 2, nivel: 2, titular_posto: '1T', titular_nome: 'Débora Sunega', titular_saram: '7272448', categoria: 'oficial' },
+      { chave_sigla: 'CDEns', parent_sigla: 'CADA', secao_nome: 'Célula de Documentação do Ensino', titulo_exibicao: 'CDEns', tipo_no: 'celula', ordem: 3, nivel: 2, titular_posto: '1T', titular_nome: 'Thais Bergue', titular_saram: '7430540', categoria: 'oficial' },
+      { chave_sigla: 'SED', parent_sigla: 'DE', secao_nome: 'Seção de Educação a Distância', titulo_exibicao: 'SED', tipo_no: 'secao', ordem: 3, nivel: 1, titular_posto: 'Cap', titular_nome: 'Frederico', titular_saram: '3962180', categoria: 'oficial' },
+      { chave_sigla: 'SDPL', parent_sigla: 'DE', secao_nome: 'Subdivisão de Planejamento', titulo_exibicao: 'SDPL', tipo_no: 'subdivisao', ordem: 4, nivel: 1, titular_posto: 'Ten Cel Av', titular_nome: 'Pacheco', titular_saram: '3324346', categoria: 'chefe' },
+      { chave_sigla: 'SPE', parent_sigla: 'SDPL', secao_nome: 'Seção de Planejamento de Ensino', titulo_exibicao: 'Seção de Planejamento de Ensino (SPE)', tipo_no: 'secao', ordem: 1, nivel: 2, titular_posto: '1T Av', titular_nome: 'Wellington', titular_saram: '6482805', categoria: 'oficial' },
+      { chave_sigla: 'SAPRE', parent_sigla: 'SDPL', secao_nome: 'Seção de Análise de Programação de Ensino', titulo_exibicao: 'Seção de Análise de Programação de Ensino (SAPRE)', tipo_no: 'secao', ordem: 2, nivel: 2, titular_posto: '1T', titular_nome: 'Alex', titular_saram: '7488718', categoria: 'oficial' },
+      { chave_sigla: 'SDEX', parent_sigla: 'DE', secao_nome: 'Subdivisão de Execução', titulo_exibicao: 'SDEX', tipo_no: 'subdivisao', ordem: 5, nivel: 1, titular_posto: 'Ten Cel Av', titular_nome: 'Nicolazzi', titular_saram: '3256537', categoria: 'chefe' },
+      { chave_sigla: 'SAE', parent_sigla: 'SDEX', secao_nome: 'Seção de Admissão e Exclusão', titulo_exibicao: 'Seção de Admissão e Exclusão (SAE)', tipo_no: 'secao', ordem: 1, nivel: 2, titular_posto: '1T', titular_nome: 'Mariana', titular_saram: '7430442', categoria: 'oficial' },
+      { chave_sigla: 'SPI', parent_sigla: 'SDEX', secao_nome: 'Seção de Programas Internacionais', titulo_exibicao: 'Seção de Programas Internacionais (SPI)', tipo_no: 'secao', ordem: 2, nivel: 2, titular_posto: '1T', titular_nome: 'Franco', titular_saram: '7488734', categoria: 'oficial' },
+      { chave_sigla: 'SSE', parent_sigla: 'SDEX', secao_nome: 'Seção de Serviços Escolares', titulo_exibicao: 'Seção de Serviços Escolares (SSE)', tipo_no: 'secao', ordem: 3, nivel: 2, titular_posto: '1T', titular_nome: 'Andrade', titular_saram: '7488645', categoria: 'oficial' },
+      { chave_sigla: 'SVA', parent_sigla: 'SDEX', secao_nome: 'Seção de Verificação de Aprendizagem', titulo_exibicao: 'Seção de Verificação de Aprendizagem (SVA)', tipo_no: 'secao', ordem: 4, nivel: 2, titular_posto: 'Maj Av', titular_nome: 'Pedro', titular_saram: '3822427', categoria: 'oficial' },
+      { chave_sigla: 'SPPC', parent_sigla: 'DE', secao_nome: 'Subdivisão de Pesquisa e Produção Científica', titulo_exibicao: 'SPPC', tipo_no: 'subdivisao', ordem: 6, nivel: 1, titular_posto: 'Maj', titular_nome: 'Mendes', titular_saram: '4200101', categoria: 'chefe' },
+      { chave_sigla: 'CTCC', parent_sigla: 'SPPC', secao_nome: 'Coordenadoria de Trabalho de Conclusão de Curso', titulo_exibicao: 'Coordenadoria de Trabalho de Conclusão de Curso (CTCC)', tipo_no: 'secao', ordem: 1, nivel: 2, titular_posto: '1T', titular_nome: 'Rebeca Mega', titular_saram: '7488793', categoria: 'oficial' },
+      { chave_sigla: 'CPC', parent_sigla: 'SPPC', secao_nome: 'Coordenadoria de Produção Científica', titulo_exibicao: 'Coordenadoria de Produção Científica (CPC)', tipo_no: 'secao', ordem: 2, nivel: 2, titular_posto: '2T', titular_nome: 'Renan Peixoto', titular_saram: '7708408', categoria: 'oficial' },
+      { chave_sigla: 'CPubl', parent_sigla: 'SPPC', secao_nome: 'Coordenadoria de Publicação', titulo_exibicao: 'Coordenadoria de Publicação (CPubl)', tipo_no: 'secao', ordem: 3, nivel: 2, titular_posto: '1T', titular_nome: 'Leonardo', titular_saram: '7535082', categoria: 'oficial' },
+      { chave_sigla: 'BIBLI', parent_sigla: 'SPPC', secao_nome: 'Biblioteca da Divisão de Ensino', titulo_exibicao: 'Biblioteca (BIBLI)', tipo_no: 'secao', ordem: 4, nivel: 2, titular_posto: '1T', titular_nome: 'C. Rodrigues', titular_saram: '7430450', categoria: 'oficial' },
+      { chave_sigla: 'SDIC', parent_sigla: 'DE', secao_nome: 'Subdivisão de Instrução Científica', titulo_exibicao: 'SDIC', tipo_no: 'subdivisao', ordem: 7, nivel: 1, titular_posto: 'Profa', titular_nome: 'Marina', titular_saram: '', categoria: 'oficial' },
+      { chave_sigla: 'SDIA', parent_sigla: 'DE', secao_nome: 'Subdivisão de Instrução de Aviação', titulo_exibicao: 'SDIA', tipo_no: 'subdivisao', ordem: 8, nivel: 1, titular_posto: 'Maj', titular_nome: 'Puhle', titular_saram: '3822141', categoria: 'chefe' },
+      { chave_sigla: 'SIAV', parent_sigla: 'SDIA', secao_nome: 'Seção de Instrução de Aviação', titulo_exibicao: 'Seção de Instrução de Aviação (SIAV)', tipo_no: 'secao', ordem: 1, nivel: 2, titular_posto: 'Maj', titular_nome: 'Puhle', titular_saram: '3822141', categoria: 'oficial' },
+      { chave_sigla: 'CInst-SDIA', parent_sigla: 'SDIA', secao_nome: 'Corpo de Instrutores da SDIA', titulo_exibicao: 'Corpo de Instrutores (CInst-SDIA)', tipo_no: 'secao', ordem: 2, nivel: 2, titular_posto: 'Maj', titular_nome: 'Puhle', titular_saram: '3822141', categoria: 'oficial' },
+      { chave_sigla: 'SDINT', parent_sigla: 'DE', secao_nome: 'Subdivisão de Instrução de Intendência', titulo_exibicao: 'SDINT', tipo_no: 'subdivisao', ordem: 9, nivel: 1, titular_posto: 'Cel R1', titular_nome: 'Lopes', titular_saram: '1047612', categoria: 'chefe' },
+      { chave_sigla: 'SIINT', parent_sigla: 'SDINT', secao_nome: 'Seção de Instrução de Intendência', titulo_exibicao: 'Seção de Instrução de Intendência (SIINT)', tipo_no: 'secao', ordem: 1, nivel: 2, titular_posto: '1T', titular_nome: 'Kazu', titular_saram: '7488726', categoria: 'oficial' },
+      { chave_sigla: 'SCEst', parent_sigla: 'SDINT', secao_nome: 'Seção de Coordenação de Estágios', titulo_exibicao: 'Seção de Coordenação de Estágios (SCEst)', tipo_no: 'secao', ordem: 2, nivel: 2, titular_posto: 'Maj', titular_nome: 'Everton', titular_saram: '3882136', categoria: 'oficial' },
+      { chave_sigla: 'CInst-SDINT', parent_sigla: 'SDINT', secao_nome: 'Corpo de Instrutores da SDINT', titulo_exibicao: 'Corpo de Instrutores (CInst-SDINT)', tipo_no: 'secao', ordem: 3, nivel: 2, titular_posto: 'Maj', titular_nome: 'Everton', titular_saram: '3882136', categoria: 'oficial' },
+      { chave_sigla: 'SDINF', parent_sigla: 'DE', secao_nome: 'Subdivisão de Instrução de Infantaria', titulo_exibicao: 'SDINF', tipo_no: 'subdivisao', ordem: 10, nivel: 1, titular_posto: 'Ten Cel', titular_nome: 'Muriel', titular_saram: '3834743', categoria: 'chefe' }
     ],
 
     /**
@@ -1390,6 +1398,109 @@
         if (cached) return JSON.parse(cached);
       } catch(e) {}
       return this.SEED_ORGANOGRAMA_CARGOS;
+    },
+
+    /**
+     * Retorna todas as seções subordinadas (em cascata) a partir de uma sigla raiz
+     */
+    obterSecoesSubordinadas(siglaRaiz, listaNos) {
+      if (!siglaRaiz) return [];
+      const raizNorm = String(siglaRaiz).trim().toUpperCase();
+      const nos = (listaNos && listaNos.length) ? listaNos : this.SEED_ORGANOGRAMA_CARGOS;
+      if (raizNorm === 'DE' || raizNorm === 'VC-DE') {
+        // Chefia e Vice-Chefia da DE comandam todas as seções
+        return nos.map(n => n.chave_sigla.toUpperCase());
+      }
+      const set = new Set([raizNorm]);
+      let adicionou = true;
+      while (adicionou) {
+        adicionou = false;
+        for (const no of nos) {
+          const p = String(no.parent_sigla || '').trim().toUpperCase();
+          const c = String(no.chave_sigla || '').trim().toUpperCase();
+          if (p && set.has(p) && !set.has(c)) {
+            set.add(c);
+            adicionou = true;
+          }
+        }
+      }
+      return Array.from(set);
+    },
+
+    /**
+     * Identifica as atribuições de Chefia e subordinação de um militar pelo SARAM ou objeto de usuário
+     */
+    async getChefiaInfo(usuarioOuSaram) {
+      let saram = '';
+      let perfil = 'militar';
+      if (typeof usuarioOuSaram === 'object' && usuarioOuSaram) {
+        saram = usuarioOuSaram.saram || (usuarioOuSaram.user_metadata && usuarioOuSaram.user_metadata.saram) || '';
+        perfil = (usuarioOuSaram.perfil || (usuarioOuSaram.user_metadata && usuarioOuSaram.user_metadata.perfil) || '').toLowerCase();
+        if (!saram && window.AppAuth && typeof window.AppAuth.getProfile === 'function') {
+          const prof = window.AppAuth.getProfile();
+          if (prof) {
+            if (prof.saram) saram = prof.saram;
+            if (prof.perfil) perfil = prof.perfil.toLowerCase();
+          }
+        }
+      } else {
+        saram = String(usuarioOuSaram || '');
+      }
+      const saramNorm = this.formatarSARAM(saram);
+
+      // Administradores e Membros da Secretaria possuem acesso total a toda a DE
+      if (perfil === 'admin' || perfil === 'operador' || perfil === 'secretaria' || perfil === 'gestor') {
+        const organo = await this.fetchOrganogramaCargos();
+        const todas = organo.map(n => n.chave_sigla.toUpperCase());
+        return {
+          isChefe: true,
+          isSuperChefe: true,
+          cargoTitulo: 'Administração / Secretaria DE',
+          secoesTitular: ['DE'],
+          secoesSubordinadas: todas
+        };
+      }
+
+      if (!saramNorm) {
+        return { isChefe: false, isSuperChefe: false, cargoTitulo: '', secoesTitular: [], secoesSubordinadas: [] };
+      }
+
+      const organo = await this.fetchOrganogramaCargos();
+      const nosTitular = organo.filter(n => this.formatarSARAM(n.titular_saram) === saramNorm);
+      const secoesTitular = new Set(nosTitular.map(n => n.chave_sigla.toUpperCase()));
+      let cargoTitulo = nosTitular.length ? (nosTitular[0].titulo_exibicao || nosTitular[0].secao_nome) : '';
+
+      // Também confere se o militar tem cargo explícito de Chefe/Encarregado no efetivo
+      const militar = await this.buscarMilitar(saramNorm);
+      if (militar && militar.cargo_funcao) {
+        const isCargoChefia = /\b(chefe|vice-chefe|comandante|diretor|encarregado|coordenador)\b/i.test(militar.cargo_funcao);
+        if (isCargoChefia) {
+          const secoes = this.extrairSecoes(militar.cargo_funcao);
+          secoes.forEach(s => secoesTitular.add(s.toUpperCase()));
+          if (!cargoTitulo) cargoTitulo = militar.cargo_funcao;
+        }
+      }
+
+      if (!secoesTitular.size) {
+        return { isChefe: false, isSuperChefe: false, cargoTitulo: '', secoesTitular: [], secoesSubordinadas: [] };
+      }
+
+      // Calcula todas as seções subordinadas em cascata
+      const subordSet = new Set();
+      for (const sigla of secoesTitular) {
+        const subs = this.obterSecoesSubordinadas(sigla, organo);
+        subs.forEach(s => subordSet.add(s));
+      }
+
+      const isRoot = secoesTitular.has('DE') || secoesTitular.has('VC-DE');
+
+      return {
+        isChefe: true,
+        isSuperChefe: isRoot,
+        cargoTitulo: cargoTitulo || 'Chefe de Seção',
+        secoesTitular: Array.from(secoesTitular),
+        secoesSubordinadas: Array.from(subordSet)
+      };
     },
 
     /**

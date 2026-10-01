@@ -167,6 +167,13 @@
     }
     .present .mil-card { border-left-color:var(--green-500); }
     .absent  .mil-card { border-left-color:var(--red-500); }
+    .mil-card.somente-leitura {
+      cursor: default !important;
+      background: #fafbfc;
+      opacity: 0.9;
+    }
+    .mil-card.somente-leitura:hover { box-shadow: none; }
+    .mil-card.somente-leitura:active { cursor: default; }
 
     .mil-avatar { width:34px; height:34px; flex-shrink:0; border-radius:6px; background:linear-gradient(135deg,var(--navy-600),var(--navy-800)); color:var(--gold-300); display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:600; font-size:.72rem; letter-spacing:.02em; }
     .present .mil-avatar { background:linear-gradient(135deg,var(--green-500),#0f9d6e); color:white; }
@@ -837,12 +844,19 @@
     </div>
 
     <main>
-      <div class="toolbar">
+      <div class="toolbar" style="flex-wrap:wrap;gap:0.75rem;">
         <div class="date-pill" id="date-pill">—</div>
-        <div class="search-box">
+        <div class="search-box" style="flex:1;min-width:180px;max-width:320px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
-          <input type="text" id="search" placeholder="Buscar militar…" oninput="renderBoard()" />
+          <input type="text" id="search" placeholder="Buscar militar ou seção…" oninput="renderBoard()" />
         </div>
+        <div id="filtro-secao-chamada-wrap" style="display:flex;align-items:center;gap:.5rem;">
+          <select id="sel-filtro-secao-chamada" onchange="this.dataset.userChanged='true'; renderBoard()" style="font-family:var(--font-body);font-size:.82rem;padding:.5rem .85rem;border:1px solid var(--navy-200);border-radius:6px;background:white;color:var(--navy-900);outline:none;cursor:pointer;font-weight:600;">
+            <option value="todos">🌐 Toda a Divisão de Ensino</option>
+            <option value="meus" id="opt-meus-subordinados" style="display:none">🏢 Meus Subordinados</option>
+          </select>
+        </div>
+        <div id="badge-chefia-status" style="display:none;font-family:var(--font-body);font-size:.78rem;font-weight:600;padding:.45rem .85rem;border-radius:6px;background:rgba(212,168,75,0.12);border:1px solid var(--gold-500);color:var(--navy-900);margin-left:auto;"></div>
       </div>
 
       <div class="board">
@@ -1594,8 +1608,9 @@ function setSyncDot(ok) {
 /* ══════════════════════════════════════════════════════════════
    ESTADO
    ══════════════════════════════════════════════════════════════ */
-let efetivo = [];   // [{id, rank, spec, name, status}]  status: 'pool'|'present'|'absent'
+let efetivo = [];   // [{id, rank, spec, name, saram, secao, secoes_lista, cargo_funcao, status}]
 let dragId = null;
+let chefiaInfo = null;
 
 /* ══════════════════════════════════════════════════════════════
    LEITURA DA BASE OFICIAL DE EFETIVO (CENTRALIZADO)
@@ -1611,14 +1626,23 @@ async function loadEfetivo() {
       try {
         const rows = await window.AppConfig.fetchEfetivo({ activeOnly: true });
         if (rows && rows.length > 0) {
-          parsed = rows.map((m, i) => ({
-            id: 'm' + i,
-            rank: (m.posto_grad || m.graduacao || '').trim(),
-            spec: (m.especialidade || m.quadro_esp || '').trim(),
-            name: (m.nome_guerra || m.nome_completo || '').trim(),
-            saram: m.saram,
-            status: 'pool'
-          })).filter(m => m.name && !ehExcluido(m.name));
+          parsed = rows.map((m, i) => {
+            const secoes = (m.secoes_lista && m.secoes_lista.length) 
+              ? m.secoes_lista 
+              : (window.AppConfig ? window.AppConfig.extrairSecoes(m.cargo_funcao) : [m.secao_sigla || 'DE']);
+            const secaoPrincipal = String(m.secao_sigla || secoes[0] || 'DE').toUpperCase().trim();
+            return {
+              id: 'm' + i,
+              rank: (m.posto_grad || m.graduacao || '').trim(),
+              spec: (m.especialidade || m.quadro_esp || '').trim(),
+              name: (m.nome_guerra || m.nome_completo || '').trim(),
+              saram: m.saram ? String(m.saram).replace(/\D/g, '') : '',
+              secao: secaoPrincipal,
+              secoes_lista: secoes.map(s => String(s).toUpperCase().trim()),
+              cargo_funcao: m.cargo_funcao || '',
+              status: 'pool'
+            };
+          }).filter(m => m.name && !ehExcluido(m.name));
         }
       } catch(errDb) {
         console.warn('Falha ao carregar efetivo via AppConfig, tentando Google GViz:', errDb);
@@ -1645,6 +1669,10 @@ async function loadEfetivo() {
         parsed.push({
           id: 'm' + i,
           rank, spec, name,
+          saram: '',
+          secao: 'DE',
+          secoes_lista: ['DE'],
+          cargo_funcao: '',
           status: 'pool',
         });
       });
@@ -1665,7 +1693,7 @@ async function loadEfetivo() {
     efetivo = parsed;
     setBanner('success', `Efetivo carregado: ${efetivo.length} militares.`);
     setTimeout(() => setBanner(null), 2500);
-    renderBoard();
+    atualizarBadgeEFiltrosChefia();
     puxarEstado();   // busca no servidor o que já foi marcado hoje (outros aparelhos)
   } catch (e) {
     setBanner('error', '⚠️ ' + (e.message || 'Falha ao ler a planilha de efetivo.'));
@@ -1684,8 +1712,28 @@ function initials(name) {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
+function podeEditarMilitarNaChamada(m) {
+  if (!window.AppAuth || !window.AppAuth.isAuthenticated()) return false;
+  if (window.AppAuth.isOperador() || (chefiaInfo && chefiaInfo.isSuperChefe)) return true;
+  if (!chefiaInfo || !chefiaInfo.isChefe) return false;
+  const sub = chefiaInfo.secoesSubordinadas || [];
+  if (sub.includes('TODAS')) return true;
+  const sec = String(m.secao || '').toUpperCase().trim();
+  if (sec && sub.includes(sec)) return true;
+  if (m.secoes_lista && m.secoes_lista.some(s => sub.includes(String(s).toUpperCase().trim()))) return true;
+  return false;
+}
+
 function cardHTML(m) {
   const meta = [m.rank, m.spec].filter(Boolean).join(' · ');
+  const podeEditar = podeEditarMilitarNaChamada(m);
+  const secaoChip = m.secao 
+    ? `<span class="mil-sec-pill" style="font-size:0.65rem;font-weight:700;padding:1px 5px;border-radius:4px;background:var(--navy-100);color:var(--navy-800);border:1px solid var(--navy-200);margin-left:5px;">${escapeHtml_(m.secao)}</span>` 
+    : '';
+  const lockIcon = !podeEditar 
+    ? `<span title="Apenas Chefe da seção (${m.secao || 'outra'}) ou Secretaria podem alterar" style="font-size:0.7rem;opacity:0.6;margin-left:4px;">🔒</span>` 
+    : '';
+
   let actions = '';
   if (m.status === 'pool') {
     actions = `
@@ -1708,24 +1756,24 @@ function cardHTML(m) {
     const tags = (m.tags || []).map(t => `
       <span class="tag ${tagClass_(t)}">
         <span class="tag-txt">${escapeHtml_(t)}</span>
-        <button class="tag-x" data-tag="${escapeHtml_(t)}" title="Remover" aria-label="Remover">×</button>
+        ${podeEditar ? `<button class="tag-x" data-tag="${escapeHtml_(t)}" title="Remover" aria-label="Remover">×</button>` : ''}
       </span>`).join('');
     tagsRow = `
       <div class="tag-row">
         ${tags}
-        <button class="tag-add" title="Adicionar motivo">+ motivo</button>
+        ${podeEditar ? `<button class="tag-add" title="Adicionar motivo">+ motivo</button>` : ''}
       </div>`;
   }
 
   return `
-    <div class="mil-card" id="card-${m.id}" data-id="${m.id}" draggable="true">
+    <div class="mil-card ${!podeEditar ? 'somente-leitura' : ''}" id="card-${m.id}" data-id="${m.id}" draggable="${podeEditar}">
       <div class="mil-card-main">
         <div class="mil-avatar">${initials(m.name)}</div>
         <div class="mil-info">
-          <div class="mil-name">${m.name}</div>
+          <div class="mil-name">${m.name}${secaoChip}${lockIcon}</div>
           <div class="mil-meta">${meta ? '<span class="mil-rank">'+m.rank+'</span>' + (m.spec ? ' · '+m.spec : '') : '—'}</div>
         </div>
-        <div class="mil-actions">${actions}</div>
+        <div class="mil-actions" style="${!podeEditar ? 'opacity:0.35;pointer-events:none;' : ''}">${actions}</div>
       </div>
       ${tagsRow}
     </div>`;
@@ -1743,7 +1791,26 @@ function escapeHtml_(s) {
 
 function renderBoard() {
   const q = (document.getElementById('search').value || '').toLowerCase().trim();
-  const match = m => !q || m.name.toLowerCase().includes(q) || (m.rank||'').toLowerCase().includes(q) || (m.spec||'').toLowerCase().includes(q);
+  const filtroSec = (document.getElementById('sel-filtro-secao-chamada')?.value || 'todos').toUpperCase().trim();
+
+  const matchSecao = m => {
+    if (filtroSec === 'TODOS') return true;
+    if (filtroSec === 'MEUS') {
+      if (!chefiaInfo || !chefiaInfo.secoesSubordinadas) return true;
+      const sub = chefiaInfo.secoesSubordinadas;
+      if (sub.includes('TODAS')) return true;
+      const sec = String(m.secao || '').toUpperCase().trim();
+      if (sec && sub.includes(sec)) return true;
+      if (m.secoes_lista && m.secoes_lista.some(s => sub.includes(String(s).toUpperCase().trim()))) return true;
+      return false;
+    }
+    const sec = String(m.secao || '').toUpperCase().trim();
+    if (sec === filtroSec) return true;
+    if (m.secoes_lista && m.secoes_lista.some(s => String(s).toUpperCase().trim() === filtroSec)) return true;
+    return false;
+  };
+
+  const match = m => matchSecao(m) && (!q || m.name.toLowerCase().includes(q) || (m.rank||'').toLowerCase().includes(q) || (m.spec||'').toLowerCase().includes(q) || (m.secao||'').toLowerCase().includes(q));
 
   const buckets = { pool: [], present: [], absent: [] };
   efetivo.forEach(m => { if (match(m)) buckets[m.status].push(m); });
@@ -1752,22 +1819,27 @@ function renderBoard() {
   fillCol('present', buckets.present, 'Solte aqui quem está presente');
   fillCol('absent', buckets.absent, 'Solte aqui quem faltou');
 
-  // Contadores (sobre o efetivo inteiro, não o filtrado)
+  // Contadores (sobre os militares do filtro ativo)
   const all = { pool:0, present:0, absent:0 };
-  efetivo.forEach(m => all[m.status]++);
+  efetivo.forEach(m => {
+    if (matchSecao(m)) all[m.status]++;
+  });
   document.getElementById('head-pool').textContent = all.pool;
   document.getElementById('head-present').textContent = all.present;
   document.getElementById('head-absent').textContent = all.absent;
 
-  document.getElementById('cnt-total').textContent = efetivo.length || '—';
+  const totalExibido = all.pool + all.present + all.absent;
+  document.getElementById('cnt-total').textContent = totalExibido || '—';
   document.getElementById('cnt-present').textContent = all.present;
   document.getElementById('cnt-absent').textContent = all.absent;
   document.getElementById('cnt-pending').textContent = all.pool;
   const chamados = all.present + all.absent;
   document.getElementById('cnt-pct').textContent = chamados ? Math.round(all.present / chamados * 100) + '%' : '—';
 
-  // Habilita gravar só quando houver pelo menos uma marcação
-  document.getElementById('save-btn').disabled = (all.present + all.absent) === 0;
+  // Habilita gravar só quando houver pelo menos uma marcação e permissão de gravação
+  const isOperador = window.AppAuth && window.AppAuth.isOperador();
+  const podeGravar = isOperador || (chefiaInfo && (chefiaInfo.isChefe || chefiaInfo.isSuperChefe));
+  document.getElementById('save-btn').disabled = !podeGravar || (all.present + all.absent) === 0;
 
   attachDragHandlers();
 }
@@ -1780,10 +1852,19 @@ function fillCol(status, list, emptyMsg) {
 function setStatus(id, status, ev) {
   if (ev) ev.stopPropagation();
   const m = efetivo.find(x => x.id === id);
-  if (m) {
-    m.status = status;
-    aplicarRegrasDeTags_(m);
+  if (!m) return;
+
+  if (!podeEditarMilitarNaChamada(m)) {
+    if (chefiaInfo && chefiaInfo.isChefe) {
+      alert(`Acesso restrito: ${m.name} pertence à seção ${m.secao || 'outra'}.\nComo Chefe, você pode atualizar apenas militares subordinados à sua seção (${chefiaInfo.secoesTitular.join(', ')}).`);
+    } else {
+      alert('Acesso restrito: Apenas Chefes de Seção e membros da Secretaria podem alterar a chamada.');
+    }
+    return;
   }
+
+  m.status = status;
+  aplicarRegrasDeTags_(m);
   salvarEstado();
   if (m) enviarMudanca(m.name, status);
   renderBoard();
@@ -1854,7 +1935,16 @@ function clearDragOver() {
 function dropOn(id, status) {
   if (!id || !status) return;
   const m = efetivo.find(x => x.id === id);
-  if (m && m.status !== status) {
+  if (!m) return;
+  if (!podeEditarMilitarNaChamada(m)) {
+    if (chefiaInfo && chefiaInfo.isChefe) {
+      alert(`Acesso restrito: ${m.name} pertence à seção ${m.secao || 'outra'}.\nComo Chefe, você pode atualizar apenas militares subordinados à sua seção (${chefiaInfo.secoesTitular.join(', ')}).`);
+    } else {
+      alert('Acesso restrito: Apenas Chefes de Seção e membros da Secretaria podem alterar a chamada.');
+    }
+    return;
+  }
+  if (m.status !== status) {
     m.status = status;
     aplicarRegrasDeTags_(m);
     salvarEstado();
@@ -1871,6 +1961,10 @@ function abrirMenuTags(id, ev) {
   fecharMenuTags();
   const m = efetivo.find(x => x.id === id);
   if (!m) return;
+  if (!podeEditarMilitarNaChamada(m)) {
+    alert('Acesso restrito: Você não possui permissão para editar os motivos deste militar.');
+    return;
+  }
   const card = document.getElementById('card-' + id);
   if (!card) return;
 
@@ -1975,7 +2069,7 @@ function posicionarMenu(menu, card) {
 function alternarTag(id, tag, ev) {
   if (ev) ev.stopPropagation();
   const m = efetivo.find(x => x.id === id);
-  if (!m) return;
+  if (!m || !podeEditarMilitarNaChamada(m)) return;
   if (!Array.isArray(m.tags)) m.tags = [];
   const idx = m.tags.indexOf(tag);
   if (idx >= 0) m.tags.splice(idx, 1);
@@ -1996,7 +2090,7 @@ function adicionarTagCustom(id, ev) {
   const val = (input.value || '').trim().toUpperCase();
   if (!val) return;
   const m = efetivo.find(x => x.id === id);
-  if (!m) return;
+  if (!m || !podeEditarMilitarNaChamada(m)) return;
   if (!Array.isArray(m.tags)) m.tags = [];
   m.tags = m.tags.filter(t => t !== ETIQUETA_PADRAO);
   if (!m.tags.includes(val)) m.tags.push(val);
@@ -2007,7 +2101,7 @@ function adicionarTagCustom(id, ev) {
 function removerTag(id, tag, ev) {
   if (ev) ev.stopPropagation();
   const m = efetivo.find(x => x.id === id);
-  if (!m) return;
+  if (!m || !podeEditarMilitarNaChamada(m)) return;
   m.tags = (m.tags || []).filter(t => t !== tag);
   // Nota: pode ficar vazio; ver comentário em alternarTag.
   aoMudarTags_(m);
@@ -2081,12 +2175,27 @@ function colUnder(x, y) {
    BOTÃO "Salvar / sincronizar" — reenvia todas as marcações do dia
    ══════════════════════════════════════════════════════════════ */
 async function saveChamada() {
-  if (!window.AppAuth || !window.AppAuth.isOperador()) {
-    alert('Acesso restrito: Apenas membros da Secretaria da Divisão de Ensino possuem permissão para gravar a chamada.');
+  const isOperador = window.AppAuth && window.AppAuth.isOperador();
+  const isChefe = chefiaInfo && (chefiaInfo.isChefe || chefiaInfo.isSuperChefe);
+
+  if (!isOperador && !isChefe) {
+    alert('Acesso restrito: Apenas Chefes de Seção e membros da Secretaria da Divisão de Ensino possuem permissão para gravar a chamada.');
     return;
   }
-  const marcados = efetivo.filter(m => m.status !== 'pool');
-  if (!marcados.length) { setBanner('error', 'Nenhuma marcação para sincronizar.'); return; }
+
+  // Define os militares que o usuário tem autoridade para sincronizar
+  const militaresAlvo = (isOperador || chefiaInfo?.isSuperChefe) 
+    ? efetivo 
+    : efetivo.filter(m => podeEditarMilitarNaChamada(m));
+
+  const marcados = militaresAlvo.filter(m => m.status !== 'pool');
+  if (!marcados.length) {
+    setBanner('error', isOperador ? 'Nenhuma marcação para sincronizar.' : 'Nenhuma marcação encontrada para os militares subordinados à sua chefia.');
+    return;
+  }
+
+  const presentesCount = marcados.filter(m => m.status === 'present').length;
+  const faltasCount = marcados.filter(m => m.status === 'absent').length;
 
   const payload = {
     dia: hojeStr(),
@@ -2118,7 +2227,10 @@ async function saveChamada() {
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload),
     });
-    setBanner('success', `✓ Sincronizado (${payload.resumo.presentes} presentes, ${payload.resumo.faltas} faltas). A aba do dia está atualizada na planilha.`);
+    const contextoTxt = (!isOperador && !chefiaInfo?.isSuperChefe && chefiaInfo?.secoesTitular) 
+      ? ` da seção (${chefiaInfo.secoesTitular.join(', ')})` 
+      : '';
+    setBanner('success', `✓ Sincronizado${contextoTxt} (${presentesCount} presentes, ${faltasCount} faltas). A aba do dia está atualizada na planilha.`);
     setTimeout(() => setBanner(null), 6000);
   } catch (e) {
     setBanner('error', '⚠️ Não foi possível sincronizar: ' + (e.message || e));
@@ -2164,21 +2276,119 @@ async function checarAutenticacaoPIN() {
     window.AppAuth.renderUserBar('#afa-topbar-placeholder');
   }
 
-  const isOperador = window.AppAuth && window.AppAuth.isOperador();
   const gate = document.getElementById('pinGate');
   const content = document.getElementById('efetivoContent');
   const lockBtn = document.getElementById('lock-btn');
-  const saveBtn = document.getElementById('save-btn');
 
   // Todo militar autenticado acessa a visualização do efetivo (o que era livre)
   if (gate) gate.style.display = 'none';
   if (content) content.style.display = 'block';
   if (lockBtn) lockBtn.style.display = 'inline-flex';
 
-  // Gravar chamada restrito a membros da Secretaria
-  if (saveBtn) {
-    saveBtn.style.display = isOperador ? 'inline-flex' : 'none';
+  // Carrega atribuições de Chefia e permissões no Organograma
+  if (window.AppConfig && typeof window.AppConfig.getChefiaInfo === 'function') {
+    try {
+      const userProfile = (window.AppAuth && typeof window.AppAuth.getProfile === 'function')
+        ? (window.AppAuth.getProfile() || window.AppAuth.getUser())
+        : (window.AppAuth ? window.AppAuth.getUser() : null);
+      chefiaInfo = await window.AppConfig.getChefiaInfo(userProfile);
+    } catch(errChefia) {
+      console.warn('Erro ao carregar permissões de chefia:', errChefia);
+    }
   }
+
+  atualizarBadgeEFiltrosChefia();
+}
+
+function atualizarBadgeEFiltrosChefia() {
+  const sel = document.getElementById('sel-filtro-secao-chamada');
+  const optMeus = document.getElementById('opt-meus-subordinados');
+  const badge = document.getElementById('badge-chefia-status');
+  const saveBtn = document.getElementById('save-btn');
+  const isOperador = window.AppAuth && window.AppAuth.isOperador();
+
+  if (!chefiaInfo) {
+    if (badge) badge.style.display = 'none';
+    if (saveBtn) saveBtn.style.display = isOperador ? 'inline-flex' : 'none';
+    if (sel && efetivo.length) preencherOpcoesSecoes(sel);
+    renderBoard();
+    return;
+  }
+
+  const { isChefe, isSuperChefe, secoesTitular, secoesSubordinadas } = chefiaInfo;
+
+  if (isSuperChefe || isOperador) {
+    if (badge) {
+      badge.style.display = 'inline-flex';
+      badge.innerHTML = `🛡️ <b>Acesso Geral:</b> ${isOperador ? 'Secretaria / Operador' : 'Chefia DE'}`;
+    }
+    if (optMeus) optMeus.style.display = 'none';
+    if (saveBtn) saveBtn.style.display = 'inline-flex';
+  } else if (isChefe) {
+    if (badge) {
+      badge.style.display = 'inline-flex';
+      const titulos = secoesTitular.join(', ');
+      badge.innerHTML = `⭐ <b>Chefia:</b> ${escapeHtml_(titulos)} <span style="margin-left:6px;font-size:0.7rem;opacity:0.8;">(${secoesSubordinadas.length} seções sob sua gestão)</span>`;
+    }
+    if (optMeus) {
+      optMeus.style.display = 'block';
+      optMeus.textContent = `🏢 Meus Subordinados (${secoesTitular.join(', ')})`;
+    }
+    // Para chefes de seção, padrão é focar nos seus subordinados se não tiver alterado manualmente
+    if (sel && !sel.dataset.userChanged) {
+      sel.value = 'meus';
+    }
+    if (saveBtn) saveBtn.style.display = 'inline-flex';
+  } else {
+    // Militar comum (Efetivo)
+    if (badge) {
+      badge.style.display = 'inline-flex';
+      badge.innerHTML = `👁️ <b>Consulta:</b> Efetivo (Modo Leitura)`;
+    }
+    if (optMeus) optMeus.style.display = 'none';
+    if (saveBtn) saveBtn.style.display = 'none';
+  }
+
+  if (sel && efetivo.length) {
+    preencherOpcoesSecoes(sel);
+  }
+
+  renderBoard();
+}
+
+function preencherOpcoesSecoes(sel) {
+  if (!sel) return;
+  const valorAtual = sel.value;
+  const isOperador = window.AppAuth && window.AppAuth.isOperador();
+  const isChefe = chefiaInfo && (chefiaInfo.isChefe || chefiaInfo.isSuperChefe);
+  const subs = chefiaInfo?.secoesSubordinadas || [];
+
+  // Remove grupos de seção anteriores mantendo 'todos' e 'meus'
+  const optGroupAntigo = sel.querySelector('optgroup');
+  if (optGroupAntigo) optGroupAntigo.remove();
+
+  const secoesExistentes = new Set();
+  efetivo.forEach(m => {
+    if (m.secao) secoesExistentes.add(m.secao.toUpperCase().trim());
+    if (m.secoes_lista) m.secoes_lista.forEach(s => secoesExistentes.add(String(s).toUpperCase().trim()));
+  });
+
+  const listaOrdenada = Array.from(secoesExistentes).filter(s => s && s !== 'DE').sort();
+  if (listaOrdenada.length > 0) {
+    const optGroup = document.createElement('optgroup');
+    optGroup.label = '── Filtrar por Seção ──';
+    listaOrdenada.forEach(sec => {
+      const opt = document.createElement('option');
+      opt.value = sec;
+      const ehJurisdicao = isChefe && (isOperador || chefiaInfo?.isSuperChefe || subs.includes(sec));
+      opt.textContent = `${sec}${ehJurisdicao ? ' (Sua chefia)' : ''}`;
+      optGroup.appendChild(opt);
+    });
+    sel.appendChild(optGroup);
+  }
+
+  // Restaura valor selecionado se ainda existir
+  if (valorAtual) sel.value = valorAtual;
 }
 
 async function bloquearSessao() {

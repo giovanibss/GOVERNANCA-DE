@@ -1194,7 +1194,7 @@ a.card-go{text-decoration:none}
 .cfg-badge-role.admin { background: rgba(212, 168, 75, 0.2); border: 1px solid #d4a84b; color: #ffd37a; }
 .cfg-badge-role.operador { background: rgba(52, 211, 153, 0.18); border: 1px solid #34d399; color: #6ee7b7; }
 .cfg-badge-role.coordenador { background: rgba(96, 165, 250, 0.18); border: 1px solid #60a5fa; color: #93c5fd; }
-.cfg-badge-role.militar { background: rgba(207, 228, 255, 0.12); border: 1px solid rgba(207, 228, 255, 0.3); color: #cfe4ff; }
+.cfg-badge-role.militar, .cfg-badge-role.efetivo { background: rgba(207, 228, 255, 0.12); border: 1px solid rgba(207, 228, 255, 0.3); color: #cfe4ff; }
 
 .cfg-badge-state {
   padding: 2px 6px;
@@ -3144,7 +3144,7 @@ a.card-go{text-decoration:none}
               <h4 style="margin:0; font-family:var(--f-display); color:var(--gold-lt); font-size:1.05rem; letter-spacing:0.04em; text-transform:uppercase;">
                 🛡️ Gestão de Usuários &amp; Permissões
               </h4>
-              <small style="color:var(--contrail-dim); font-size:0.75rem;">Aprovação de cadastros e concessão de níveis de acesso (Militar, Operador, Coordenador, Admin)</small>
+              <small style="color:var(--contrail-dim); font-size:0.75rem;">Aprovação de cadastros e concessão de níveis de acesso (Efetivo, Operador, Coordenador, Admin)</small>
             </div>
             <button type="button" class="cfg-btn sec" id="btn-refresh-usuarios-modal" style="padding:0.4rem 0.8rem; font-size:0.8rem;">
               🔄 Atualizar Lista
@@ -3162,7 +3162,7 @@ a.card-go{text-decoration:none}
             </select>
             <select id="cfg-filtro-perfil-user" class="cfg-input" style="flex:1; min-width:120px; padding:0.5rem 0.75rem; font-size:0.82rem; cursor:pointer;">
               <option value="todos">Perfil: Todos</option>
-              <option value="militar">Militar (Básico)</option>
+              <option value="militar">Efetivo</option>
               <option value="operador">Operador</option>
               <option value="coordenador">Coordenador</option>
               <option value="admin">Administrador</option>
@@ -5560,7 +5560,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span style="font-weight:700; color:#fff; font-size:1rem;">
                   ${escapeHtmlModal(profile?.posto_grad || '')} ${escapeHtmlModal(profile?.nome_guerra || profile?.nome_completo || user.email)}
                 </span>
-                <span class="cfg-badge-role ${escapeHtmlModal(perfilNome)}">${escapeHtmlModal(perfilNome.toUpperCase())}</span>
+                <span class="cfg-badge-role ${escapeHtmlModal(perfilNome)}">${escapeHtmlModal(perfilNome === 'militar' ? 'EFETIVO' : perfilNome.toUpperCase())}</span>
                 <span class="cfg-badge-state ${escapeHtmlModal(statusNome)}">${escapeHtmlModal(statusNome.toUpperCase())}</span>
               </div>
               <div style="font-size:0.78rem; color:var(--contrail-dim); margin-top:3px;">
@@ -5793,7 +5793,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (callerIsAdmin) {
         controlePerfil = `
           <select class="cfg-select-sm" onchange="window._alterarPerfilUserModal('${uId}', this.value)" title="Alterar privilégio (exclusivo Administrador)">
-            <option value="militar" ${perfil === 'militar' ? 'selected' : ''}>Militar</option>
+            <option value="militar" ${perfil === 'militar' || perfil === 'efetivo' ? 'selected' : ''}>Efetivo</option>
             <option value="operador" ${perfil === 'operador' ? 'selected' : ''}>Operador (Sec)</option>
             <option value="coordenador" ${perfil === 'coordenador' ? 'selected' : ''}>Coordenador</option>
             <option value="admin" ${perfil === 'admin' ? 'selected' : ''}>Admin</option>
@@ -5804,8 +5804,8 @@ document.addEventListener('DOMContentLoaded', () => {
       let botoesAcao = '';
       if (status === 'pendente') {
         botoesAcao = `
-          <button type="button" class="cfg-btn-sm success" onclick="window._aprovarUserModal('${uId}', 'militar')" title="Aprovar com acesso padrão militar">
-            ✓ Militar
+          <button type="button" class="cfg-btn-sm success" onclick="window._aprovarUserModal('${uId}', 'militar')" title="Aprovar com acesso padrão de Efetivo">
+            ✓ Efetivo
           </button>
           <button type="button" class="cfg-btn-sm primary" onclick="window._aprovarUserModal('${uId}', 'operador')" title="Aprovar com privilégio de Operador">
             ★ Operador
@@ -5838,7 +5838,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div style="flex:1; min-width:200px;">
             <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
               <span style="font-weight:700; color:#fff; font-size:0.88rem;">${gradExib} ${nomeExib}</span>
-              <span class="cfg-badge-role ${perfil}">${perfil.toUpperCase()}</span>
+              <span class="cfg-badge-role ${perfil}">${perfil === 'militar' || perfil === 'efetivo' ? 'EFETIVO' : perfil.toUpperCase()}</span>
               <span class="cfg-badge-state ${status}">${status.toUpperCase()}</span>
             </div>
             <div style="font-size:0.75rem; color:var(--contrail-dim); margin-top:2px;">
