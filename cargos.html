@@ -1864,7 +1864,9 @@
      ESTADO GLOBAL E CONSTANTES
      Base Central Unificada via Supabase (efetivo_pessoal) e AppConfig
      ═══════════════════════════════════════════════════════════════════ */
-  let sb = null;
+  let sb = (window.AppAuth && typeof window.AppAuth.getClient === 'function')
+    ? window.AppAuth.getClient()
+    : (window.sb || null);
   let listaEfetivo = [];
   let listaSecoes = [];
   let listaCatalogo = [];
@@ -1993,14 +1995,18 @@
       const authOk = await window.AppAuth.requireAuth({ redirect: true });
       if (!authOk) return;
       window.AppAuth.renderUserBar('#afa-topbar-placeholder');
+      if (typeof window.AppAuth.getClient === 'function') {
+        sb = window.AppAuth.getClient();
+        window.sb = sb;
+      }
     }
 
-    // Inicializar Supabase
-    if (window.supabase && typeof window.supabase.createClient === 'function') {
+    // Inicializar Supabase fallback apenas se não houver cliente do AppAuth
+    if (!sb && window.supabase && typeof window.supabase.createClient === 'function') {
       const url = window.SUPABASE_URL || 'https://sovrgsbdhdpxsaomspsp.supabase.co';
       const anon = window.SUPABASE_ANON || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvdnJnc2JkaGRweHNhb21zcHNwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMjMyOTksImV4cCI6MjEwMDg5OTI5OX0.Yn8fOSNndY-LnSOQ8FsYEgcAvZCo4djEd28rmHhjNqg';
       try {
-        sb = window.supabase.createClient(url, anon, { auth: { persistSession: false } });
+        sb = window.supabase.createClient(url, anon, { auth: { persistSession: true } });
         window.sb = sb;
       } catch(e) { console.warn('Supabase fallback:', e); }
     }
@@ -2056,6 +2062,10 @@
   }
 
   async function sincronizarSolicitacoesLocais() {
+    if (!sb && window.AppAuth && typeof window.AppAuth.getClient === 'function') {
+      sb = window.AppAuth.getClient();
+      window.sb = sb;
+    }
     if (!sb) return;
     try {
       const loc = JSON.parse(localStorage.getItem('cargos_solicitacoes_cache') || '[]');
@@ -4259,6 +4269,10 @@
 
     // Salvar no Supabase ou LocalStorage
     let salvo = false;
+    if (!sb && window.AppAuth && typeof window.AppAuth.getClient === 'function') {
+      sb = window.AppAuth.getClient();
+      window.sb = sb;
+    }
     if (sb) {
       try {
         const { data, error } = await sb.from('cargos_solicitacoes').insert([payload]).select();
@@ -4619,20 +4633,36 @@
   }
 
   async function carregarSolicitacoes() {
+    if (!sb && window.AppAuth && typeof window.AppAuth.getClient === 'function') {
+      sb = window.AppAuth.getClient();
+      window.sb = sb;
+    }
     let remotas = null;
     if (sb) {
       try {
         const { data, error } = await sb.from('cargos_solicitacoes').select('*').order('created_at', { ascending: false });
-        if (!error && data) {
+        if (!error && Array.isArray(data)) {
           remotas = data;
-          listaSolicitacoes = data;
-          localStorage.setItem('cargos_solicitacoes_cache', JSON.stringify(data));
+          if (data.length > 0) {
+            listaSolicitacoes = data;
+            localStorage.setItem('cargos_solicitacoes_cache', JSON.stringify(data));
+          } else {
+            // Se retornou vazio do banco, preserva o cache local existente caso haja itens não sincronizados
+            const cached = JSON.parse(localStorage.getItem('cargos_solicitacoes_cache') || '[]');
+            if (cached && cached.length > 0) {
+              listaSolicitacoes = cached;
+            } else {
+              listaSolicitacoes = [];
+            }
+          }
+        } else if (error) {
+          console.warn('Erro ao carregar solicitações do Supabase:', error);
         }
       } catch(e){
         console.warn('Erro ao carregar solicitações do Supabase:', e);
       }
     }
-    if (!remotas) {
+    if (remotas === null) {
       try {
         listaSolicitacoes = JSON.parse(localStorage.getItem('cargos_solicitacoes_cache') || '[]');
       } catch(e){}
